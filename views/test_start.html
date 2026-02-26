@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tes Psikologi - Undangan</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="card shadow-sm">
+            <div class="card-header text-center">
+              <h5 class="mb-0">{{.Title}}</h5>
+            </div>
+            <div class="card-body">
+              <p class="mb-3">
+                {{.Message}}
+              </p>
+
+              {{if .Success}}
+              <div class="alert alert-success mb-3">
+                Token valid. Klik tombol di bawah untuk memulai tes IST.
+              </div>
+              <a href="/test/ist/start" class="btn btn-primary w-100 mb-2">Mulai Test IST</a>
+              <a href="/dashboard" class="btn btn-outline-secondary w-100">Kembali ke Dashboard</a>
+              {{else}}
+              <div class="alert alert-warning mb-3">
+                Jika Anda merasa ini kesalahan, silakan hubungi admin atau konselor untuk pemeriksaan lebih lanjut.
+              </div>
+              <a href="/dashboard" class="btn btn-outline-secondary w-100">Kembali ke Dashboard</a>
+              {{end}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

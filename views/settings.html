@@ -1,0 +1,539 @@
+<!doctype html>
+
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Pengaturan Akun - Psychee Wellness</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+
+    <!-- Core CSS -->
+    <!-- build:css assets/vendor/css/theme.css  -->
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <!-- endbuild -->
+
+    <!-- Page CSS -->
+
+    <!-- Helpers -->
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+
+    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+
+    <script src="/static/sneat/assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- Menu -->
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <i class="bx bx-chevron-left d-block d-xl-none align-middle"></i>
+            </a>
+          </div>
+
+          <div class="menu-divider mt-0"></div>
+
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+            <!-- Dashboard -->
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+
+            <!-- Layanan -->
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Layanan</span>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Tes Psikologi</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chat"></i>
+                <div class="text-truncate">Konseling</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-history"></i>
+                <div class="text-truncate">Riwayat</div>
+              </a>
+            </li>
+
+            <!-- Akun -->
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Akun</span>
+            </li>
+            <li class="menu-item">
+              <a href="/profile" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user"></i>
+                <div class="text-truncate">Profil</div>
+              </a>
+            </li>
+            <li class="menu-item active">
+              <a href="/settings" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <div class="text-truncate">Pengaturan</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+
+          <nav
+            class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="icon-base bx bx-menu icon-md"></i>
+              </a>
+            </div>
+
+            <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+              <!-- Search -->
+              <div class="navbar-nav align-items-center me-auto">
+                <div class="nav-item d-flex align-items-center">
+                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
+                  <input
+                    type="text"
+                    class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
+                    placeholder="Cari..."
+                    aria-label="Cari..." />
+                </div>
+              </div>
+              <!-- /Search -->
+
+              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a
+                    class="nav-link dropdown-toggle hide-arrow p-0"
+                    href="javascript:void(0);"
+                    data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="navbarAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="dropdownAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <h6 class="mb-0" id="dropdownName">Pengguna</h6>
+                            <small class="text-body-secondary" id="dropdownEmail">Member</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider my-1"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/profile">
+                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/settings">
+                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Pengaturan</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/notifications">
+                        <i class="icon-base bx bx-bell icon-md me-3"></i><span>Notifikasi</span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider my-1"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" onclick="handleLogout()">
+                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <!--/ User -->
+              </ul>
+            </div>
+          </nav>
+
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <h4 class="fw-bold py-3 mb-4">
+                <span class="text-muted fw-light">Akun /</span> Pengaturan Notifikasi
+              </h4>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="card">
+                    <!-- Notifications -->
+                    <div class="card-body">
+                      <h5 class="mb-1">Perangkat Terkini</h5>
+                      <span class="card-subtitle"
+                        >Kami memerlukan izin dari browser Anda untuk menampilkan notifikasi.
+                        <span class="notificationRequest" style="cursor: pointer;"
+                          ><span class="text-primary" onclick="requestNotificationPermission()">Minta Izin</span></span
+                        ></span
+                      >
+                      <div class="error"></div>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table">
+                        <thead>
+                          <tr>
+                            <th class="text-nowrap">Tipe</th>
+                            <th class="text-nowrap text-center">Email</th>
+                            <th class="text-nowrap text-center">Browser</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="text-nowrap text-heading">Baru untuk Anda</td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifNewForYouEmail" />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifNewForYouBrowser" />
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="text-nowrap text-heading">Aktivitas Akun</td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifActivityEmail" />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifActivityBrowser" />
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="text-nowrap text-heading">Browser baru digunakan untuk masuk</td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifBrowserLoginEmail" />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifBrowserLoginBrowser" />
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="text-nowrap text-heading">Perangkat baru terhubung</td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifDeviceLinkEmail" />
+                              </div>
+                            </td>
+                            <td>
+                              <div class="form-check mb-0 d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" type="checkbox" id="notifDeviceLinkBrowser" />
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="card-body">
+                      <h6 class="text-body mb-6">Kapan kami harus mengirim notifikasi kepada Anda?</h6>
+                      <form id="settingsForm" onsubmit="handleSettingsSubmit(event)">
+                        <div class="row">
+                          <div class="col-sm-6">
+                            <select id="sendNotification" class="form-select" name="sendNotification">
+                              <option value="online">Hanya saat saya online</option>
+                              <option value="always">Kapan saja</option>
+                              <option value="never">Jangan kirim</option>
+                            </select>
+                          </div>
+                          <div class="mt-6">
+                            <button type="submit" class="btn btn-primary me-3">Simpan Perubahan</button>
+                            <button type="reset" class="btn btn-outline-secondary" onclick="loadSettings()">Batal</button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                    <!-- /Notifications -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- / Content -->
+
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+
+    <!-- Main JS -->
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Page JS -->
+    <script>
+      // Load user profile data
+      async function loadUserProfile() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) {
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            return;
+          }
+          const data = await response.json();
+          if (data.success && data.data) {
+            const user = data.data;
+            
+            // Update avatar
+            if (user.foto_profil) {
+              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
+              document.getElementById('navbarAvatar').src = avatarUrl;
+              document.getElementById('dropdownAvatar').src = avatarUrl;
+            }
+            
+            // Update dropdown info
+            document.getElementById('dropdownName').textContent = user.nama_lengkap || 'Pengguna';
+            document.getElementById('dropdownEmail').textContent = user.email || 'Member';
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
+      }
+
+      // Load settings data
+      async function loadSettings() {
+        try {
+          const response = await fetch('/api/settings');
+          if (!response.ok) {
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            throw new Error('Gagal memuat pengaturan');
+          }
+          const data = await response.json();
+          if (data.success && data.data) {
+            const settings = data.data;
+            
+            // Update checkboxes for "New for you"
+            document.getElementById('notifNewForYouEmail').checked = settings.notif_new_for_you_email || false;
+            document.getElementById('notifNewForYouBrowser').checked = settings.notif_new_for_you_browser || false;
+            
+            // Update checkboxes for "Account activity"
+            document.getElementById('notifActivityEmail').checked = settings.notif_activity_email || false;
+            document.getElementById('notifActivityBrowser').checked = settings.notif_activity_browser || false;
+            
+            // Update checkboxes for "Browser login"
+            document.getElementById('notifBrowserLoginEmail').checked = settings.notif_browser_login_email || false;
+            document.getElementById('notifBrowserLoginBrowser').checked = settings.notif_browser_login_browser || false;
+            
+            // Update checkboxes for "Device link"
+            document.getElementById('notifDeviceLinkEmail').checked = settings.notif_device_link_email || false;
+            document.getElementById('notifDeviceLinkBrowser').checked = settings.notif_device_link_browser || false;
+            
+            // Update notification timing
+            document.getElementById('sendNotification').value = settings.notification_timing || 'online';
+          }
+        } catch (error) {
+          console.error('Error loading settings:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Gagal memuat pengaturan'
+          });
+        }
+      }
+
+      // Handle settings form submission
+      async function handleSettingsSubmit(event) {
+        event.preventDefault();
+        
+        const data = {
+          notif_new_for_you_email: document.getElementById('notifNewForYouEmail').checked,
+          notif_new_for_you_browser: document.getElementById('notifNewForYouBrowser').checked,
+          notif_activity_email: document.getElementById('notifActivityEmail').checked,
+          notif_activity_browser: document.getElementById('notifActivityBrowser').checked,
+          notif_browser_login_email: document.getElementById('notifBrowserLoginEmail').checked,
+          notif_browser_login_browser: document.getElementById('notifBrowserLoginBrowser').checked,
+          notif_device_link_email: document.getElementById('notifDeviceLinkEmail').checked,
+          notif_device_link_browser: document.getElementById('notifDeviceLinkBrowser').checked,
+          notification_timing: document.getElementById('sendNotification').value
+        };
+
+        try {
+          const response = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+          
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Pengaturan berhasil disimpan',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: result.message || 'Gagal menyimpan pengaturan'
+            });
+          }
+        } catch (error) {
+          console.error('Error updating settings:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Terjadi kesalahan saat menyimpan pengaturan'
+          });
+        }
+      }
+
+      // Request notification permission
+      function requestNotificationPermission() {
+        if ('Notification' in window) {
+          Notification.requestPermission().then(function(permission) {
+            if (permission === 'granted') {
+              Swal.fire({
+                icon: 'success',
+                title: 'Izin Diberikan',
+                text: 'Notifikasi browser telah diaktifkan'
+              });
+            } else {
+              Swal.fire({
+                icon: 'info',
+                title: 'Izin Ditolak',
+                text: 'Anda dapat mengaktifkan notifikasi melalui pengaturan browser'
+              });
+            }
+          });
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Tidak Didukung',
+            text: 'Browser Anda tidak mendukung notifikasi'
+          });
+        }
+      }
+
+      // Handle logout
+      async function handleLogout() {
+        try {
+          const response = await fetch('/api/auth/logout', {
+            method: 'POST'
+          });
+          const result = await response.json();
+          if (result.success) {
+            window.location.href = '/login';
+          }
+        } catch (error) {
+          console.error('Error logging out:', error);
+          window.location.href = '/login';
+        }
+      }
+
+      // Load data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadUserProfile();
+        loadSettings();
+      });
+    </script>
+  </body>
+</html>

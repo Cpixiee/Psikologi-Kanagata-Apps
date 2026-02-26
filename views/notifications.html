@@ -1,0 +1,453 @@
+<!doctype html>
+
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Notifikasi - Psychee Wellness</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <!-- Helpers -->
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <i class="bx bx-chevron-left d-block d-xl-none align-middle"></i>
+            </a>
+          </div>
+
+          <div class="menu-divider mt-0"></div>
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+            <!-- Dashboard -->
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+
+            <!-- Layanan -->
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Layanan</span>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Tes Psikologi</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chat"></i>
+                <div class="text-truncate">Konseling</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-history"></i>
+                <div class="text-truncate">Riwayat</div>
+              </a>
+            </li>
+            
+            <!-- Akun -->
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Akun</span>
+            </li>
+            <li class="menu-item">
+              <a href="/profile" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user"></i>
+                <div class="text-truncate">Profil</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="/settings" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <div class="text-truncate">Pengaturan</div>
+              </a>
+            </li>
+            <li class="menu-item active">
+              <a href="/notifications" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-bell"></i>
+                <div class="text-truncate">Notifikasi</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav
+            class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="icon-base bx bx-menu icon-md"></i>
+              </a>
+            </div>
+
+            <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+              <!-- Search -->
+              <div class="navbar-nav align-items-center me-auto">
+                <div class="nav-item d-flex align-items-center">
+                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
+                  <input
+                    type="text"
+                    class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
+                    placeholder="Cari..."
+                    aria-label="Cari..." />
+                </div>
+              </div>
+              <!-- /Search -->
+
+              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a
+                    class="nav-link dropdown-toggle hide-arrow p-0"
+                    href="javascript:void(0);"
+                    data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="navbarAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="dropdownAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <h6 class="mb-0" id="dropdownName">Pengguna</h6>
+                            <small class="text-body-secondary" id="dropdownEmail">Member</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider my-1"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/profile">
+                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/settings">
+                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Pengaturan</span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider my-1"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" onclick="handleLogout()">
+                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <!--/ User -->
+              </ul>
+            </div>
+          </nav>
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="row">
+                <div class="col-12">
+                  <!-- Since you've been gone -->
+                  <div class="card mb-4">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center mb-3">
+                        <i class="icon-base bx bx-megaphone icon-md me-2"></i>
+                        <h4 class="mb-0 fw-bold">Sejak Anda Terakhir Masuk</h4>
+                      </div>
+                      <p class="text-muted mb-0">Fitur baru, perbaikan bug, dan konten yang mungkin Anda lewatkan.</p>
+                    </div>
+                  </div>
+
+                  <!-- Notifications List -->
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0">Notifikasi</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">
+                          Tandai Semua Sudah Dibaca
+                        </button>
+                      </div>
+                      <div id="notificationsList" style="max-height: 600px; overflow-y: auto;">
+                        <!-- Notifications will be loaded here -->
+                        <div class="text-center py-5">
+                          <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Memuat...</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- / Content -->
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <!-- Page JS -->
+    <script>
+      // Load user profile data
+      async function loadUserProfile() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) {
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            return;
+          }
+          const data = await response.json();
+          if (data.success && data.data) {
+            const user = data.data;
+            
+            // Update avatar
+            if (user.foto_profil) {
+              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
+              document.getElementById('navbarAvatar').src = avatarUrl;
+              document.getElementById('dropdownAvatar').src = avatarUrl;
+            }
+            
+            // Update dropdown info
+            document.getElementById('dropdownName').textContent = user.nama_lengkap || 'Pengguna';
+            document.getElementById('dropdownEmail').textContent = user.email || 'Member';
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
+      }
+
+      // Get notification type label
+      function getNotificationTypeLabel(type) {
+        const labels = {
+          'new_for_you': 'Baru untuk Anda',
+          'activity': 'Aktivitas Akun',
+          'browser_login': 'Browser Login',
+          'device_link': 'Perangkat Baru'
+        };
+        return labels[type] || type;
+      }
+
+      // Get notification type badge color
+      function getNotificationTypeBadge(type) {
+        const badges = {
+          'new_for_you': 'bg-success',
+          'activity': 'bg-info',
+          'browser_login': 'bg-warning',
+          'device_link': 'bg-danger'
+        };
+        return badges[type] || 'bg-secondary';
+      }
+
+      // Format date
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+      }
+
+      // Load notifications
+      async function loadNotifications() {
+        try {
+          const response = await fetch('/api/notifications');
+          if (!response.ok) {
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            throw new Error('Gagal memuat notifikasi');
+          }
+          const data = await response.json();
+          const notificationsList = document.getElementById('notificationsList');
+          
+          if (data.success && data.data && data.data.length > 0) {
+            notificationsList.innerHTML = '';
+            data.data.forEach(notif => {
+              const card = document.createElement('div');
+              card.className = `card mb-3 ${notif.is_read ? '' : 'border-primary'}`;
+              card.style.cursor = 'pointer';
+              card.onclick = () => markAsRead(notif.id);
+              
+              card.innerHTML = `
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center mb-2">
+                        <h6 class="mb-0 me-2">${notif.title}</h6>
+                        <span class="badge ${getNotificationTypeBadge(notif.type)} text-white">${getNotificationTypeLabel(notif.type)}</span>
+                      </div>
+                      <p class="text-muted mb-2">${notif.message}</p>
+                      <small class="text-muted">${formatDate(notif.created_at)}</small>
+                    </div>
+                    ${!notif.is_read ? '<span class="badge bg-primary rounded-pill">Baru</span>' : ''}
+                  </div>
+                </div>
+              `;
+              notificationsList.appendChild(card);
+            });
+          } else {
+            notificationsList.innerHTML = `
+              <div class="text-center py-5">
+                <i class="icon-base bx bx-bell-off icon-xl text-muted mb-3"></i>
+                <p class="text-muted">Tidak ada notifikasi</p>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error('Error loading notifications:', error);
+          document.getElementById('notificationsList').innerHTML = `
+            <div class="alert alert-danger">
+              <i class="icon-base bx bx-error-circle me-2"></i>
+              Gagal memuat notifikasi. Silakan refresh halaman.
+            </div>
+          `;
+        }
+      }
+
+      // Mark notification as read
+      async function markAsRead(notificationId) {
+        try {
+          const response = await fetch(`/api/notifications/${notificationId}/read`, {
+            method: 'PUT'
+          });
+          if (response.ok) {
+            loadNotifications();
+          }
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+        }
+      }
+
+      // Mark all as read
+      async function markAllAsRead() {
+        try {
+          const response = await fetch('/api/notifications/read-all', {
+            method: 'PUT'
+          });
+          if (response.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Semua notifikasi ditandai sebagai sudah dibaca',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            loadNotifications();
+          }
+        } catch (error) {
+          console.error('Error marking all as read:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Gagal memperbarui notifikasi'
+          });
+        }
+      }
+
+      // Handle logout
+      async function handleLogout() {
+        try {
+          const response = await fetch('/api/auth/logout', {
+            method: 'POST'
+          });
+          const result = await response.json();
+          if (result.success) {
+            window.location.href = '/login';
+          }
+        } catch (error) {
+          console.error('Error logging out:', error);
+          window.location.href = '/login';
+        }
+      }
+
+      // Load data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadUserProfile();
+        loadNotifications();
+        
+        // Auto-refresh notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+      });
+    </script>
+  </body>
+</html>

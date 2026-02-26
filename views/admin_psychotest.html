@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Admin Tes Psikologi - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- Sidebar bisa di-reuse dari settings.html, disederhanakan di sini -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+          </div>
+          <div class="menu-inner-shadow"></div>
+          <ul class="menu-inner py-1">
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Admin</span>
+            </li>
+            <li class="menu-item active">
+              <a href="/admin/psychotest" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Tes Psikologi</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 class="fw-bold mb-1">Pengelolaan Tes Psikologi</h4>
+                  <p class="mb-0 text-muted">Buat sesi tes, undang peserta, dan pantau hasil IST & Holland.</p>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-4">
+                  <div class="card mb-4">
+                    <div class="card-header">
+                      <h5 class="mb-0">Buat Batch Tes Baru</h5>
+                    </div>
+                    <div class="card-body">
+                      <form id="batchForm" onsubmit="handleCreateBatch(event)">
+                        <div class="mb-3">
+                          <label class="form-label" for="batchName">Nama Batch</label>
+                          <input type="text" id="batchName" class="form-control" placeholder="Tes IQ IST - Sekolah A Gelombang 1" required />
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="batchInstitution">Institusi / Sekolah</label>
+                          <input type="text" id="batchInstitution" class="form-control" placeholder="Sekolah A" required />
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Jenis Tes</label>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableIST" checked />
+                            <label class="form-check-label" for="enableIST">IST (IQ)</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableHolland" />
+                            <label class="form-check-label" for="enableHolland">Holland (RIASEC)</label>
+                          </div>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Tujuan Pemeriksaan</label>
+                          <select id="purposeCategory" class="form-select mb-2">
+                            <option value="education">Pendidikan</option>
+                            <option value="career">Karier</option>
+                            <option value="other">Lainnya</option>
+                          </select>
+                          <select id="purposeDetail" class="form-select">
+                            <option value="sekolah">Seleksi Masuk Sekolah</option>
+                            <option value="identifikasi_kecerdasan">Identifikasi Kecerdasan</option>
+                            <option value="menentukan_jurusan">Menentukan Jurusan</option>
+                            <option value="pengembangan_potensi">Pengembangan Potensi</option>
+                            <option value="penempatan_kerja">Penempatan Kerja</option>
+                            <option value="lainnya">Lainnya</option>
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Kirim Undangan Melalui</label>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendViaEmail" checked />
+                            <label class="form-check-label" for="sendViaEmail">Email</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendViaBrowser" />
+                            <label class="form-check-label" for="sendViaBrowser">Browser / Notifikasi</label>
+                          </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Batch</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-lg-8">
+                  <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <div class="d-flex align-items-center">
+                        <h5 class="mb-0 me-4">Daftar Batch Tes</h5>
+                        <ul class="nav nav-pills card-header-pills mb-0">
+                          <li class="nav-item">
+                            <a class="nav-link active" id="tabAktif" href="javascript:void(0)" onclick="switchBatchView('active')">Aktif</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="tabArsip" href="javascript:void(0)" onclick="switchBatchView('archived')">Arsip</a>
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <div id="batchSettingsControls">
+                          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleBatchSettingsMode()">
+                            Settings
+                          </button>
+                        </div>
+                        <div id="batchBulkControls" class="d-none d-flex align-items-center">
+                          <select id="batchBulkAction" class="form-select form-select-sm d-inline-block w-auto me-2">
+                            <option value="">Aksi batch...</option>
+                            <option value="archive">Arsipkan yang dipilih</option>
+                            <option value="delete">Hapus yang dipilih</option>
+                          </select>
+                          <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="handleBatchBulkActions()">
+                            Oke
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleBatchSettingsMode()">
+                            Tutup
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-striped mb-0">
+                        <thead>
+                          <tr>
+                            <th id="batchSelectHeader" style="width: 40px;" class="d-none">
+                              <input type="checkbox" class="form-check-input" id="selectAllBatches" />
+                            </th>
+                            <th>Batch</th>
+                            <th>Institusi</th>
+                            <th>Jenis Tes</th>
+                            <th>Tujuan</th>
+                            <th>Dibuat</th>
+                            <th>Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody id="batchTableBody">
+                          <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Memuat data...</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal detail hasil batch -->
+              <div class="modal fade" id="batchResultsModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="batchResultsTitle">Hasil Batch</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <p class="mb-0 text-muted">Undang peserta dan lihat ringkasan hasil IST & Holland.</p>
+                        <button class="btn btn-outline-primary btn-sm" id="exportAnswersBtn">
+                          <i class="bx bx-download me-1"></i> Export Jawaban (Excel)
+                        </button>
+                      </div>
+
+                      <!-- Undang Peserta -->
+                      <div class="mb-4 p-3 border rounded bg-light">
+                        <h6 class="mb-2">Undang Peserta</h6>
+                        <p class="text-muted mb-2">
+                          Ketik nama atau email untuk mencari peserta yang sudah terdaftar, lalu klik untuk menambah ke daftar undangan.
+                          Anda juga bisa tempel email manual (hanya yang terdaftar di sistem yang akan diproses).
+                        </p>
+                        <div class="mb-2 position-relative">
+                          <input
+                            type="text"
+                            id="inviteSearch"
+                            class="form-control"
+                            placeholder="Cari nama atau email (misal: rha...)"
+                            autocomplete="off" />
+                          <div
+                            id="inviteSuggestions"
+                            class="list-group position-absolute w-100"
+                            style="z-index: 1056; max-height: 200px; overflow-y: auto; display: none;"></div>
+                        </div>
+                        <textarea
+                          id="inviteEmails"
+                          class="form-control mb-2"
+                          rows="3"
+                          placeholder="contoh1@sekolah.sch.id&#10;contoh2@sekolah.sch.id"></textarea>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <small class="text-muted">Hanya email yang terdaftar yang akan dibuatkan undangan. Email lain akan ditandai sebagai tidak valid.</small>
+                          <button type="button" class="btn btn-sm btn-primary" onclick="handleCreateInvitations()">
+                            Buat Undangan
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <thead>
+                            <tr>
+                              <th>Email</th>
+                              <th>Status</th>
+                              <th>IST - IQ</th>
+                              <th>IST - Total SS</th>
+                              <th>Holland</th>
+                              <th>Dibuat</th>
+                            </tr>
+                          </thead>
+                          <tbody id="batchResultsBody">
+                            <tr>
+                              <td colspan="6" class="text-center text-muted py-4">Belum ada data.</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      let currentBatchId = null;
+      let currentBatchName = '';
+      let batchSettingsMode = false;
+      let batchViewMode = 'active'; // active | archived
+
+      function switchBatchView(mode) {
+        batchViewMode = mode;
+        const tabAktif = document.getElementById('tabAktif');
+        const tabArsip = document.getElementById('tabArsip');
+        const bulkSelect = document.getElementById('batchBulkAction');
+        if (mode === 'active') {
+          if (tabAktif) { tabAktif.classList.add('active'); }
+          if (tabArsip) { tabArsip.classList.remove('active'); }
+          if (bulkSelect) {
+            bulkSelect.innerHTML = '<option value="">Aksi batch...</option><option value="archive">Arsipkan yang dipilih</option><option value="delete">Hapus yang dipilih</option>';
+          }
+        } else {
+          if (tabAktif) { tabAktif.classList.remove('active'); }
+          if (tabArsip) { tabArsip.classList.add('active'); }
+          if (bulkSelect) {
+            bulkSelect.innerHTML = '<option value="">Aksi batch...</option><option value="restore">Kembalikan ke Aktif</option><option value="delete">Hapus yang dipilih</option>';
+          }
+        }
+        loadBatches();
+      }
+
+      async function loadBatches() {
+        const tbody = document.getElementById('batchTableBody');
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>';
+        const statusParam = batchViewMode === 'archived' ? '?status=archived' : '?status=active';
+        try {
+          const res = await fetch('/api/admin/test-batches' + statusParam);
+          if (!res.ok) throw new Error('Gagal memuat batch');
+          const data = await res.json();
+          if (!data.success) {
+            throw new Error(data.message || 'Gagal memuat batch');
+          }
+
+          const allBatches = Array.isArray(data.data) ? data.data : [];
+          const batches = allBatches.filter(function (batch) {
+            if (batchViewMode === 'archived') {
+              return batch.status === 'archived';
+            }
+            return batch.status === 'active';
+          });
+
+          if (batches.length === 0) {
+            const emptyMsg = batchViewMode === 'archived' ? 'Belum ada batch di arsip.' : 'Belum ada batch tes.';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">' + emptyMsg + '</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = '';
+          batches.forEach(function (batch) {
+            const tr = document.createElement('tr');
+            const safeName = batch.name ? batch.name.replace(/'/g, "\\'") : '';
+            const safeInst = batch.institution ? batch.institution.replace(/'/g, "\\'") : '';
+            tr.innerHTML = `
+              <td class="batch-select-cell d-none" style="width: 40px;">
+                <input type="checkbox" class="form-check-input batch-checkbox" data-id="${batch.id}" />
+              </td>
+              <td>${batch.name}</td>
+              <td>${batch.institution}</td>
+              <td>
+                ${batch.enable_ist ? '<span class="badge bg-label-primary me-1">IST</span>' : ''}
+                ${batch.enable_holland ? '<span class="badge bg-label-success">Holland</span>' : ''}
+              </td>
+              <td><small>${batch.purpose_category} &mdash; ${batch.purpose_detail}</small></td>
+              <td><small>${new Date(batch.created_at).toLocaleString('id-ID')}</small></td>
+              <td>
+                <div class="batch-view-btn">
+                  <button type="button" class="btn btn-outline-primary btn-sm" onclick="openBatchResults(${batch.id}, '${safeName}')">
+                    Lihat Hasil
+                  </button>
+                </div>
+                <div class="batch-settings-actions d-none">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary" title="Edit" onclick="editBatch(${batch.id}, '${safeName}', '${safeInst}')">
+                      <i class="bx bx-pencil"></i>
+                    </button>
+                    ${batchViewMode === 'archived'
+                      ? '<button type="button" class="btn btn-outline-success" title="Kembalikan ke Aktif" onclick="restoreSingleBatch(' + batch.id + ')"><i class="bx bx-archive-out"></i></button>'
+                      : '<button type="button" class="btn btn-outline-warning" title="Arsipkan" onclick="archiveSingleBatch(' + batch.id + ')"><i class="bx bx-archive"></i></button>'
+                    }
+                    <button type="button" class="btn btn-outline-danger" title="Hapus" onclick="deleteSingleBatch(${batch.id})">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          applyBatchSettingsMode();
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
+        }
+      }
+
+      async function handleCreateBatch(event) {
+        event.preventDefault();
+        const payload = {
+          name: document.getElementById('batchName').value,
+          institution: document.getElementById('batchInstitution').value,
+          enable_ist: document.getElementById('enableIST').checked,
+          enable_holland: document.getElementById('enableHolland').checked,
+          purpose_category: document.getElementById('purposeCategory').value,
+          purpose_detail: document.getElementById('purposeDetail').value,
+          send_via_email: document.getElementById('sendViaEmail').checked,
+          send_via_browser: document.getElementById('sendViaBrowser').checked
+        };
+
+        try {
+          const res = await fetch('/api/admin/test-batches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal membuat batch');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Batch tes berhasil dibuat', timer: 2000, showConfirmButton: false });
+          document.getElementById('batchForm').reset();
+          document.getElementById('enableIST').checked = true;
+          document.getElementById('sendViaEmail').checked = true;
+          loadBatches();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan' });
+        }
+      }
+
+      function toggleSelectAllBatches(source) {
+        const checkboxes = document.querySelectorAll('.batch-checkbox');
+        checkboxes.forEach(function (cb) {
+          cb.checked = source.checked;
+        });
+      }
+
+      function toggleBatchSettingsMode() {
+        batchSettingsMode = !batchSettingsMode;
+        applyBatchSettingsMode();
+      }
+
+      function applyBatchSettingsMode() {
+        const bulkControls = document.getElementById('batchBulkControls');
+        const settingsControls = document.getElementById('batchSettingsControls');
+        const headerSelect = document.getElementById('batchSelectHeader');
+        const rowSelectCells = document.querySelectorAll('.batch-select-cell');
+        const viewBtns = document.querySelectorAll('.batch-view-btn');
+        const settingsActions = document.querySelectorAll('.batch-settings-actions');
+
+        if (batchSettingsMode) {
+          if (bulkControls) bulkControls.classList.remove('d-none');
+          if (settingsControls) settingsControls.classList.add('d-none');
+          if (headerSelect) headerSelect.classList.remove('d-none');
+          rowSelectCells.forEach(function (cell) { cell.classList.remove('d-none'); });
+          viewBtns.forEach(function (el) { el.classList.add('d-none'); });
+          settingsActions.forEach(function (el) { el.classList.remove('d-none'); });
+        } else {
+          if (bulkControls) bulkControls.classList.add('d-none');
+          if (settingsControls) settingsControls.classList.remove('d-none');
+          if (headerSelect) headerSelect.classList.add('d-none');
+          rowSelectCells.forEach(function (cell) { cell.classList.add('d-none'); });
+          viewBtns.forEach(function (el) { el.classList.remove('d-none'); });
+          settingsActions.forEach(function (el) { el.classList.add('d-none'); });
+
+          const selectAll = document.getElementById('selectAllBatches');
+          if (selectAll) selectAll.checked = false;
+          const checkboxes = document.querySelectorAll('.batch-checkbox');
+          checkboxes.forEach(function (cb) { cb.checked = false; });
+        }
+      }
+
+      async function editBatch(id, currentName, currentInstitution) {
+        const { value: formValues } = await Swal.fire({
+          title: 'Edit Batch Tes',
+          html:
+            '<div class="mb-3 text-start"><label class="form-label">Nama Batch</label>' +
+            '<input id="swal-batch-name" class="form-control" value="' + (currentName || '') + '"></div>' +
+            '<div class="mb-3 text-start"><label class="form-label">Institusi / Sekolah</label>' +
+            '<input id="swal-batch-inst" class="form-control" value="' + (currentInstitution || '') + '"></div>',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Simpan',
+          cancelButtonText: 'Batal',
+          preConfirm: () => {
+            const name = document.getElementById('swal-batch-name').value.trim();
+            const inst = document.getElementById('swal-batch-inst').value.trim();
+            if (!name || !inst) {
+              Swal.showValidationMessage('Nama batch dan institusi wajib diisi');
+              return false;
+            }
+            return { name: name, institution: inst };
+          }
+        });
+
+        if (!formValues) return;
+
+        try {
+          const res = await fetch('/api/admin/test-batches/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formValues)
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal memperbarui batch');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Batch berhasil diperbarui', timer: 2000, showConfirmButton: false });
+          await loadBatches();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat memperbarui batch' });
+        }
+      }
+
+      async function archiveSingleBatch(id) {
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Arsipkan batch ini?',
+          text: 'Batch tidak akan dihapus, hanya disembunyikan dari penggunaan aktif.',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, arsipkan',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-batches/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'archived' })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal mengarsipkan batch');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Batch diarsipkan', timer: 2000, showConfirmButton: false });
+          switchBatchView('archived');
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat mengarsipkan batch' });
+        }
+      }
+
+      async function restoreSingleBatch(id) {
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Kembalikan batch ke aktif?',
+          text: 'Batch akan muncul kembali di daftar aktif.',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, kembalikan',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-batches/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'active' })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal mengembalikan batch');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Batch dikembalikan ke aktif', timer: 2000, showConfirmButton: false });
+          await loadBatches();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat mengembalikan batch' });
+        }
+      }
+
+      async function deleteSingleBatch(id) {
+        const confirm = await Swal.fire({
+          icon: 'warning',
+          title: 'Hapus batch ini?',
+          text: 'Semua undangan dan hasil terkait juga akan dihapus. Tindakan ini tidak bisa dibatalkan.',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, hapus',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-batches/' + id, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menghapus batch');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Batch dihapus', timer: 2000, showConfirmButton: false });
+          await loadBatches();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat menghapus batch' });
+        }
+      }
+
+      async function handleBatchBulkActions() {
+        const action = document.getElementById('batchBulkAction').value;
+        if (!action) {
+          Swal.fire({ icon: 'info', title: 'Pilih aksi', text: 'Silakan pilih aksi batch terlebih dahulu.' });
+          return;
+        }
+        const checkboxes = document.querySelectorAll('.batch-checkbox:checked');
+        const ids = Array.prototype.map.call(checkboxes, function (cb) { return parseInt(cb.getAttribute('data-id'), 10); }).filter(Boolean);
+        if (ids.length === 0) {
+          Swal.fire({ icon: 'info', title: 'Tidak ada yang dipilih', text: 'Centang minimal satu batch terlebih dahulu.' });
+          return;
+        }
+
+        const actionLabels = { archive: 'Arsipkan', restore: 'Kembalikan ke Aktif', delete: 'Hapus' };
+        const actionLabel = actionLabels[action] || action;
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Konfirmasi aksi batch',
+          text: 'Anda akan menerapkan aksi "' + actionLabel + '" ke ' + ids.length + ' batch. Lanjutkan?',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, lanjutkan',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-batches/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action, ids: ids })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menjalankan aksi batch');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Aksi batch berhasil dijalankan', timer: 2000, showConfirmButton: false });
+          await loadBatches();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat aksi batch' });
+        }
+      }
+
+      async function openBatchResults(batchId, batchName) {
+        console.log('openBatchResults called for batch', batchId);
+        currentBatchId = batchId;
+        currentBatchName = batchName;
+        document.getElementById('batchResultsTitle').textContent = 'Hasil Batch - ' + batchName;
+        const tbody = document.getElementById('batchResultsBody');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Memuat data...</td></tr>';
+
+        // Tampilkan modal DULU supaya selalu muncul, data menyusul
+        const modalEl = document.getElementById('batchResultsModal');
+        try {
+          if (window.bootstrap && bootstrap.Modal) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+          } else if (window.$ && typeof $('#batchResultsModal').modal === 'function') {
+            $('#batchResultsModal').modal('show');
+          } else {
+            modalEl.classList.add('show');
+            modalEl.style.display = 'block';
+            modalEl.removeAttribute('aria-hidden');
+          }
+        } catch (e) {
+          console.error('Gagal menampilkan modal hasil batch:', e);
+        }
+
+        // Setelah modal tampil, baru load data hasil/undangan
+        try {
+          const res = await fetch('/api/admin/test-batches/' + batchId + '/results');
+          if (!res.ok) throw new Error('Gagal memuat hasil');
+          const data = await res.json();
+
+          if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = '';
+          data.data.forEach(function (row) {
+            const ist = row.ist_result;
+            const holland = row.holland_result;
+            const inv = row.invitation;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${inv.email}</td>
+              <td><small>${inv.status}</small></td>
+              <td>${ist ? ist.iq + ' (' + ist.iq_category + ')' : '<span class="text-muted">-</span>'}</td>
+              <td>${ist ? ist.total_standard_score : '<span class="text-muted">-</span>'}</td>
+              <td>${holland ? holland.code : '<span class="text-muted">-</span>'}</td>
+              <td><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error('Error load batch results:', err);
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
+        }
+      }
+
+      document.getElementById('exportAnswersBtn').addEventListener('click', function () {
+        if (!currentBatchId) return;
+        window.location.href = '/api/admin/test-batches/' + currentBatchId + '/export-answers';
+      });
+
+      function parseEmails(raw) {
+        return raw
+          .split(/[\s,;]+/)
+          .map(function (e) { return e.trim(); })
+          .filter(function (e) { return e.length > 0; });
+      }
+
+      let inviteSearchTimeout = null;
+
+      async function handleInviteSearchInput(e) {
+        const query = e.target.value.trim();
+        const box = document.getElementById('inviteSuggestions');
+
+        if (inviteSearchTimeout) {
+          clearTimeout(inviteSearchTimeout);
+        }
+
+        if (!query) {
+          box.style.display = 'none';
+          box.innerHTML = '';
+          return;
+        }
+
+        inviteSearchTimeout = setTimeout(async function () {
+          try {
+            const res = await fetch('/api/admin/users/search?q=' + encodeURIComponent(query));
+            if (!res.ok) throw new Error('Gagal mencari user');
+            const data = await res.json();
+            if (!data.success || !Array.isArray(data.data)) {
+              box.style.display = 'none';
+              box.innerHTML = '';
+              return;
+            }
+
+            if (data.data.length === 0) {
+              box.style.display = 'none';
+              box.innerHTML = '';
+              return;
+            }
+
+            box.innerHTML = '';
+            data.data.forEach(function (user) {
+              const item = document.createElement('button');
+              item.type = 'button';
+              item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+              item.innerHTML = `<span><strong>${user.nama_lengkap || user.email}</strong><br><small>${user.email}</small></span>`;
+              item.onclick = function () {
+                const textarea = document.getElementById('inviteEmails');
+                const emails = parseEmails(textarea.value || '');
+                if (emails.indexOf(user.email) === -1) {
+                  emails.push(user.email);
+                  textarea.value = emails.join('\n');
+                }
+                document.getElementById('inviteSearch').value = '';
+                box.style.display = 'none';
+                box.innerHTML = '';
+              };
+              box.appendChild(item);
+            });
+            box.style.display = 'block';
+          } catch (err) {
+            console.error('Error mencari user:', err);
+            box.style.display = 'none';
+            box.innerHTML = '';
+          }
+        }, 300);
+      }
+
+      async function handleCreateInvitations() {
+        if (!currentBatchId) {
+          Swal.fire({ icon: 'info', title: 'Pilih Batch', text: 'Silakan pilih batch dan klik "Lihat Hasil" terlebih dahulu.' });
+          return;
+        }
+
+        const rawTextarea = document.getElementById('inviteEmails').value || '';
+        let emails = parseEmails(rawTextarea);
+
+        // Jika textarea kosong, coba ambil dari kolom pencarian (banyak user ketik di sini saja)
+        if (emails.length === 0) {
+          const rawSearch = document.getElementById('inviteSearch') ? document.getElementById('inviteSearch').value || '' : '';
+          emails = parseEmails(rawSearch);
+        }
+
+        if (emails.length === 0) {
+          Swal.fire({ icon: 'warning', title: 'Tidak ada email', text: 'Masukkan minimal satu email yang valid.' });
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/test-batches/' + currentBatchId + '/invitations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emails: emails })
+          });
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            const invalid = data.data && data.data.invalid ? data.data.invalid : [];
+            const msg = invalid.length
+              ? (data.message || 'Beberapa email tidak terdaftar:') + '\n' + invalid.join(', ')
+              : (data.message || 'Gagal membuat undangan');
+            throw new Error(msg);
+          }
+
+          const created = data.data && data.data.created ? data.data.created : [];
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Undangan dibuat',
+            text: 'Berhasil membuat ' + created.length + ' undangan.' + (data.data.invalid && data.data.invalid.length ? ' Email tidak terdaftar: ' + data.data.invalid.join(', ') : ''),
+            timer: 2500,
+            showConfirmButton: false
+          });
+
+          document.getElementById('inviteEmails').value = '';
+          // reload ringkasan hasil/undangan
+          await openBatchResults(currentBatchId, currentBatchName);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat membuat undangan' });
+        }
+      }
+
+      function toggleSelectAllInvites(source) {
+        const checkboxes = document.querySelectorAll('.invite-checkbox');
+        checkboxes.forEach(function (cb) {
+          cb.checked = source.checked;
+        });
+      }
+
+      async function editInvitation(invId, currentEmail) {
+        const { value: email } = await Swal.fire({
+          title: 'Edit Email Undangan',
+          input: 'email',
+          inputLabel: 'Email',
+          inputValue: currentEmail,
+          showCancelButton: true,
+          confirmButtonText: 'Simpan',
+          cancelButtonText: 'Batal',
+          inputValidator: (value) => {
+            if (!value) {
+              return 'Email tidak boleh kosong';
+            }
+            return null;
+          }
+        });
+
+        if (!email) return;
+
+        try {
+          const res = await fetch('/api/admin/test-invitations/' + invId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal memperbarui undangan');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Undangan berhasil diperbarui', timer: 2000, showConfirmButton: false });
+          await openBatchResults(currentBatchId, currentBatchName);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat memperbarui undangan' });
+        }
+      }
+
+      async function archiveInvitation(invId) {
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Arsipkan undangan?',
+          text: 'Undangan akan ditandai sebagai diarsipkan.',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, arsipkan',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-invitations/' + invId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'archived' })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal mengarsipkan undangan');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Undangan diarsipkan', timer: 2000, showConfirmButton: false });
+          await openBatchResults(currentBatchId, currentBatchName);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat mengarsipkan undangan' });
+        }
+      }
+
+      async function deleteInvitation(invId) {
+        const confirm = await Swal.fire({
+          icon: 'warning',
+          title: 'Hapus undangan?',
+          text: 'Tindakan ini tidak bisa dibatalkan.',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, hapus',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-invitations/' + invId, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menghapus undangan');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Undangan dihapus', timer: 2000, showConfirmButton: false });
+          await openBatchResults(currentBatchId, currentBatchName);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat menghapus undangan' });
+        }
+      }
+
+      async function handleBulkInvitations() {
+        const action = document.getElementById('bulkAction').value;
+        if (!action) {
+          Swal.fire({ icon: 'info', title: 'Pilih aksi', text: 'Silakan pilih aksi massal terlebih dahulu.' });
+          return;
+        }
+
+        const checkboxes = document.querySelectorAll('.invite-checkbox:checked');
+        const ids = Array.prototype.map.call(checkboxes, function (cb) { return parseInt(cb.getAttribute('data-id'), 10); }).filter(Boolean);
+
+        if (ids.length === 0) {
+          Swal.fire({ icon: 'info', title: 'Tidak ada yang dipilih', text: 'Centang minimal satu undangan terlebih dahulu.' });
+          return;
+        }
+
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Konfirmasi aksi massal',
+          text: 'Anda akan menerapkan aksi "' + action + '" ke ' + ids.length + ' undangan. Lanjutkan?',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, lanjutkan',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/test-invitations/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action, ids: ids })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menjalankan aksi massal');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Aksi massal berhasil dijalankan', timer: 2000, showConfirmButton: false });
+          await openBatchResults(currentBatchId, currentBatchName);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat aksi massal' });
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        loadBatches();
+        const searchInput = document.getElementById('inviteSearch');
+        if (searchInput) {
+          searchInput.addEventListener('input', handleInviteSearchInput);
+        }
+
+        const selectAllBatches = document.getElementById('selectAllBatches');
+        if (selectAllBatches) {
+          selectAllBatches.addEventListener('change', function () {
+            toggleSelectAllBatches(this);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
+

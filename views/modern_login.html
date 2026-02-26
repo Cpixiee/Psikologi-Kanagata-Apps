@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - Psikologi Apps</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png">
+    <link rel="stylesheet" href="/static/tailwind/output.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
+        <div class="w-full max-w-5xl bg-white rounded-3xl shadow-soft-xl grid grid-cols-1 lg:grid-cols-[1.1fr_minmax(0,1fr)] overflow-hidden">
+            <main class="px-6 sm:px-8 lg:px-10 py-8 lg:py-10 flex flex-col gap-6">
+                <header class="flex flex-col items-center gap-3 text-center">
+                    <div class="inline-flex flex-col items-center gap-1.5">
+                        <div class="relative">
+                            <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psikologi Apps"
+                                 class="w-12 h-12 rounded-full shadow-sm object-cover">
+                        </div>
+                        <div class="flex flex-col items-center leading-tight">
+                            <span class="text-sm font-semibold tracking-wide text-slate-900">Psikologi Apps</span>
+                            <span class="text-xs text-slate-500">Ruang nyaman untuk tumbuh bersama</span>
+                        </div>
+                    </div>
+                </header>
+
+                <section>
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 mb-1">Masuk ke akun Anda</h1>
+                    <p class="text-sm text-slate-600 max-w-xl">
+                        Akses <span class="font-semibold text-slate-900">tes psikologi</span>, 
+                        <span class="font-semibold text-slate-900">riwayat konseling</span>, dan 
+                        <span class="font-semibold text-slate-900">rekomendasi pribadi</span> dalam satu tempat.
+                    </p>
+                </section>
+
+                <div id="alert" class="hidden text-sm rounded-xl px-3.5 py-2.5"></div>
+
+                <form id="loginForm" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label for="email" class="text-sm font-medium text-slate-800">Email <span class="text-rose-500">*</span></label>
+                        <input type="email" id="email" name="email" required
+                               class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                               placeholder="nama@email.com">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="password" class="text-sm font-medium text-slate-800">Kata sandi <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required
+                                   class="w-full px-3 py-2.5 pr-24 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                   placeholder="Minimal 6 karakter">
+                            <button type="button" id="togglePassword"
+                                    class="absolute inset-y-0 right-2 flex items-center px-2 text-[11px] sm:text-xs text-slate-500 hover:text-slate-700">
+                                Tampilkan
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-800">Verifikasi keamanan <span class="text-rose-500">*</span></label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button type="button" id="captchaImage"
+                                    class="flex-1 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center min-h-[64px] text-xs text-slate-500 hover:bg-indigo-50 hover:border-indigo-200 transition">
+                                Klik untuk memuat CAPTCHA
+                            </button>
+                            <input type="text" id="captchaValue" required
+                                   class="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                   placeholder="Masukkan teks pada gambar">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-1">
+                        <button type="submit" id="loginBtn"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-sky-500 text-sm font-semibold text-white py-2.5 shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                            <span class="text-base">⟶</span>
+                            <span>Masuk sekarang</span>
+                        </button>
+                        <div id="loading" class="hidden items-center justify-center gap-2 text-xs text-slate-500">
+                            <span class="w-4 h-4 rounded-full border-2 border-slate-200 border-t-indigo-500 animate-spin"></span>
+                            <span>Mengecek akun Anda...</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 text-[11px] text-slate-400">
+                            <p class="text-center">
+                                Dengan masuk, Anda menyetujui
+                                <a href="/privacy" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-700 underline">kebijakan privasi</a>
+                                dan
+                                <a href="/terms" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-700 underline">syarat penggunaan</a>.
+                            </p>
+                            <p class="text-center">
+                                Belum punya akun?
+                                <a href="/register" class="font-medium text-indigo-600 hover:text-indigo-700">Daftar sekarang</a>
+                            </p>
+                            <p class="text-center">
+                                Lupa password?
+                                <a href="/reset-password" class="font-medium text-indigo-600 hover:text-indigo-700">Reset password</a>
+                            </p>
+                        </div>
+                    </div>
+                </form>
+            </main>
+
+            <aside class="hidden lg:flex flex-col justify-center gap-8 border-l border-slate-100 bg-gradient-to-br from-slate-50 via-sky-50 to-white px-8 py-6">
+                <div class="inline-flex items-center rounded-full border border-sky-100 bg-sky-50/70 px-3 py-1 text-[11px] font-medium text-sky-700 self-start">
+                    Dirancang untuk siswa, guru, dan pekerja
+                </div>
+                <div class="space-y-4 max-w-xs">
+                    <h2 class="text-xl font-semibold text-slate-900 leading-snug">
+                        Pantau kesehatan mental Anda dengan tenang.
+                    </h2>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Psikologi Apps membantu Anda memahami emosi, memantau perkembangan, dan terhubung
+                        dengan dukungan yang tepat melalui antarmuka yang sederhana dan menenangkan.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Tes psikologi adaptif</span>
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Insight harian</span>
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Riwayat progres</span>
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Aman dan rahasia</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">
+                    Dibangun untuk <span class="font-medium text-slate-600">siswa</span>,
+                    <span class="font-medium text-slate-600">guru</span>, dan
+                    <span class="font-medium text-slate-600">pekerja</span> yang ingin
+                    menjaga kesehatan mental secara berkelanjutan.
+                </p>
+            </aside>
+        </div>
+    </div>
+
+    <script src="/static/modern/auth.js"></script>
+    <script src="/static/modern/login.js"></script>
+</body>
+</html>
+

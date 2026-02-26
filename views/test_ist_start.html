@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mulai Test IST - Psychee Wellness</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="card shadow-sm">
+            <div class="card-header text-center">
+              <h5 class="mb-0">Start Test IST (IQ)</h5>
+            </div>
+            <div class="card-body">
+              <form method="post" action="/test/ist/start">
+                <div class="mb-3">
+                  <label class="form-label">Nama</label>
+                  <input type="text" class="form-control" value="{{.User.NamaLengkap}}" readonly />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="tanggal_lahir">Tanggal Lahir</label>
+                  <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="form-control" value="{{.TanggalLahir}}" />
+                  <small class="text-muted">Wajib diisi untuk skoring. Jika belum ada di profil, silakan isi di sini.</small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Tujuan Pemeriksaan</label>
+                  <input type="text" class="form-control" value="{{.Batch.PurposeCategory}} — {{.Batch.PurposeDetail}}" readonly />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Usia</label>
+                  <input type="text" class="form-control" id="usiaDisplay" value="—" readonly />
+                  <small class="text-muted">Dihitung otomatis berdasarkan tanggal lahir</small>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Mulai Test IST</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const inp = document.getElementById('tanggal_lahir');
+        const out = document.getElementById('usiaDisplay');
+        function calc() {
+          if (!inp || !inp.value) { out.value = '—'; return; }
+          const d = new Date(inp.value);
+          const today = new Date();
+          let age = today.getFullYear() - d.getFullYear();
+          const m = today.getMonth() - d.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+          out.value = age >= 0 ? age + ' tahun' : '—';
+        }
+        if (inp) inp.addEventListener('change', calc);
+        calc();
+      })();
+    </script>
+  </body>
+</html>

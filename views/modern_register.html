@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - Psikologi Apps</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png">
+    <link rel="stylesheet" href="/static/tailwind/output.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
+        <div class="w-full max-w-5xl bg-white rounded-3xl shadow-soft-xl grid grid-cols-1 lg:grid-cols-[1.1fr_minmax(0,1fr)] overflow-hidden">
+            <main class="px-6 sm:px-8 lg:px-10 py-8 lg:py-10 flex flex-col gap-6">
+                <header class="flex flex-col items-center gap-3 text-center">
+                    <div class="inline-flex flex-col items-center">
+                        <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psikologi Apps"
+                             class="w-12 h-12 rounded-full shadow-sm object-cover">
+                    </div>
+                </header>
+
+                <section>
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 mb-1">Buat akun baru</h1>
+                    <p class="text-sm text-slate-600 max-w-xl">
+                        Pilih peran Anda sebagai <span class="font-semibold text-slate-900">siswa</span>, 
+                        <span class="font-semibold text-slate-900">guru</span>, atau 
+                        <span class="font-semibold text-slate-900">pekerja</span> agar rekomendasi lebih relevan.
+                    </p>
+                </section>
+
+                <div id="alert" class="hidden text-sm rounded-xl px-3.5 py-2.5"></div>
+
+                <form id="registerForm" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-3">
+                        <div class="space-y-1.5">
+                            <label for="namaLengkap" class="text-sm font-medium text-slate-800">Nama lengkap <span class="text-rose-500">*</span></label>
+                            <input type="text" id="namaLengkap" name="nama_lengkap" required
+                                   class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                   placeholder="Nama lengkap Anda">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="role" class="text-sm font-medium text-slate-800">Peran <span class="text-rose-500">*</span></label>
+                            <select id="role" name="role" required
+                                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                                <option value="siswa">Siswa</option>
+                                <option value="guru">Guru</option>
+                                <option value="pekerja">Pekerja</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="alamat" class="text-sm font-medium text-slate-800">Alamat</label>
+                        <textarea id="alamat" name="alamat"
+                                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400 min-h-[80px] resize-y"
+                                  placeholder="Opsional, untuk rekomendasi berbasis wilayah"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label for="jenisKelamin" class="text-sm font-medium text-slate-800">Jenis kelamin <span class="text-rose-500">*</span></label>
+                            <select id="jenisKelamin" name="jenis_kelamin" required
+                                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                                <option value="">Pilih jenis kelamin</option>
+                                <option value="laki_laki">Laki-laki</option>
+                                <option value="perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="noHandphone" class="text-sm font-medium text-slate-800">No. handphone</label>
+                            <input type="tel" id="noHandphone" name="no_handphone"
+                                   class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                   placeholder="08xxxxxxxxxx">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label for="email" class="text-sm font-medium text-slate-800">Email <span class="text-rose-500">*</span></label>
+                            <input type="email" id="email" name="email" required
+                                   class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                   placeholder="nama@email.com">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="password" class="text-sm font-medium text-slate-800">Kata sandi <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <input type="password" id="password" name="password" required
+                                       class="w-full px-3 py-2.5 pr-24 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                       placeholder="Minimal 6 karakter">
+                                <button type="button" id="togglePassword"
+                                        class="absolute inset-y-0 right-2 flex items-center px-2 text-[11px] sm:text-xs text-slate-500 hover:text-slate-700">
+                                    Tampilkan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-medium text-slate-800">Verifikasi keamanan <span class="text-rose-500">*</span></label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button type="button" id="captchaImage"
+                                    class="flex-1 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center min-h-[64px] text-xs text-slate-500 hover:bg-indigo-50 hover:border-indigo-200 transition">
+                                Klik untuk memuat CAPTCHA
+                            </button>
+                            <input type="text" id="captchaValue" required
+                                   class="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 placeholder:text-slate-400"
+                                   placeholder="Masukkan teks pada gambar">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-1">
+                        <button type="submit" id="registerBtn"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-sky-500 text-sm font-semibold text-white py-2.5 shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                            <span class="text-base">✦</span>
+                            <span>Buat akun</span>
+                        </button>
+                        <div id="loading" class="hidden items-center justify-center gap-2 text-xs text-slate-500">
+                            <span class="w-4 h-4 rounded-full border-2 border-slate-200 border-t-indigo-500 animate-spin"></span>
+                            <span>Mendaftarkan akun Anda...</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 mt-4 text-[11px] text-slate-400">
+                            <p class="text-center">
+                                Data Anda diproses dengan aman. Kami tidak membagikan informasi pribadi tanpa persetujuan Anda.
+                            </p>
+                            <p class="text-center">
+                                Sudah punya akun?
+                                <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-700">Masuk di sini</a>
+                            </p>
+                        </div>
+                    </div>
+                </form>
+            </main>
+
+            <aside class="hidden lg:flex flex-col justify-center gap-8 border-l border-slate-100 bg-gradient-to-br from-slate-50 via-sky-50 to-white px-8 py-6">
+                <div class="inline-flex items-center rounded-full border border-sky-100 bg-sky-50/70 px-3 py-1 text-[11px] font-medium text-sky-700 self-start">
+                    Mulai gratis, kapan saja bisa kembali
+                </div>
+                <div class="space-y-4 max-w-xs">
+                    <h2 class="text-xl font-semibold text-slate-900 leading-snug">
+                        Bangun kebiasaan sehat untuk pikiran yang lebih tenang.
+                    </h2>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Dengan akun Psikologi Apps, Anda dapat mengakses rangkaian tes, jurnal emosi, dan insight
+                        yang disesuaikan dengan peran Anda sehari-hari.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Ramah di perangkat mobile</span>
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Antarmuka bersih & terang</span>
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Rekomendasi personal</span>
+                        <span class="px-3 py-1 rounded-full border border-slate-200 bg-white text-[11px] text-slate-600">Riwayat tes tersimpan</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">
+                    Dirancang untuk mendampingi Anda secara <span class="font-medium text-slate-600">perlahan</span> dan
+                    <span class="font-medium text-slate-600">berkelanjutan</span>.
+                </p>
+            </aside>
+        </div>
+    </div>
+
+    <script src="/static/modern/auth.js"></script>
+    <script src="/static/modern/register.js"></script>
+</body>
+</html>
+

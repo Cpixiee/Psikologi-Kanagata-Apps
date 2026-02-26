@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subtest {{.Subtest.Code}} - IST</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Subtest {{.Subtest.Code}} - {{.Subtest.Name}}</h5>
+          <span class="badge bg-warning" id="timerDisplay">05:00</span>
+        </div>
+        <div class="card-body">
+          {{if .Error}}
+          <div class="alert alert-danger">{{.Error}}</div>
+          {{else}}
+          <form id="formSubtest" data-code="{{.Subtest.Code}}">
+            {{range $i, $q := .Questions}}
+            <div class="mb-4 p-3 border rounded">
+              <strong>{{$q.Number}}.</strong> {{$q.Prompt}}
+              <div class="mt-2">
+                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_a" value="A" /><label class="form-check-label" for="q{{$q.Id}}_a">a) {{$q.OptionA}}</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_b" value="B" /><label class="form-check-label" for="q{{$q.Id}}_b">b) {{$q.OptionB}}</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_c" value="C" /><label class="form-check-label" for="q{{$q.Id}}_c">c) {{$q.OptionC}}</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_d" value="D" /><label class="form-check-label" for="q{{$q.Id}}_d">d) {{$q.OptionD}}</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_e" value="E" /><label class="form-check-label" for="q{{$q.Id}}_e">e) {{$q.OptionE}}</label></div>
+              </div>
+            </div>
+            {{end}}
+            <button type="submit" class="btn btn-primary w-100">Selesai & Lanjut Subtest Berikutnya</button>
+          </form>
+          {{end}}
+        </div>
+      </div>
+    </div>
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById('formSubtest');
+        if (!form) return;
+        const code = form.dataset.code;
+        const timerMinutes = {{.TimerMinutes}} || 5;
+        let secondsLeft = timerMinutes * 60;
+        const el = document.getElementById('timerDisplay');
+
+        function tick() {
+          const m = Math.floor(secondsLeft / 60);
+          const s = secondsLeft % 60;
+          if (el) el.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+          if (secondsLeft <= 0) {
+            submitForm();
+            return;
+          }
+          secondsLeft--;
+          setTimeout(tick, 1000);
+        }
+        tick();
+
+        function collectAnswers() {
+          const ans = {};
+          document.querySelectorAll('input[name^="q_"]:checked').forEach(function (r) {
+            const qid = r.name.replace('q_', '');
+            ans[qid] = r.value;
+          });
+          return ans;
+        }
+
+        function submitForm() {
+          if (form.dataset.submitted === '1') return;
+          form.dataset.submitted = '1';
+
+          const answers = collectAnswers();
+          fetch('/api/test/ist/subtest/' + code, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: answers })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.success && data.next_subtest) {
+                window.location.href = '/test/ist/subtest/' + data.next_subtest;
+              } else if (data.success && data.is_complete) {
+                alert('Tes IST selesai! Hasil akan diproses.');
+                window.location.href = '/dashboard';
+              } else {
+                alert(data.message || 'Terjadi kesalahan');
+              }
+            })
+            .catch(function () {
+              alert('Gagal menyimpan jawaban');
+            });
+        }
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          submitForm();
+        });
+      })();
+    </script>
+  </body>
+</html>

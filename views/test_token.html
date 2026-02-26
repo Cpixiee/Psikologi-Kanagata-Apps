@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Masukkan Token Tes Psikologi</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+          <div class="card shadow-sm">
+            <div class="card-header text-center">
+              <h5 class="mb-0">Masukkan Token Tes</h5>
+            </div>
+            <div class="card-body">
+              <p class="text-muted small">
+                Silakan masukkan token yang Anda terima di email undangan. Token hanya berlaku selama 1 hari dan tidak
+                boleh dibagikan ke orang lain.
+              </p>
+
+              {{if .Error}}
+              <div class="alert alert-danger" role="alert">
+                {{.Error}}
+              </div>
+              {{end}}
+
+              <form method="post" action="/test/start">
+                <div class="mb-3">
+                  <label for="token" class="form-label">Token</label>
+                  <input
+                    type="text"
+                    class="form-control text-uppercase"
+                    id="token"
+                    name="token"
+                    placeholder="Contoh: 1GH9UU80"
+                    required
+                    autofocus />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Mulai Tes</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

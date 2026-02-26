@@ -1,0 +1,705 @@
+<!doctype html>
+
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Profil Saya - Psychee Wellness</title>
+
+    <meta name="description" content="" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <!-- Helpers -->
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <!-- Config: Mandatory theme config file -->
+    <script src="/static/sneat/assets/js/config.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- Menu -->
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+                </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+
+            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+              <i class="bx bx-chevron-left d-block d-xl-none align-middle"></i>
+            </a>
+          </div>
+
+          <div class="menu-divider mt-0"></div>
+
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+            <!-- Dashboard -->
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+
+            <!-- Layanan -->
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Layanan</span>
+                </li>
+                <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Tes Psikologi</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chat"></i>
+                <div class="text-truncate">Konseling</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-history"></i>
+                <div class="text-truncate">Riwayat</div>
+              </a>
+            </li>
+
+            <!-- Akun -->
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Akun</span>
+            </li>
+                <li class="menu-item active">
+              <a href="/profile" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user"></i>
+                <div class="text-truncate">Profil</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+              <a href="/settings" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <div class="text-truncate">Pengaturan</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+        <!-- / Menu -->
+
+        <!-- Layout container -->
+        <div class="layout-page">
+          <!-- Navbar -->
+
+          <nav
+            class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="icon-base bx bx-menu icon-md"></i>
+              </a>
+            </div>
+
+            <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+              <!-- Search -->
+              <div class="navbar-nav align-items-center me-auto">
+                <div class="nav-item d-flex align-items-center">
+                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
+                  <input
+                    type="text"
+                    class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
+                    placeholder="Cari..."
+                    aria-label="Cari..." />
+                </div>
+              </div>
+              <!-- /Search -->
+
+              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+                <!-- User -->
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a
+                    class="nav-link dropdown-toggle hide-arrow p-0"
+                    href="javascript:void(0);"
+                    data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/static/icons/icon_psikologi_kanagata.png" alt class="w-px-40 h-auto rounded-circle" id="navbarAvatar" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/static/icons/icon_psikologi_kanagata.png" alt class="w-px-40 h-auto rounded-circle" id="dropdownAvatar" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <h6 class="mb-0" id="dropdownName">Pengguna</h6>
+                            <small class="text-body-secondary" id="dropdownEmail">Member</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider my-1"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/profile">
+                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/settings">
+                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Pengaturan</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/notifications">
+                        <i class="icon-base bx bx-bell icon-md me-3"></i><span>Notifikasi</span>
+                      </a>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider my-1"></div>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" onclick="handleLogout()">
+                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+                <!--/ User -->
+              </ul>
+            </div>
+          </nav>
+
+          <!-- / Navbar -->
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <h4 class="fw-bold py-3 mb-4">
+                <span class="text-muted fw-light">Akun /</span> Profil Saya
+              </h4>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="card mb-4">
+                    <!-- Upload Foto Profil -->
+                    <div class="card-body">
+                      <div class="d-flex align-items-start align-items-sm-center gap-4 pb-4 border-bottom">
+                        <img
+                          src="/static/icons/icon_psikologi_kanagata.png"
+                          alt="foto-profil"
+                          class="d-block w-px-100 h-px-100 rounded"
+                          id="uploadedAvatar"
+                          style="object-fit: cover; width: 100px; height: 100px;" />
+                        <div class="button-wrapper">
+                          <label for="upload" class="btn btn-primary me-3 mb-4" tabindex="0">
+                            <span class="d-none d-sm-block">Unggah Foto Baru</span>
+                            <i class="icon-base bx bx-upload d-block d-sm-none"></i>
+                            <input
+                              type="file"
+                              id="upload"
+                              class="account-file-input"
+                              hidden
+                              accept="image/png, image/jpeg, image/jpg"
+                              onchange="handleFileUpload(event)" />
+                          </label>
+                          <button type="button" class="btn btn-outline-secondary account-image-reset mb-4" onclick="resetAvatar()">
+                            <i class="icon-base bx bx-reset d-block d-sm-none"></i>
+                            <span class="d-none d-sm-block">Reset</span>
+                          </button>
+                          <div class="text-muted">Format yang diizinkan: JPG, PNG. Maksimal ukuran 2MB</div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Form Profil -->
+                    <div class="card-body pt-4">
+                      <form id="formAccountSettings" method="POST" onsubmit="handleSubmit(event)">
+                        <div class="row g-3">
+                          <div class="col-md-6">
+                            <label for="namaLengkap" class="form-label">Nama Lengkap</label>
+                            <input
+                              class="form-control"
+                              type="text"
+                              id="namaLengkap"
+                              name="nama_lengkap"
+                              required
+                              autofocus />
+                          </div>
+                          <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input
+                              class="form-control"
+                              type="email"
+                              id="email"
+                              name="email"
+                              required
+                              placeholder="nama@example.com" />
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label" for="noHandphone">Nomor Handphone</label>
+                            <div class="input-group input-group-merge">
+                              <span class="input-group-text">+62</span>
+                              <input
+                                type="text"
+                                id="noHandphone"
+                                name="no_handphone"
+                                class="form-control"
+                                placeholder="81234567890"
+                                maxlength="13" />
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label for="jenisKelamin" class="form-label">Jenis Kelamin</label>
+                            <select id="jenisKelamin" class="form-select" name="jenis_kelamin">
+                              <option value="">Pilih Jenis Kelamin</option>
+                              <option value="laki_laki">Laki-laki</option>
+                              <option value="perempuan">Perempuan</option>
+                            </select>
+                          </div>
+                          <div class="col-md-12">
+                            <label for="alamat" class="form-label">Alamat Lengkap</label>
+                            <textarea class="form-control" id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat lengkap"></textarea>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="kota" class="form-label">Kota</label>
+                            <input
+                              class="form-control"
+                              type="text"
+                              id="kota"
+                              name="kota"
+                              placeholder="Contoh: Jakarta" />
+                          </div>
+                          <div class="col-md-4">
+                            <label for="provinsi" class="form-label">Provinsi</label>
+                            <input
+                              class="form-control"
+                              type="text"
+                              id="provinsi"
+                              name="provinsi"
+                              placeholder="Contoh: DKI Jakarta" />
+                          </div>
+                          <div class="col-md-4">
+                            <label for="kodepos" class="form-label">Kode Pos</label>
+                            <input
+                              class="form-control"
+                              type="text"
+                              id="kodepos"
+                              name="kodepos"
+                              placeholder="Contoh: 12345"
+                              maxlength="10" />
+                          </div>
+                          </div>
+                        <div class="mt-4">
+                          <button type="submit" class="btn btn-primary me-3">Simpan Perubahan</button>
+                          <button type="reset" class="btn btn-outline-secondary">Batal</button>
+                        </div>
+                      </form>
+                    </div>
+                    <!-- /Form Profil -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- / Content -->
+
+            <div class="content-backdrop fade"></div>
+          </div>
+          <!-- Content wrapper -->
+        </div>
+        <!-- / Layout page -->
+      </div>
+
+      <!-- Overlay -->
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Modal Crop Image -->
+    <div class="modal fade" id="cropImageModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Crop Foto Profil</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="img-container" style="max-width: 100%; overflow: hidden;">
+              <img id="cropImage" src="" alt="Crop" style="max-width: 100%; display: block;" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="cropBtn">Oke, Simpan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <style>
+      /* Responsive modal crop */
+      @media (min-width: 992px) {
+        #cropImageModal .modal-dialog {
+          max-width: 900px;
+        }
+      }
+      @media (max-width: 991px) {
+        #cropImageModal .modal-dialog {
+          max-width: 95%;
+          margin: 1rem auto;
+        }
+      }
+      #cropImageModal .img-container {
+        min-height: 400px;
+        max-height: 70vh;
+      }
+      @media (max-width: 576px) {
+        #cropImageModal .img-container {
+          min-height: 300px;
+          max-height: 60vh;
+        }
+      }
+    </style>
+
+    <!-- Core JS -->
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+
+    <!-- Main JS -->
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <!-- Page JS -->
+    <script>
+      // Load user profile data
+      async function loadProfile() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) {
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            throw new Error('Gagal memuat data profil');
+          }
+          const data = await response.json();
+          if (data.success && data.data) {
+            const user = data.data;
+            // Fill form fields
+            document.getElementById('namaLengkap').value = user.nama_lengkap || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('noHandphone').value = user.no_handphone ? user.no_handphone.replace('+62', '') : '';
+            document.getElementById('jenisKelamin').value = user.jenis_kelamin || '';
+            document.getElementById('alamat').value = user.alamat || '';
+            document.getElementById('kota').value = user.kota || '';
+            document.getElementById('provinsi').value = user.provinsi || '';
+            document.getElementById('kodepos').value = user.kodepos || '';
+            
+            // Update avatar
+            if (user.foto_profil) {
+              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
+              document.getElementById('uploadedAvatar').src = avatarUrl;
+              document.getElementById('navbarAvatar').src = avatarUrl;
+              document.getElementById('dropdownAvatar').src = avatarUrl;
+            }
+            
+            // Update dropdown info
+            document.getElementById('dropdownName').textContent = user.nama_lengkap || 'Pengguna';
+            document.getElementById('dropdownEmail').textContent = user.email || 'Member';
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Gagal memuat data profil'
+          });
+        }
+      }
+
+      // Handle form submission
+      async function handleSubmit(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const data = {
+          nama_lengkap: formData.get('nama_lengkap'),
+          email: formData.get('email'),
+          no_handphone: '+62' + formData.get('no_handphone'),
+          jenis_kelamin: formData.get('jenis_kelamin'),
+          alamat: formData.get('alamat'),
+          kota: formData.get('kota'),
+          provinsi: formData.get('provinsi'),
+          kodepos: formData.get('kodepos')
+        };
+
+        try {
+          const response = await fetch('/api/profile', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+          
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Profil berhasil diperbarui',
+              timer: 2000,
+              showConfirmButton: false
+            }).then(() => {
+              loadProfile();
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: result.message || 'Gagal memperbarui profil'
+            });
+          }
+        } catch (error) {
+          console.error('Error updating profile:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Terjadi kesalahan saat memperbarui profil'
+          });
+        }
+      }
+
+      let cropper = null;
+      let currentFile = null;
+
+      // Handle file upload with crop
+      async function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file size (5MB max before crop)
+        if (file.size > 5 * 1024 * 1024) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Ukuran File Terlalu Besar',
+            text: 'Ukuran file maksimal 5MB'
+          });
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.match('image/(jpeg|jpg|png)')) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Format File Tidak Valid',
+            text: 'Hanya file JPG, JPEG, atau PNG yang diizinkan'
+          });
+          return;
+        }
+
+        currentFile = file;
+        
+        // Show crop modal
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const cropImage = document.getElementById('cropImage');
+          cropImage.src = e.target.result;
+          
+          // Destroy existing cropper if any
+          if (cropper) {
+            cropper.destroy();
+          }
+          
+          // Initialize cropper
+          cropper = new Cropper(cropImage, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            responsive: true,
+            guides: true,
+            center: true,
+            background: false,
+            modal: true,
+            cropBoxResizable: true,
+            cropBoxMovable: true,
+            minCropBoxWidth: 100,
+            minCropBoxHeight: 100
+          });
+          
+          // Show modal
+          const modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
+          modal.show();
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Handle crop button click
+      document.addEventListener('DOMContentLoaded', function() {
+        const cropBtn = document.getElementById('cropBtn');
+        if (cropBtn) {
+          cropBtn.addEventListener('click', async function() {
+            if (!cropper) return;
+            
+            // Get cropped canvas
+            const canvas = cropper.getCroppedCanvas({
+              width: 400,
+              height: 400,
+              imageSmoothingEnabled: true,
+              imageSmoothingQuality: 'high'
+            });
+            
+            // Convert canvas to blob
+            canvas.toBlob(async function(blob) {
+              if (!blob) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Gagal memproses gambar'
+                });
+                return;
+              }
+              
+              // Create form data
+              const formData = new FormData();
+              formData.append('foto_profil', blob, 'profile.jpg');
+              
+              try {
+                const response = await fetch('/api/profile/upload', {
+                  method: 'POST',
+                  body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                  // Update avatar preview
+                  const avatarUrl = '/static/uploads/profiles/' + result.data.foto_profil + '?t=' + Date.now();
+                  document.getElementById('uploadedAvatar').src = avatarUrl;
+                  document.getElementById('navbarAvatar').src = avatarUrl;
+                  document.getElementById('dropdownAvatar').src = avatarUrl;
+                  
+                  // Close modal
+                  const modal = bootstrap.Modal.getInstance(document.getElementById('cropImageModal'));
+                  modal.hide();
+                  
+                  // Destroy cropper
+                  if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                  }
+                  
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Foto profil berhasil diunggah',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: result.message || 'Gagal mengunggah foto profil'
+                  });
+                }
+              } catch (error) {
+                console.error('Error uploading file:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Terjadi kesalahan saat mengunggah foto'
+                });
+              }
+            }, 'image/jpeg', 0.9);
+          });
+        }
+        
+        // Reset cropper when modal is closed
+        const cropModal = document.getElementById('cropImageModal');
+        if (cropModal) {
+          cropModal.addEventListener('hidden.bs.modal', function() {
+            if (cropper) {
+              cropper.destroy();
+              cropper = null;
+            }
+            document.getElementById('upload').value = '';
+            currentFile = null;
+          });
+        }
+      });
+
+      // Reset avatar
+      function resetAvatar() {
+        document.getElementById('uploadedAvatar').src = '/static/icons/icon_psikologi_kanagata.png';
+        document.getElementById('navbarAvatar').src = '/static/icons/icon_psikologi_kanagata.png';
+        document.getElementById('dropdownAvatar').src = '/static/icons/icon_psikologi_kanagata.png';
+        document.getElementById('upload').value = '';
+      }
+
+      // Handle logout
+      async function handleLogout() {
+        try {
+          const response = await fetch('/api/auth/logout', {
+            method: 'POST'
+          });
+          const result = await response.json();
+          if (result.success) {
+            window.location.href = '/login';
+          }
+        } catch (error) {
+          console.error('Error logging out:', error);
+          window.location.href = '/login';
+        }
+      }
+
+      // Load profile on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadProfile();
+      });
+    </script>
+  </body>
+</html>

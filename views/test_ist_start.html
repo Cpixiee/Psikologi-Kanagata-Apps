@@ -16,6 +16,9 @@
               <h5 class="mb-0">Start Test IST (IQ)</h5>
             </div>
             <div class="card-body">
+              {{if .Error}}
+              <div class="alert alert-danger">{{.Error}}</div>
+              {{end}}
               <form method="post" action="/test/ist/start">
                 <div class="mb-3">
                   <label class="form-label">Nama</label>
@@ -23,7 +26,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label" for="tanggal_lahir">Tanggal Lahir</label>
-                  <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="form-control" value="{{.TanggalLahir}}" />
+                  <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="form-control" value="{{.TanggalLahir}}" required />
                   <small class="text-muted">Wajib diisi untuk skoring. Jika belum ada di profil, silakan isi di sini.</small>
                 </div>
                 <div class="mb-3">

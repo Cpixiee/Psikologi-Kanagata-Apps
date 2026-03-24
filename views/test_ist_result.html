@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hasil Tes IST - Psychee Wellness</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-header text-center">
+              <h5 class="mb-0">Ringkasan IQ (IST)</h5>
+            </div>
+            <div class="card-body text-center">
+              <p class="text-muted mb-1">Nama</p>
+              <h6 class="mb-3">{{.User.NamaLengkap}}</h6>
+              <p class="text-muted mb-1">IQ (Skala IST)</p>
+              <h1 class="display-4 mb-1">{{.Result.IQ}}</h1>
+              <p class="mb-3"><span class="badge bg-primary">{{.Result.IQCategory}}</span></p>
+              <p class="text-muted mb-1">Usia</p>
+              <p>{{if gt .Age 0}}{{.Age}} tahun{{else}}-{{end}}</p>
+              <a href="/test/ist/result/pdf" class="btn btn-outline-primary w-100 mt-2">Download Laporan PDF</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header">
+              <h6 class="mb-0">Profil Kemampuan (Subtes IST)</h6>
+            </div>
+            <div class="card-body">
+              <canvas id="istRadarChart" height="220"></canvas>
+            </div>
+          </div>
+          <div class="card shadow-sm">
+            <div class="card-header">
+              <h6 class="mb-0">Psikogram Ringkas</h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="text-center" style="width: 5%;">No</th>
+                      <th style="width: 45%;">Aspek Psikologis</th>
+                      <th class="text-center" style="width: 15%;">Kurang</th>
+                      <th class="text-center" style="width: 15%;">Cukup</th>
+                      <th class="text-center" style="width: 15%;">Baik</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{range .AspekList}}
+                    <tr>
+                      <td class="text-center">{{.No}}</td>
+                      <td>{{.Nama}}</td>
+                      <td class="text-center">{{if .Kurang}}√{{end}}</td>
+                      <td class="text-center">{{if .Cukup}}√{{end}}</td>
+                      <td class="text-center">{{if .Baik}}√{{end}}</td>
+                    </tr>
+                    {{end}}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const ctx = document.getElementById('istRadarChart');
+        if (!ctx) return;
+        const labels = ["SE","WA","AN","GE","RA","ZR","FA","WU","ME"];
+        const dataValues = [
+          {{index .StdScores 0}},
+          {{index .StdScores 1}},
+          {{index .StdScores 2}},
+          {{index .StdScores 3}},
+          {{index .StdScores 4}},
+          {{index .StdScores 5}},
+          {{index .StdScores 6}},
+          {{index .StdScores 7}},
+          {{index .StdScores 8}},
+        ];
+        new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Skor Standar Subtes',
+              data: dataValues,
+              fill: true,
+              backgroundColor: 'rgba(105, 108, 255, 0.2)',
+              borderColor: 'rgba(105, 108, 255, 1)',
+              pointBackgroundColor: 'rgba(105, 108, 255, 1)'
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              r: {
+                beginAtZero: true,
+                ticks: { stepSize: 10 }
+              }
+            }
+          }
+        });
+      })();
+    </script>
+  </body>
+  </html>
+

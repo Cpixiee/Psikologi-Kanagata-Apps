@@ -68,9 +68,10 @@ func (c *PsychotestClientController) StartTest() {
 		return
 	}
 
-	// Cari undangan berdasarkan token
+	// Cari undangan berdasarkan token (tidak sensitif huruf besar/kecil)
+	// Gunakan iexact agar peserta tidak bermasalah jika salah menggunakan Caps Lock / lowercase.
 	var inv models.TestInvitation
-	if err := o.QueryTable(new(models.TestInvitation)).Filter("Token", token).One(&inv); err != nil || inv.Id == 0 {
+	if err := o.QueryTable(new(models.TestInvitation)).Filter("Token__iexact", token).One(&inv); err != nil || inv.Id == 0 {
 		c.Data["Error"] = "Token undangan tidak dikenal atau sudah dicabut. Pastikan Anda mengetik token dengan benar."
 		c.TplName = "test_token.html"
 		return
@@ -98,7 +99,19 @@ func (c *PsychotestClientController) StartTest() {
 		return
 	}
 
-	// Hanya status pending yang boleh memulai tes
+	// Jika undangan sudah dipakai (status used) dan hasil IST sudah ada,
+	// gunakan token sebagai "kartu akses" untuk melihat kembali hasil.
+	if inv.Status == models.StatusInvitationUsed {
+		var istRes models.ISTResult
+		if err := o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&istRes); err == nil && istRes.Id != 0 {
+			c.SetSession("current_invitation_id", inv.Id)
+			c.SetSession("current_batch_id", inv.BatchId)
+			c.Redirect("/test/ist/result", 302)
+			return
+		}
+	}
+
+	// Hanya status pending yang boleh memulai tes baru
 	if inv.Status != models.StatusInvitationPending {
 		c.Data["Error"] = "Undangan ini sudah tidak bisa digunakan (status: " + inv.Status + "). Jika perlu mengulang, hubungi admin."
 		c.TplName = "test_token.html"
@@ -109,13 +122,7 @@ func (c *PsychotestClientController) StartTest() {
 	c.SetSession("current_invitation_id", inv.Id)
 	c.SetSession("current_batch_id", inv.BatchId)
 
-	// TODO: setelah halaman tes IST/Holland siap, redirect ke halaman tes pertama.
-	// Untuk sekarang kita tampilkan halaman konfirmasi sederhana.
-	c.Data["Title"] = "Token valid"
-	c.Data["Success"] = true
-	c.Data["Message"] = "Token undangan Anda valid. Halaman pengerjaan tes IST/Holland akan diarahkan dari sini."
-	c.Data["BatchId"] = inv.BatchId
-	c.Data["InvitationId"] = inv.Id
-	c.TplName = "test_start.html"
+	// Setelah token valid, langsung arahkan ke alur test IST (start page).
+	c.Redirect("/test/ist/start", 302)
 }
 

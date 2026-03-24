@@ -120,9 +120,12 @@ CREATE TABLE IF NOT EXISTS ist_norms (
 
 CREATE TABLE IF NOT EXISTS ist_iq_norms (
     id SERIAL PRIMARY KEY,
-    total_standard_score INT NOT NULL UNIQUE,
+    total_standard_score INT NOT NULL,
+    age_min INT NOT NULL DEFAULT 0,
+    age_max INT NOT NULL DEFAULT 99,
     iq INT NOT NULL,
-    category VARCHAR(100) NOT NULL
+    category VARCHAR(100) NOT NULL,
+    CONSTRAINT ist_iq_norms_ws_age_unique UNIQUE (total_standard_score, age_min, age_max)
 );
 
 -- Holland master questions and descriptions

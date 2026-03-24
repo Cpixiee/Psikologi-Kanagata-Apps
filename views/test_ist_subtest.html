@@ -6,13 +6,52 @@
     <title>Subtest {{.Subtest.Code}} - IST</title>
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .ist-instruction-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .ist-example-box {
+        background-color: #f5f5ff;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        margin-top: 0.75rem;
+      }
+      .ist-image-wrapper {
+        text-align: center;
+        margin: 0.75rem 0 0.5rem;
+      }
+      .ist-image-wrapper img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+      .ist-memory-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+      }
+      .ist-memory-table th,
+      .ist-memory-table td {
+        border: 1px solid #e0e0ff;
+        padding: 0.25rem 0.5rem;
+        text-align: left;
+      }
+      .ist-memory-table th {
+        background-color: #f0f0ff;
+      }
+    </style>
   </head>
   <body class="bg-light">
     <div class="container-xxl py-4">
       <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Subtest {{.Subtest.Code}} - {{.Subtest.Name}}</h5>
-          <span class="badge bg-warning" id="timerDisplay">05:00</span>
+          <div>
+            <h5 class="mb-0">Subtest {{.Subtest.Code}} - {{.Subtest.Name}}</h5>
+            <small class="text-muted">Baca petunjuk kelompok soal ini terlebih dahulu, lalu kerjakan soal di bawah.</small>
+          </div>
+          <span class="badge bg-warning" id="timerDisplay">20:00</span>
         </div>
         <div class="card-body">
           {{if .Error}}
@@ -20,32 +59,80 @@
           {{else}}
           <form id="formSubtest" data-code="{{.Subtest.Code}}">
             {{range $i, $q := .Questions}}
-            <div class="mb-4 p-3 border rounded">
-              <strong>{{$q.Number}}.</strong> {{$q.Prompt}}
+            <div class="mb-4 p-3 border rounded question-block" id="qnum_{{$q.Number}}" data-qid="{{$q.Id}}" data-number="{{$q.Number}}">
+              <strong>{{$q.Number}}.</strong>
+              {{$q.Prompt}}
+
+              {{if $q.ImageURL}}
+              <div class="ist-image-wrapper">
+                <img src="{{$q.ImageURL}}" alt="Gambar soal {{$q.Number}}" />
+              </div>
+              {{end}}
+
               <div class="mt-2">
-                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_a" value="A" /><label class="form-check-label" for="q{{$q.Id}}_a">a) {{$q.OptionA}}</label></div>
-                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_b" value="B" /><label class="form-check-label" for="q{{$q.Id}}_b">b) {{$q.OptionB}}</label></div>
-                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_c" value="C" /><label class="form-check-label" for="q{{$q.Id}}_c">c) {{$q.OptionC}}</label></div>
-                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_d" value="D" /><label class="form-check-label" for="q{{$q.Id}}_d">d) {{$q.OptionD}}</label></div>
-                <div class="form-check"><input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_e" value="E" /><label class="form-check-label" for="q{{$q.Id}}_e">e) {{$q.OptionE}}</label></div>
+                {{if eq $.Subtest.Code "GE"}}
+                <label class="form-label mb-1" for="q{{$q.Id}}_text">Jawaban Anda</label>
+                <input
+                  class="form-control ge-answer-input"
+                  type="text"
+                  name="q_{{$q.Id}}"
+                  id="q{{$q.Id}}_text"
+                  placeholder="Tulis satu kata yang mewakili kedua kata di atas"
+                  autocomplete="off" />
+                <small class="text-muted">Tidak sensitif huruf besar/kecil.</small>
+                {{else if or (eq $.Subtest.Code "SE") (eq $.Subtest.Code "WA") (eq $.Subtest.Code "AN") (eq $.Subtest.Code "RA") (eq $.Subtest.Code "ZR") (eq $.Subtest.Code "FA") (eq $.Subtest.Code "WU") (eq $.Subtest.Code "ME")}}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_a" value="A" />
+                  <label class="form-check-label" for="q{{$q.Id}}_a">a) {{$q.OptionA}}</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_b" value="B" />
+                  <label class="form-check-label" for="q{{$q.Id}}_b">b) {{$q.OptionB}}</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_c" value="C" />
+                  <label class="form-check-label" for="q{{$q.Id}}_c">c) {{$q.OptionC}}</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_d" value="D" />
+                  <label class="form-check-label" for="q{{$q.Id}}_d">d) {{$q.OptionD}}</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="q_{{$q.Id}}" id="q{{$q.Id}}_e" value="E" />
+                  <label class="form-check-label" for="q{{$q.Id}}_e">e) {{$q.OptionE}}</label>
+                </div>
+                {{end}}
               </div>
             </div>
             {{end}}
-            <button type="submit" class="btn btn-primary w-100">Selesai & Lanjut Subtest Berikutnya</button>
+            <button type="submit" class="btn btn-primary w-100">Selesai &amp; Lanjut Subtest Berikutnya</button>
           </form>
           {{end}}
         </div>
       </div>
     </div>
+    <!-- Toast / Snackbar -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+      <div id="istToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="istToastBody">...</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
     <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
     <script>
       (function () {
         const form = document.getElementById('formSubtest');
         if (!form) return;
         const code = form.dataset.code;
-        const timerMinutes = {{.TimerMinutes}} || 5;
+        const timerMinutes = {{.TimerMinutes}} || 20;
         let secondsLeft = timerMinutes * 60;
         const el = document.getElementById('timerDisplay');
+
+        // Expose toast function untuk CBT guard (anti-cheat)
+        window.__istShowToast = showToast;
 
         function tick() {
           const m = Math.floor(secondsLeft / 60);
@@ -62,6 +149,17 @@
 
         function collectAnswers() {
           const ans = {};
+          if (code === 'GE') {
+            document.querySelectorAll('.question-block').forEach(function (block) {
+              const qid = block.getAttribute('data-qid');
+              if (!qid) return;
+              const input = block.querySelector('input[name="q_' + qid + '"]');
+              if (!input) return;
+              const val = (input.value || '').trim();
+              if (val) ans[qid] = val;
+            });
+            return ans;
+          }
           document.querySelectorAll('input[name^="q_"]:checked').forEach(function (r) {
             const qid = r.name.replace('q_', '');
             ans[qid] = r.value;
@@ -69,37 +167,153 @@
           return ans;
         }
 
-        function submitForm() {
+        function toTitleCaseWords(text) {
+          const cleaned = String(text || '')
+            .trim()
+            .replace(/[–—]/g, '-')
+            .replace(/\s+/g, ' ')
+            .toLowerCase();
+          if (!cleaned) return '';
+          return cleaned
+            .split(' ')
+            .map(function (w) {
+              if (!w) return w;
+              return w.charAt(0).toUpperCase() + w.slice(1);
+            })
+            .join(' ');
+        }
+
+        function clearMissingHighlights() {
+          document.querySelectorAll('.question-block').forEach(function (el) {
+            el.classList.remove('border-danger');
+            el.classList.remove('bg-light');
+          });
+        }
+
+        function highlightMissing(number) {
+          const el = document.getElementById('qnum_' + number);
+          if (!el) return;
+          el.classList.add('border-danger');
+          el.classList.add('bg-light');
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function showToast(message, variant) {
+          const toastEl = document.getElementById('istToast');
+          const bodyEl = document.getElementById('istToastBody');
+          if (!toastEl || !bodyEl || !window.bootstrap) return;
+          bodyEl.textContent = message || '';
+          toastEl.classList.remove('text-bg-primary', 'text-bg-success', 'text-bg-danger', 'text-bg-warning');
+          const v = (variant || 'primary').toLowerCase();
+          if (v === 'success') toastEl.classList.add('text-bg-success');
+          else if (v === 'danger' || v === 'error') toastEl.classList.add('text-bg-danger');
+          else if (v === 'warning') toastEl.classList.add('text-bg-warning');
+          else toastEl.classList.add('text-bg-primary');
+          const t = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2500 });
+          t.show();
+        }
+
+        function findFirstUnanswered() {
+          const blocks = document.querySelectorAll('.question-block');
+          for (let i = 0; i < blocks.length; i++) {
+            const qid = blocks[i].getAttribute('data-qid');
+            const num = parseInt(blocks[i].getAttribute('data-number'), 10);
+            if (!qid) continue;
+            if (code === 'GE') {
+              const textInput = document.querySelector('input[name="q_' + qid + '"]');
+              if (!textInput || !textInput.value || !textInput.value.trim()) return num || null;
+            } else {
+              const checked = document.querySelector('input[name="q_' + qid + '"]:checked');
+              if (!checked) return num || null;
+            }
+          }
+          return null;
+        }
+
+        function submitForm(opts) {
           if (form.dataset.submitted === '1') return;
+          const forceSubmit = !!(opts && opts.force_submit);
+          const violationSrc = (opts && opts.violation_src) ? String(opts.violation_src) : '';
+
+          if (!forceSubmit) {
+            clearMissingHighlights();
+            const firstMissing = findFirstUnanswered();
+            if (firstMissing) {
+              showToast('Jawaban nomor ' + firstMissing + ' belum dikerjakan.', 'warning');
+              highlightMissing(firstMissing);
+              return;
+            }
+          }
+
           form.dataset.submitted = '1';
 
           const answers = collectAnswers();
           fetch('/api/test/ist/subtest/' + code, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answers: answers })
+            body: JSON.stringify({ answers: answers, force_submit: forceSubmit, violation_src: violationSrc })
           })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-              if (data.success && data.next_subtest) {
-                window.location.href = '/test/ist/subtest/' + data.next_subtest;
+              if (data.success && data.next_instruction) {
+                window.location.href = data.next_instruction;
+              } else if (data.success && data.next_subtest) {
+                window.location.href = '/test/ist/instruction/' + data.next_subtest;
               } else if (data.success && data.is_complete) {
-                alert('Tes IST selesai! Hasil akan diproses.');
-                window.location.href = '/dashboard';
+                showToast('Tes IST selesai! Jawaban tersimpan.', 'success');
+                setTimeout(function () {
+                  window.location.href = (data.finish_redirect || '/test/ist/finish');
+                }, 600);
               } else {
-                alert(data.message || 'Terjadi kesalahan');
+                if (data && data.missing_number) {
+                  showToast(data.message || ('Jawaban nomor ' + data.missing_number + ' belum dikerjakan.'), 'warning');
+                  highlightMissing(data.missing_number);
+                  form.dataset.submitted = '0';
+                  return;
+                }
+                if (data && data.redirect) {
+                  window.location.href = data.redirect;
+                  return;
+                }
+                showToast((data && data.message) || 'Terjadi kesalahan', 'danger');
+                form.dataset.submitted = '0';
               }
             })
             .catch(function () {
-              alert('Gagal menyimpan jawaban');
+              showToast('Gagal menyimpan jawaban', 'danger');
+              form.dataset.submitted = '0';
             });
         }
+
+        // Expose submit untuk CBT guard (auto-submit saat pelanggaran limit tercapai)
+        window.__istForceSubmit = function (opts) {
+          showToast('Pelanggaran terdeteksi. Sistem akan auto submit jawaban yang sudah dikerjakan.', 'warning');
+          submitForm(opts || { force_submit: true, violation_src: 'cbt_guard' });
+        };
 
         form.addEventListener('submit', function (e) {
           e.preventDefault();
           submitForm();
         });
+
+        if (code === 'GE') {
+          document.querySelectorAll('.ge-answer-input').forEach(function (input) {
+            input.addEventListener('blur', function () {
+              input.value = toTitleCaseWords(input.value);
+            });
+          });
+        }
       })();
     </script>
+    <script>
+      // Konfigurasi CBT Guard (Anti-Cheat)
+      window.__CBT_GUARD_CFG__ = {
+        enabled: true,
+        violationLimit: 3,
+        violationApi: '/api/test/ist/violation',
+        alarmSrc: '/static/allert/Allert.mp3'
+      };
+    </script>
+    <script src="/static/js/cbt_guard.js"></script>
   </body>
 </html>

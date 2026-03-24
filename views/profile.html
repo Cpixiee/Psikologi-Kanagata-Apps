@@ -42,9 +42,46 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Cropper.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    
+    <style>
+      .nav-tabs-custom .nav-link {
+        color: #697a8d;
+        transition: all 0.3s;
+        border-radius: 0;
+      }
+      .nav-tabs-custom .nav-link:hover {
+        color: #696cff;
+        background-color: rgba(105, 108, 255, 0.05);
+      }
+      .nav-tabs-custom .nav-link.active {
+        color: #696cff;
+        font-weight: 600;
+        background-color: transparent;
+      }
+      .card.h-100 {
+        display: flex;
+        flex-direction: column;
+      }
+      .card-body.d-flex.flex-column {
+        flex: 1;
+      }
+      .nav-tabs-custom {
+        margin-bottom: 0;
+      }
+
+      /* Container untuk horizontal bar chart IST (Chart.js) */
+      .ist-rw-chart-wrapper {
+        margin-top: 1.5rem;
+        height: 360px;
+      }
+
+    </style>
   </head>
 
   <body>
@@ -85,7 +122,7 @@
               <span class="menu-header-text">Layanan</span>
                 </li>
                 <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
+              <a href="/test" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-clipboard"></i>
                 <div class="text-truncate">Tes Psikologi</div>
                   </a>
@@ -117,6 +154,12 @@
               <a href="/settings" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-cog"></i>
                 <div class="text-truncate">Pengaturan</div>
+              </a>
+            </li>
+            <li class="menu-item d-none" id="menuAdminPsychotest">
+              <a href="/admin/psychotest" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
+                <div class="text-truncate">Admin Psychotest</div>
               </a>
             </li>
           </ul>
@@ -215,128 +258,188 @@
           <!-- Content wrapper -->
           <div class="content-wrapper">
             <!-- Content -->
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <h4 class="fw-bold py-3 mb-4">
-                <span class="text-muted fw-light">Akun /</span> Profil Saya
-              </h4>
+            <div class="container-xxl flex-grow-1 container-p-y" style="min-height: calc(100vh - 200px);">
+              <!-- Profile Layout: Left (Info) + Right (Test Results) -->
+              <div class="row h-100">
+                <!-- Left: Profile Info - Full Height -->
+                <div class="col-lg-4 col-md-12 mb-4">
+                  <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                      <!-- Foto Profile -->
+                      <div class="text-center mb-4 mt-3">
+                        <img 
+                          id="profilePhoto" 
+                          src="/static/icons/icon_psikologi_kanagata.png" 
+                          alt="Foto Profil" 
+                          class="rounded-circle" 
+                          style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #e7e7e7;"
+                        />
+                      </div>
 
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="card mb-4">
-                    <!-- Upload Foto Profil -->
-                    <div class="card-body">
-                      <div class="d-flex align-items-start align-items-sm-center gap-4 pb-4 border-bottom">
-                        <img
-                          src="/static/icons/icon_psikologi_kanagata.png"
-                          alt="foto-profil"
-                          class="d-block w-px-100 h-px-100 rounded"
-                          id="uploadedAvatar"
-                          style="object-fit: cover; width: 100px; height: 100px;" />
-                        <div class="button-wrapper">
-                          <label for="upload" class="btn btn-primary me-3 mb-4" tabindex="0">
-                            <span class="d-none d-sm-block">Unggah Foto Baru</span>
-                            <i class="icon-base bx bx-upload d-block d-sm-none"></i>
-                            <input
-                              type="file"
-                              id="upload"
-                              class="account-file-input"
-                              hidden
-                              accept="image/png, image/jpeg, image/jpg"
-                              onchange="handleFileUpload(event)" />
-                          </label>
-                          <button type="button" class="btn btn-outline-secondary account-image-reset mb-4" onclick="resetAvatar()">
-                            <i class="icon-base bx bx-reset d-block d-sm-none"></i>
-                            <span class="d-none d-sm-block">Reset</span>
-                          </button>
-                          <div class="text-muted">Format yang diizinkan: JPG, PNG. Maksimal ukuran 2MB</div>
+                      <!-- Field Nama Lengkap -->
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2" style="font-size: 0.875rem; font-weight: 500;">
+                          <i class="bx bx-user me-2"></i>Nama Lengkap
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profileName" style="font-size: 0.95rem; color: #697a8d;">-</span>
+                        </div>
+                      </div>
+
+                      <!-- Field No Handphone -->
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2" style="font-size: 0.875rem; font-weight: 500;">
+                          <i class="bx bx-phone me-2"></i>No. Handphone
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profilePhone" style="font-size: 0.95rem; color: #697a8d;">-</span>
+                        </div>
+                      </div>
+
+                      <!-- Field Asal Sekolah -->
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2" style="font-size: 0.875rem; font-weight: 500;">
+                          <i class="bx bx-building me-2"></i>Asal Sekolah
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profileSchool" style="font-size: 0.95rem; color: #697a8d;">-</span>
+                        </div>
+                      </div>
+
+                      <!-- Field Email -->
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2" style="font-size: 0.875rem; font-weight: 500;">
+                          <i class="bx bx-envelope me-2"></i>Email
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profileEmail" style="font-size: 0.95rem; color: #697a8d;">-</span>
                         </div>
                       </div>
                     </div>
-                    <!-- Form Profil -->
-                    <div class="card-body pt-4">
-                      <form id="formAccountSettings" method="POST" onsubmit="handleSubmit(event)">
-                        <div class="row g-3">
-                          <div class="col-md-6">
-                            <label for="namaLengkap" class="form-label">Nama Lengkap</label>
-                            <input
-                              class="form-control"
-                              type="text"
-                              id="namaLengkap"
-                              name="nama_lengkap"
-                              required
-                              autofocus />
+                  </div>
+                </div>
+
+                <!-- Right: Test Results with Tabs -->
+                <div class="col-lg-8 col-md-12">
+                  <!-- Tab Bar IST / HOLLAND -->
+                  <div class="card mb-3">
+                    <div class="card-body p-0">
+                      <ul class="nav nav-tabs nav-tabs-custom d-flex" role="tablist" style="border-bottom: 2px solid #e7e7e7;">
+                        <li class="nav-item flex-fill">
+                          <a class="nav-link active text-center py-3" id="istTab" role="tab" onclick="switchToIST()" style="cursor: pointer; border: none; border-bottom: 3px solid #696cff; color: #696cff; font-weight: 600;">
+                            <i class="bx bx-brain me-2"></i><strong>IST</strong>
+                          </a>
+                        </li>
+                        <li class="nav-item flex-fill">
+                          <a class="nav-link text-center py-3" id="hollandTab" role="tab" onclick="switchToHolland()" style="cursor: pointer; border: none; border-bottom: 3px solid transparent; color: #697a8d;">
+                            <i class="bx bx-user-check me-2"></i><strong>HOLLAND</strong>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <!-- Tab Content -->
+                  <div class="tab-content">
+                    <!-- IST Tab Content -->
+                    <div class="tab-pane fade show active" id="istTabContent" role="tabpanel">
+                  <div class="card">
+                        <div class="card-body">
+                          <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Hasil Tes IST</h5>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showISTDetail()" id="istViewBtn" style="display: none;">
+                              <i class="bx bx-grid-alt me-1"></i>Lihat Psikogram
+                            </button>
                           </div>
-                          <div class="col-md-6">
-                            <label for="email" class="form-label">Email</label>
-                            <input
-                              class="form-control"
-                              type="email"
-                              id="email"
-                              name="email"
-                              required
-                              placeholder="nama@example.com" />
-                          </div>
-                          <div class="col-md-6">
-                            <label class="form-label" for="noHandphone">Nomor Handphone</label>
-                            <div class="input-group input-group-merge">
-                              <span class="input-group-text">+62</span>
-                              <input
-                                type="text"
-                                id="noHandphone"
-                                name="no_handphone"
-                                class="form-control"
-                                placeholder="81234567890"
-                                maxlength="13" />
+                          <div id="istContent">
+                            <div class="text-center py-5" id="istNotFound">
+                              <i class="bx bx-info-circle text-muted" style="font-size: 3rem;"></i>
+                              <p class="text-muted mt-2 mb-0">Tes IST belum pernah dikerjakan</p>
+                            </div>
+                            <div id="istResult" style="display: none;">
+                              <!-- DONUT SUMMARY (SW, IST-TOTAL, IQ) -->
+                              <div class="row justify-content-center">
+                                <div class="col-lg-6 col-md-8 d-flex flex-column justify-content-center align-items-center">
+                                      <div style="position: relative; width: 280px; height: 280px;">
+                                        <canvas id="istDonutChart"></canvas>
+                                        <!-- Label di tengah donut -->
+                                        <div
+                                          id="istDonutCenter"
+                                          style="
+                                            position:absolute;
+                                            inset:0;
+                                            display:flex;
+                                            flex-direction:column;
+                                            align-items:center;
+                                            justify-content:center;
+                                            text-align:center;
+                                          ">
+                                          <div style="font-size: 0.9rem; font-weight: 600; color:#9ca3af;">IQ</div>
+                                          <div style="font-size: 2.4rem; font-weight: 800; line-height: 1;" id="istLastIQ">-</div>
+                                        </div>
+                                      </div>
+                                      <div class="d-flex justify-content-between w-100 mt-3">
+                                        <div class="text-start">
+                                      <small class="text-muted">SW (Total Standard Score): </small>
+                                          <span class="fw-semibold" id="istTotalSWLabel">-</span>
+                                        </div>
+                                        <div class="text-end">
+                                      <small class="text-muted">IST-TOTAL (Total RW): </small>
+                                          <span class="fw-semibold" id="istTotalRWLabel">-</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- HORIZONTAL BAR CHART: TOTAL RW PER SUBTEST (Chart.js) -->
+                              <div class="ist-rw-chart-wrapper">
+                                <canvas id="istRWChart"></canvas>
+                              </div>
                             </div>
                           </div>
-                          <div class="col-md-6">
-                            <label for="jenisKelamin" class="form-label">Jenis Kelamin</label>
-                            <select id="jenisKelamin" class="form-select" name="jenis_kelamin">
-                              <option value="">Pilih Jenis Kelamin</option>
-                              <option value="laki_laki">Laki-laki</option>
-                              <option value="perempuan">Perempuan</option>
-                            </select>
-                          </div>
-                          <div class="col-md-12">
-                            <label for="alamat" class="form-label">Alamat Lengkap</label>
-                            <textarea class="form-control" id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat lengkap"></textarea>
-                          </div>
-                          <div class="col-md-4">
-                            <label for="kota" class="form-label">Kota</label>
-                            <input
-                              class="form-control"
-                              type="text"
-                              id="kota"
-                              name="kota"
-                              placeholder="Contoh: Jakarta" />
-                          </div>
-                          <div class="col-md-4">
-                            <label for="provinsi" class="form-label">Provinsi</label>
-                            <input
-                              class="form-control"
-                              type="text"
-                              id="provinsi"
-                              name="provinsi"
-                              placeholder="Contoh: DKI Jakarta" />
-                          </div>
-                          <div class="col-md-4">
-                            <label for="kodepos" class="form-label">Kode Pos</label>
-                            <input
-                              class="form-control"
-                              type="text"
-                              id="kodepos"
-                              name="kodepos"
-                              placeholder="Contoh: 12345"
-                              maxlength="10" />
-                          </div>
-                          </div>
-                        <div class="mt-4">
-                          <button type="submit" class="btn btn-primary me-3">Simpan Perubahan</button>
-                          <button type="reset" class="btn btn-outline-secondary">Batal</button>
                         </div>
-                      </form>
+                      </div>
                     </div>
-                    <!-- /Form Profil -->
+
+                    <!-- Holland Tab Content -->
+                    <div class="tab-pane fade" id="hollandTabContent" role="tabpanel">
+                      <div class="card">
+                    <div class="card-body">
+                          <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Hasil Tes Holland</h5>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showHollandDetail()" id="hollandViewBtn" style="display: none;">
+                              <i class="bx bx-show me-1"></i>Lihat Detail
+                            </button>
+                          </div>
+                          <div id="hollandContent">
+                            <div class="text-center py-5" id="hollandNotFound">
+                              <i class="bx bx-info-circle text-muted" style="font-size: 3rem;"></i>
+                              <p class="text-muted mt-2 mb-0">Tes Holland belum pernah dikerjakan</p>
+                            </div>
+                            <div id="hollandResult" style="display: none;">
+                              <div class="row mb-3">
+                                <div class="col-md-6">
+                                  <p class="mb-1 text-muted">Kode Kepribadian Terakhir</p>
+                                  <h2 class="mb-0" id="hollandCode">-</h2>
+                                  <small class="text-muted" id="hollandTotalTests">-</small>
+                                </div>
+                                <div class="col-md-6">
+                                  <p class="mb-1 text-muted">Top 3 Kepribadian</p>
+                                  <h4 class="mb-0">
+                                    <span class="badge bg-primary me-1" id="hollandTop1">-</span>
+                                    <span class="badge bg-secondary me-1" id="hollandTop2">-</span>
+                                    <span class="badge bg-info" id="hollandTop3">-</span>
+                                  </h4>
+                                </div>
+                              </div>
+                              <div class="mt-4" style="height: 300px;">
+                                <canvas id="hollandChart"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -354,52 +457,6 @@
       <div class="layout-overlay layout-menu-toggle"></div>
     </div>
     <!-- / Layout wrapper -->
-
-    <!-- Modal Crop Image -->
-    <div class="modal fade" id="cropImageModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Crop Foto Profil</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="img-container" style="max-width: 100%; overflow: hidden;">
-              <img id="cropImage" src="" alt="Crop" style="max-width: 100%; display: block;" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-primary" id="cropBtn">Oke, Simpan</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <style>
-      /* Responsive modal crop */
-      @media (min-width: 992px) {
-        #cropImageModal .modal-dialog {
-          max-width: 900px;
-        }
-      }
-      @media (max-width: 991px) {
-        #cropImageModal .modal-dialog {
-          max-width: 95%;
-          margin: 1rem auto;
-        }
-      }
-      #cropImageModal .img-container {
-        min-height: 400px;
-        max-height: 70vh;
-      }
-      @media (max-width: 576px) {
-        #cropImageModal .img-container {
-          min-height: 300px;
-          max-height: 60vh;
-        }
-      }
-    </style>
 
     <!-- Core JS -->
     <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
@@ -427,27 +484,72 @@
           const data = await response.json();
           if (data.success && data.data) {
             const user = data.data;
-            // Fill form fields
-            document.getElementById('namaLengkap').value = user.nama_lengkap || '';
-            document.getElementById('email').value = user.email || '';
-            document.getElementById('noHandphone').value = user.no_handphone ? user.no_handphone.replace('+62', '') : '';
-            document.getElementById('jenisKelamin').value = user.jenis_kelamin || '';
-            document.getElementById('alamat').value = user.alamat || '';
-            document.getElementById('kota').value = user.kota || '';
-            document.getElementById('provinsi').value = user.provinsi || '';
-            document.getElementById('kodepos').value = user.kodepos || '';
             
-            // Update avatar
-            if (user.foto_profil) {
-              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
-              document.getElementById('uploadedAvatar').src = avatarUrl;
-              document.getElementById('navbarAvatar').src = avatarUrl;
-              document.getElementById('dropdownAvatar').src = avatarUrl;
+            // Tampilkan menu admin psychotest bila role admin
+            if (user.role === 'admin') {
+              const adminMenu = document.getElementById('menuAdminPsychotest');
+              if (adminMenu) adminMenu.classList.remove('d-none');
             }
             
-            // Update dropdown info
-            document.getElementById('dropdownName').textContent = user.nama_lengkap || 'Pengguna';
-            document.getElementById('dropdownEmail').textContent = user.email || 'Member';
+            // Helper: generate avatar dari inisial
+            function generateInitialAvatar(name) {
+              const canvas = document.createElement('canvas');
+              const size = 256;
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+
+              const colors = ['#6366F1', '#F97316', '#22C55E', '#EC4899', '#0EA5E9', '#F59E0B', '#8B5CF6'];
+              const bgColor = colors[Math.floor(Math.random() * colors.length)];
+              const initial = (name || '').trim().charAt(0).toUpperCase() || 'U';
+
+              ctx.fillStyle = bgColor;
+              ctx.beginPath();
+              ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.fillStyle = '#FFFFFF';
+              ctx.font = `${size * 0.5}px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(initial, size / 2, size / 2 + 4);
+
+              return canvas.toDataURL('image/png');
+            }
+
+            // Update profile photo
+            const profilePhoto = document.getElementById('profilePhoto');
+            if (profilePhoto) {
+              if (user.foto_profil) {
+                profilePhoto.src = '/static/uploads/profiles/' + user.foto_profil;
+              } else {
+                profilePhoto.src = generateInitialAvatar(user.nama_lengkap || '');
+              }
+            }
+            
+            // Update profile info
+            document.getElementById('profileName').textContent = user.nama_lengkap || '-';
+            document.getElementById('profilePhone').textContent = user.no_handphone || '-';
+            document.getElementById('profileEmail').textContent = user.email || '-';
+            
+            // Update avatar (jika ada elemen pada layout ini)
+            const navbarAvatar = document.getElementById('navbarAvatar');
+            const dropdownAvatar = document.getElementById('dropdownAvatar');
+            if (user.foto_profil) {
+              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
+              if (navbarAvatar) navbarAvatar.src = avatarUrl;
+              if (dropdownAvatar) dropdownAvatar.src = avatarUrl;
+            } else {
+              const avatarDataUrl = generateInitialAvatar(user.nama_lengkap || '');
+              if (navbarAvatar) navbarAvatar.src = avatarDataUrl;
+              if (dropdownAvatar) dropdownAvatar.src = avatarDataUrl;
+            }
+            
+            // Update dropdown info (jika elemen tersedia)
+            const dropdownName = document.getElementById('dropdownName');
+            const dropdownEmail = document.getElementById('dropdownEmail');
+            if (dropdownName) dropdownName.textContent = user.nama_lengkap || 'Pengguna';
+            if (dropdownEmail) dropdownEmail.textContent = user.email || 'Member';
           }
         } catch (error) {
           console.error('Error loading profile:', error);
@@ -517,169 +619,6 @@
       let currentFile = null;
 
       // Handle file upload with crop
-      async function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        // Validate file size (5MB max before crop)
-        if (file.size > 5 * 1024 * 1024) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Ukuran File Terlalu Besar',
-            text: 'Ukuran file maksimal 5MB'
-          });
-          return;
-        }
-
-        // Validate file type
-        if (!file.type.match('image/(jpeg|jpg|png)')) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Format File Tidak Valid',
-            text: 'Hanya file JPG, JPEG, atau PNG yang diizinkan'
-          });
-          return;
-        }
-
-        currentFile = file;
-        
-        // Show crop modal
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const cropImage = document.getElementById('cropImage');
-          cropImage.src = e.target.result;
-          
-          // Destroy existing cropper if any
-          if (cropper) {
-            cropper.destroy();
-          }
-          
-          // Initialize cropper
-          cropper = new Cropper(cropImage, {
-            aspectRatio: 1,
-            viewMode: 1,
-            autoCropArea: 0.8,
-            responsive: true,
-            guides: true,
-            center: true,
-            background: false,
-            modal: true,
-            cropBoxResizable: true,
-            cropBoxMovable: true,
-            minCropBoxWidth: 100,
-            minCropBoxHeight: 100
-          });
-          
-          // Show modal
-          const modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
-          modal.show();
-        };
-        reader.readAsDataURL(file);
-      }
-
-      // Handle crop button click
-      document.addEventListener('DOMContentLoaded', function() {
-        const cropBtn = document.getElementById('cropBtn');
-        if (cropBtn) {
-          cropBtn.addEventListener('click', async function() {
-            if (!cropper) return;
-            
-            // Get cropped canvas
-            const canvas = cropper.getCroppedCanvas({
-              width: 400,
-              height: 400,
-              imageSmoothingEnabled: true,
-              imageSmoothingQuality: 'high'
-            });
-            
-            // Convert canvas to blob
-            canvas.toBlob(async function(blob) {
-              if (!blob) {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Gagal memproses gambar'
-                });
-                return;
-              }
-              
-              // Create form data
-              const formData = new FormData();
-              formData.append('foto_profil', blob, 'profile.jpg');
-              
-              try {
-                const response = await fetch('/api/profile/upload', {
-                  method: 'POST',
-                  body: formData
-                });
-
-                const result = await response.json();
-                
-                if (result.success) {
-                  // Update avatar preview
-                  const avatarUrl = '/static/uploads/profiles/' + result.data.foto_profil + '?t=' + Date.now();
-                  document.getElementById('uploadedAvatar').src = avatarUrl;
-                  document.getElementById('navbarAvatar').src = avatarUrl;
-                  document.getElementById('dropdownAvatar').src = avatarUrl;
-                  
-                  // Close modal
-                  const modal = bootstrap.Modal.getInstance(document.getElementById('cropImageModal'));
-                  modal.hide();
-                  
-                  // Destroy cropper
-                  if (cropper) {
-                    cropper.destroy();
-                    cropper = null;
-                  }
-                  
-                  Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: 'Foto profil berhasil diunggah',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
-                } else {
-                  Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: result.message || 'Gagal mengunggah foto profil'
-                  });
-                }
-              } catch (error) {
-                console.error('Error uploading file:', error);
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Terjadi kesalahan saat mengunggah foto'
-                });
-              }
-            }, 'image/jpeg', 0.9);
-          });
-        }
-        
-        // Reset cropper when modal is closed
-        const cropModal = document.getElementById('cropImageModal');
-        if (cropModal) {
-          cropModal.addEventListener('hidden.bs.modal', function() {
-            if (cropper) {
-              cropper.destroy();
-              cropper = null;
-            }
-            document.getElementById('upload').value = '';
-            currentFile = null;
-          });
-        }
-      });
-
-      // Reset avatar
-      function resetAvatar() {
-        document.getElementById('uploadedAvatar').src = '/static/icons/icon_psikologi_kanagata.png';
-        document.getElementById('navbarAvatar').src = '/static/icons/icon_psikologi_kanagata.png';
-        document.getElementById('dropdownAvatar').src = '/static/icons/icon_psikologi_kanagata.png';
-        document.getElementById('upload').value = '';
-      }
-
       // Handle logout
       async function handleLogout() {
         try {
@@ -696,10 +635,674 @@
         }
       }
 
+      let istDonutChart = null;
+      let istRWChart = null;
+      let hollandChart = null;
+      let currentTab = 'ist'; // Default tab
+
+      // Switch to IST tab
+      function switchToIST() {
+        currentTab = 'ist';
+        const istTab = document.getElementById('istTab');
+        const hollandTab = document.getElementById('hollandTab');
+        const istContent = document.getElementById('istTabContent');
+        const hollandContent = document.getElementById('hollandTabContent');
+        
+        // Update tabs
+        istTab.classList.add('active');
+        istTab.style.borderBottom = '3px solid #696cff';
+        istTab.style.color = '#696cff';
+        istTab.style.fontWeight = '600';
+        
+        hollandTab.classList.remove('active');
+        hollandTab.style.borderBottom = '3px solid transparent';
+        hollandTab.style.color = '#697a8d';
+        hollandTab.style.fontWeight = 'normal';
+        
+        // Update content
+        istContent.classList.add('show', 'active');
+        hollandContent.classList.remove('show', 'active');
+      }
+
+      // Switch to Holland tab
+      function switchToHolland() {
+        currentTab = 'holland';
+        const istTab = document.getElementById('istTab');
+        const hollandTab = document.getElementById('hollandTab');
+        const istContent = document.getElementById('istTabContent');
+        const hollandContent = document.getElementById('hollandTabContent');
+        
+        // Update tabs
+        hollandTab.classList.add('active');
+        hollandTab.style.borderBottom = '3px solid #696cff';
+        hollandTab.style.color = '#696cff';
+        hollandTab.style.fontWeight = '600';
+        
+        istTab.classList.remove('active');
+        istTab.style.borderBottom = '3px solid transparent';
+        istTab.style.color = '#697a8d';
+        istTab.style.fontWeight = 'normal';
+        
+        // Update content
+        hollandContent.classList.add('show', 'active');
+        istContent.classList.remove('show', 'active');
+      }
+
       // Load profile on page load
       document.addEventListener('DOMContentLoaded', function() {
         loadProfile();
+        loadTestSummary();
       });
+
+      // Load test summary data
+      async function loadTestSummary() {
+        try {
+          const resp = await fetch('/api/profile/test-summary');
+          if (!resp.ok) return;
+          const payload = await resp.json();
+          if (!payload.success || !payload.data) return;
+
+          const summary = payload.data;
+
+          // Update profile info
+          if (summary.last_institution) {
+            document.getElementById('profileSchool').textContent = summary.last_institution;
+          }
+
+          // Load IST results
+          if (summary.last_ist_result) {
+            displayISTResult(summary.last_ist_result, summary.average_iq, summary.total_ist_tests);
+          } else {
+            document.getElementById('istNotFound').style.display = 'block';
+            document.getElementById('istResult').style.display = 'none';
+            document.getElementById('istViewBtn').style.display = 'none';
+          }
+
+          // Load Holland results
+          if (summary.last_holland_result) {
+            displayHollandResult(summary.last_holland_result, summary.total_holland_tests);
+          } else {
+            document.getElementById('hollandNotFound').style.display = 'block';
+            document.getElementById('hollandResult').style.display = 'none';
+            document.getElementById('hollandViewBtn').style.display = 'none';
+          }
+        } catch (err) {
+          console.error('Error loading test summary', err);
+        }
+      }
+
+      // Display IST result
+      function displayISTResult(istData, avgIQ, totalTests) {
+        document.getElementById('istNotFound').style.display = 'none';
+        document.getElementById('istResult').style.display = 'block';
+        document.getElementById('istViewBtn').style.display = 'inline-block';
+
+        // Update IQ info
+        const iqValueEl = document.getElementById('istLastIQ');
+        if (iqValueEl) {
+          iqValueEl.textContent = istData.iq || '-';
+        }
+
+        // Hitung total SW (TotalStandardScore) dan total RW (jumlah raw semua subtest)
+        const stdScores = Array.isArray(istData.std_scores) ? istData.std_scores : [];
+        const rawScores = Array.isArray(istData.raw_scores) ? istData.raw_scores : [];
+        const totalSW = (typeof istData.total_standard_score === 'number' && istData.total_standard_score > 0) ? istData.total_standard_score : 0;
+        const totalRW = rawScores.reduce((sum, v) => sum + (v || 0), 0);
+
+        document.getElementById('istTotalSWLabel').textContent = totalSW > 0 ? totalSW : '-';
+        document.getElementById('istTotalRWLabel').textContent = totalRW || '-';
+
+        // Donut chart: biru = IQ terakhir, oranye = rata-rata IQ
+        const donutCtx = document.getElementById('istDonutChart');
+        if (donutCtx) {
+          if (istDonutChart) {
+            istDonutChart.destroy();
+          }
+          const iqVal = istData.iq || 0;
+          const avgVal = avgIQ || 0;
+          istDonutChart = new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['IQ', 'Rata-rata IQ'],
+              datasets: [{
+                data: [iqVal, avgVal],
+                // Biru untuk IQ, oranye untuk rata-rata IQ
+                backgroundColor: ['#6366f1', '#f97316'],
+                borderWidth: 0,
+                hoverOffset: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '60%',
+              plugins: {
+                legend: { 
+                  display: true, 
+                  position: 'bottom',
+                  labels: {
+                    usePointStyle: true,
+                    padding: 16,
+                    font: { size: 12 }
+                  }
+                },
+                tooltip: { enabled: true }
+              }
+            }
+          });
+
+          // Tambah angka IQ di tengah donut
+          // Gunakan plugin sederhana via HTML: teks sudah ditampilkan di atas (IQ Terakhir),
+          // jadi di sini kita cukup fokus ke visual donut saja.
+        }
+
+        // Data RW per subtest (hanya nilai positif, tidak ada minus)
+        const rwDataRaw = rawScores.length === 9 ? rawScores : [
+          istData.raw_se, istData.raw_wa, istData.raw_an,
+          istData.raw_ge, istData.raw_ra, istData.raw_za,
+          istData.raw_fa, istData.raw_wu, istData.raw_me,
+        ];
+        // Pastikan tidak ada nilai negatif
+        const rwData = rwDataRaw.map(v => Math.max(v || 0, 0));
+
+        const ctxRW = document.getElementById('istRWChart');
+        if (ctxRW) {
+          if (istRWChart) {
+            istRWChart.destroy();
+          }
+          const labelsRW = ['SE', 'WA', 'AN', 'GE', 'RA', 'ZA', 'FA', 'WU', 'ME'];
+          istRWChart = new Chart(ctxRW, {
+            type: 'bar',
+            data: {
+              labels: labelsRW,
+              datasets: [
+                {
+                  label: 'Total RW',
+                  data: rwData,
+                  borderWidth: 1,
+                  borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(234, 179, 8, 1)',
+                    'rgba(16, 185, 129, 1)',
+                    'rgba(96, 165, 250, 1)',
+                    'rgba(168, 85, 247, 1)',
+                    'rgba(236, 72, 153, 1)',
+                    'rgba(56, 189, 248, 1)',
+                    'rgba(34, 197, 94, 1)'
+                  ],
+                  backgroundColor: [
+                    'rgba(59, 130, 246, 0.5)',
+                    'rgba(239, 68, 68, 0.5)',
+                    'rgba(234, 179, 8, 0.5)',
+                    'rgba(16, 185, 129, 0.5)',
+                    'rgba(96, 165, 250, 0.5)',
+                    'rgba(168, 85, 247, 0.5)',
+                    'rgba(236, 72, 153, 0.5)',
+                    'rgba(56, 189, 248, 0.5)',
+                    'rgba(34, 197, 94, 0.5)'
+                  ],
+                  hoverBackgroundColor: [
+                    'rgba(59, 130, 246, 0.5)',
+                    'rgba(239, 68, 68, 0.5)',
+                    'rgba(234, 179, 8, 0.5)',
+                    'rgba(16, 185, 129, 0.5)',
+                    'rgba(96, 165, 250, 0.5)',
+                    'rgba(168, 85, 247, 0.5)',
+                    'rgba(236, 72, 153, 0.5)',
+                    'rgba(56, 189, 248, 0.5)',
+                    'rgba(34, 197, 94, 0.5)'
+                  ],
+                  hoverBorderWidth: 0
+                }
+              ]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  ticks: {
+                    precision: 0
+                  }
+                },
+                y: {
+                  ticks: {
+                    autoSkip: false
+                  }
+                }
+              },
+              plugins: {
+                legend: { display: false },
+                title: {
+                  display: true,
+                  text: 'Total RW per Subtest'
+                }
+              }
+            }
+          });
+        }
+
+        // Store data for detail view
+        window.lastISTData = istData;
+      }
+
+      // Display Holland result
+      function displayHollandResult(hollandData, totalTests) {
+        document.getElementById('hollandNotFound').style.display = 'none';
+        document.getElementById('hollandResult').style.display = 'block';
+        document.getElementById('hollandViewBtn').style.display = 'inline-block';
+
+        // Update code info
+        document.getElementById('hollandCode').textContent = hollandData.code || '-';
+        document.getElementById('hollandTotalTests').textContent = totalTests > 0 ? `${totalTests} tes selesai` : '-';
+        document.getElementById('hollandTop1').textContent = hollandData.top1 || '-';
+        document.getElementById('hollandTop2').textContent = hollandData.top2 || '-';
+        document.getElementById('hollandTop3').textContent = hollandData.top3 || '-';
+
+        // Create chart
+        const ctx = document.getElementById('hollandChart');
+        if (ctx) {
+          if (hollandChart) {
+            hollandChart.destroy();
+          }
+          hollandChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['Realistic (R)', 'Investigative (I)', 'Artistic (A)', 'Social (S)', 'Enterprising (E)', 'Conventional (C)'],
+              datasets: [{
+                label: 'Skor',
+                data: [
+                  hollandData.score_r || 0,
+                  hollandData.score_i || 0,
+                  hollandData.score_a || 0,
+                  hollandData.score_s || 0,
+                  hollandData.score_e || 0,
+                  hollandData.score_c || 0
+                ],
+                backgroundColor: [
+                  'rgba(255, 99, 132, 0.6)',
+                  'rgba(54, 162, 235, 0.6)',
+                  'rgba(255, 206, 86, 0.6)',
+                  'rgba(75, 192, 192, 0.6)',
+                  'rgba(153, 102, 255, 0.6)',
+                  'rgba(255, 159, 64, 0.6)'
+                ],
+                borderColor: [
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(153, 102, 255, 1)',
+                  'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              },
+              plugins: {
+                legend: {
+                  display: false
+                }
+              }
+            }
+          });
+        }
+
+        // Store data for detail view
+        window.lastHollandData = hollandData;
+      }
+
+      // Show IST detail modal
+      function showISTDetail() {
+        if (!window.lastISTData) return;
+        const data = window.lastISTData;
+        
+        // Tentukan deskripsi IQ dinamis berdasarkan rentang IQ
+        function getIQDescription(iq) {
+          if (iq == null) return '-';
+          const val = Number(iq);
+          if (val < 69) return 'Intellectual Deficient';
+          if (val >= 70 && val <= 79) return 'Borderline / Lambat';
+          if (val >= 80 && val <= 89) return 'Di bawah rata-rata';
+          if (val >= 90 && val <= 109) return 'Rata-rata';
+          if (val >= 110 && val <= 119) return 'Di atas rata-rata';
+          if (val >= 120 && val <= 129) return 'Superior (Cerdas)';
+          if (val >= 130) return 'Very Superior (Sangat cerdas)';
+          return '-';
+        }
+
+        const iqDesc = getIQDescription(data.iq);
+
+        // Mapping SW -> indeks kategori 0..5 (Kurang Sekali s.d. Baik Sekali)
+        function getCategoryIndexFromSW(sw) {
+          const val = Number(sw) || 0;
+          if (val >= 120) return 5; // Baik Sekali
+          if (val >= 110) return 4; // Baik
+          if (val >= 100) return 3; // Cukup Baik
+          if (val >= 90) return 2;  // Cukup
+          if (val >= 80) return 1;  // Kurang
+          return 0;                 // Kurang Sekali
+        }
+
+        // Hitung skor SW per aspek (sesuai layout psikogram)
+        function avgSW(...vals) {
+          const arr = vals.filter(v => typeof v === 'number' && v > 0);
+          if (arr.length === 0) return 0;
+          return Math.round(arr.reduce((s, v) => s + v, 0) / arr.length);
+        }
+
+        const sw = Array.isArray(data.std_scores) && data.std_scores.length === 9 ? data.std_scores : [];
+        const se = sw[0], wa = sw[1], an = sw[2], ge = sw[3], ra = sw[4], za = sw[5], fa = sw[6], wu = sw[7], me = sw[8];
+        const aspectSW = [
+          avgSW(se, ge),         // 1 Penalaran Konkret
+          avgSW(se, wa, ge),     // 2 Penalaran Verbal
+          an || 0,               // 3 Daya Analisis
+          za || 0,               // 4 Penalaran Abstrak
+          me || 0,               // 5 Daya Ingat
+          ra || 0,               // 6 Kemampuan Berhitung
+          za || 0,               // 7 Analogi Angka
+          fa || 0,               // 8 Daya Bayang Konstruksional
+          wu || 0                // 9 Daya Bayang Ruang
+        ];
+
+        // Render baris psikogram: tiap aspek ditentukan dari SW aspek (bukan dari IQ global)
+        function renderPsikogramRows(d) {
+          const labels = [
+            'Penalaran Konkret',
+            'Penalaran Verbal',
+            'Daya Analisis',
+            'Penalaran Abstrak',
+            'Daya Ingat',
+            'Kemampuan Berhitung',
+            'Analogi Angka',
+            'Daya Bayang Konstruksional',
+            'Daya Bayang Ruang'
+          ];
+
+          const descriptions = [
+            'Kemampuan berpikir praktis, sesuai kenyataan dan mengambil keputusan secara mandiri berdasarkan data maupun situasi serta kondisi yang ada.',
+            'Kemampuan berpikir logis dalam penggunaan bahasa terkait informasi, instruksi maupun literasi.',
+            'Kemampuan melakukan pengkajian suatu peristiwa, objek, informasi maupun hubungan serta sebab akibat dalam penyelesaian persoalan atau masalah.',
+            'Kemampuan memahami dan membayangkan suatu objek yang tidak nyata/abstrak.',
+            'Kemampuan mengingat/menghafal suatu informasi maupun objek.',
+            'Kemampuan memahami konsep dasar berhitung dan mengolah angka secara praktis.',
+            'Kemampuan memahami analogi angka dalam analisis mendalam sesuai pola khusus secara teoritis.',
+            'Kemampuan memahami, mengingat dan membayangkan maupun menciptakan kreasi konstruksi secara teknis dengan berpikir secara menyeluruh mengenai suatu objek, bangunan maupun lokasi.',
+            'Kemampuan memahami dan membayangkan suatu ruang tiga dimensi, berpikir fleksibel dan kreatif.'
+          ];
+
+          const mark = (cond) => cond ? '&#10003;' : '';
+
+          return labels.map((label, idx) => {
+            const catIdx = getCategoryIndexFromSW(aspectSW[idx] || 0);
+
+            return `
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>${label}</td>
+                <td>${descriptions[idx]}</td>
+                <td class="text-center">${mark(catIdx === 0)}</td>
+                <td class="text-center">${mark(catIdx === 1)}</td>
+                <td class="text-center">${mark(catIdx === 2)}</td>
+                <td class="text-center">${mark(catIdx === 3)}</td>
+                <td class="text-center">${mark(catIdx === 4)}</td>
+                <td class="text-center">${mark(catIdx === 5)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+        
+        const modalContent = `
+          <div class="modal fade" id="istDetailModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Psikogram Tes IST</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Nama Tes:</strong></p>
+                      <p>${data.batch_name || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Institusi:</strong></p>
+                      <p>${data.institution || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Tanggal Tes:</strong></p>
+                      <p>${new Date(data.test_date).toLocaleDateString('id-ID')}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>IQ:</strong></p>
+                      <p><span class="badge bg-primary">IQ = ${data.iq || '-'} - ${iqDesc}</span></p>
+                    </div>
+                  </div>
+                  <hr/>
+                  <h6 class="mb-3 text-center text-uppercase">II. PSIKOGRAM</h6>
+                  <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0" style="font-size: 0.875rem;">
+                      <thead>
+                        <tr>
+                          <th rowspan="4" class="text-center align-middle" style="width: 40px;">No</th>
+                          <th rowspan="4" class="text-center align-middle" style="width: 220px;">ASPEK PSIKOLOGIS</th>
+                          <th rowspan="4" class="text-center align-middle">Uraian</th>
+                          <th colspan="6" class="text-center align-middle" style="width: 260px;">KATEGORI</th>
+                        </tr>
+                        <tr>
+                          <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Kurang</th>
+                          <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Cukup</th>
+                          <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Baik</th>
+                        </tr>
+                        <tr>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">Kurang Sekali</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">Kurang</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">Cukup</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">Cukup Baik</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">Baik</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">Baik Sekali</th>
+                        </tr>
+                        <tr>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">1</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">2</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">3</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">4</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">5</th>
+                          <th class="text-center align-middle" style="background-color:#e5edf8;">6</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td></td>
+                          <td colspan="2"><strong>A. KECERDASAN UMUM (Skala IST)</strong></td>
+                          <td colspan="6"></td>
+                        </tr>
+                        <tr>
+                          <td></td>
+                          <td colspan="2">IQ = ${data.iq || '-'} - ${iqDesc}</td>
+                          <td colspan="6"></td>
+                        </tr>
+                        <tr>
+                          <td></td>
+                          <td colspan="2"><strong>B. KEMAMPUAN KHUSUS</strong></td>
+                          <td colspan="6"></td>
+                        </tr>
+                        ${renderPsikogramRows(data)}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="mt-3 d-flex justify-content-end">
+                    <div class="text-end">
+                      <a href="/test/ist/result/excel?invId=${data.invitation_id}" class="btn btn-outline-secondary btn-sm">
+                        Download Excel Psikogram
+                    </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('istDetailModal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+        
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+        const modal = new bootstrap.Modal(document.getElementById('istDetailModal'));
+        modal.show();
+        
+        // Create chart in modal
+        setTimeout(() => {
+          const ctx = document.getElementById('istDetailChart');
+          if (ctx && data.std_scores) {
+            new Chart(ctx, {
+              type: 'radar',
+              data: {
+                labels: ['SE', 'WA', 'AN', 'GE', 'RA', 'ZA', 'FA', 'WU', 'ME'],
+                datasets: [{
+                  label: 'Skor Standar',
+                  data: data.std_scores,
+                  fill: true,
+                  backgroundColor: 'rgba(105, 108, 255, 0.2)',
+                  borderColor: 'rgba(105, 108, 255, 1)',
+                  pointBackgroundColor: 'rgba(105, 108, 255, 1)'
+                }]
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  r: {
+                    beginAtZero: true,
+                    max: 7,
+                    ticks: { stepSize: 1 }
+                  }
+                }
+              }
+            });
+          }
+        }, 100);
+      }
+
+      // Show Holland detail modal
+      function showHollandDetail() {
+        if (!window.lastHollandData) return;
+        const data = window.lastHollandData;
+        
+        const modalContent = `
+          <div class="modal fade" id="hollandDetailModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Detail Hasil Tes Holland</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Nama Tes:</strong></p>
+                      <p>${data.batch_name || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Institusi:</strong></p>
+                      <p>${data.institution || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Tanggal Tes:</strong></p>
+                      <p>${new Date(data.test_date).toLocaleDateString('id-ID')}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Kode Kepribadian:</strong></p>
+                      <p><span class="badge bg-primary">${data.code || '-'}</span></p>
+                      <p class="mb-0"><small>Top 3: ${data.top1 || '-'}, ${data.top2 || '-'}, ${data.top3 || '-'}</small></p>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <canvas id="hollandDetailChart" height="250"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('hollandDetailModal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+        
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+        const modal = new bootstrap.Modal(document.getElementById('hollandDetailModal'));
+        modal.show();
+        
+        // Create chart in modal
+        setTimeout(() => {
+          const ctx = document.getElementById('hollandDetailChart');
+          if (ctx) {
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: ['Realistic (R)', 'Investigative (I)', 'Artistic (A)', 'Social (S)', 'Enterprising (E)', 'Conventional (C)'],
+                datasets: [{
+                  label: 'Skor',
+                  data: [
+                    data.score_r || 0,
+                    data.score_i || 0,
+                    data.score_a || 0,
+                    data.score_s || 0,
+                    data.score_e || 0,
+                    data.score_c || 0
+                  ],
+                  backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)'
+                  ],
+                  borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                  ],
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                }
+              }
+            });
+          }
+        }, 100);
+      }
     </script>
   </body>
 </html>

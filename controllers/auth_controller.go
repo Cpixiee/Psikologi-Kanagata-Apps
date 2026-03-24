@@ -40,6 +40,12 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+// ChangePasswordRequest represents payload for password update.
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
 // @router /api/auth/register [post]
 func (c *AuthController) Register() {
 	var req RegisterRequest
@@ -262,6 +268,91 @@ func (c *AuthController) Login() {
 			"role":         user.Role,
 			"is_new_device": isNewDevice,
 		},
+	}
+	c.ServeJSON()
+}
+
+// @router /api/auth/change-password [post]
+func (c *AuthController) ChangePassword() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Silakan login terlebih dahulu",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Format data tidak valid",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	if req.CurrentPassword == "" || req.NewPassword == "" {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Password saat ini dan password baru wajib diisi",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	user := models.User{Id: userID.(int)}
+	if err := o.Read(&user); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "User tidak ditemukan",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	// Verify current password
+	if !user.CheckPassword(req.CurrentPassword) {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Password saat ini tidak sesuai",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	user.Password = req.NewPassword
+	if err := user.HashPassword(); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Gagal memproses password baru",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	if _, err := o.Update(&user, "Password"); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Gagal menyimpan password baru",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	c.Data["json"] = Response{
+		Success: true,
+		Message: "Password berhasil diubah",
 	}
 	c.ServeJSON()
 }

@@ -54,7 +54,7 @@ func (t *TestBatch) TableName() string {
 // TestInvitation menyimpan token undangan per peserta
 type TestInvitation struct {
 	Id         int       `orm:"auto;pk" json:"id"`
-	BatchId    int       `json:"batch_id"`
+	BatchId    *int      `orm:"null" json:"batch_id,omitempty"` // Bisa NULL jika batch sudah dihapus
 	Email      string    `orm:"size(255)" json:"email"`
 	UserId     *int      `orm:"null" json:"user_id,omitempty"`
 	Token      string    `orm:"size(64);unique" json:"token"`
@@ -106,7 +106,13 @@ type ISTAnswer struct {
 	User        *User       `orm:"rel(fk)" json:"user"`
 	Subtest     *ISTSubtest `orm:"rel(fk)" json:"subtest"`
 	Question    *ISTQuestion `orm:"rel(fk)" json:"question"`
-	Answer      string      `orm:"size(1)" json:"answer_option"`
+	// IMPORTANT: kolom di DB (lihat migrations/000011_create_tests_tables.up.sql) bernama `answer_option`.
+	// Tanpa `column(answer_option)`, Beego ORM akan memakai nama default `answer` -> insert gagal diam-diam
+	// (karena beberapa controller masih mengabaikan error). Ini penyebab export kosong.
+	Answer      string      `orm:"column(answer_option);size(255)" json:"answer_option"`
+	// Score menyimpan skor per-butir (untuk subtest GE bisa 0/1/2).
+	// Untuk subtest lain umumnya 0/1 (benar/salah).
+	Score       int         `orm:"column(score);default(0)" json:"score"`
 	IsCorrect   bool        `json:"is_correct"`
 	AnsweredAt  time.Time   `orm:"auto_now_add;type(datetime)" json:"answered_at"`
 }
@@ -117,38 +123,55 @@ func (a *ISTAnswer) TableName() string {
 
 // ISTResult: ringkasan skor per subtes + IQ
 type ISTResult struct {
-	Id                 int       `orm:"auto;pk" json:"id"`
+	Id                 int             `orm:"auto;pk" json:"id"`
 	Invitation         *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
-	User               *User     `orm:"rel(fk)" json:"user"`
-	RawSE              int       `json:"raw_se"`
-	RawWA              int       `json:"raw_wa"`
-	RawAN              int       `json:"raw_an"`
-	RawME              int       `json:"raw_me"`
-	RawRA              int       `json:"raw_ra"`
-	RawZA              int       `json:"raw_za"`
-	RawFA              int       `json:"raw_fa"`
-	RawWU              int       `json:"raw_wu"`
-	RawGE              int       `json:"raw_ge"`
-	StdSE              int       `json:"std_se"`
-	StdWA              int       `json:"std_wa"`
-	StdAN              int       `json:"std_an"`
-	StdME              int       `json:"std_me"`
-	StdRA              int       `json:"std_ra"`
-	StdZA              int       `json:"std_za"`
-	StdFA              int       `json:"std_fa"`
-	StdWU              int       `json:"std_wu"`
-	StdGE              int       `json:"std_ge"`
-	TotalStandardScore int       `json:"total_standard_score"`
-	IQ                 int       `json:"iq"`
-	IQCategory         string    `orm:"size(100)" json:"iq_category"`
-	Strengths          string    `orm:"type(text)" json:"strengths"`
-	Weaknesses         string    `orm:"type(text)" json:"weaknesses"`
-	Summary            string    `orm:"type(text)" json:"summary"`
-	CreatedAt          time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
+	User               *User           `orm:"rel(fk)" json:"user"`
+	// Raw scores: kolom di DB adalah snake_case tanpa extra underscore (raw_se, raw_wa, dst.)
+	RawSE              int       `orm:"column(raw_se)" json:"raw_se"`
+	RawWA              int       `orm:"column(raw_wa)" json:"raw_wa"`
+	RawAN              int       `orm:"column(raw_an)" json:"raw_an"`
+	RawME              int       `orm:"column(raw_me)" json:"raw_me"`
+	RawRA              int       `orm:"column(raw_ra)" json:"raw_ra"`
+	RawZA              int       `orm:"column(raw_za)" json:"raw_za"`
+	RawFA              int       `orm:"column(raw_fa)" json:"raw_fa"`
+	RawWU              int       `orm:"column(raw_wu)" json:"raw_wu"`
+	RawGE              int       `orm:"column(raw_ge)" json:"raw_ge"`
+	// Standard scores (SW): std_se, std_wa, dst.
+	StdSE              int       `orm:"column(std_se)" json:"std_se"`
+	StdWA              int       `orm:"column(std_wa)" json:"std_wa"`
+	StdAN              int       `orm:"column(std_an)" json:"std_an"`
+	StdME              int       `orm:"column(std_me)" json:"std_me"`
+	StdRA              int       `orm:"column(std_ra)" json:"std_ra"`
+	StdZA              int       `orm:"column(std_za)" json:"std_za"`
+	StdFA              int       `orm:"column(std_fa)" json:"std_fa"`
+	StdWU              int       `orm:"column(std_wu)" json:"std_wu"`
+	StdGE              int       `orm:"column(std_ge)" json:"std_ge"`
+	// Total WS & IQ
+	TotalStandardScore int       `orm:"column(total_standard_score)" json:"total_standard_score"`
+	IQ                 int       `orm:"column(iq)" json:"iq"`
+	IQCategory         string    `orm:"column(iq_category);size(100)" json:"iq_category"`
+	Strengths          string    `orm:"column(strengths);type(text)" json:"strengths"`
+	Weaknesses         string    `orm:"column(weaknesses);type(text)" json:"weaknesses"`
+	Summary            string    `orm:"column(summary);type(text)" json:"summary"`
+	CreatedAt          time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
 }
 
 func (r *ISTResult) TableName() string {
 	return "ist_results"
+}
+
+// ISTProgress: tracking progress peserta mengerjakan subtest IST
+// Setiap kali submit subtest, akan tercatat di sini untuk tracking & export
+type ISTProgress struct {
+	Id          int            `orm:"auto;pk" json:"id"`
+	Invitation  *TestInvitation `orm:"rel(fk)" json:"invitation"`
+	SubtestCode string         `orm:"size(10)" json:"subtest_code"` // SE, WA, AN, GE, RA, ZR, FA, WU, ME
+	Status      string         `orm:"size(20)" json:"status"`       // completed, in_progress
+	CompletedAt time.Time      `orm:"auto_now_add;type(datetime)" json:"completed_at"`
+}
+
+func (p *ISTProgress) TableName() string {
+	return "ist_progress"
 }
 
 // ISTNorm: raw score -> standard score per usia
@@ -165,12 +188,14 @@ func (n *ISTNorm) TableName() string {
 	return "ist_norms"
 }
 
-// ISTIQNorm: total standard score -> IQ
+// ISTIQNorm: total standard score -> IQ (age-dependent)
 type ISTIQNorm struct {
 	Id                 int    `orm:"auto;pk" json:"id"`
-	TotalStandardScore int    `json:"total_standard_score"`
-	IQ                 int    `json:"iq"`
-	Category           string `orm:"size(100)" json:"category"`
+	TotalStandardScore int    `orm:"column(total_standard_score)" json:"total_standard_score"`
+	AgeMin             int    `orm:"column(age_min)" json:"age_min"`
+	AgeMax             int    `orm:"column(age_max)" json:"age_max"`
+	IQ                 int    `orm:"column(iq)" json:"iq"`
+	Category           string `orm:"column(category);size(100)" json:"category"`
 }
 
 func (n *ISTIQNorm) TableName() string {
@@ -246,6 +271,7 @@ func init() {
 		new(ISTQuestion),
 		new(ISTAnswer),
 		new(ISTResult),
+		new(ISTProgress),
 		new(ISTNorm),
 		new(ISTIQNorm),
 		new(HollandQuestion),
@@ -255,3 +281,27 @@ func init() {
 	)
 }
 
+// EnsureISTProgressTable creates ist_progress table if not exists
+// Dipanggil dari main.go setelah database ready
+func EnsureISTProgressTable() error {
+	o := orm.NewOrm()
+	_, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS ist_progress (
+			id SERIAL PRIMARY KEY,
+			invitation_id INT NOT NULL REFERENCES test_invitations(id) ON DELETE CASCADE,
+			subtest_code VARCHAR(10) NOT NULL,
+			status VARCHAR(20) NOT NULL DEFAULT 'completed',
+			completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(invitation_id, subtest_code)
+		);
+	`).Exec()
+	if err != nil {
+		return err
+	}
+	
+	// Create indexes if not exists
+	o.Raw(`CREATE INDEX IF NOT EXISTS idx_ist_progress_invitation_id ON ist_progress(invitation_id);`).Exec()
+	o.Raw(`CREATE INDEX IF NOT EXISTS idx_ist_progress_subtest_code ON ist_progress(subtest_code);`).Exec()
+	
+	return nil
+}

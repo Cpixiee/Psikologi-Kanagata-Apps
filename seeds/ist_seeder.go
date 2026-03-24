@@ -152,6 +152,8 @@ func SeedIST() error {
 		}
 		n := models.ISTIQNorm{
 			TotalStandardScore: total,
+			AgeMin:             0,  // Default: semua usia (untuk backward compatibility)
+			AgeMax:             99,
 			IQ:                 iq,
 			Category:           cat,
 		}

@@ -107,13 +107,19 @@ func init() {
 	// IST test flow (peserta)
 	beego.Router("/test/ist/start", &controllers.ISTTestController{}, "get:StartISTPage;post:SubmitStartIST")
 	beego.Router("/test/ist/announcement", &controllers.ISTTestController{}, "get:AnnouncementPage")
+	beego.Router("/test/ist/instruction/:code", &controllers.ISTTestController{}, "get:InstructionPage")
 	beego.Router("/test/ist/subtest/:code", &controllers.ISTTestController{}, "get:SubtestPage")
+	beego.Router("/test/ist/finish", &controllers.ISTTestController{}, "get:FinishPage")
+	beego.Router("/test/ist/result", &controllers.ISTTestController{}, "get:ResultPage")
+	beego.Router("/test/ist/result/pdf", &controllers.ISTTestController{}, "get:ExportResultPDF")
+	beego.Router("/test/ist/result/excel", &controllers.ISTTestController{}, "get:ExportResultExcel")
 	beego.Router("/api/test/ist/subtest/:code", &controllers.ISTTestController{}, "post:SubmitSubtestAPI")
-
+	beego.Router("/api/test/ist/violation", &controllers.ISTTestController{}, "post:ReportViolationAPI")
 	// API routes
 	beego.Router("/api/auth/register", &controllers.AuthController{}, "post:Register")
 	beego.Router("/api/auth/login", &controllers.AuthController{}, "post:Login")
 	beego.Router("/api/auth/logout", &controllers.AuthController{}, "post:Logout")
+	beego.Router("/api/auth/change-password", &controllers.AuthController{}, "post:ChangePassword")
 	beego.Router("/api/auth/captcha", &controllers.AuthController{}, "get:GetCaptcha")
 	beego.Router("/api/auth/captcha/:id", &controllers.AuthController{}, "get:CaptchaImage")
 	beego.Router("/api/auth/request-reset", &controllers.PasswordResetController{}, "post:RequestOTP")
@@ -125,6 +131,8 @@ func init() {
 	// Profile routes
 	beego.Router("/api/profile", &controllers.ProfileController{}, "get:GetProfile;put:UpdateProfile")
 	beego.Router("/api/profile/upload", &controllers.ProfileController{}, "post:UploadFoto")
+	beego.Router("/api/profile/tests", &controllers.ProfileController{}, "get:GetTestResults")
+	beego.Router("/api/profile/test-summary", &controllers.ProfileController{}, "get:GetTestSummary")
 	
 	// Settings routes
 	beego.Router("/api/settings", &controllers.SettingsController{}, "get:GetSettings;put:UpdateSettings")

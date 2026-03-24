@@ -65,6 +65,15 @@ func SendNotification(userID int, notifType NotificationType, title, message str
 		sendBrowser = settings.NotifDeviceLinkBrowser
 	}
 
+	// Apply global notification timing rule
+	// "never"  -> jangan kirim lewat channel apa pun
+	// "always" -> kirim sesuai checkbox di atas
+	// "online" -> untuk saat ini diperlakukan sama seperti "always"
+	if settings.NotificationTiming == "never" {
+		sendEmail = false
+		sendBrowser = false
+	}
+
 	// Send email notification
 	if sendEmail {
 		emailConfig := GetEmailConfig()

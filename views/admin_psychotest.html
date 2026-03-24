@@ -14,6 +14,53 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .token-box-container {
+        text-align: center;
+        margin: 20px 0;
+      }
+      .token-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        margin-bottom: 15px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      }
+      .token-code {
+        font-size: 32px;
+        font-weight: bold;
+        color: #ffffff;
+        letter-spacing: 8px;
+        font-family: 'Courier New', monospace;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        user-select: all;
+        cursor: text;
+      }
+      .token-modal-popup {
+        border-radius: 16px;
+      }
+      .token-modal-popup .swal2-popup {
+        border-radius: 16px;
+        padding: 30px;
+      }
+      .token-modal-popup .swal2-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+      }
+      .token-modal-popup .swal2-html-container {
+        margin: 0;
+        padding: 0;
+      }
+
+      /* SweetAlert2 harus di atas Bootstrap modal/backdrop */
+      .swal2-container {
+        z-index: 20000 !important;
+      }
+
+    </style>
   </head>
   <body>
     <div class="layout-wrapper layout-content-navbar">
@@ -191,7 +238,7 @@
                       <div class="d-flex justify-content-between align-items-center mb-3">
                         <p class="mb-0 text-muted">Undang peserta dan lihat ringkasan hasil IST & Holland.</p>
                         <button class="btn btn-outline-primary btn-sm" id="exportAnswersBtn">
-                          <i class="bx bx-download me-1"></i> Export Jawaban (Excel)
+                          <i class="bx bx-download me-1"></i> Export Jawaban (ZIP)
                         </button>
                       </div>
 
@@ -212,7 +259,7 @@
                           <div
                             id="inviteSuggestions"
                             class="list-group position-absolute w-100"
-                            style="z-index: 1056; max-height: 200px; overflow-y: auto; display: none;"></div>
+                            style="z-index: 1056; max-height: 200px; overflow-y: auto; display: none; background-color: #ffffff; border: 1px solid #e0e0e0;"></div>
                         </div>
                         <textarea
                           id="inviteEmails"
@@ -232,16 +279,18 @@
                           <thead>
                             <tr>
                               <th>Email</th>
+                              <th>Token</th>
                               <th>Status</th>
                               <th>IST - IQ</th>
                               <th>IST - Total SS</th>
                               <th>Holland</th>
                               <th>Dibuat</th>
+                              <th>Aksi</th>
                             </tr>
                           </thead>
                           <tbody id="batchResultsBody">
                             <tr>
-                              <td colspan="6" class="text-center text-muted py-4">Belum ada data.</td>
+                              <td colspan="8" class="text-center text-muted py-4">Belum ada data.</td>
                             </tr>
                           </tbody>
                         </table>
@@ -611,13 +660,14 @@
         currentBatchName = batchName;
         document.getElementById('batchResultsTitle').textContent = 'Hasil Batch - ' + batchName;
         const tbody = document.getElementById('batchResultsBody');
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Memuat data...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>';
 
         // Tampilkan modal DULU supaya selalu muncul, data menyusul
         const modalEl = document.getElementById('batchResultsModal');
         try {
           if (window.bootstrap && bootstrap.Modal) {
-            const modal = new bootstrap.Modal(modalEl);
+            // Reuse instance agar tidak menumpuk backdrop / membuat page gelap
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
           } else if (window.$ && typeof $('#batchResultsModal').modal === 'function') {
             $('#batchResultsModal').modal('show');
@@ -630,6 +680,13 @@
           console.error('Gagal menampilkan modal hasil batch:', e);
         }
 
+        // Safety: bersihkan backdrop nyangkut saat modal hide/show cepat
+        modalEl.addEventListener('hidden.bs.modal', function () {
+          document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+          document.body.classList.remove('modal-open');
+          document.body.style.removeProperty('padding-right');
+        }, { once: false });
+
         // Setelah modal tampil, baru load data hasil/undangan
         try {
           const res = await fetch('/api/admin/test-batches/' + batchId + '/results');
@@ -637,7 +694,7 @@
           const data = await res.json();
 
           if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
             return;
           }
 
@@ -646,21 +703,127 @@
             const ist = row.ist_result;
             const holland = row.holland_result;
             const inv = row.invitation;
+            
+            // Debug logging (bisa dihapus setelah fix)
+            if (ist) {
+              console.log('IST Result for', inv.email, ':', {
+                iq: ist.iq,
+                total_standard_score: ist.total_standard_score,
+                iq_category: ist.iq_category,
+                raw_scores: {
+                  se: ist.raw_se, wa: ist.raw_wa, an: ist.raw_an,
+                  ge: ist.raw_ge, ra: ist.raw_ra, za: ist.raw_za,
+                  fa: ist.raw_fa, wu: ist.raw_wu, me: ist.raw_me
+                }
+              });
+            }
+            
             const tr = document.createElement('tr');
+            // Pastikan menampilkan IQ dan TotalStandardScore dengan benar
+            const iqDisplay = (ist && typeof ist.iq === 'number' && ist.iq > 0) 
+              ? ist.iq + (ist.iq_category && ist.iq_category !== '' ? ' (' + ist.iq_category + ')' : '') 
+              : '<span class="text-muted">-</span>';
+            const totalSSDisplay = (ist && typeof ist.total_standard_score === 'number' && ist.total_standard_score > 0)
+              ? ist.total_standard_score
+              : '<span class="text-muted">-</span>';
+            
             tr.innerHTML = `
               <td>${inv.email}</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="showTokenModal('${inv.token}', '${inv.email}')">
+                  <i class="bx bx-show"></i> Lihat Token
+                </button>
+              </td>
               <td><small>${inv.status}</small></td>
-              <td>${ist ? ist.iq + ' (' + ist.iq_category + ')' : '<span class="text-muted">-</span>'}</td>
-              <td>${ist ? ist.total_standard_score : '<span class="text-muted">-</span>'}</td>
+              <td>${iqDisplay}</td>
+              <td>${totalSSDisplay}</td>
               <td>${holland ? holland.code : '<span class="text-muted">-</span>'}</td>
               <td><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadInvitation(${inv.id})">
+                  <i class="bx bx-download"></i> Download
+                </button>
+              </td>
             `;
             tbody.appendChild(tr);
           });
         } catch (err) {
           console.error('Error load batch results:', err);
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
         }
+      }
+
+      function downloadInvitation(invId) {
+        if (!currentBatchId || !invId) return;
+        window.location.href = '/api/admin/test-batches/' + currentBatchId + '/invitations/' + invId + '/export';
+      }
+
+      function showTokenModal(token, email) {
+        Swal.fire({
+          title: 'Token Undangan Tes',
+          html: `
+            <div class="text-start mb-3">
+              <p class="text-muted small mb-3">Token untuk: <strong>${email}</strong></p>
+              <div class="token-box-container">
+                <div class="token-box" id="tokenDisplayBox">
+                  <div class="token-code" id="tokenCode">${token}</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="copyToken('${token}')">
+                  <i class="bx bx-copy"></i> Salin Token
+                </button>
+              </div>
+              <p class="text-muted small mt-3 mb-0">
+                <i class="bx bx-info-circle"></i> Token ini digunakan untuk mengakses halaman tes. 
+                Berikan token ini kepada peserta yang bersangkutan.
+              </p>
+            </div>
+          `,
+          width: '500px',
+          showConfirmButton: true,
+          confirmButtonText: 'Tutup',
+          customClass: {
+            popup: 'token-modal-popup'
+          },
+          // pastikan tampil di atas modal bootstrap
+          backdrop: true
+        });
+      }
+
+      function copyToken(token) {
+        navigator.clipboard.writeText(token).then(function() {
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Token berhasil disalin ke clipboard',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }).catch(function() {
+          // Fallback untuk browser yang tidak support clipboard API
+          const textArea = document.createElement('textarea');
+          textArea.value = token;
+          textArea.style.position = 'fixed';
+          textArea.style.opacity = '0';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: 'Token berhasil disalin ke clipboard',
+              timer: 1500,
+              showConfirmButton: false
+            });
+          } catch (err) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: 'Tidak dapat menyalin token. Silakan salin manual: ' + token
+            });
+          }
+          document.body.removeChild(textArea);
+        });
       }
 
       document.getElementById('exportAnswersBtn').addEventListener('click', function () {
@@ -783,6 +946,7 @@
           });
 
           document.getElementById('inviteEmails').value = '';
+          document.getElementById('inviteSearch').value = '';
           // reload ringkasan hasil/undangan
           await openBatchResults(currentBatchId, currentBatchName);
         } catch (err) {

@@ -1,0 +1,74 @@
+ws,age_min,age_max,iq,category
+# NORMA IQ (contoh) - sesuaikan dengan tabel NORMA IQ yang kamu kirim.
+# Format: ws,age_min,age_max,iq,category
+# NOTE: sistem menyimpan IQ sebagai INT (dibulatkan dari nilai desimal di CSV).
+#
+# Usia 21-25 tahun (WS -> IQ) dari tabel NORMA IQ (yang kamu kirim)
+140,21,25,160,Sangat Superior
+139,21,25,158.5,Sangat Superior
+138,21,25,157,Sangat Superior
+137,21,25,155.5,Sangat Superior
+136,21,25,154,Sangat Superior
+135,21,25,152.5,Sangat Superior
+134,21,25,151,Sangat Superior
+133,21,25,149.5,Sangat Superior
+132,21,25,148,Sangat Superior
+131,21,25,146.5,Sangat Superior
+130,21,25,145,Sangat Superior
+129,21,25,143.5,Superior
+128,21,25,142,Superior
+127,21,25,140.5,Superior
+126,21,25,139,Superior
+125,21,25,137.5,Superior
+124,21,25,136,Superior
+123,21,25,134.5,Superior
+122,21,25,133,Superior
+121,21,25,131.5,Superior
+120,21,25,130,Superior
+119,21,25,128.5,Di atas rata-rata
+118,21,25,127,Di atas rata-rata
+117,21,25,125.5,Di atas rata-rata
+116,21,25,124,Di atas rata-rata
+115,21,25,122.5,Di atas rata-rata
+114,21,25,121,Di atas rata-rata
+113,21,25,119.5,Di atas rata-rata
+112,21,25,118,Di atas rata-rata
+111,21,25,116.5,Di atas rata-rata
+110,21,25,115,Di atas rata-rata
+109,21,25,113.5,Rata-rata
+108,21,25,112,Rata-rata
+107,21,25,110.5,Rata-rata
+106,21,25,109,Rata-rata
+105,21,25,107.5,Rata-rata
+104,21,25,106,Rata-rata
+103,21,25,104.5,Rata-rata
+102,21,25,103,Rata-rata
+101,21,25,101.5,Rata-rata
+100,21,25,100,Rata-rata
+99,21,25,98.5,Rata-rata
+98,21,25,97,Rata-rata
+97,21,25,95.5,Rata-rata
+96,21,25,94,Rata-rata Bawah
+95,21,25,92.5,Rata-rata Bawah
+94,21,25,91,Rata-rata Bawah
+93,21,25,89.5,Rata-rata Bawah
+92,21,25,88,Rata-rata Bawah
+91,21,25,86.5,Rata-rata Bawah
+90,21,25,85,Rata-rata Bawah
+89,21,25,83.5,Di bawah rata-rata
+88,21,25,82,Di bawah rata-rata
+87,21,25,80.5,Di bawah rata-rata
+86,21,25,79,Di bawah rata-rata
+85,21,25,77.5,Di bawah rata-rata
+84,21,25,76,Di bawah rata-rata
+83,21,25,74.5,Di bawah rata-rata
+82,21,25,73,Di bawah rata-rata
+81,21,25,71.5,Di bawah rata-rata
+80,21,25,70,Di bawah rata-rata
+79,21,25,68.5,Borderline/Lambat
+78,21,25,67,Borderline/Lambat
+77,21,25,65.5,Borderline/Lambat
+76,21,25,64,Borderline/Lambat
+75,21,25,62.5,Borderline/Lambat
+74,21,25,61,Borderline/Lambat
+73,21,25,59,Borderline/Lambat

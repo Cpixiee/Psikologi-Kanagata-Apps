@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Petunjuk Kelompok Soal {{.Subtest.Code}} - IST</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .ist-instruction-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #2d3748;
+      }
+      .ist-example-box {
+        background-color: #f5f5ff;
+        border-left: 4px solid #667eea;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+      .ist-example-box strong {
+        color: #667eea;
+      }
+      .ist-memory-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin: 0.75rem 0;
+      }
+      .ist-memory-table th,
+      .ist-memory-table td {
+        border: 1px solid #e0e0ff;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      .ist-memory-table th {
+        background-color: #f0f0ff;
+        font-weight: 600;
+      }
+      .instruction-content {
+        line-height: 1.7;
+      }
+      .instruction-content p {
+        margin-bottom: 0.75rem;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">Petunjuk Kelompok Soal</h5>
+            </div>
+            <div class="card-body instruction-content">
+              {{if eq .Subtest.Code "SE"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 01</div>
+              <p class="text-muted mb-3">(Soal-soal No. 01 – 20)</p>
+              <p>Soal-soal 01-20 terdiri atas kalimat-kalimat. Pada setiap kalimat satu kata hilang dan disediakan 5 (lima) kata pilihan sebagai penggantinya. <strong>Pilihan kata yang tepat dapat menyempurnakan kalimat itu!</strong></p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 01:</strong></p>
+                <p class="mb-1">Seekor kuda mempunyai kesamaan terbanyak dengan seekor …..</p>
+                <p class="mb-1">a) kucing &nbsp; b) bajing &nbsp; <u><strong>c) keledai</strong></u> &nbsp; d) lembu &nbsp; e) anjing</p>
+                <p class="mb-0"><strong>Jawaban yang benar ialah : c) keledai</strong></p>
+                <p class="mb-0 mt-2">Oleh karena itu, pada lembar jawaban di belakang contoh 01, huruf <strong>c</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">Lawannya "harapan" ialah …..</p>
+                <p class="mb-1">a) duka &nbsp; <u><strong>b) putus asa</strong></u> &nbsp; c) sengsara &nbsp; d) cinta &nbsp; e) benci</p>
+                <p class="mb-0"><strong>Jawabannya ialah b) putus asa</strong></p>
+                <p class="mb-0 mt-2">Maka huruf <strong>b</strong> yang seharusnya dicoret.</p>
+              </div>
+              {{else if eq .Subtest.Code "WA"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 02</div>
+              <p class="text-muted mb-3">(Soal-soal No. 21 – 40)</p>
+              <p>Ditentukan 5 kata. Pada 4 dari 5 kata itu terdapat suatu kesamaan. <strong>Carilah kata yang kelima yang tidak memiliki kesamaan dengan keempat kata itu.</strong></p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 02:</strong></p>
+                <p class="mb-1">a) meja &nbsp; b) kursi &nbsp; c) burung &nbsp; d) lemari &nbsp; e) tempat tidur</p>
+                <p class="mb-1">a), b), d), dan e) ialah perabot rumah (meubel)</p>
+                <p class="mb-0"><strong>c) burung, bukan perabot rumah atau tidak memiliki kesamaan dengan keempat kata itu.</strong></p>
+                <p class="mb-0 mt-2">Oleh karena itu, pada lembar jawaban di belakang contoh 02, huruf <strong>c</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">a) duduk &nbsp; b) berbaring &nbsp; c) berdiri &nbsp; d) berjalan &nbsp; e) berjongkok</p>
+                <p class="mb-1">pada a), b), c) dan e) orang berada dalam keadaan tidak bergerak, sedangkan d) orang dalam keadaan bergerak.</p>
+                <p class="mb-0"><strong>Maka jawaban yang benar ialah : d) berjalan</strong></p>
+                <p class="mb-0 mt-2">Oleh karena itu huruf <strong>d</strong> yang seharusnya dicoret.</p>
+              </div>
+              {{else if eq .Subtest.Code "AN"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 03</div>
+              <p class="text-muted mb-3">(Soal-soal No. 41 – 60)</p>
+              <p>Ditentukan 3 (tiga) kata. Antara kata pertama dan kata kedua terdapat suatu hubungan tertentu. Antara kata ketiga dan salah satu diantara lima kata pilihan harus pula terdapat hubungan yang sama itu. <strong>Carilah kata itu.</strong></p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 03:</strong></p>
+                <p class="mb-1">Hutan : pohon = tembok : ?</p>
+                <p class="mb-1">a) batu bata &nbsp; b) rumah &nbsp; c) semen &nbsp; d) putih &nbsp; e) dinding</p>
+                <p class="mb-1">Hubungan antara hutan dan pohon ialah bahwa hutan terdiri atas pohon-pohon, maka hubungan antara tembok dan salah satu kata pilihan bahwa tembok terdiri atas batu-batu bata.</p>
+                <p class="mb-0"><strong>Oleh karena itu, pada lembar jawaban di belakang contoh 03, huruf a harus dicoret.</strong></p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">Gelap : terang = basah : ?</p>
+                <p class="mb-1">a) Hujan &nbsp; b) hari &nbsp; c) lembab &nbsp; d) angin &nbsp; <u><strong>e) kering</strong></u></p>
+                <p class="mb-0">Gelap ialah lawannya dari terang, maka untuk basah lawannya ialah kering. <strong>Maka jawaban yang benar ialah : e) kering</strong></p>
+                <p class="mb-0 mt-2">Oleh karena itu huruf <strong>e</strong> yang seharusnya dicoret.</p>
+              </div>
+              {{else if eq .Subtest.Code "GE"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 04</div>
+              <p class="text-muted mb-3">(Soal-soal No. 61 – 76)</p>
+              <p>Ditentukan dua kata. <strong>Carilah satu perkataan yang meliputi pengertian kedua kata tadi.</strong> Tulislah perkataan itu pada lembar jawaban di belakang nomor soal yang sesuai.</p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 04:</strong> Ayam – itik</p>
+                <p class="mb-1">Perkataan "burung" dapat meliputi pengertian kedua kata itu. Maka jawabannya ialah <strong>"burung"</strong></p>
+                <p class="mb-0">Oleh karena itu, pada lembar jawaban di belakang contoh 04, harus ditulis <strong>"burung"</strong></p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh berikutnya:</strong> Gaun – celana</p>
+                <p class="mb-0">Pada contoh ini jawabannya ialah <strong>"pakaian"</strong> maka "pakaian" yang seharusnya ditulis. Carilah selalu perkataan yang tepat yang dapat meliputi pengertian kedua kata itu.</p>
+              </div>
+              {{else if eq .Subtest.Code "RA"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 05</div>
+              <p class="text-muted mb-3">(Soal-soal No. 77 – 96)</p>
+              <p>Persoalan berikutnya ialah soal-soal hitungan.</p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 05:</strong></p>
+                <p class="mb-1">Sebatang pensil harganya 25 rupiah. Berapakah harga 3 batang?</p>
+                <p class="mb-1"><strong>Jawabannya ialah : 75</strong></p>
+                <p class="mb-1">Perhatikan cara menjawab di atas lembar jawaban!</p>
+                <p class="mb-1">Pada lembar jawaban lihatlah pada kolom 05. Kolom ini terdiri atas angka-angka 1 sampai 9 dan 0</p>
+                <p class="mb-1">Untuk menunjukkan jawaban suatu soal, maka coretlah angka-angka yang terdapat di dalam jawaban itu. Urutan angka jawaban tidak perlu dihiraukan.</p>
+                <p class="mb-0">Pada contoh 05 jawaban ialah 75. Oleh karena itu, pada lembar jawaban di belakang contoh 05, angka <strong>7</strong> dan <strong>5</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh lain:</strong></p>
+                <p class="mb-1">Dengan sepeda Husin dapat mencapai 15 km dalam waktu 1 jam. Berapa km-kah yang dapat ia capai dalam waktu 4 jam?</p>
+                <p class="mb-0"><strong>Jawabannya ialah : 60</strong></p>
+                <p class="mb-0 mt-2">Maka untuk menunjukkan jawaban itu angka <strong>6</strong> dan <strong>0</strong> yang seharusnya dicoret.</p>
+              </div>
+              {{else if eq .Subtest.Code "ZR"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 06</div>
+              <p class="text-muted mb-3">(Soal-soal No. 97 – 116)</p>
+              <p>Pada persoalan berikut akan diberikan deret angka. Setiap deret tersusun menurut suatu aturan yang tertentu dan dapat dilanjutkan menurut aturan itu. <strong>Carilah untuk setiap deret, angka berikutnya</strong> dan coretlah jawaban saudara pada lembar jawaban di belakang nomor soal yang sesuai.</p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 06:</strong></p>
+                <p class="mb-1">2 &nbsp; 4 &nbsp; 6 &nbsp; 8 &nbsp; 10 &nbsp; 12 &nbsp; 14 &nbsp; ?</p>
+                <p class="mb-1">Pada deret ini angka berikutnya selalu didapat jika angka di depannya ditambah dengan 2. Maka jawabannya ialah <strong>16</strong></p>
+                <p class="mb-0">Oleh karena itu, pada lembar jawaban di belakang contoh 06, angka <strong>1</strong> dan <strong>6</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">9 &nbsp; 7 &nbsp; 10 &nbsp; 8 &nbsp; 11 &nbsp; 9 &nbsp; 12 &nbsp; ?</p>
+                <p class="mb-1">Pada deret ini berganti-ganti harus dikurangi dengan 2 dan setelah itu ditambah dengan 3. Jawaban contoh ini ialah : <strong>10</strong>, maka dari itu angka <strong>1</strong> dan <strong>0</strong> seharusnya yang dicoret.</p>
+                <p class="mb-0">Kadang-kadang pada beberapa soal harus pula dikalikan atau dibagi.</p>
+              </div>
+              {{else if eq .Subtest.Code "FA"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 07</div>
+              <p class="text-muted mb-3">(Soal-soal No. 117 – 136)</p>
+              <p>Pada persoalan berikutnya, setiap soal memperlihatkan suatu bentuk tertentu yang terpotong menjadi beberapa bagian. <strong>Carilah di antara bentuk-bentuk yang ditentukan (a, b, c, d, e) bentuk yang dibangun dengan cara menyusun potongan-potongan itu sedemikian rupa, sehingga tidak ada kelebihan sudut atau ruang di antaranya.</strong></p>
+              <p>Carilah bentuk-bentuk itu dan coretlah huruf yang menunjukkan bentuk tadi pada lembar jawaban di belakang nomor soal yang sesuai.</p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 07:</strong></p>
+                <p class="mb-1">Jika potongan-potongan pada contoh 07 di atas disusun (digabungkan), maka akan menghasilkan bentuk <strong>a</strong>.</p>
+                <p class="mb-0">Oleh karena itu, pada lembar jawaban di belakang contoh 07, huruf <strong>a</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-1"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">Potongan-potongan contoh kedua setelah disusun (digabungkan) menghasilkan bentuk <strong>e</strong>.</p>
+                <p class="mb-1">Contoh ketiga menjadi bentuk <strong>b</strong>.</p>
+                <p class="mb-0">Contoh keempat ialah bentuk <strong>d</strong>.</p>
+              </div>
+              {{else if eq .Subtest.Code "WU"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 08</div>
+              <p class="text-muted mb-3">(Soal-soal No. 137 – 156)</p>
+              <p>Ditentukan 5 (lima) buah kubus a, b, c, d, e. Pada tiap-tiap kubus terdapat enam tanda yang berlainan pada setiap sisinya. Tiga dari tanda itu dapat dilihat.</p>
+              <p>Kubus-kubus yang ditentukan itu (a, b, c, d, e) ialah kubus-kubus yang berbeda, artinya kubus-kubus itu dapat mempunyai tanda-tanda yang sama, akan tetapi susunannya berlainan, setiap soal memperlihatkan salah satu kubus yang ditentukan di dalam kedudukan yang berbeda.</p>
+              <p><strong>Carilah kubus yang dimaksudkan itu dan coretkanlah jawaban saudara pada lembar jawaban di belakang nomor yang sesuai.</strong></p>
+              <p>Kubus itu dapat diputar, dapat digulingkan atau dapat diputar dan digulingkan dalam pikiran saudara, oleh karena itu mungkin akan terlihat suatu tanda yang baru.</p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 08:</strong></p>
+                <p class="mb-1">Contoh ini memperlihatkan kubus <strong>a</strong> dengan kedudukan yang berbeda.</p>
+                <p class="mb-1">Mendapatkannya adalah dengan cara menggulingkan lebih dulu kubus itu ke kiri satu kali dan kemudian diputar ke kiri satu kali, sehingga sisi kubus yang bertanda dua segi empat hitam terletak di depan, seperti kubus a.</p>
+                <p class="mb-0">Oleh karena itu, pada lembar jawaban di belakang contoh 08, huruf <strong>a</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-1"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">Contoh kedua adalah kubus <strong>e</strong>. Cara mendapatkannya adalah dengan digulingkan ke kiri satu kali dan diputar ke kanan satu kali, sehingga sisi kubus yang bertanda garis silang terletak di depan, seperti kubus e.</p>
+                <p class="mb-1">Contoh ketiga adalah kubus <strong>b</strong>. Cara mendapatkannya dengan menggulingkan ke kiri satu kali, sehingga dasar kubus yang tadinya tidak terlihat memunculkan tanda baru (dalam hal ini adalah tanda dua segi empat hitam) dan tanda silang pada sisi atas kubus itu menjadi tidak terlihat lagi.</p>
+                <p class="mb-0">Contoh keempat menunjukkan kubus <strong>c</strong>. Contoh kelima adalah kubus <strong>d</strong>.</p>
+              </div>
+              {{else if eq .Subtest.Code "ME"}}
+              <div class="ist-instruction-title">PETUNJUK DAN CONTOH UNTUK KELOMPOK SOAL 09</div>
+              <p class="text-muted mb-3">(Soal-soal No. 157 – 176)</p>
+              <p><strong>Hafalkan kata-kata di bawah ini selama 3 menit.</strong></p>
+              <div class="ist-example-box">
+                <table class="ist-memory-table">
+                  <thead>
+                    <tr>
+                      <th>Kelompok</th>
+                      <th>Kata-kata</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>BUNGA</strong></td>
+                      <td>SOKA, LARAT, FLAMBOYAN, YASMIN, DAHLIA</td>
+                    </tr>
+                    <tr>
+                      <td><strong>PERKAKAS</strong></td>
+                      <td>WAJAN, JARUM, KIKIR, CANGKUL, PALU</td>
+                    </tr>
+                    <tr>
+                      <td><strong>BURUNG</strong></td>
+                      <td>ITIK, ELANG, WALET, TERUKUR, NURI</td>
+                    </tr>
+                    <tr>
+                      <td><strong>KESENIAN</strong></td>
+                      <td>QUATET, ARCA, OPERA, UKIRAN, GAMELAN</td>
+                    </tr>
+                    <tr>
+                      <td><strong>BINATANG</strong></td>
+                      <td>RUSA, MUSANG, BERUANG, HARIMAU, ZEBRA</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>Pada persoalan berikutnya, terdapat sejumlah pertanyaan mengenai kata-kata yang telah saudara hafalkan tadi. Coretlah jawaban saudara pada lembaran jawaban di belakang nomor soal yang sesuai.</p>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh 09:</strong></p>
+                <p class="mb-1">Kata yang mempunyai huruf permulaan – Q – adalah suatu …..</p>
+                <p class="mb-1">a) bunga &nbsp; b) perkakas &nbsp; c) burung &nbsp; <u><strong>d) kesenian</strong></u> &nbsp; e) binatang</p>
+                <p class="mb-1">Quintet adalah termasuk dalam jenis kesenian, sehingga jawaban yang benar adalah <strong>d)</strong>.</p>
+                <p class="mb-0">Oleh karena itu, pada lembar jawaban di belakang contoh 09 huruf <strong>d</strong> harus dicoret.</p>
+              </div>
+              <div class="ist-example-box">
+                <p class="mb-2"><strong>Contoh berikutnya:</strong></p>
+                <p class="mb-1">Kata yang mempunyai huruf pertama – Z – adalah suatu …..</p>
+                <p class="mb-1">a) bunga &nbsp; b) perkakas &nbsp; c) burung &nbsp; d) kesenian &nbsp; <u><strong>e) binatang</strong></u></p>
+                <p class="mb-0">Jawabannya adalah <strong>e</strong>, karena Zebra termasuk dalam jenis binatang.</p>
+              </div>
+              {{end}}
+
+              <div class="alert alert-warning mt-4 mb-0">
+                <strong>Perhatian:</strong> Setelah Anda memahami petunjuk ini, klik tombol di bawah untuk mulai mengerjakan soal kelompok {{.Subtest.Code}}.
+              </div>
+            </div>
+            <div class="card-footer">
+              <a id="btnStartSubtest" href="/test/ist/subtest/{{.Subtest.Code}}" class="btn btn-primary w-100">
+                Saya sudah memahami, lanjutkan ke soal
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        // CBT: Saat user klik "lanjutkan ke soal", paksa fullscreen terlebih dahulu (user gesture).
+        const link = document.getElementById('btnStartSubtest');
+        if (!link) return;
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const href = link.getAttribute('href') || '/test/ist/subtest/{{.Subtest.Code}}';
+          const el = document.documentElement;
+          if (el.requestFullscreen) {
+            el.requestFullscreen().then(function () {
+              window.location.href = href;
+            }).catch(function () {
+              // Kalau fullscreen ditolak browser, tetap lanjut (guard akan memberi warning di halaman soal).
+              window.location.href = href;
+            });
+          } else {
+            window.location.href = href;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

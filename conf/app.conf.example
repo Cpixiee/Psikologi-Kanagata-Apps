@@ -22,7 +22,7 @@ db_name = psikologi_db
 db_sslmode = disable
 
 # Static files
-StaticDir = static:static
+StaticDir = /static:static
 ViewsPath = views
 
 # Email (override via .env.docker)

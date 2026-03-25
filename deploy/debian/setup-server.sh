@@ -26,7 +26,7 @@ systemctl enable docker
 systemctl start docker
 
 ufw allow OpenSSH
-ufw allow 8081/tcp
+ufw allow 112/tcp
 ufw --force enable
 
 echo "Docker and base packages installed successfully."

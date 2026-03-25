@@ -42,7 +42,7 @@ Yang otomatis dijalankan:
 - Start PostgreSQL
 - Inject config app dari `.env.docker`
 - Auto migration (`AUTO_MIGRATE=true`)
-- Start aplikasi pada port `APP_HTTP_PORT` (default `8081`)
+- Start aplikasi pada port `APP_HTTP_PORT` (default `112`)
 
 ## 4) Command operasional penting
 
@@ -84,4 +84,4 @@ Script akan:
 - Jangan commit `.env.docker`.
 - Gunakan password DB/admin yang kuat.
 - SMTP credential lama di `conf/app.conf` sebaiknya di-rotate.
-- Buka port publik seperlunya (80/443 via reverse proxy, atau 8081 jika direct).
+- Buka port publik seperlunya (80/443 via reverse proxy, atau 112 jika direct).

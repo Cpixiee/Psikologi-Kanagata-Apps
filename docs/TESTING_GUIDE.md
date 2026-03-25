@@ -20,12 +20,12 @@ Seeder akan otomatis berjalan saat aplikasi start. Pastikan:
 ```bash
 go run main.go
 ```
-Aplikasi akan berjalan di `http://localhost:8081` (atau sesuai konfigurasi)
+Aplikasi akan berjalan di `http://localhost:112` (atau sesuai konfigurasi)
 
 ### 4. Login sebagai Admin
-1. Buka `http://localhost:8081/login`
+1. Buka `http://localhost:112/login`
 2. Login dengan akun admin
-3. Akses halaman admin: `http://localhost:8081/admin/psychotest`
+3. Akses halaman admin: `http://localhost:112/admin/psychotest`
 
 ### 5. Membuat Batch Tes
 1. Di halaman admin, klik "Buat Batch Baru"
@@ -56,7 +56,7 @@ Aplikasi akan berjalan di `http://localhost:8081` (atau sesuai konfigurasi)
 
 ### 8. Test sebagai Peserta
 1. Login dengan akun peserta yang diundang
-2. Buka `http://localhost:8081/test`
+2. Buka `http://localhost:112/test`
 3. Masukkan token yang diberikan admin
 4. Klik "Mulai Tes"
 5. Ikuti alur pengerjaan tes IST/Holland

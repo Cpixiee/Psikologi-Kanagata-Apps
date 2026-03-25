@@ -31,7 +31,7 @@ go mod tidy
 
 ### Test 1: Akses Halaman Profil
 1. **Login** terlebih dahulu via `/login`
-2. Buka browser dan akses: `http://localhost:8081/profile`
+2. Buka browser dan akses: `http://localhost:112/profile`
 3. **Expected Result:**
    - Halaman profil muncul dengan form
    - Sidebar konsisten dengan dashboard
@@ -143,7 +143,7 @@ go mod tidy
 
 ### Test 10: Akses Halaman Settings
 1. **Login** terlebih dahulu
-2. Buka browser dan akses: `http://localhost:8081/settings`
+2. Buka browser dan akses: `http://localhost:112/settings`
 3. **Expected Result:**
    - Halaman settings muncul dengan notifications table
    - Sidebar konsisten dengan dashboard dan profile

@@ -326,7 +326,7 @@ func sendInvitationEmail(batch *models.TestBatch, user *models.User, inv *models
 
 	config := utils.GetEmailConfig()
 
-	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:8081")
+	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
 	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
 
 	subject := fmt.Sprintf("Undangan Tes Psikologi - %s", batch.Name)

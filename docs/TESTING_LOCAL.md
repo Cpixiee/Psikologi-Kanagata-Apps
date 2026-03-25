@@ -33,11 +33,11 @@ FROM_NAME = Psychee Wellness
 go run main.go
 ```
 
-Aplikasi akan berjalan di: `http://localhost:8081`
+Aplikasi akan berjalan di: `http://localhost:112`
 
 ## 4. Testing Contact Form
 
-1. Buka browser: `http://localhost:8081/contact`
+1. Buka browser: `http://localhost:112/contact`
 2. Isi form:
    - Nama Lengkap: Test User
    - Email: test@example.com
@@ -51,7 +51,7 @@ Aplikasi akan berjalan di: `http://localhost:8081`
 ## 5. Testing Reset Password
 
 ### Step 1: Request OTP
-1. Buka: `http://localhost:8081/reset-password`
+1. Buka: `http://localhost:112/reset-password`
 2. Masukkan email user yang sudah terdaftar (misal: email yang digunakan saat register)
 3. Klik "Kirim Kode OTP"
 4. **Cek email**: Buka inbox email user tersebut
@@ -69,7 +69,7 @@ Aplikasi akan berjalan di: `http://localhost:8081`
 ## 6. Testing dengan User Baru
 
 Jika belum ada user, daftar dulu:
-1. Buka: `http://localhost:8081/register`
+1. Buka: `http://localhost:112/register`
 2. Daftar user baru
 3. Setelah berhasil, gunakan email tersebut untuk test reset password
 

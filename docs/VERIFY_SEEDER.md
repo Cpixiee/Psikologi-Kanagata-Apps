@@ -40,11 +40,11 @@ ORDER BY s.order_index;
 ### 2. Verifikasi via Aplikasi
 
 1. **Login sebagai Admin**
-   - Buka `http://localhost:8081/login`
+   - Buka `http://localhost:112/login`
    - Login dengan akun admin
 
 2. **Buat Batch Tes**
-   - Buka `http://localhost:8081/admin/psychotest`
+   - Buka `http://localhost:112/admin/psychotest`
    - Klik "Buat Batch Baru"
    - Isi form dan aktifkan IST
    - Simpan batch
@@ -55,7 +55,7 @@ ORDER BY s.order_index;
 
 4. **Test sebagai Peserta**
    - Login dengan akun peserta yang diundang
-   - Buka `http://localhost:8081/test`
+   - Buka `http://localhost:112/test`
    - Masukkan token dari email
    - Klik "Mulai Test IST"
    - **Cek apakah soal sudah muncul dengan benar (bukan "Soal contoh")**

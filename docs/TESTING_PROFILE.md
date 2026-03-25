@@ -27,7 +27,7 @@ Pastikan Beego bisa serve static files dari folder `static/uploads/`. Biasanya s
 
 ### Test 1: Akses Halaman Profil (Harus Login)
 1. **Login terlebih dahulu** via `/login`
-2. Buka browser dan akses: `http://localhost:8081/profile`
+2. Buka browser dan akses: `http://localhost:112/profile`
 3. **Expected Result:**
    - Halaman profil muncul dengan form kosong (jika belum ada data)
    - Sidebar menampilkan menu yang sama dengan dashboard
@@ -106,10 +106,10 @@ Pastikan Beego bisa serve static files dari folder `static/uploads/`. Biasanya s
 
 ### Test 8: Akses Tanpa Login (Security Test)
 1. **Logout** terlebih dahulu atau buka incognito window
-2. Akses `http://localhost:8081/profile`
+2. Akses `http://localhost:112/profile`
 3. **Expected Result:**
    - Redirect ke `/login?next=/profile`
-4. Akses `http://localhost:8081/api/profile` via browser console
+4. Akses `http://localhost:112/api/profile` via browser console
 5. **Expected Result:**
    - Response JSON: `{"success": false, "message": "Silakan login terlebih dahulu"}`
    - Status code: 401
@@ -159,7 +159,7 @@ Pastikan Beego bisa serve static files dari folder `static/uploads/`. Biasanya s
 ### Error: "File tidak ditemukan" saat akses foto
 - Pastikan file benar-benar tersimpan di `static/uploads/profiles/`
 - Pastikan Beego bisa serve static files dari folder `static/`
-- Cek path di browser: `http://localhost:8081/static/uploads/profiles/{filename}`
+- Cek path di browser: `http://localhost:112/static/uploads/profiles/{filename}`
 
 ### Error: "User tidak ditemukan"
 - Pastikan session `user_id` ada

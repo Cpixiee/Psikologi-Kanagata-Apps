@@ -27,7 +27,7 @@ update_ini() {
 
 mkdir -p /app/logs /app/static/uploads/profiles
 
-APP_HTTP_PORT="${APP_HTTP_PORT:-8081}"
+APP_HTTP_PORT="${APP_HTTP_PORT:-112}"
 APP_RUNMODE="${APP_RUNMODE:-prod}"
 DB_HOST="${DB_HOST:-db}"
 DB_PORT="${DB_PORT:-5432}"
@@ -43,7 +43,7 @@ FROM_EMAIL="${FROM_EMAIL:-}"
 FROM_NAME="${FROM_NAME:-Psychee Wellness}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-changeme123}"
-BASE_URL="${BASE_URL:-http://localhost:8081}"
+BASE_URL="${BASE_URL:-http://localhost:112}"
 
 update_ini "httpport" "$APP_HTTP_PORT"
 update_ini "runmode" "$APP_RUNMODE"

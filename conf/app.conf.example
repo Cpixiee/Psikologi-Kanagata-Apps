@@ -2,7 +2,7 @@
 # File asli app.conf tidak di-commit (lihat .gitignore). Nilai di bawah diganti entrypoint dari .env.docker.
 
 appname = psikologi_apps
-httpport = 8081
+httpport = 112
 runmode = prod
 copyrequestbody = true
 
@@ -38,4 +38,4 @@ admin_email = admin@example.com
 admin_password = changeme
 
 # Public URL (optional)
-BASE_URL = http://localhost:8081
+BASE_URL = http://localhost:112

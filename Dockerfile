@@ -34,5 +34,5 @@ COPY scripts/entrypoint.sh /app/scripts/entrypoint.sh
 
 RUN chmod +x /app/scripts/entrypoint.sh /app/app /app/migrate /app/seed
 
-EXPOSE 8081
+EXPOSE 112
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

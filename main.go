@@ -43,6 +43,6 @@ func main() {
 		logs.Warning("IST full seed warning: %v", err)
 	}
 	
-	logs.Info("Application starting on port 8081...")
+	logs.Info("Application starting on port %s...", beego.AppConfig.DefaultString("httpport", "112"))
 	beego.Run()
 }

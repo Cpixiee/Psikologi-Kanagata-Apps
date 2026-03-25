@@ -89,7 +89,7 @@ go run main.go
 ```
 
 ### Step 4: Test Lagi
-1. Buka: http://localhost:8081/contact
+1. Buka: http://localhost:112/contact
 2. Isi form dan submit
 3. Cek apakah email terkirim
 

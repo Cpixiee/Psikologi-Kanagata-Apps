@@ -34,8 +34,8 @@ FROM_EMAIL =
 FROM_NAME = Psychee Wellness
 
 # Admin seed (optional)
-admin_email = admin@example.com
-admin_password = changeme
+admin_email = admin@psikologi.local
+admin_password = admin123
 
 # Public URL (optional)
 BASE_URL = http://localhost:112

@@ -30,7 +30,8 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
-      AUTO_SEED_ADMIN: ${AUTO_SEED_ADMIN:-false}
+      # Seed admin idempotent (lewat jika sudah ada); set false jika tidak ingin auto-create
+      AUTO_SEED_ADMIN: ${AUTO_SEED_ADMIN:-true}
       # Override nilai lama di .env.docker (mis. APP_HTTP_PORT=8081) agar selalu sinkron dengan image
       APP_HTTP_PORT: "112"
     ports:

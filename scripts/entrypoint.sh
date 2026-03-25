@@ -41,8 +41,9 @@ SMTP_USER="${SMTP_USER:-}"
 SMTP_PASSWORD="${SMTP_PASSWORD:-}"
 FROM_EMAIL="${FROM_EMAIL:-}"
 FROM_NAME="${FROM_NAME:-Psychee Wellness}"
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
-ADMIN_PASSWORD="${ADMIN_PASSWORD:-changeme123}"
+# Harus selaras dengan seeds/admin_seeder.go (DefaultString fallback)
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@psikologi.local}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
 BASE_URL="${BASE_URL:-http://localhost:112}"
 
 update_ini "httpport" "$APP_HTTP_PORT"

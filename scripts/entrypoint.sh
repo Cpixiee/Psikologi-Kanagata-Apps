@@ -63,6 +63,7 @@ update_ini "FROM_NAME" "$FROM_NAME"
 update_ini "admin_email" "$ADMIN_EMAIL"
 update_ini "admin_password" "$ADMIN_PASSWORD"
 update_ini "BASE_URL" "$BASE_URL"
+update_ini "StaticDir" "/static:static"
 
 if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
   echo "Running migration up..."

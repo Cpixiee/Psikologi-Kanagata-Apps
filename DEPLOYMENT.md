@@ -79,7 +79,13 @@ Script akan:
 - rebuild image
 - restart service via compose
 
-## 6) Catatan keamanan production
+## 6) Port & error `Bind for 0.0.0.0:8081 failed: port is already allocated`
+
+- `docker-compose.prod.yml` memetakan **`HOST_PORT` (default 112) → 112** di dalam container, dan memaksa **`APP_HTTP_PORT=112`** di service `app` (supaya nilai lama `APP_HTTP_PORT=8081` di `.env.docker` tidak membuat bind host masih ke 8081).
+- Kalau **112** bentrok di server, set di `.env.docker`: `HOST_PORT=port_lain` (mis. `9000`) lalu akses `http://IP:9000`.
+- Setelah ubah env, jalankan: `docker compose --env-file .env.docker -f docker-compose.prod.yml up -d`.
+
+## 7) Catatan keamanan production
 
 - Jangan commit `.env.docker`.
 - Gunakan password DB/admin yang kuat.

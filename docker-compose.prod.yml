@@ -31,8 +31,11 @@ services:
       DB_PORT: 5432
       AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
       AUTO_SEED_ADMIN: ${AUTO_SEED_ADMIN:-false}
+      # Override nilai lama di .env.docker (mis. APP_HTTP_PORT=8081) agar selalu sinkron dengan image
+      APP_HTTP_PORT: "112"
     ports:
-      - "${APP_HTTP_PORT:-112}:${APP_HTTP_PORT:-112}"
+      # Host: pakai HOST_PORT (default 112). Jangan pakai APP_HTTP_PORT dari .env.docker untuk bind — sering masih 8081.
+      - "${HOST_PORT:-112}:112"
     volumes:
       - applogs:/app/logs
       - appuploads:/app/static/uploads

@@ -26,7 +26,7 @@ COPY --from=builder /out/seed /app/seed
 # conf/app.conf di-gitignore; yang di-commit hanya app.conf.example → jadikan app.conf di image
 COPY conf/app.conf.example /app/conf/app.conf
 COPY views ./views
-COPY static ./static
+COPY --from=builder /src/static ./static
 COPY migrations ./migrations
 COPY seeds ./seeds
 COPY data ./data

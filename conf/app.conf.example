@@ -1,0 +1,41 @@
+# Template untuk Docker / clone baru. Copy ke app.conf untuk lokal: cp app.conf.example app.conf
+# File asli app.conf tidak di-commit (lihat .gitignore). Nilai di bawah diganti entrypoint dari .env.docker.
+
+appname = psikologi_apps
+httpport = 8081
+runmode = prod
+copyrequestbody = true
+
+# Session
+sessionon = true
+sessionprovider = memory
+sessionname = sessionID
+sessiongcmaxlifetime = 3600
+
+# Database (override via .env.docker / environment)
+db_driver = postgres
+db_host = db
+db_port = 5432
+db_user = postgres
+db_password = postgres
+db_name = psikologi_db
+db_sslmode = disable
+
+# Static files
+StaticDir = static:static
+ViewsPath = views
+
+# Email (override via .env.docker)
+SMTP_HOST =
+SMTP_PORT = 587
+SMTP_USER =
+SMTP_PASSWORD =
+FROM_EMAIL =
+FROM_NAME = Psychee Wellness
+
+# Admin seed (optional)
+admin_email = admin@example.com
+admin_password = changeme
+
+# Public URL (optional)
+BASE_URL = http://localhost:8081

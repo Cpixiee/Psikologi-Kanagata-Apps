@@ -23,7 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=builder /out/app /app/app
 COPY --from=builder /out/migrate /app/migrate
 COPY --from=builder /out/seed /app/seed
-COPY conf ./conf
+# conf/app.conf di-gitignore; yang di-commit hanya app.conf.example → jadikan app.conf di image
+COPY conf/app.conf.example /app/conf/app.conf
 COPY views ./views
 COPY static ./static
 COPY migrations ./migrations

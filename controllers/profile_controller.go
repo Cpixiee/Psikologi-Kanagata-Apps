@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"psikologi_apps/models"
+	"psikologi_apps/seeds"
 	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
@@ -38,6 +39,7 @@ type TestResultSummary struct {
 	CreatedAt    time.Time `json:"created_at"`
 	HasIST       bool      `json:"has_ist"`
 	HasHolland   bool      `json:"has_holland"`
+	HasLearningStyle bool  `json:"has_learning_style"`
 	ISTIQ        int       `json:"ist_iq,omitempty"`
 	ISTIQCat     string    `json:"ist_iq_category,omitempty"`
 }
@@ -92,6 +94,7 @@ func (c *ProfileController) UpdateProfile() {
 		NamaLengkap  string `json:"nama_lengkap"`
 		Email        string `json:"email"`
 		NoHandphone  string `json:"no_handphone"`
+		AsalInstansi string `json:"asal_instansi"`
 		JenisKelamin string `json:"jenis_kelamin"`
 		Alamat       string `json:"alamat"`
 		Kota         string `json:"kota"`
@@ -140,13 +143,14 @@ func (c *ProfileController) UpdateProfile() {
 	user.NamaLengkap = updateData.NamaLengkap
 	user.Email = updateData.Email
 	user.NoHandphone = updateData.NoHandphone
+	user.AsalInstansi = updateData.AsalInstansi
 	user.JenisKelamin = models.Gender(updateData.JenisKelamin)
 	user.Alamat = updateData.Alamat
 	user.Kota = updateData.Kota
 	user.Provinsi = updateData.Provinsi
 	user.Kodepos = updateData.Kodepos
 
-	if _, err := o.Update(&user, "NamaLengkap", "Email", "NoHandphone", "JenisKelamin", "Alamat", "Kota", "Provinsi", "Kodepos"); err != nil {
+	if _, err := o.Update(&user, "NamaLengkap", "Email", "NoHandphone", "AsalInstansi", "JenisKelamin", "Alamat", "Kota", "Provinsi", "Kodepos"); err != nil {
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = ProfileResponse{
 			Success: false,
@@ -462,6 +466,14 @@ func (c *ProfileController) GetTestResults() {
 			s.HasHolland = true
 		}
 
+		// Learning style (VAK)
+		var vak models.LearningStyleResult
+		if err := o.QueryTable(new(models.LearningStyleResult)).
+			Filter("Invitation__Id", inv.Id).
+			One(&vak); err == nil && vak.Id != 0 {
+			s.HasLearningStyle = true
+		}
+
 		result = append(result, s)
 	}
 
@@ -476,9 +488,13 @@ func (c *ProfileController) GetTestResults() {
 type ProfileTestSummary struct {
 	LastISTResult     *ISTDetailResult     `json:"last_ist_result,omitempty"`
 	LastHollandResult *HollandDetailResult  `json:"last_holland_result,omitempty"`
+	LastLearningStyleResult *LearningStyleDetailResult `json:"last_learning_style_result,omitempty"`
+	LastKraepelinAttempt *KraepelinDetailResult `json:"last_kraepelin_attempt,omitempty"`
 	AverageIQ         float64               `json:"average_iq"`
 	TotalISTTests     int                   `json:"total_ist_tests"`
 	TotalHollandTests int                   `json:"total_holland_tests"`
+	TotalLearningStyleTests int             `json:"total_learning_style_tests"`
+	TotalKraepelinTests int                 `json:"total_kraepelin_tests"`
 	LastInstitution   string                `json:"last_institution,omitempty"`
 }
 
@@ -511,6 +527,32 @@ type HollandDetailResult struct {
 	Top2         string    `json:"top2"`
 	Top3         string    `json:"top3"`
 	Code         string    `json:"code"`
+}
+
+type LearningStyleDetailResult struct {
+	InvitationID int       `json:"invitation_id"`
+	BatchName    string    `json:"batch_name"`
+	Institution  string    `json:"institution"`
+	TestDate     time.Time `json:"test_date"`
+	ScoreVisual  int       `json:"score_visual"`
+	ScoreAuditory int      `json:"score_auditory"`
+	ScoreKinesthetic int   `json:"score_kinesthetic"`
+	DominantType string    `json:"dominant_type"`
+	InterpretationVisual string `json:"interpretation_visual"`
+	InterpretationAuditory string `json:"interpretation_auditory"`
+	InterpretationKinesthetic string `json:"interpretation_kinesthetic"`
+}
+
+type KraepelinDetailResult struct {
+	InvitationID int       `json:"invitation_id"`
+	BatchName    string    `json:"batch_name"`
+	Institution  string    `json:"institution"`
+	TestDate     time.Time `json:"test_date"`
+	TestName     string    `json:"test_name"`
+	TotalCorrect int       `json:"total_correct"`
+	TotalErrors  int       `json:"total_errors"`
+	TotalSkipped int       `json:"total_skipped"`
+	CorrectCounts []int    `json:"correct_counts"`
 }
 
 // @router /api/profile/test-summary [get]
@@ -556,6 +598,8 @@ func (c *ProfileController) GetTestSummary() {
 		AverageIQ:         0,
 		TotalISTTests:     0,
 		TotalHollandTests: 0,
+		TotalLearningStyleTests: 0,
+		TotalKraepelinTests: 0,
 	}
 
 	if len(invitations) == 0 {
@@ -750,6 +794,110 @@ func (c *ProfileController) GetTestSummary() {
 			Code:         lastHolland.Code,
 		}
 		summary.LastHollandResult = &holDetail
+	}
+
+	// Cari hasil Learning Style (VAK) terakhir
+	var lastVAK *models.LearningStyleResult
+	var lastVAKInvID int
+	for _, inv := range invitations {
+		var vak models.LearningStyleResult
+		if err := o.QueryTable(new(models.LearningStyleResult)).
+			Filter("Invitation__Id", inv.Id).
+			One(&vak); err == nil && vak.Id != 0 {
+			summary.TotalLearningStyleTests++
+			if lastVAK == nil {
+				lastVAK = &vak
+				lastVAKInvID = inv.Id
+			}
+		}
+	}
+
+	if lastVAK != nil && lastVAKInvID > 0 {
+		var invDetail models.TestInvitation
+		for _, inv := range invitations {
+			if inv.Id == lastVAKInvID {
+				invDetail = inv
+				break
+			}
+		}
+		batchName := "Batch tidak ditemukan"
+		institution := "-"
+		if invDetail.BatchId != nil {
+			if batch, ok := batchMap[*invDetail.BatchId]; ok {
+				batchName = batch.Name
+				institution = batch.Institution
+			}
+		}
+		vakDetail := LearningStyleDetailResult{
+			InvitationID: invDetail.Id,
+			BatchName:    batchName,
+			Institution:  institution,
+			TestDate:     lastVAK.TestDate,
+			ScoreVisual:  lastVAK.ScoreVisual,
+			ScoreAuditory: lastVAK.ScoreAuditory,
+			ScoreKinesthetic: lastVAK.ScoreKinesthetic,
+			DominantType: lastVAK.DominantType,
+			InterpretationVisual: seeds.LearningStyleInterpretationVisual(),
+			InterpretationAuditory: seeds.LearningStyleInterpretationAuditory(),
+			InterpretationKinesthetic: seeds.LearningStyleInterpretationKinesthetic(),
+		}
+		summary.LastLearningStyleResult = &vakDetail
+	}
+
+	// Cari hasil Kraepelin terakhir
+	var lastKraepelin *models.KraepelinAttempt
+	var lastKraepelinInvID int
+	for _, inv := range invitations {
+		var att models.KraepelinAttempt
+		if err := o.QueryTable(new(models.KraepelinAttempt)).
+			Filter("Invitation__Id", inv.Id).
+			One(&att); err == nil && att.Id != 0 {
+			summary.TotalKraepelinTests++
+			if lastKraepelin == nil {
+				lastKraepelin = &att
+				lastKraepelinInvID = inv.Id
+			}
+		}
+	}
+
+	if lastKraepelin != nil && lastKraepelinInvID > 0 {
+		var invDetail models.TestInvitation
+		for _, inv := range invitations {
+			if inv.Id == lastKraepelinInvID {
+				invDetail = inv
+				break
+			}
+		}
+		batchName := "Batch tidak ditemukan"
+		institution := "-"
+		if invDetail.BatchId != nil {
+			if batch, ok := batchMap[*invDetail.BatchId]; ok {
+				batchName = batch.Name
+				institution = batch.Institution
+			}
+		}
+
+		// Kraepelin di app ini menggunakan 40 raw data (kolom), jadi chart juga 40 titik.
+		counts := make([]int, 40)
+		if strings.TrimSpace(lastKraepelin.CorrectCountsJSON) != "" {
+			_ = json.Unmarshal([]byte(lastKraepelin.CorrectCountsJSON), &counts)
+		}
+		if len(counts) != 40 {
+			counts = make([]int, 40)
+		}
+
+		k := KraepelinDetailResult{
+			InvitationID: invDetail.Id,
+			BatchName:    batchName,
+			Institution:  institution,
+			TestDate:     lastKraepelin.TestDate,
+			TestName:     lastKraepelin.TestName,
+			TotalCorrect: lastKraepelin.TotalCorrect,
+			TotalErrors:  lastKraepelin.TotalErrors,
+			TotalSkipped: lastKraepelin.TotalSkipped,
+			CorrectCounts: counts,
+		}
+		summary.LastKraepelinAttempt = &k
 	}
 
 	c.Data["json"] = ProfileResponse{

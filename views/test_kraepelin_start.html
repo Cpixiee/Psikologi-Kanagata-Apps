@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Mulai Tes Kraepelin - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .page-card { border-radius: 14px; }
+      .required::after { content: " *"; color: #ff3e1d; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+          <div class="mb-4 text-center">
+            <h4 class="fw-bold mb-1">Tes Kraepelin</h4>
+            <p class="mb-0 text-muted">Isi biodata terlebih dahulu sebelum memulai tes.</p>
+          </div>
+
+          {{if .Error}}
+          <div class="alert alert-danger">{{.Error}}</div>
+          {{end}}
+
+          <div class="card page-card shadow-sm">
+            <div class="card-body">
+              <form method="post" action="/test/kraepelin/start">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Nama</label>
+                    <input name="name" class="form-control" placeholder="Nama lengkap" required />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Jenis kelamin</label>
+                    <select name="gender" class="form-select" required>
+                      <option value="">Pilih</option>
+                      <option value="laki-laki">Laki-laki</option>
+                      <option value="perempuan">Perempuan</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Tempat lahir</label>
+                    <input name="birth_place" class="form-control" placeholder="Tempat lahir" required />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Tanggal lahir</label>
+                    <input name="birth_date" type="date" class="form-control" />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Umur</label>
+                    <input name="age" type="number" min="1" class="form-control" placeholder="Contoh: 17" required />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Pendidikan</label>
+                    <input name="education" class="form-control" placeholder="Contoh: SMA / S1" required />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Jurusan</label>
+                    <input name="major" class="form-control" placeholder="Contoh: IPA / Teknik Informatika" required />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Pekerjaan (opsional)</label>
+                    <input name="job" class="form-control" placeholder="Kosongkan jika pelajar" />
+                  </div>
+                  <div class="col-12 mb-3">
+                    <label class="form-label required">Alamat</label>
+                    <textarea name="address" class="form-control" rows="2" placeholder="Alamat" required></textarea>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label required">Tester</label>
+                    <input name="tester" class="form-control" placeholder="Nama tester" required />
+                  </div>
+                  <div class="col-12 d-flex justify-content-end">
+                    <button class="btn btn-primary">
+                      Lanjut ke Instruksi
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+  </body>
+</html>

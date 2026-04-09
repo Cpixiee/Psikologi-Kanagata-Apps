@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aktivitas 1 - Tes Holland</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .holland-title {
+        font-weight: 650;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+      }
+      .holland-subtitle {
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+      }
+      .holland-q-row td {
+        vertical-align: middle;
+      }
+      .holland-table thead th {
+        background-color: #f8fafc;
+      }
+      .holland-table input[type="radio"] {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-11">
+          <div class="card shadow-sm">
+            <div class="card-header text-center">
+              <h5 class="mb-0 holland-title">Aktivitas 1</h5>
+              <div class="holland-subtitle">Beri tanda pilihan 0–4 sesuai kesukaan Anda</div>
+            </div>
+            <div class="card-body">
+              {{if .Error}}
+              <div class="alert alert-danger">{{.Error}}</div>
+              {{else}}
+              <form id="formHollandPage1">
+                <div class="table-responsive">
+                  <table class="table table-bordered align-middle holland-table" style="font-size: 0.9rem;">
+                    <thead>
+                      <tr>
+                        <th style="min-width: 420px;">Aktifitas</th>
+                        <th class="text-center" style="width: 60px;">0</th>
+                        <th class="text-center" style="width: 60px;">1</th>
+                        <th class="text-center" style="width: 60px;">2</th>
+                        <th class="text-center" style="width: 60px;">3</th>
+                        <th class="text-center" style="width: 60px;">4</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{range $q := .Questions}}
+                      <tr class="holland-q-row" data-qid="{{$q.Id}}" id="row_{{$q.Id}}">
+                        <td class="text-start">
+                          {{$q.Prompt}}
+                        </td>
+                        <td class="text-center">
+                          <input type="radio" name="q_{{$q.Id}}" value="0" />
+                        </td>
+                        <td class="text-center">
+                          <input type="radio" name="q_{{$q.Id}}" value="1" />
+                        </td>
+                        <td class="text-center">
+                          <input type="radio" name="q_{{$q.Id}}" value="2" />
+                        </td>
+                        <td class="text-center">
+                          <input type="radio" name="q_{{$q.Id}}" value="3" />
+                        </td>
+                        <td class="text-center">
+                          <input type="radio" name="q_{{$q.Id}}" value="4" />
+                        </td>
+                      </tr>
+                      {{end}}
+                    </tbody>
+                  </table>
+                </div>
+
+                <button type="button" id="btnSubmitPage1" class="btn btn-primary w-100 mt-2">
+                  Selesai &amp; Lanjut ke Aktivitas 2
+                </button>
+              </form>
+              {{end}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+      <div id="hollandToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="hollandToastBody">...</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script>
+      (function () {
+        const btn = document.getElementById('btnSubmitPage1');
+        const form = document.getElementById('formHollandPage1');
+        if (!btn || !form) return;
+
+        function showToast(message, variant) {
+          const toastEl = document.getElementById('hollandToast');
+          const bodyEl = document.getElementById('hollandToastBody');
+          if (!toastEl || !bodyEl || !window.bootstrap) return;
+          bodyEl.textContent = message || '';
+          toastEl.classList.remove('text-bg-primary', 'text-bg-success', 'text-bg-danger', 'text-bg-warning');
+          const v = (variant || 'primary').toLowerCase();
+          if (v === 'success') toastEl.classList.add('text-bg-success');
+          else if (v === 'danger' || v === 'error') toastEl.classList.add('text-bg-danger');
+          else if (v === 'warning') toastEl.classList.add('text-bg-warning');
+          else toastEl.classList.add('text-bg-primary');
+          const t = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2500 });
+          t.show();
+        }
+
+        btn.addEventListener('click', async function () {
+          // Clear missing highlights
+          document.querySelectorAll('.holland-q-row').forEach(function (tr) {
+            tr.classList.remove('table-danger');
+          });
+
+          const answers = {};
+          let missingCount = 0;
+          let firstMissingRow = null;
+
+          document.querySelectorAll('.holland-q-row').forEach(function (tr) {
+            const qid = tr.getAttribute('data-qid');
+            const checked = tr.querySelector('input[name="q_' + qid + '"]:checked');
+            if (!checked) {
+              missingCount++;
+              tr.classList.add('table-danger');
+              if (!firstMissingRow) firstMissingRow = tr;
+              return;
+            }
+            answers[qid] = parseInt(checked.value, 10);
+          });
+
+          if (missingCount > 0) {
+            showToast('Ada jawaban yang belum dipilih. Silakan lengkapi semua aktivitas.', 'danger');
+            if (firstMissingRow) firstMissingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+          }
+
+          try {
+            const res = await fetch('/api/test/holland/page1', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ answers: answers, force_submit: false })
+            });
+            const data = await res.json();
+            if (!data || !data.success) {
+              showToast((data && data.message) ? data.message : 'Gagal menyimpan jawaban', 'danger');
+              return;
+            }
+            window.location.href = data.next_redirect || '/test/holland/page2';
+          } catch (e) {
+            showToast('Terjadi error saat mengirim jawaban', 'danger');
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Tes Kraepelin - Soal</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .page-card { border-radius: 14px; box-shadow: 0 4px 20px rgba(15, 23, 42, .06); }
+      .board { max-width: 430px; margin: 0 auto; border:1px solid #e7e7ff; border-radius:14px; padding:10px; background:#fff; }
+      .row-line { display:grid; grid-template-columns: 28px 1fr 20px 58px; align-items:center; gap: 6px; padding: 1px 0; }
+      .seq { font-size:12px; color:#64748b; text-align:right; }
+      .digit-stack { display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.0; min-height:34px; }
+      .digit-top, .digit-bottom { font-size:18px; font-weight:800; text-align:center; }
+      .eq { text-align:center; color:#64748b; font-weight:700; }
+      .ans input {
+        width: 58px; height: 32px; text-align:center; border-radius:8px; border:1px solid #dfe3e7; outline:none; font-weight:700;
+      }
+      .timer { font-size: 28px; font-weight: 800; letter-spacing: .5px; }
+      .hint { color:#6c757d; font-size:12px; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+          <div class="card page-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <div class="fw-bold" id="colTitle">Raw Data -</div>
+                  <div class="hint">Urutan nomor 1 sampai 27. Autosave aktif.</div>
+                </div>
+                <div class="text-end">
+                  <div class="hint">Sisa waktu</div>
+                  <div class="timer" id="timeLeftLabel">00:30</div>
+                </div>
+              </div>
+
+              <div class="board">
+                <div id="answersStack"></div>
+              </div>
+
+              <div class="hint text-center mt-3">
+                Tidak ada tombol simpan/berikutnya. Setelah 30 detik, jawaban otomatis tersimpan dan lanjut ke raw data berikutnya.
+              </div>
+              {{if .IsDev}}
+              <div class="d-flex justify-content-center flex-wrap gap-2 mt-2">
+                <button type="button" class="btn btn-sm btn-warning" id="fillCorrectDevBtn">Isi Jawaban Benar (DEV)</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="prevDevBtn">Raw Sebelumnya (DEV)</button>
+                <button type="button" class="btn btn-sm btn-primary" id="nextDevBtn">Raw Berikutnya (DEV)</button>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="hint mb-0">Ke raw</span>
+                  <input id="jumpDevInput" class="form-control form-control-sm" style="width:70px;" inputmode="numeric" placeholder="1-40" />
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="jumpDevBtn">Go</button>
+                </div>
+              </div>
+              {{end}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const attempt = {
+        id: {{.Attempt.Id}},
+        seconds_per_column: {{.Attempt.SecondsPerColumn}},
+        column_count: {{.Attempt.ColumnCount}},
+        digits_per_column: {{.Attempt.DigitsPerColumn}},
+        digits_json: {{printf "%q" .Attempt.DigitsJSON}}
+      };
+      const currentRaw = {{.CurrentRaw}}; // 1..40
+      const currentColIndex = currentRaw - 1; // 0..39
+      let digits = [];
+      try {
+        digits = JSON.parse(attempt.digits_json);
+        // Safety: some template/database states can produce double-encoded JSON.
+        if (typeof digits === "string") {
+          digits = JSON.parse(digits);
+        }
+      } catch (_) {
+        digits = [];
+      }
+
+      const localKey = `kraepelin_answers_${attempt.id}`;
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(localKey) || "null"); } catch(e) {}
+      if (!saved || !Array.isArray(saved) || saved.length !== 40) {
+        saved = Array.from({length: 40}, () => Array.from({length: 26}, () => null));
+      }
+
+      const timeLeftLabel = document.getElementById('timeLeftLabel');
+
+      let timeLeft = attempt.seconds_per_column;
+      let isSubmitting = false;
+      let ticking = false;
+      let autoSaveTimer = null;
+
+      function pad2(n){ return String(n).padStart(2,'0'); }
+
+      function persistLocal() {
+        localStorage.setItem(localKey, JSON.stringify(saved));
+      }
+
+      function firstGapIndex(colIndex) {
+        const a = saved[colIndex];
+        for (let i = 0; i < 26; i++) {
+          if (a[i] === null || a[i] === undefined || a[i] === '') return i;
+        }
+        return 26;
+      }
+
+      function renderActiveColumn() {
+        document.getElementById('colTitle').textContent = `Raw Data ${currentRaw} dari ${attempt.column_count}`;
+        const answersStack = document.getElementById('answersStack');
+        answersStack.innerHTML = '';
+
+        const colDigits = Array.isArray(digits[currentColIndex]) ? digits[currentColIndex] : [];
+        const gap = firstGapIndex(currentColIndex);
+
+        // Tiap baris kerja menampilkan 2 angka vertikal (atas-bawah), lalu "=" dan jawaban.
+        for (let row = 0; row < 26; row++) {
+          const line = document.createElement('div');
+          line.className = 'row-line';
+
+          const seq = document.createElement('div');
+          seq.className = 'seq';
+          seq.textContent = String(row + 1);
+
+          const digitStack = document.createElement('div');
+          digitStack.className = 'digit-stack';
+          const top = document.createElement('div');
+          top.className = 'digit-top';
+          top.textContent = String(colDigits[row + 1] ?? '-');
+          const bottom = document.createElement('div');
+          bottom.className = 'digit-bottom';
+          bottom.textContent = String(colDigits[row] ?? '-');
+          digitStack.appendChild(top);
+          digitStack.appendChild(bottom);
+
+          const eq = document.createElement('div');
+          eq.className = 'eq';
+          eq.textContent = '=';
+
+          const ans = document.createElement('div');
+          ans.className = 'ans';
+          const input = document.createElement('input');
+          input.inputMode = 'numeric';
+          input.maxLength = 1;
+          input.dataset.idx = String(row);
+          const val = saved[currentColIndex][row];
+          input.value = (val === null || val === undefined) ? '' : String(val);
+          input.disabled = !(row <= gap);
+          input.addEventListener('input', (e) => {
+            const v = (e.target.value || '').trim();
+            if (v === '') {
+              saved[currentColIndex][row] = null;
+            } else {
+              const n = parseInt(v, 10);
+              if (Number.isNaN(n) || n < 0 || n > 9) {
+                e.target.value = '';
+                saved[currentColIndex][row] = null;
+              } else {
+                e.target.value = String(n);
+                saved[currentColIndex][row] = n;
+              }
+            }
+            persistLocal();
+            scheduleAutoSave();
+            renderActiveColumn();
+            const sel = document.querySelector(`input[data-idx="${row}"]`);
+            if (sel && !sel.disabled) sel.focus();
+          });
+          ans.appendChild(input);
+
+          line.appendChild(seq);
+          line.appendChild(digitStack);
+          line.appendChild(eq);
+          line.appendChild(ans);
+          answersStack.appendChild(line);
+        }
+      }
+
+      function fillCorrectAnswersDev() {
+        const colDigits = Array.isArray(digits[currentColIndex]) ? digits[currentColIndex] : [];
+        if (colDigits.length < 27) return;
+        for (let i = 0; i < 26; i++) {
+          const expected = (colDigits[i] + colDigits[i + 1]) % 10;
+          saved[currentColIndex][i] = expected;
+        }
+        persistLocal();
+        scheduleAutoSave();
+        renderActiveColumn();
+      }
+
+      function scheduleAutoSave() {
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(async () => {
+          try { await submitColumn(currentColIndex, false); } catch (_) {}
+        }, 700);
+      }
+
+      async function submitColumn(colIndex, forceFinish=false) {
+        if (isSubmitting) return;
+        isSubmitting = true;
+        try {
+          const answers = saved[colIndex].map(v => (v === null ? null : v));
+          const payload = {
+            column_index: colIndex,
+            answers: answers,
+            client_at: new Date().toISOString(),
+            force_finish: forceFinish
+          };
+          const res = await fetch('/api/test/kraepelin/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menyimpan jawaban');
+          }
+        } finally {
+          isSubmitting = false;
+        }
+      }
+
+      async function goNextAfterSubmit(forceFinish) {
+        await submitColumn(currentColIndex, forceFinish);
+        if (forceFinish || currentRaw >= attempt.column_count) {
+          window.location.href = '/test/kraepelin/finish';
+          return;
+        }
+        window.location.href = `/test/kraepelin/questions?raw=${currentRaw + 1}`;
+      }
+
+      async function goPrevAfterSubmit() {
+        await submitColumn(currentColIndex, false);
+        if (currentRaw <= 1) {
+          window.location.href = `/test/kraepelin/questions?raw=1`;
+          return;
+        }
+        window.location.href = `/test/kraepelin/questions?raw=${currentRaw - 1}`;
+      }
+
+      async function goJumpAfterSubmit(rawTarget) {
+        await submitColumn(currentColIndex, false);
+        const r = Math.max(1, Math.min(attempt.column_count, rawTarget));
+        window.location.href = `/test/kraepelin/questions?raw=${r}`;
+      }
+
+      async function tickSecond() {
+        if (ticking) return;
+        ticking = true;
+        try {
+          timeLeftLabel.textContent = `00:${pad2(timeLeft)}`;
+          if (timeLeft <= 0) {
+            await goNextAfterSubmit(currentRaw >= attempt.column_count);
+            return;
+          }
+          timeLeft -= 1;
+        } finally {
+          ticking = false;
+        }
+      }
+
+      renderActiveColumn();
+      tickSecond();
+      setInterval(tickSecond, 1000);
+
+      const fillCorrectDevBtn = document.getElementById("fillCorrectDevBtn");
+      if (fillCorrectDevBtn) {
+        fillCorrectDevBtn.addEventListener("click", fillCorrectAnswersDev);
+      }
+
+      const prevDevBtn = document.getElementById("prevDevBtn");
+      if (prevDevBtn) {
+        prevDevBtn.addEventListener("click", async () => {
+          try { await goPrevAfterSubmit(); } catch (_) {}
+        });
+      }
+      const nextDevBtn = document.getElementById("nextDevBtn");
+      if (nextDevBtn) {
+        nextDevBtn.addEventListener("click", async () => {
+          try { await goNextAfterSubmit(false); } catch (_) {}
+        });
+      }
+      const jumpDevBtn = document.getElementById("jumpDevBtn");
+      const jumpDevInput = document.getElementById("jumpDevInput");
+      if (jumpDevBtn && jumpDevInput) {
+        jumpDevBtn.addEventListener("click", async () => {
+          const v = String(jumpDevInput.value || "").trim();
+          const n = parseInt(v, 10);
+          if (!Number.isFinite(n)) return;
+          try { await goJumpAfterSubmit(n); } catch (_) {}
+        });
+      }
+
+      // Cegah user kembali ke raw sebelumnya via tombol Back browser (kecuali DEV).
+      const isDev = {{if .IsDev}}true{{else}}false{{end}};
+      if (!isDev) {
+        const currentUrl = `/test/kraepelin/questions?raw=${currentRaw}`;
+        history.replaceState({ raw: currentRaw }, "", currentUrl);
+        history.pushState({ raw: currentRaw }, "", currentUrl);
+        window.addEventListener("popstate", function () {
+          history.pushState({ raw: currentRaw }, "", currentUrl);
+          window.location.replace(currentUrl);
+        });
+      }
+    </script>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+  </body>
+</html>
+

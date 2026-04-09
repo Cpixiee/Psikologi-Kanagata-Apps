@@ -1777,7 +1777,39 @@ func (c *ISTTestController) ExportResultExcel() {
 		c.Redirect("/profile", 302)
 		return
 	}
-	filename := fmt.Sprintf("IST_Psikogram_%d.xlsx", inv.Id)
+	makeSafeName := func(s string) string {
+		s = strings.ToLower(strings.TrimSpace(s))
+		if s == "" {
+			return "user"
+		}
+		var b strings.Builder
+		lastUnderscore := false
+		for _, r := range s {
+			isAlphaNum := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+			if isAlphaNum {
+				b.WriteRune(r)
+				lastUnderscore = false
+				continue
+			}
+			if !lastUnderscore {
+				b.WriteRune('_')
+				lastUnderscore = true
+			}
+		}
+		out := strings.Trim(b.String(), "_")
+		if out == "" {
+			return "user"
+		}
+		return out
+	}
+	downloadName := strings.TrimSpace(user.NamaLengkap)
+	if downloadName == "" {
+		downloadName = strings.TrimSpace(user.Email)
+	}
+	if downloadName == "" {
+		downloadName = strings.TrimSpace(inv.Email)
+	}
+	filename := fmt.Sprintf("ist_result_%s.xlsx", makeSafeName(downloadName))
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
 	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())

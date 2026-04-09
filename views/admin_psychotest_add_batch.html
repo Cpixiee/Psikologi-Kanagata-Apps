@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Tambah Batch Tes - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .page-card {
+        border-radius: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+          </div>
+          <div class="menu-inner-shadow"></div>
+          <ul class="menu-inner py-1">
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Admin</span>
+            </li>
+            <li class="menu-item">
+              <a href="/admin/psychotest/batches" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Daftar Batch</div>
+              </a>
+            </li>
+            <li class="menu-item active">
+              <a href="/admin/psychotest/batches/add" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-plus-medical"></i>
+                <div class="text-truncate">Tambah Batch</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                  <h4 class="fw-bold mb-1">Tambah Batch Tes Psikologi</h4>
+                  <p class="mb-0 text-muted">Buat sesi tes baru dan konfigurasi jenis serta pengirimannya.</p>
+                </div>
+                <div class="d-flex align-items-center">
+                  <a href="/admin/psychotest/batches" class="btn btn-outline-secondary btn-sm">
+                    <i class="bx bx-arrow-back me-1"></i>Kembali
+                  </a>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-12">
+                  <div class="card page-card mb-4">
+                    <div class="card-header">
+                      <h5 class="mb-0">Form Batch</h5>
+                    </div>
+                    <div class="card-body">
+                      <form id="batchForm" onsubmit="handleCreateBatch(event)">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label" for="batchName">Nama Batch</label>
+                              <input type="text" id="batchName" class="form-control" placeholder="Tes IQ IST - Sekolah A Gelombang 1" required />
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label" for="batchInstitution">Institusi / Sekolah</label>
+                              <input type="text" id="batchInstitution" class="form-control" placeholder="Sekolah A" required />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label">Jenis Tes</label>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="testType" id="testTypeIST" value="ist" required />
+                                <label class="form-check-label" for="testTypeIST">IST (IQ)</label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="testType" id="testTypeHolland" value="holland" />
+                                <label class="form-check-label" for="testTypeHolland">Holland (RIASEC)</label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="testType" id="testTypeLearningStyle" value="learning_style" />
+                                <label class="form-check-label" for="testTypeLearningStyle">Gaya Belajar (VAK)</label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="testType" id="testTypeKraepelin" value="kraepelin" />
+                                <label class="form-check-label" for="testTypeKraepelin">Kraepelin</label>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label">Tujuan Pemeriksaan</label>
+                              <select id="purposeCategory" class="form-select mb-2">
+                                <option value="education">Pendidikan</option>
+                                <option value="career">Karier</option>
+                                <option value="other">Lainnya</option>
+                              </select>
+                              <select id="purposeDetail" class="form-select mt-2">
+                                <option value="sekolah">Seleksi Masuk Sekolah</option>
+                                <option value="identifikasi_kecerdasan">Identifikasi Kecerdasan</option>
+                                <option value="menentukan_jurusan">Menentukan Jurusan</option>
+                                <option value="pengembangan_potensi">Pengembangan Potensi</option>
+                                <option value="penempatan_kerja">Penempatan Kerja</option>
+                                <option value="lainnya">Lainnya</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="mb-3 mb-md-0">
+                              <label class="form-label">Kirim Undangan Melalui</label>
+                              <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sendViaEmail" checked />
+                                <label class="form-check-label" for="sendViaEmail">Email</label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sendViaBrowser" />
+                                <label class="form-check-label" for="sendViaBrowser">Browser / Notifikasi</label>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 mt-3 mt-md-0">
+                              <i class="bx bx-save me-1"></i>Simpan Batch
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+
+                  <div class="alert alert-info mb-0">
+                    Setelah batch dibuat, kamu bisa membuka daftar batch untuk undang peserta dan pantau hasil IST & Holland.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      async function handleCreateBatch(event) {
+        event.preventDefault();
+
+        const selected = document.querySelector('input[name="testType"]:checked');
+        if (!selected) {
+          Swal.fire({ icon: 'warning', title: 'Pilih jenis tes', text: 'Batch harus memilih tepat satu jenis tes.' });
+          return;
+        }
+        const testType = selected.value;
+        const payload = {
+          name: document.getElementById('batchName').value,
+          institution: document.getElementById('batchInstitution').value,
+          enable_ist: testType === 'ist',
+          enable_holland: testType === 'holland',
+          enable_learning_style: testType === 'learning_style',
+          enable_kraepelin: testType === 'kraepelin',
+          purpose_category: document.getElementById('purposeCategory').value,
+          purpose_detail: document.getElementById('purposeDetail').value,
+          send_via_email: document.getElementById('sendViaEmail').checked,
+          send_via_browser: document.getElementById('sendViaBrowser').checked
+        };
+
+        try {
+          const res = await fetch('/api/admin/test-batches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal membuat batch');
+          }
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Batch tes berhasil dibuat',
+            timer: 1800,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.href = '/admin/psychotest/batches';
+          });
+        } catch (err) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: err.message || 'Terjadi kesalahan'
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
+

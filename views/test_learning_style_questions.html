@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Soal Tes Gaya Belajar (VAK)</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .vak-shell {
+        width: 100%;
+        max-width: 1080px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      /* Sneat layout assumes sidebar; VAK pages don't use it. */
+      .layout-container {
+        padding-left: 0 !important;
+      }
+      .layout-page {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+      }
+      .vak-table {
+        border: 1px solid rgba(15,23,42,0.14);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .vak-table thead th {
+        background: #8fb3e6;
+        color: #0b1220;
+        font-weight: 700;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .vak-table td, .vak-table th {
+        border: 1px solid rgba(15,23,42,0.14);
+      }
+      td.vak-status.vak-status-ok {
+        background: #c6efce !important;
+        color: #1b5e20 !important;
+        font-weight: 800 !important;
+        text-align: center;
+      }
+      td.vak-status.vak-status-warn {
+        background: #ffc7ce !important;
+        color: #8b0000 !important;
+        font-weight: 800 !important;
+        text-align: center;
+      }
+      .vak-input {
+        width: 56px;
+        text-align: center;
+        border-radius: 10px;
+      }
+      .vak-sticky-actions {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid rgba(15,23,42,0.08);
+        padding: 12px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="vak-shell">
+                <p class="text-muted mb-3">Isi angka “1” pada kolom Ya atau Tidak. Status akan berubah menjadi OK jika terisi.</p>
+
+                {{if .Error}}
+                  <div class="alert alert-danger">{{.Error}}</div>
+                {{end}}
+
+                <div class="table-responsive vak-table">
+                  <table class="table mb-0">
+                    <thead>
+                      <tr>
+                        <th rowspan="2" style="width:60px;">No</th>
+                        <th rowspan="2">Pernyataan</th>
+                        <th colspan="2" style="width:220px;">Kolom Jawaban</th>
+                        <th rowspan="2" style="width:140px;">Status Isian</th>
+                      </tr>
+                      <tr>
+                        <th style="width:110px;">Ya</th>
+                        <th style="width:110px;">Tidak</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{range $idx, $q := .Questions}}
+                        <tr data-qid="{{$q.Id}}">
+                          <td class="text-center">{{$q.Number}}</td>
+                          <td>{{$q.Statement}}</td>
+                          <td class="text-center">
+                            <input class="form-control vak-input vak-yes" inputmode="numeric" maxlength="1" placeholder="" />
+                          </td>
+                          <td class="text-center">
+                            <input class="form-control vak-input vak-no" inputmode="numeric" maxlength="1" placeholder="" />
+                          </td>
+                          <td class="vak-status vak-status-warn">CEK ULANG</td>
+                        </tr>
+                      {{end}}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="vak-sticky-actions mt-3">
+                  <div class="d-flex gap-2 justify-content-end">
+                    <button class="btn btn-outline-secondary" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+                      Ke atas
+                    </button>
+                    <button class="btn btn-primary" type="button" onclick="submitVAK()">
+                      Selesai
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <script>
+      function normalizeInput(el) {
+        const v = (el.value || '').trim();
+        if (v === '') return '';
+        if (v === '1') return '1';
+        return '';
+      }
+
+      function updateRowStatus(tr) {
+        const yesEl = tr.querySelector('.vak-yes');
+        const noEl = tr.querySelector('.vak-no');
+        const statusEl = tr.querySelector('.vak-status');
+
+        const yes = normalizeInput(yesEl);
+        const no = normalizeInput(noEl);
+
+        // Only one of them can be 1
+        if (yes === '1' && no === '1') {
+          // keep last edited; handled in input handlers by clearing the other
+        }
+
+        const ok = (yes === '1' && no !== '1') || (no === '1' && yes !== '1');
+        if (ok) {
+          statusEl.textContent = 'OK';
+          statusEl.classList.remove('vak-status-warn');
+          statusEl.classList.add('vak-status-ok');
+        } else {
+          statusEl.textContent = 'CEK ULANG';
+          statusEl.classList.remove('vak-status-ok');
+          statusEl.classList.add('vak-status-warn');
+        }
+      }
+
+      function attachHandlers() {
+        document.querySelectorAll('tr[data-qid]').forEach(function(tr) {
+          const yesEl = tr.querySelector('.vak-yes');
+          const noEl = tr.querySelector('.vak-no');
+
+          yesEl.addEventListener('input', function() {
+            yesEl.value = normalizeInput(yesEl);
+            if (yesEl.value === '1') {
+              noEl.value = '';
+            }
+            updateRowStatus(tr);
+          });
+          noEl.addEventListener('input', function() {
+            noEl.value = normalizeInput(noEl);
+            if (noEl.value === '1') {
+              yesEl.value = '';
+            }
+            updateRowStatus(tr);
+          });
+          updateRowStatus(tr);
+        });
+      }
+
+      function collectAnswers() {
+        const payload = { answers: {}, force_submit: false };
+        let firstMissing = null;
+
+        document.querySelectorAll('tr[data-qid]').forEach(function(tr) {
+          const qid = tr.getAttribute('data-qid');
+          const yes = normalizeInput(tr.querySelector('.vak-yes'));
+          const no = normalizeInput(tr.querySelector('.vak-no'));
+
+          const yesInt = yes === '1' ? 1 : 0;
+          const noInt = no === '1' ? 1 : 0;
+          payload.answers[qid] = { yes: yesInt, no: noInt };
+
+          const ok = (yesInt === 1 && noInt === 0) || (yesInt === 0 && noInt === 1);
+          if (!ok && firstMissing === null) {
+            firstMissing = tr;
+          }
+        });
+
+        return { payload, firstMissing };
+      }
+
+      async function submitVAK() {
+        const { payload, firstMissing } = collectAnswers();
+        if (firstMissing) {
+          firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          Swal.fire({ icon: 'warning', title: 'Cek jawaban', text: 'Masih ada pernyataan yang belum diisi. Lengkapi dulu ya.' });
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/test/learning-style/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menyimpan jawaban');
+          }
+          window.location.href = data.finish_redirect || '/profile/learning-style';
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan' });
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', attachHandlers);
+    </script>
+  </body>
+</html>
+

@@ -109,6 +109,24 @@ func (c *PsychotestClientController) StartTest() {
 			c.Redirect("/test/ist/result", 302)
 			return
 		}
+
+		// Learning style fallback: jika hasil VAK ada, arahkan ke finish.
+		var vakRes models.LearningStyleResult
+		if err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&vakRes); err == nil && vakRes.Id != 0 {
+			c.SetSession("current_invitation_id", inv.Id)
+			c.SetSession("current_batch_id", inv.BatchId)
+			c.Redirect("/profile/learning-style", 302)
+			return
+		}
+
+		// Holland fallback: jika hasil Holland ada, arahkan ke profile.
+		var holRes models.HollandResult
+		if err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&holRes); err == nil && holRes.Id != 0 {
+			c.SetSession("current_invitation_id", inv.Id)
+			c.SetSession("current_batch_id", inv.BatchId)
+			c.Redirect("/profile/holland", 302)
+			return
+		}
 	}
 
 	// Hanya status pending yang boleh memulai tes baru
@@ -122,7 +140,34 @@ func (c *PsychotestClientController) StartTest() {
 	c.SetSession("current_invitation_id", inv.Id)
 	c.SetSession("current_batch_id", inv.BatchId)
 
-	// Setelah token valid, langsung arahkan ke alur test IST (start page).
-	c.Redirect("/test/ist/start", 302)
+	// Setelah token valid, arahkan ke alur test sesuai konfigurasi batch.
+	// Batch harus memilih SATU jenis tes (tidak ada prioritas/default).
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		if err := o.Read(&batch); err != nil {
+			// jika gagal load batch, fallback IST
+			c.Redirect("/test/ist/start", 302)
+			return
+		}
+	}
+	if batch.EnableIST {
+		c.Redirect("/test/ist/start", 302)
+		return
+	}
+	if batch.EnableHolland {
+		c.Redirect("/test/holland/start", 302)
+		return
+	}
+	if batch.EnableLearningStyle {
+		c.Redirect("/test/learning-style/start", 302)
+		return
+	}
+	if batch.EnableKraepelin {
+		c.Redirect("/test/kraepelin/start", 302)
+		return
+	}
+	c.Data["Error"] = "Batch tes belum dikonfigurasi (pilih jenis tes). Silakan hubungi admin."
+	c.TplName = "test_token.html"
 }
 

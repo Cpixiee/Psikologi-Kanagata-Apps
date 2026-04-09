@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Instruksi Tes Kraepelin - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .page-card { border-radius: 14px; }
+      .step { display: flex; gap: 12px; margin-bottom: 14px; }
+      .step-badge { width: 28px; height: 28px; border-radius: 8px; background: rgba(105,108,255,.12); color:#696cff; display:flex; align-items:center; justify-content:center; font-weight:700; flex: 0 0 auto; }
+      .example-grid { display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 8px; }
+      .cell { border:1px solid #e7e7ff; border-radius:10px; padding:10px; text-align:center; background:#fff; }
+      .cell strong { display:block; font-size: 18px; }
+      .cell small { color:#6c757d; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+          <div class="mb-4 text-center">
+            <h4 class="fw-bold mb-1">Instruksi Tes Kraepelin</h4>
+            <p class="mb-0 text-muted">Baca dengan teliti agar pengerjaan tidak membingungkan.</p>
+          </div>
+
+          <div class="card page-card mb-4 shadow-sm">
+            <div class="card-body">
+              <div class="alert alert-warning">
+                <strong>Penting:</strong> Tes ini berjalan dengan timer. Hanya <strong>1 kolom</strong> yang bisa dikerjakan pada satu waktu. Setelah waktunya habis, kolom akan otomatis terkunci dan pindah ke kolom berikutnya.
+              </div>
+
+              <div class="step">
+                <div class="step-badge">1</div>
+                <div>
+                  <div class="fw-semibold">Cara menjawab</div>
+                  <div class="text-muted">
+                    Pada tiap kolom, kamu akan melihat deretan angka (mis. 27 angka). Tugasmu adalah <strong>menjumlahkan dua angka yang berurutan</strong>.
+                    Yang ditulis hanya <strong>angka satuan</strong>-nya.
+                  </div>
+                </div>
+              </div>
+
+              <div class="step">
+                <div class="step-badge">2</div>
+                <div>
+                  <div class="fw-semibold">Contoh + latihan singkat</div>
+                  <div class="text-muted mb-2">Jika angka berurutan adalah 7 dan 5, maka 7 + 5 = 12, tulis <strong>2</strong> (angka satuan).</div>
+                  <div class="card border-0" style="max-width: 420px; background:#f8f9ff;">
+                    <div class="card-body py-3">
+                      <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                        <span class="fw-semibold">7</span>
+                        <span class="text-muted">|</span>
+                        <span class="fw-semibold">5</span>
+                        <span class="text-muted">=</span>
+                        <input id="dummyAnswer" type="text" inputmode="numeric" maxlength="1" class="form-control form-control-sm text-center" style="width:56px;" placeholder="?" />
+                      </div>
+                      <div class="small text-muted text-center">Coba isi <strong>2</strong> sebagai latihan sebelum mulai tes.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="step">
+                <div class="step-badge">3</div>
+                <div>
+                  <div class="fw-semibold">Aturan timer & penguncian</div>
+                  <div class="text-muted">
+                    Kamu hanya bisa mengetik jawaban di kolom yang sedang aktif. Kolom sebelumnya dan kolom setelahnya akan terkunci.
+                    Saat waktu kolom aktif habis, sistem akan pindah ke kolom berikutnya.
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end mt-4">
+                <a href="/test/kraepelin/questions?raw=1" class="btn btn-primary">
+                  Mulai Tes
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script>
+      const dummy = document.getElementById("dummyAnswer");
+      if (dummy) {
+        dummy.addEventListener("input", function () {
+          const v = (dummy.value || "").trim();
+          if (v === "") return;
+          if (!/^[0-9]$/.test(v)) {
+            dummy.value = "";
+            return;
+          }
+          if (v === "2") {
+            dummy.classList.remove("is-invalid");
+            dummy.classList.add("is-valid");
+          } else {
+            dummy.classList.remove("is-valid");
+            dummy.classList.add("is-invalid");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
+

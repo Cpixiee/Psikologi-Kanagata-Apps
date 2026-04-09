@@ -13,17 +13,19 @@ document.addEventListener('DOMContentLoaded', function (e) {
     const fileInput = document.querySelector('.account-file-input'),
       resetFileInput = document.querySelector('.account-image-reset');
 
-    if (accountUserImage) {
+    if (accountUserImage && fileInput) {
       const resetImage = accountUserImage.src;
       fileInput.onchange = () => {
         if (fileInput.files[0]) {
           accountUserImage.src = window.URL.createObjectURL(fileInput.files[0]);
         }
       };
-      resetFileInput.onclick = () => {
-        fileInput.value = '';
-        accountUserImage.src = resetImage;
-      };
+      if (resetFileInput) {
+        resetFileInput.onclick = () => {
+          fileInput.value = '';
+          accountUserImage.src = resetImage;
+        };
+      }
     }
   })();
 });

@@ -1,0 +1,475 @@
+<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Tes Gaya Belajar (VAK) - Profil Saya - Psychee Wellness</title>
+
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .swal2-container {
+        z-index: 20000 !important;
+      }
+      .vak-card {
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        border-radius: 12px;
+      }
+      .vak-shell {
+        width: 100%;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .vak-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        background: rgba(0,166,90,0.12);
+        color: #0b1220;
+      }
+      .vak-score-box {
+        border-radius: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.10);
+        background: #fff;
+        padding: 12px;
+        text-align: center;
+      }
+      .vak-score-num {
+        font-size: 28px;
+        font-weight: 900;
+        line-height: 1.1;
+      }
+      .vak-collapse-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(15, 23, 42, 0.14);
+        border-radius: 10px;
+        background: #fff;
+        padding: 8px 12px;
+        font-weight: 700;
+        color: #334155;
+      }
+      .vak-collapse-btn .bx {
+        transition: transform 0.2s ease;
+      }
+      .vak-collapse-btn[aria-expanded="true"] .bx {
+        transform: rotate(180deg);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+          </div>
+          <div class="menu-divider mt-0"></div>
+          <div class="menu-inner-shadow"></div>
+          <ul class="menu-inner py-1">
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Layanan</span>
+            </li>
+            <li class="menu-item">
+              <a href="/test" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Tes Psikologi</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chat"></i>
+                <div class="text-truncate">Konseling</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-history"></i>
+                <div class="text-truncate">Riwayat</div>
+              </a>
+            </li>
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Akun</span>
+            </li>
+            <li class="menu-item open active">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-user"></i>
+                <div class="text-truncate">Profil</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a></li>
+                <li class="menu-item"><a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a></li>
+                <li class="menu-item"><a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a></li>
+                <li class="menu-item active"><a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a></li>
+                <li class="menu-item"><a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item"><a href="/settings" class="menu-link"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengaturan</div></a></li>
+            <li class="menu-item d-none" id="menuAdminPsychotest">
+              <a href="/admin/psychotest" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
+                <div class="text-truncate">Admin Psychotest</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y" style="min-height: calc(100vh - 200px);">
+              <div class="vak-shell">
+              <div class="card mb-3 vak-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1">Hasil Tes Gaya Belajar (VAK)</h5>
+                    <p class="mb-0 text-muted">Yang ditampilkan: tipe, interpretasi, dan nilai skor.</p>
+                  </div>
+                  <button class="btn btn-outline-primary btn-sm" type="button" id="vakDetailBtn" style="display:none;" onclick="showVAKDetail()">
+                    Lihat Detail
+                  </button>
+                </div>
+              </div>
+
+              <div class="card vak-card">
+                <div class="card-body">
+                  <div id="vakNotFound" class="text-center py-5">
+                    <i class="bx bx-info-circle text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2 mb-0">Tes Gaya Belajar belum pernah dikerjakan</p>
+                  </div>
+
+                  <div id="vakResult" style="display:none;">
+                    <div class="mb-3">
+                      <span class="vak-pill">
+                        <i class="bx bx-bulb"></i>
+                        <span id="vakDominantType">-</span>
+                      </span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-4">
+                        <div class="vak-score-box">
+                          <div class="text-muted small">Skor Visual</div>
+                          <div class="vak-score-num" id="vakScoreVisual">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="vak-score-box">
+                          <div class="text-muted small">Skor Auditori</div>
+                          <div class="vak-score-num" id="vakScoreAuditory">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="vak-score-box">
+                          <div class="text-muted small">Skor Kinestetik</div>
+                          <div class="vak-score-num" id="vakScoreKinesthetic">0</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mb-3">
+                      <button
+                        class="vak-collapse-btn"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#vakInterpretationCollapse"
+                        aria-expanded="false"
+                        aria-controls="vakInterpretationCollapse">
+                        <span>Interpretasi</span>
+                        <i class="bx bx-chevron-down"></i>
+                      </button>
+                      <div class="collapse mt-2" id="vakInterpretationCollapse">
+                        <div class="alert alert-light border mb-0" style="white-space: pre-wrap;" id="vakInterpretationBox">-</div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4">
+                      <div style="width: 100%; max-width: 980px; height: 320px;">
+                        <canvas id="vakChart"></canvas>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <script>
+      let lastVAK = null;
+      let vakChart = null;
+
+      function interpretationForDominant(vak) {
+        const t = String(vak.dominant_type || '').toLowerCase();
+        if (t.includes('audio')) return vak.interpretation_auditory || '-';
+        if (t.includes('kine')) return vak.interpretation_kinesthetic || '-';
+        return vak.interpretation_visual || '-';
+      }
+
+      function displayVAK(vak) {
+        document.getElementById('vakNotFound').style.display = 'none';
+        document.getElementById('vakResult').style.display = 'block';
+        document.getElementById('vakDominantType').textContent = vak.dominant_type || '-';
+        document.getElementById('vakScoreVisual').textContent = Number(vak.score_visual || 0);
+        document.getElementById('vakScoreAuditory').textContent = Number(vak.score_auditory || 0);
+        document.getElementById('vakScoreKinesthetic').textContent = Number(vak.score_kinesthetic || 0);
+        document.getElementById('vakInterpretationBox').textContent = interpretationForDominant(vak);
+        lastVAK = vak;
+
+        const detailBtn = document.getElementById('vakDetailBtn');
+        if (detailBtn) detailBtn.style.display = 'inline-block';
+
+        renderVAKChart(vak);
+      }
+
+      function renderVAKChart(vak) {
+        const ctx = document.getElementById('vakChart');
+        if (!ctx) return;
+        if (vakChart) vakChart.destroy();
+        vakChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Visual', 'Auditori', 'Kinestetik'],
+            datasets: [
+              {
+                label: 'Skor',
+                data: [
+                  Number(vak.score_visual || 0),
+                  Number(vak.score_auditory || 0),
+                  Number(vak.score_kinesthetic || 0)
+                ],
+                backgroundColor: [
+                  'rgba(99, 102, 241, 0.35)',
+                  'rgba(14, 165, 233, 0.35)',
+                  'rgba(34, 197, 94, 0.35)'
+                ],
+                borderColor: [
+                  'rgba(99, 102, 241, 0.95)',
+                  'rgba(14, 165, 233, 0.95)',
+                  'rgba(34, 197, 94, 0.95)'
+                ],
+                borderWidth: 1,
+                borderRadius: 10,
+                barThickness: 46,
+                maxBarThickness: 58
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#64748b', font: { size: 12 } }
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0, color: '#64748b' },
+                grid: { color: 'rgba(100, 116, 139, 0.14)' }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) { return `Skor: ${context.parsed.y}`; }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function showVAKDetail() {
+        if (!lastVAK) return;
+        const v = lastVAK;
+        const downloadUrl = v.invitation_id ? ('/test/learning-style/result/excel?invId=' + encodeURIComponent(v.invitation_id)) : '#';
+        const html = `
+          <style>
+            .vak-detail-wrap { text-align: left; }
+            .vak-detail-table { width: 100%; border-collapse: collapse; }
+            .vak-detail-table th, .vak-detail-table td { border: 1px solid rgba(15,23,42,0.14); padding: 10px 12px; vertical-align: top; }
+            .vak-detail-table thead th { background: #00a65a; color: #fff; font-weight: 800; text-align: center; white-space: nowrap; }
+            .vak-type-cell {
+              width: 54px;
+              min-width: 54px;
+              background: #f7f7fb;
+              position: relative;
+              padding: 0 !important;
+              vertical-align: middle;
+            }
+            .vak-type-label {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(-90deg);
+              transform-origin: center center;
+              white-space: nowrap;
+              font-weight: 900;
+              line-height: 1;
+            }
+            .vak-score-cell {
+              width: 120px;
+              text-align: center;
+              font-weight: 900;
+              background: #8db4e2;
+              vertical-align: middle !important;
+              padding-top: 0 !important;
+              padding-bottom: 0 !important;
+            }
+            .vak-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+            .vak-meta-card { border: 1px solid rgba(15,23,42,0.12); border-radius: 10px; background: #f8fafc; padding: 10px 12px; }
+            .vak-meta-card .k { font-size: 12px; color: #64748b; margin-bottom: 2px; }
+            .vak-meta-card .v { font-weight: 800; color: #0f172a; font-size: 18px; line-height: 1.15; }
+            .vak-th-type { width: 150px; min-width: 150px; white-space: normal !important; line-height: 1.1; }
+          </style>
+          <div class="vak-detail-wrap">
+            <div class="vak-meta">
+              <div class="vak-meta-card"><div class="k">Tipe Dominan</div><div class="v">${v.dominant_type || '-'}</div></div>
+              <div class="vak-meta-card"><div class="k">Tanggal Tes</div><div class="v">${v.test_date ? new Date(v.test_date).toLocaleDateString('id-ID') : '-'}</div></div>
+              <div class="vak-meta-card"><div class="k">Institusi</div><div class="v">${v.institution || '-'}</div></div>
+            </div>
+            <div class="table-responsive">
+              <table class="vak-detail-table">
+                <thead>
+                  <tr>
+                    <th class="vak-th-type">TIPE GAYA<br>BELAJAR</th>
+                    <th>INTERPRETASI</th>
+                    <th style="width:130px;">NILAI SKOR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="vak-type-cell"><span class="vak-type-label">VISUAL</span></td>
+                    <td style="white-space:pre-wrap;">${v.interpretation_visual || '-'}</td>
+                    <td class="vak-score-cell">${Number(v.score_visual || 0)}</td>
+                  </tr>
+                  <tr>
+                    <td class="vak-type-cell"><span class="vak-type-label">AUDITORI</span></td>
+                    <td style="white-space:pre-wrap;">${v.interpretation_auditory || '-'}</td>
+                    <td class="vak-score-cell">${Number(v.score_auditory || 0)}</td>
+                  </tr>
+                  <tr>
+                    <td class="vak-type-cell"><span class="vak-type-label">KINESTETIK</span></td>
+                    <td style="white-space:pre-wrap;">${v.interpretation_kinesthetic || '-'}</td>
+                    <td class="vak-score-cell">${Number(v.score_kinesthetic || 0)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+              <a class="btn btn-outline-secondary btn-sm" href="${downloadUrl}">Download Excel</a>
+            </div>
+          </div>
+        `;
+        Swal.fire({
+          title: 'Detail Hasil VAK',
+          html: html,
+          width: '92vw',
+          showCloseButton: true,
+          showConfirmButton: false
+        });
+      }
+
+      async function loadProfileRole() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) return;
+          const data = await response.json();
+          if (data.success && data.data && data.data.role === 'admin') {
+            const adminMenu = document.getElementById('menuAdminPsychotest');
+            if (adminMenu) adminMenu.classList.remove('d-none');
+          }
+        } catch (e) {}
+      }
+
+      async function loadVAKSummary() {
+        try {
+          const resp = await fetch('/api/profile/test-summary');
+          if (!resp.ok) return;
+          const payload = await resp.json();
+          if (!payload.success || !payload.data) return;
+          const summary = payload.data;
+          if (summary.last_learning_style_result) {
+            displayVAK(summary.last_learning_style_result);
+          } else {
+            document.getElementById('vakNotFound').style.display = 'block';
+            document.getElementById('vakResult').style.display = 'none';
+          }
+        } catch (e) {
+          console.error('Error load VAK summary', e);
+        }
+      }
+
+      async function loadPendingInvitation() {
+        try {
+          const resp = await fetch('/api/profile/tests');
+          if (!resp.ok) return;
+          const payload = await resp.json();
+          if (!payload.success || !Array.isArray(payload.data)) return;
+        } catch (e) {
+          console.error('Error load pending invitation VAK', e);
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        loadProfileRole();
+        loadVAKSummary();
+        loadPendingInvitation();
+      });
+    </script>
+  </body>
+</html>
+

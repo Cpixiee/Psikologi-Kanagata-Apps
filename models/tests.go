@@ -38,6 +38,8 @@ type TestBatch struct {
 	Institution     string    `orm:"size(255)" json:"institution"`
 	EnableIST       bool      `orm:"column(enable_ist);default(true)" json:"enable_ist"`
 	EnableHolland   bool      `orm:"column(enable_holland);default(false)" json:"enable_holland"`
+	EnableLearningStyle bool  `orm:"column(enable_learning_style);default(false)" json:"enable_learning_style"`
+	EnableKraepelin bool      `orm:"column(enable_kraepelin);default(false)" json:"enable_kraepelin"`
 	PurposeCategory string    `orm:"column(purpose_category);size(50)" json:"purpose_category"`
 	PurposeDetail   string    `orm:"column(purpose_detail);size(100)" json:"purpose_detail"`
 	SendViaEmail    bool      `orm:"column(send_via_email);default(true)" json:"send_via_email"`
@@ -256,11 +258,113 @@ type HollandResult struct {
 	Top3      string          `orm:"size(1)" json:"top3"`
 	Code      string          `orm:"size(3)" json:"code"`
 	Interpretation string     `orm:"type(text)" json:"interpretation"`
+	// Extra answers (page 3)
+	DreamJob1          string `orm:"column(dream_job_1);type(text)" json:"dream_job_1"`
+	DreamJob2          string `orm:"column(dream_job_2);type(text)" json:"dream_job_2"`
+	DreamJob3          string `orm:"column(dream_job_3);type(text)" json:"dream_job_3"`
+	FavoriteSubject    string `orm:"column(favorite_subject);type(text)" json:"favorite_subject"`
+	DislikedSubject    string `orm:"column(disliked_subject);type(text)" json:"disliked_subject"`
 	CreatedAt time.Time       `orm:"auto_now_add;type(datetime)" json:"created_at"`
 }
 
 func (r *HollandResult) TableName() string {
 	return "holland_results"
+}
+
+type LearningStyleQuestion struct {
+	Id        int    `orm:"auto;pk" json:"id"`
+	Number    int    `orm:"unique" json:"number"`
+	Statement string `orm:"type(text)" json:"statement"`
+	Dimension string `orm:"size(1)" json:"dimension"` // V, A, K
+}
+
+func (q *LearningStyleQuestion) TableName() string {
+	return "learning_style_questions"
+}
+
+type LearningStyleAnswer struct {
+	Id         int                   `orm:"auto;pk" json:"id"`
+	Invitation *TestInvitation       `orm:"rel(fk)" json:"invitation"`
+	User       *User                 `orm:"rel(fk)" json:"user"`
+	Question   *LearningStyleQuestion `orm:"rel(fk)" json:"question"`
+	AnswerYes  int                   `orm:"column(answer_yes);default(0)" json:"answer_yes"`
+	AnswerNo   int                   `orm:"column(answer_no);default(0)" json:"answer_no"`
+	AnsweredAt time.Time             `orm:"auto_now_add;type(datetime)" json:"answered_at"`
+}
+
+func (a *LearningStyleAnswer) TableName() string {
+	return "learning_style_answers"
+}
+
+type LearningStyleResult struct {
+	Id               int             `orm:"auto;pk" json:"id"`
+	Invitation       *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
+	User             *User           `orm:"rel(fk)" json:"user"`
+	TestName         string          `orm:"column(test_name);size(255)" json:"test_name"`
+	TestAge          int             `orm:"column(test_age)" json:"test_age"`
+	TestInstitution  string          `orm:"column(test_institution);size(255)" json:"test_institution"`
+	TestGender       string          `orm:"column(test_gender);size(20)" json:"test_gender"`
+	TestDate         time.Time       `orm:"column(test_date);type(datetime)" json:"test_date"`
+	ScoreVisual      int             `orm:"column(score_visual);default(0)" json:"score_visual"`
+	ScoreAuditory    int             `orm:"column(score_auditory);default(0)" json:"score_auditory"`
+	ScoreKinesthetic int             `orm:"column(score_kinesthetic);default(0)" json:"score_kinesthetic"`
+	DominantType     string          `orm:"column(dominant_type);size(20)" json:"dominant_type"`
+	InterpretationVisual string      `orm:"column(interpretation_visual);type(text)" json:"interpretation_visual"`
+	InterpretationAuditory string    `orm:"column(interpretation_auditory);type(text)" json:"interpretation_auditory"`
+	InterpretationKinesthetic string `orm:"column(interpretation_kinesthetic);type(text)" json:"interpretation_kinesthetic"`
+	CreatedAt         time.Time      `orm:"auto_now_add;type(datetime)" json:"created_at"`
+}
+
+func (r *LearningStyleResult) TableName() string {
+	return "learning_style_results"
+}
+
+// KraepelinAttempt menyimpan satu attempt (1 invitation) untuk tes Kraepelin.
+// Soal & jawaban disimpan sebagai JSON agar fleksibel (50 kolom x 27 angka, 50 kolom x 26 jawaban).
+type KraepelinAttempt struct {
+	Id         int             `orm:"auto;pk" json:"id"`
+	Invitation *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
+	User       *User           `orm:"rel(fk)" json:"user"`
+
+	// Biodata sesuai kebutuhan tes
+	TestName        string    `orm:"column(test_name);size(255)" json:"test_name"`
+	TestGender      string    `orm:"column(test_gender);size(20)" json:"test_gender"` // laki-laki / perempuan
+	TestBirthPlace  string    `orm:"column(test_birth_place);size(255)" json:"test_birth_place"`
+	// Simpan sebagai teks YYYY-MM-DD: Beego + pq sering mengirim time.Time sebagai literal yang
+	// ditolak oleh kolom DATE/TIMESTAMPTZ ("2005-06-07 00:00:00Z").
+	TestBirthDate *string `orm:"column(test_birth_date);null;size(10)" json:"test_birth_date,omitempty"`
+	TestAge         int       `orm:"column(test_age);default(0)" json:"test_age"`
+	TestAddress     string    `orm:"column(test_address);type(text)" json:"test_address"`
+	TestEducation   string    `orm:"column(test_education);size(255)" json:"test_education"`
+	TestMajor       string    `orm:"column(test_major);size(255)" json:"test_major"`
+	TestJob         string    `orm:"column(test_job);size(255);null" json:"test_job,omitempty"`
+	Tester          string    `orm:"column(tester);size(255)" json:"tester"`
+	TestDate        time.Time `orm:"column(test_date);type(datetime)" json:"test_date"`
+
+	// Konfigurasi timing
+	ColumnCount           int `orm:"column(column_count);default(40)" json:"column_count"`
+	DigitsPerColumn       int `orm:"column(digits_per_column);default(27)" json:"digits_per_column"`
+	SecondsPerColumn      int `orm:"column(seconds_per_column);default(30)" json:"seconds_per_column"`
+	GraceSecondsOnSwitch  int `orm:"column(grace_seconds_on_switch);default(0)" json:"grace_seconds_on_switch"`
+
+	// Payload JSON
+	DigitsJSON       string `orm:"column(digits_json);type(text)" json:"digits_json"`         // [][]int
+	AnswersJSON      string `orm:"column(answers_json);type(text);null" json:"answers_json"`  // [][]*int (nil=skip)
+	CorrectCountsJSON string `orm:"column(correct_counts_json);type(text);null" json:"correct_counts_json"` // []int len 40
+
+	// Summary
+	TotalCorrect int `orm:"column(total_correct);default(0)" json:"total_correct"`
+	TotalErrors  int `orm:"column(total_errors);default(0)" json:"total_errors"`
+	TotalSkipped int `orm:"column(total_skipped);default(0)" json:"total_skipped"`
+
+	Status    string    `orm:"column(status);size(20);default(in_progress)" json:"status"` // in_progress, finished
+	StartedAt time.Time `orm:"column(started_at);auto_now_add;type(datetime)" json:"started_at"`
+	FinishedAt time.Time `orm:"column(finished_at);null;type(datetime)" json:"finished_at,omitempty"`
+	CreatedAt time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
+}
+
+func (a *KraepelinAttempt) TableName() string {
+	return "kraepelin_attempts"
 }
 
 func init() {
@@ -278,6 +382,10 @@ func init() {
 		new(HollandDescription),
 		new(HollandAnswer),
 		new(HollandResult),
+		new(LearningStyleQuestion),
+		new(LearningStyleAnswer),
+		new(LearningStyleResult),
+		new(KraepelinAttempt),
 	)
 }
 
@@ -303,5 +411,156 @@ func EnsureISTProgressTable() error {
 	o.Raw(`CREATE INDEX IF NOT EXISTS idx_ist_progress_invitation_id ON ist_progress(invitation_id);`).Exec()
 	o.Raw(`CREATE INDEX IF NOT EXISTS idx_ist_progress_subtest_code ON ist_progress(subtest_code);`).Exec()
 	
+	return nil
+}
+
+// EnsureHollandExtraFields ensures columns exist on holland_results.
+// This makes the app safer even if migrations haven't been run yet.
+func EnsureHollandExtraFields() error {
+	o := orm.NewOrm()
+	_, err := o.Raw(`
+		ALTER TABLE IF EXISTS holland_results
+		ADD COLUMN IF NOT EXISTS dream_job_1 TEXT,
+		ADD COLUMN IF NOT EXISTS dream_job_2 TEXT,
+		ADD COLUMN IF NOT EXISTS dream_job_3 TEXT,
+		ADD COLUMN IF NOT EXISTS favorite_subject TEXT,
+		ADD COLUMN IF NOT EXISTS disliked_subject TEXT;
+	`).Exec()
+	return err
+}
+
+// EnsureLearningStyleTables ensures VAK schema exists even if migrations weren't run.
+func EnsureLearningStyleTables() error {
+	o := orm.NewOrm()
+	// Add toggle column on batch table.
+	if _, err := o.Raw(`
+		ALTER TABLE IF EXISTS test_batches
+		ADD COLUMN IF NOT EXISTS enable_learning_style BOOLEAN NOT NULL DEFAULT FALSE;
+	`).Exec(); err != nil {
+		return err
+	}
+
+	// Add Kraepelin toggle column on batch table.
+	if _, err := o.Raw(`
+		ALTER TABLE IF EXISTS test_batches
+		ADD COLUMN IF NOT EXISTS enable_kraepelin BOOLEAN NOT NULL DEFAULT FALSE;
+	`).Exec(); err != nil {
+		return err
+	}
+
+	// Create master questions table.
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS learning_style_questions (
+			id SERIAL PRIMARY KEY,
+			number INT NOT NULL UNIQUE,
+			statement TEXT NOT NULL,
+			dimension CHAR(1) NOT NULL
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+
+	// Create answers table.
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS learning_style_answers (
+			id SERIAL PRIMARY KEY,
+			invitation_id INT NOT NULL REFERENCES test_invitations(id) ON DELETE CASCADE,
+			user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			question_id INT NOT NULL REFERENCES learning_style_questions(id) ON DELETE CASCADE,
+			answer_yes INT NOT NULL DEFAULT 0,
+			answer_no INT NOT NULL DEFAULT 0,
+			answered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(invitation_id, question_id),
+			CONSTRAINT learning_style_answer_binary_check CHECK (
+				(answer_yes = 1 AND answer_no = 0) OR
+				(answer_yes = 0 AND answer_no = 1)
+			)
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+
+	// Create result table.
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS learning_style_results (
+			id SERIAL PRIMARY KEY,
+			invitation_id INT NOT NULL UNIQUE REFERENCES test_invitations(id) ON DELETE CASCADE,
+			user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			test_name VARCHAR(255) NOT NULL DEFAULT '',
+			test_age INT NOT NULL DEFAULT 0,
+			test_institution VARCHAR(255) NOT NULL DEFAULT '',
+			test_gender VARCHAR(20) NOT NULL DEFAULT '',
+			test_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			score_visual INT NOT NULL DEFAULT 0,
+			score_auditory INT NOT NULL DEFAULT 0,
+			score_kinesthetic INT NOT NULL DEFAULT 0,
+			dominant_type VARCHAR(20) NOT NULL DEFAULT '',
+			interpretation_visual TEXT,
+			interpretation_auditory TEXT,
+			interpretation_kinesthetic TEXT,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+
+	// Indexes (safe if already exist)
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_learning_style_answers_invitation ON learning_style_answers(invitation_id);`).Exec()
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_learning_style_answers_user ON learning_style_answers(user_id);`).Exec()
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_learning_style_results_user ON learning_style_results(user_id);`).Exec()
+
+	return nil
+}
+
+// EnsureKraepelinTables ensures Kraepelin schema exists even if migrations weren't run.
+func EnsureKraepelinTables() error {
+	o := orm.NewOrm()
+
+	// Add toggle column on batch table (safe untuk MySQL & PostgreSQL baru).
+	_, _ = o.Raw(`
+		ALTER TABLE test_batches
+		ADD COLUMN IF NOT EXISTS enable_kraepelin BOOLEAN NOT NULL DEFAULT FALSE;
+	`).Exec()
+
+	// Attempt table.
+	// Catatan:
+	// - Sintaks disesuaikan agar kompatibel dengan MySQL/MariaDB yang umum dipakai di Laragon.
+	// - Jika kamu sudah punya migration SQL sendiri, fungsi ini hanya sebagai fallback
+	//   dan tidak akan error kalau tabel sudah ada.
+	_, _ = o.Raw(`
+		CREATE TABLE IF NOT EXISTS kraepelin_attempts (
+			id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			invitation_id INT NOT NULL UNIQUE,
+			user_id INT NOT NULL,
+			test_name VARCHAR(255) NOT NULL DEFAULT '',
+			test_gender VARCHAR(20) NOT NULL DEFAULT '',
+			test_birth_place VARCHAR(255) NOT NULL DEFAULT '',
+			test_birth_date VARCHAR(10) NULL,
+			test_age INT NOT NULL DEFAULT 0,
+			test_address TEXT NOT NULL,
+			test_education VARCHAR(255) NOT NULL DEFAULT '',
+			test_major VARCHAR(255) NOT NULL DEFAULT '',
+			test_job VARCHAR(255) NULL,
+			tester VARCHAR(255) NOT NULL DEFAULT '',
+			test_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			column_count INT NOT NULL DEFAULT 40,
+			digits_per_column INT NOT NULL DEFAULT 27,
+			seconds_per_column INT NOT NULL DEFAULT 30,
+			grace_seconds_on_switch INT NOT NULL DEFAULT 0,
+			digits_json LONGTEXT NOT NULL,
+			answers_json LONGTEXT NULL,
+			correct_counts_json LONGTEXT NULL,
+			total_correct INT NOT NULL DEFAULT 0,
+			total_errors INT NOT NULL DEFAULT 0,
+			total_skipped INT NOT NULL DEFAULT 0,
+			status VARCHAR(20) NOT NULL DEFAULT 'in_progress',
+			started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			finished_at DATETIME NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
+	`).Exec()
+
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_kraepelin_attempts_user_id ON kraepelin_attempts(user_id);`).Exec()
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_kraepelin_attempts_invitation_id ON kraepelin_attempts(invitation_id);`).Exec()
 	return nil
 }

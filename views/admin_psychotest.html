@@ -87,9 +87,15 @@
               <span class="menu-header-text">Admin</span>
             </li>
             <li class="menu-item active">
-              <a href="/admin/psychotest" class="menu-link">
+              <a href="/admin/psychotest/batches" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-clipboard"></i>
-                <div class="text-truncate">Tes Psikologi</div>
+                <div class="text-truncate">Daftar Batch</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="/admin/psychotest/batches/add" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-plus-medical"></i>
+                <div class="text-truncate">Tambah Batch</div>
               </a>
             </li>
           </ul>
@@ -103,10 +109,15 @@
                   <h4 class="fw-bold mb-1">Pengelolaan Tes Psikologi</h4>
                   <p class="mb-0 text-muted">Buat sesi tes, undang peserta, dan pantau hasil IST & Holland.</p>
                 </div>
+                <div class="d-flex align-items-center">
+                  <a href="/admin/psychotest/batches/add" class="btn btn-primary btn-sm">
+                    <i class="bx bx-plus me-1"></i>Tambah Batch
+                  </a>
+                </div>
               </div>
 
               <div class="row">
-                <div class="col-lg-4">
+                <div class="col-lg-4 d-none">
                   <div class="card mb-4">
                     <div class="card-header">
                       <h5 class="mb-0">Buat Batch Tes Baru</h5>
@@ -124,12 +135,16 @@
                         <div class="mb-3">
                           <label class="form-label">Jenis Tes</label>
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="enableIST" checked />
-                            <label class="form-check-label" for="enableIST">IST (IQ)</label>
+                            <input class="form-check-input" type="radio" name="testType" id="testTypeIST" value="ist" required />
+                            <label class="form-check-label" for="testTypeIST">IST (IQ)</label>
                           </div>
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="enableHolland" />
-                            <label class="form-check-label" for="enableHolland">Holland (RIASEC)</label>
+                            <input class="form-check-input" type="radio" name="testType" id="testTypeHolland" value="holland" />
+                            <label class="form-check-label" for="testTypeHolland">Holland (RIASEC)</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="radio" name="testType" id="testTypeLearningStyle" value="learning_style" />
+                            <label class="form-check-label" for="testTypeLearningStyle">Gaya Belajar (VAK)</label>
                           </div>
                         </div>
                         <div class="mb-3">
@@ -165,7 +180,7 @@
                   </div>
                 </div>
 
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                   <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                       <div class="d-flex align-items-center">
@@ -379,7 +394,9 @@
               <td>${batch.institution}</td>
               <td>
                 ${batch.enable_ist ? '<span class="badge bg-label-primary me-1">IST</span>' : ''}
-                ${batch.enable_holland ? '<span class="badge bg-label-success">Holland</span>' : ''}
+                ${batch.enable_holland ? '<span class="badge bg-label-success me-1">Holland</span>' : ''}
+                ${batch.enable_learning_style ? '<span class="badge bg-label-info me-1">VAK</span>' : ''}
+                ${batch.enable_kraepelin ? '<span class="badge bg-label-warning">Kraepelin</span>' : ''}
               </td>
               <td><small>${batch.purpose_category} &mdash; ${batch.purpose_detail}</small></td>
               <td><small>${new Date(batch.created_at).toLocaleString('id-ID')}</small></td>
@@ -415,11 +432,18 @@
 
       async function handleCreateBatch(event) {
         event.preventDefault();
+        const selected = document.querySelector('input[name="testType"]:checked');
+        if (!selected) {
+          Swal.fire({ icon: 'warning', title: 'Pilih jenis tes', text: 'Batch harus memilih tepat satu jenis tes.' });
+          return;
+        }
+        const testType = selected.value;
         const payload = {
           name: document.getElementById('batchName').value,
           institution: document.getElementById('batchInstitution').value,
-          enable_ist: document.getElementById('enableIST').checked,
-          enable_holland: document.getElementById('enableHolland').checked,
+          enable_ist: testType === 'ist',
+          enable_holland: testType === 'holland',
+          enable_learning_style: testType === 'learning_style',
           purpose_category: document.getElementById('purposeCategory').value,
           purpose_detail: document.getElementById('purposeDetail').value,
           send_via_email: document.getElementById('sendViaEmail').checked,

@@ -34,6 +34,7 @@ type User struct {
 	JenisKelamin Gender    `orm:"size(20)" json:"jenis_kelamin"`
 	Email        string    `orm:"size(255);unique" json:"email"`
 	NoHandphone  string    `orm:"size(20)" json:"no_handphone"`
+	AsalInstansi string    `orm:"column(asal_instansi);size(255);null" json:"asal_instansi"`
 	FotoProfil   string    `orm:"size(255);null" json:"foto_profil"`
 	Password     string    `orm:"size(255)" json:"-"`
 	Role         Role      `orm:"size(20)" json:"role"`

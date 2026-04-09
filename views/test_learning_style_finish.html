@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Resume Tes Gaya Belajar (VAK)</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .resume-header {
+        background: #00a65a;
+        color: #fff;
+        border-radius: 10px;
+        padding: 18px 18px;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: .3px;
+      }
+      .resume-table {
+        border: 1px solid rgba(15,23,42,0.14);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .resume-table thead th {
+        background: #00a65a;
+        color: #fff;
+        font-weight: 800;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .resume-table td, .resume-table th {
+        border: 1px solid rgba(15,23,42,0.14);
+      }
+      .type-cell {
+        font-weight: 800;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        text-align: center;
+        white-space: nowrap;
+        width: 46px;
+      }
+      .score-cell {
+        background: #8db4e2;
+        font-weight: 800;
+        text-align: center;
+        width: 110px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="row justify-content-center">
+                <div class="col-lg-11">
+                  <div class="resume-header mb-3">
+                    RESUME<br/>TES GAYA BELAJAR (VAK)
+                  </div>
+
+                  <div class="card mb-3">
+                    <div class="card-body">
+                      <div class="row g-2">
+                        <div class="col-md-6 col-lg-4"><small class="text-muted d-block">Nama</small><div class="fw-semibold">{{.Result.TestName}}</div></div>
+                        <div class="col-md-6 col-lg-2"><small class="text-muted d-block">Usia</small><div class="fw-semibold">{{.Result.TestAge}}</div></div>
+                        <div class="col-md-6 col-lg-3"><small class="text-muted d-block">Pendidikan</small><div class="fw-semibold">{{.Result.TestInstitution}}</div></div>
+                        <div class="col-md-6 col-lg-3"><small class="text-muted d-block">Tanggal</small><div class="fw-semibold">{{.Result.TestDate.Format "02-01-2006"}}</div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="table-responsive resume-table mb-3">
+                    <table class="table mb-0">
+                      <thead>
+                        <tr>
+                          <th style="width:60px;">TIPE GAYA BELAJAR</th>
+                          <th>INTERPRETASI</th>
+                          <th style="width:130px;">NILAI SKOR</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="type-cell">VISUAL</td>
+                          <td style="white-space: pre-wrap;">{{.Result.InterpretationVisual}}</td>
+                          <td class="score-cell">{{.Result.ScoreVisual}}</td>
+                        </tr>
+                        <tr>
+                          <td class="type-cell">AUDITORI</td>
+                          <td style="white-space: pre-wrap;">{{.Result.InterpretationAuditory}}</td>
+                          <td class="score-cell">{{.Result.ScoreAuditory}}</td>
+                        </tr>
+                        <tr>
+                          <td class="type-cell">KINESTETIK</td>
+                          <td style="white-space: pre-wrap;">{{.Result.InterpretationKinesthetic}}</td>
+                          <td class="score-cell">{{.Result.ScoreKinesthetic}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="d-flex gap-2 justify-content-end">
+                    <a class="btn btn-outline-secondary" href="/test">
+                      Kembali
+                    </a>
+                    <a class="btn btn-primary" href="/test/learning-style/result/excel?invId={{.Invitation.Id}}">
+                      Download Excel
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+  </body>
+</html>
+

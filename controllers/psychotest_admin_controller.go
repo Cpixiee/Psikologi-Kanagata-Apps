@@ -96,6 +96,8 @@ func (c *PsychotestAdminController) CreateBatch() {
 		Institution     string `json:"institution"`
 		EnableIST       bool   `json:"enable_ist"`
 		EnableHolland   bool   `json:"enable_holland"`
+		EnableLearningStyle bool `json:"enable_learning_style"`
+		EnableKraepelin bool `json:"enable_kraepelin"`
 		PurposeCategory string `json:"purpose_category"`
 		PurposeDetail   string `json:"purpose_detail"`
 		SendViaEmail    bool   `json:"send_via_email"`
@@ -108,6 +110,29 @@ func (c *PsychotestAdminController) CreateBatch() {
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
 			Message: "Data tidak valid",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	enabledCount := 0
+	if payload.EnableIST {
+		enabledCount++
+	}
+	if payload.EnableHolland {
+		enabledCount++
+	}
+	if payload.EnableLearningStyle {
+		enabledCount++
+	}
+	if payload.EnableKraepelin {
+		enabledCount++
+	}
+	if enabledCount != 1 {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Pilih tepat satu jenis tes untuk batch ini (IST / Holland / Gaya Belajar / Kraepelin).",
 		}
 		c.ServeJSON()
 		return
@@ -129,6 +154,8 @@ func (c *PsychotestAdminController) CreateBatch() {
 		Institution:     payload.Institution,
 		EnableIST:       payload.EnableIST,
 		EnableHolland:   payload.EnableHolland,
+		EnableLearningStyle: payload.EnableLearningStyle,
+		EnableKraepelin: payload.EnableKraepelin,
 		PurposeCategory: payload.PurposeCategory,
 		PurposeDetail:   payload.PurposeDetail,
 		SendViaEmail:    payload.SendViaEmail,
@@ -469,6 +496,12 @@ func invitationTestTypes(batch *models.TestBatch) string {
 	}
 	if batch.EnableHolland {
 		parts = append(parts, "Holland (RIASEC)")
+	}
+	if batch.EnableLearningStyle {
+		parts = append(parts, "Gaya Belajar (VAK)")
+	}
+	if batch.EnableKraepelin {
+		parts = append(parts, "Kraepelin")
 	}
 	if len(parts) == 0 {
 		return "-"
@@ -833,6 +866,18 @@ func (c *PsychotestAdminController) ExportBatchAnswers() {
 				written++
 			}
 		}
+
+		// Learning Style (VAK)
+		if batch.EnableLearningStyle {
+			content, ferr := buildLearningStyleResultXLSX(o, &batch, &inv, user)
+			if ferr == nil && len(content) > 0 {
+				fname := fmt.Sprintf("%s_Hasil_Gaya_Belajar.xlsx", base)
+				fname = makeUniqueZipName(usedNames, fname, inv.Id)
+				w, _ := zw.Create(fname)
+				_, _ = w.Write(content)
+				written++
+			}
+		}
 	}
 
 	// Jangan pernah kirim ZIP kosong: tulis README jika tidak ada file yang berhasil ditulis
@@ -943,6 +988,15 @@ func (c *PsychotestAdminController) ExportInvitationAnswers() {
 		content, ferr := buildHollandAnswersCSV(o, &batch, &inv, user)
 		if ferr == nil && len(content) > 0 {
 			fname := makeUniqueZipName(usedNames, fmt.Sprintf("%s_Hasil_Holland.csv", base), inv.Id)
+			w, _ := zw.Create(fname)
+			_, _ = w.Write(content)
+			written++
+		}
+	}
+	if batch.EnableLearningStyle {
+		content, ferr := buildLearningStyleResultXLSX(o, &batch, &inv, user)
+		if ferr == nil && len(content) > 0 {
+			fname := makeUniqueZipName(usedNames, fmt.Sprintf("%s_Hasil_Gaya_Belajar.xlsx", base), inv.Id)
 			w, _ := zw.Create(fname)
 			_, _ = w.Write(content)
 			written++
@@ -1485,6 +1539,111 @@ func buildHollandAnswersCSV(o orm.Ormer, batch *models.TestBatch, inv *models.Te
 	return buf.Bytes(), nil
 }
 
+func buildLearningStyleResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestInvitation, user *models.User) ([]byte, error) {
+	if inv == nil {
+		return nil, fmt.Errorf("nil invitation")
+	}
+	var res models.LearningStyleResult
+	err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
+	if err != nil || res.Id == 0 {
+		return nil, fmt.Errorf("no learning style result")
+	}
+
+	f := excelize.NewFile()
+	sheet := "Resume"
+	f.SetSheetName(f.GetSheetName(0), sheet)
+	showGridLines := false
+	_ = f.SetSheetView(sheet, 0, &excelize.ViewOptions{ShowGridLines: &showGridLines})
+
+	borderAll := []excelize.Border{
+		{Type: "left", Color: "000000", Style: 1},
+		{Type: "right", Color: "000000", Style: 1},
+		{Type: "top", Color: "000000", Style: 1},
+		{Type: "bottom", Color: "000000", Style: 1},
+	}
+	styleHeaderGreen, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF", Size: 16},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#00A65A"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
+	})
+	styleTableHeader, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#00A65A"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
+		Border:    borderAll,
+	})
+	styleBody, _ := f.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{Vertical: "top", WrapText: true},
+		Border:    borderAll,
+	})
+	styleCenter, _ := f.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
+		Border:    borderAll,
+	})
+	styleTypeCell, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", TextRotation: 90, WrapText: true},
+		Border:    borderAll,
+	})
+	styleScoreBlue, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#8DB4E2"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+		Border:    borderAll,
+	})
+
+	_ = f.SetColWidth(sheet, "A", "A", 18)
+	_ = f.SetColWidth(sheet, "B", "B", 70)
+	_ = f.SetColWidth(sheet, "C", "C", 14)
+
+	_ = f.MergeCell(sheet, "A1", "C1")
+	_ = f.SetRowHeight(sheet, 1, 32)
+	_ = f.SetCellValue(sheet, "A1", "RESUME\nTES GAYA BELAJAR (VAK)")
+	_ = f.SetCellStyle(sheet, "A1", "C1", styleHeaderGreen)
+
+	_ = f.SetCellValue(sheet, "A3", "Nama")
+	_ = f.SetCellValue(sheet, "B3", res.TestName)
+	_ = f.SetCellValue(sheet, "A4", "Usia")
+	_ = f.SetCellValue(sheet, "B4", res.TestAge)
+	_ = f.SetCellValue(sheet, "A5", "Pendidikan")
+	_ = f.SetCellValue(sheet, "B5", res.TestInstitution)
+	_ = f.SetCellValue(sheet, "A6", "Jenis kelamin")
+	_ = f.SetCellValue(sheet, "B6", res.TestGender)
+	_ = f.SetCellValue(sheet, "A7", "Tanggal")
+	_ = f.SetCellValue(sheet, "B7", res.TestDate.Format("02-01-2006"))
+	_ = f.SetCellStyle(sheet, "A3", "A7", styleCenter)
+	_ = f.SetCellStyle(sheet, "B3", "B7", styleBody)
+
+	startRow := 9
+	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", startRow), "TIPE GAYA\nBELAJAR")
+	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", startRow), "INTERPRETASI")
+	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", startRow), "NILAI SKOR")
+	_ = f.SetRowHeight(sheet, startRow, 28)
+	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", startRow), fmt.Sprintf("C%d", startRow), styleTableHeader)
+
+	writeRow := func(row int, tipe string, interp string, skor int) int {
+		_ = f.SetRowHeight(sheet, row, 120)
+		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row), strings.ToUpper(tipe))
+		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", row), strings.TrimSpace(interp))
+		_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", row), skor)
+		_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("A%d", row), styleTypeCell)
+		_ = f.SetCellStyle(sheet, fmt.Sprintf("B%d", row), fmt.Sprintf("B%d", row), styleBody)
+		_ = f.SetCellStyle(sheet, fmt.Sprintf("C%d", row), fmt.Sprintf("C%d", row), styleScoreBlue)
+		return row + 1
+	}
+
+	r := startRow + 1
+	r = writeRow(r, "Visual", res.InterpretationVisual, res.ScoreVisual)
+	r = writeRow(r, "Auditori", res.InterpretationAuditory, res.ScoreAuditory)
+	_ = writeRow(r, "Kinestetik", res.InterpretationKinesthetic, res.ScoreKinesthetic)
+
+	buf, werr := f.WriteToBuffer()
+	if werr != nil {
+		return nil, fmt.Errorf("failed to write xlsx: %v", werr)
+	}
+	return buf.Bytes(), nil
+}
+
 // @router /api/admin/test-invitations/:id [put]
 func (c *PsychotestAdminController) UpdateInvitation() {
 	if !c.verifyAdmin() {
@@ -1719,10 +1878,14 @@ func (c *PsychotestAdminController) UpdateBatch() {
 	}
 
 	var payload struct {
-		Name          string `json:"name"`
-		Institution   string `json:"institution"`
-		Status        string `json:"status"` // active, archived
-		PurposeDetail string `json:"purpose_detail"`
+		Name                string `json:"name"`
+		Institution         string `json:"institution"`
+		Status              string `json:"status"` // active, archived
+		PurposeDetail       string `json:"purpose_detail"`
+		EnableIST           *bool  `json:"enable_ist"`
+		EnableHolland       *bool  `json:"enable_holland"`
+		EnableLearningStyle *bool  `json:"enable_learning_style"`
+		EnableKraepelin     *bool  `json:"enable_kraepelin"`
 	}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &payload); err != nil {
 		c.Ctx.Output.SetStatus(400)
@@ -1758,6 +1921,48 @@ func (c *PsychotestAdminController) UpdateBatch() {
 	if payload.PurposeDetail != "" && payload.PurposeDetail != batch.PurposeDetail {
 		batch.PurposeDetail = payload.PurposeDetail
 		fields = append(fields, "PurposeDetail")
+	}
+	if payload.EnableIST != nil && batch.EnableIST != *payload.EnableIST {
+		batch.EnableIST = *payload.EnableIST
+		fields = append(fields, "EnableIST")
+	}
+	if payload.EnableHolland != nil && batch.EnableHolland != *payload.EnableHolland {
+		batch.EnableHolland = *payload.EnableHolland
+		fields = append(fields, "EnableHolland")
+	}
+	if payload.EnableLearningStyle != nil && batch.EnableLearningStyle != *payload.EnableLearningStyle {
+		batch.EnableLearningStyle = *payload.EnableLearningStyle
+		fields = append(fields, "EnableLearningStyle")
+	}
+	if payload.EnableKraepelin != nil && batch.EnableKraepelin != *payload.EnableKraepelin {
+		batch.EnableKraepelin = *payload.EnableKraepelin
+		fields = append(fields, "EnableKraepelin")
+	}
+
+	// Enforce exactly one test enabled when toggles are provided.
+	if payload.EnableIST != nil || payload.EnableHolland != nil || payload.EnableLearningStyle != nil || payload.EnableKraepelin != nil {
+		enabledCount := 0
+		if batch.EnableIST {
+			enabledCount++
+		}
+		if batch.EnableHolland {
+			enabledCount++
+		}
+		if batch.EnableLearningStyle {
+			enabledCount++
+		}
+		if batch.EnableKraepelin {
+			enabledCount++
+		}
+		if enabledCount != 1 {
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = PsychotestAdminResponse{
+				Success: false,
+				Message: "Batch harus mengaktifkan tepat satu jenis tes (IST / Holland / Gaya Belajar / Kraepelin).",
+			}
+			c.ServeJSON()
+			return
+		}
 	}
 	if payload.Status != "" && payload.Status != batch.Status {
 		switch payload.Status {

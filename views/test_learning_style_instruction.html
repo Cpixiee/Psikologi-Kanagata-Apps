@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Instruksi Tes Gaya Belajar (VAK)</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .vak-shell {
+        width: 100%;
+        max-width: 980px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      /* Sneat layout assumes sidebar; VAK pages don't use it. */
+      .layout-container {
+        padding-left: 0 !important;
+      }
+      .layout-page {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+      }
+      .instruksi-box {
+        background: linear-gradient(180deg, rgba(99,102,241,0.10) 0%, rgba(14,165,233,0.06) 100%);
+        color: #0f172a;
+        border: 1px solid rgba(15,23,42,0.10);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .demo-table {
+        border: 1px solid rgba(15,23,42,0.18);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .demo-table thead th {
+        background: #8fb3e6;
+        color: #0b1220;
+        font-weight: 700;
+        text-align: center;
+      }
+      .demo-table td, .demo-table th {
+        border: 1px solid rgba(15,23,42,0.18);
+      }
+      .demo-table tbody td {
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="vak-shell">
+                <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                          <h4 class="fw-bold mb-1">Instruksi</h4>
+                          <p class="text-muted mb-0">Baca setiap pernyataan dan isi kolom jawaban.</p>
+                        </div>
+                      </div>
+
+                      <div class="instruksi-box mb-3">
+                        <div class="mb-1">Bacalah setiap pernyataan dari 36 nomor berikut.</div>
+                        <div>Ketiklah angka “1” pada kolom jawaban “Ya” apabila pernyataan tersebut sesuai dengan diri Anda.</div>
+                        <div>Ketiklah angka “1” pada kolom jawaban “Tidak” apabila pernyataan tersebut tidak sesuai dengan diri Anda.</div>
+                        <div class="mt-1">Setiap pertanyaan hanya dapat dijawab salah satu pilihan saja antara jawaban “Ya” atau “Tidak”.</div>
+                      </div>
+
+                      <div class="mb-2 fw-semibold">Contoh</div>
+                      <div class="table-responsive demo-table mb-4">
+                        <table class="table mb-0">
+                          <thead>
+                            <tr>
+                              <th style="width:60px;">No</th>
+                              <th>Pernyataan</th>
+                              <th colspan="2" style="width:220px;">Kolom Jawaban</th>
+                            </tr>
+                            <tr>
+                              <th></th>
+                              <th></th>
+                              <th style="width:110px;">Ya</th>
+                              <th style="width:110px;">Tidak</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td class="text-center">1</td>
+                              <td>Saya biasanya berbicara dengan perlahan.</td>
+                              <td class="text-center"></td>
+                              <td class="text-center">1</td>
+                            </tr>
+                            <tr>
+                              <td class="text-center">2</td>
+                              <td>Saya lebih suka berbicara daripada menulis.</td>
+                              <td class="text-center">1</td>
+                              <td class="text-center"></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <a href="/test/learning-style/questions" class="btn btn-primary w-100">
+                        Mulai Tes (36 Pernyataan)
+                      </a>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+  </body>
+</html>
+

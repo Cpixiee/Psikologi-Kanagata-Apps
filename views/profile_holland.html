@@ -1,0 +1,916 @@
+<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Tes Holland - Profil Saya - Psychee Wellness</title>
+
+    <meta name="description" content="" />
+
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+          </div>
+
+          <div class="menu-divider mt-0"></div>
+          <div class="menu-inner-shadow"></div>
+
+          <ul class="menu-inner py-1">
+            <li class="menu-item">
+              <a href="/dashboard" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate">Dashboard</div>
+              </a>
+            </li>
+
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Layanan</span>
+            </li>
+            <li class="menu-item">
+              <a href="/test" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-clipboard"></i>
+                <div class="text-truncate">Tes Psikologi</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chat"></i>
+                <div class="text-truncate">Konseling</div>
+              </a>
+            </li>
+            <li class="menu-item">
+              <a href="javascript:void(0);" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-history"></i>
+                <div class="text-truncate">Riwayat</div>
+              </a>
+            </li>
+
+            <li class="menu-header small text-uppercase">
+              <span class="menu-header-text">Akun</span>
+            </li>
+            <li class="menu-item open active">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-user"></i>
+                <div class="text-truncate">Profil</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/profile" class="menu-link">
+                    <div class="text-truncate">Data Profil</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/ist" class="menu-link">
+                    <div class="text-truncate">Hasil IST</div>
+                  </a>
+                </li>
+                <li class="menu-item active">
+                  <a href="/profile/holland" class="menu-link">
+                    <div class="text-truncate">Hasil Holland</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/learning-style" class="menu-link">
+                    <div class="text-truncate">Hasil Gaya Belajar (VAK)</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/kraepelin" class="menu-link">
+                    <div class="text-truncate">Hasil Kraepelin</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="menu-item">
+              <a href="/settings" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <div class="text-truncate">Pengaturan</div>
+              </a>
+            </li>
+            <li class="menu-item d-none" id="menuAdminPsychotest">
+              <a href="/admin/psychotest" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
+                <div class="text-truncate">Admin Psychotest</div>
+              </a>
+            </li>
+          </ul>
+        </aside>
+
+        <div class="layout-page">
+          <nav
+            class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
+            id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="icon-base bx bx-menu icon-md"></i>
+              </a>
+            </div>
+
+            <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
+              <div class="navbar-nav align-items-center me-auto">
+                <div class="nav-item d-flex align-items-center">
+                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
+                  <input
+                    type="text"
+                    class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
+                    placeholder="Cari..."
+                    aria-label="Cari..." />
+                </div>
+              </div>
+
+              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+                <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/static/icons/icon_psikologi_kanagata.png" alt class="w-px-40 h-auto rounded-circle" id="navbarAvatar" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/static/icons/icon_psikologi_kanagata.png" alt class="w-px-40 h-auto rounded-circle" id="dropdownAvatar" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <h6 class="mb-0" id="dropdownName">Pengguna</h6>
+                            <small class="text-body-secondary" id="dropdownEmail">Member</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                    <li><div class="dropdown-divider my-1"></div></li>
+                    <li>
+                      <a class="dropdown-item" href="/profile">
+                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/settings">
+                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Pengaturan</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/notifications">
+                        <i class="icon-base bx bx-bell icon-md me-3"></i><span>Notifikasi</span>
+                      </a>
+                    </li>
+                    <li><div class="dropdown-divider my-1"></div></li>
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" onclick="handleLogout()">
+                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y" style="min-height: calc(100vh - 200px);">
+              <div class="row h-100">
+                <div class="col-lg-4 col-md-12 mb-4 d-none">
+                  <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                      <div class="text-center mb-4 mt-3">
+                        <img 
+                          id="profilePhoto" 
+                          src="/static/icons/icon_psikologi_kanagata.png" 
+                          alt="Foto Profil" 
+                          class="rounded-circle" 
+                          style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #e7e7e7;"
+                        />
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2">
+                          <i class="bx bx-user me-2"></i>Nama Lengkap
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profileName" style="font-size: 0.95rem; color: #697a8d;">-</span>
+                        </div>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2">
+                          <i class="bx bx-building me-2"></i>Asal Instansi
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profileSchool" style="font-size: 0.95rem; color: #697a8d;">-</span>
+                        </div>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label text-muted mb-2">
+                          <i class="bx bx-envelope me-2"></i>Email
+                        </label>
+                        <div class="form-control" style="background-color: #f5f5f9; border: 1px solid #d9dee3; min-height: 42px; display: flex; align-items: center;">
+                          <span class="fw-semibold" id="profileEmail" style="font-size: 0.95rem; color: #697a8d;">-</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-lg-12 col-md-12">
+                  <div class="card mb-3">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                      <div>
+                        <h5 class="mb-1">Hasil Tes Holland</h5>
+                        <p class="mb-0 text-muted">Ringkasan kode kepribadian dan skor RIASEC terbaru.</p>
+                      </div>
+                      <button class="btn btn-sm btn-outline-primary" onclick="showHollandDetail()" id="hollandViewBtn" style="display: none;">
+                        <i class="bx bx-show me-1"></i>Lihat Detail
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="card">
+                    <div class="card-body">
+                      <div id="hollandContent">
+                        <div class="text-center py-5" id="hollandNotFound">
+                          <i class="bx bx-info-circle text-muted" style="font-size: 3rem;"></i>
+                          <p class="text-muted mt-2 mb-0">Tes Holland belum pernah dikerjakan</p>
+                          <button
+                            type="button"
+                            class="btn btn-primary mt-3"
+                            id="hollandStartBtn"
+                            style="display: none;"
+                            onclick="startHollandFromProfile()">
+                            <i class="bx bx-play me-1"></i>Mulai / Lanjutkan Tes Holland
+                          </button>
+                        </div>
+                        <div id="hollandResult" class="text-center" style="display: none;">
+                          <div class="row mb-3 justify-content-center">
+                            <div class="col-md-6 col-lg-4">
+                              <p class="mb-1 text-muted">Kode Kepribadian Terakhir</p>
+                              <h2 class="mb-0" id="hollandCode">-</h2>
+                              <small class="text-muted" id="hollandTotalTests">-</small>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                              <p class="mb-1 text-muted">Top Kepribadian</p>
+                              <div class="mb-0" id="hollandTopBadges">
+                                <span class="badge bg-primary me-1">-</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="mt-4 d-flex justify-content-center">
+                            <div style="width: 100%; max-width: 980px; height: 320px;">
+                              <canvas id="hollandChart"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <script>
+      async function loadProfile() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) {
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            throw new Error('Gagal memuat data profil');
+          }
+          const data = await response.json();
+          if (data.success && data.data) {
+            const user = data.data;
+
+            if (user.role === 'admin') {
+              const adminMenu = document.getElementById('menuAdminPsychotest');
+              if (adminMenu) adminMenu.classList.remove('d-none');
+            }
+
+            function generateInitialAvatar(name) {
+              const canvas = document.createElement('canvas');
+              const size = 256;
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+
+              const colors = ['#6366F1', '#F97316', '#22C55E', '#EC4899', '#0EA5E9', '#F59E0B', '#8B5CF6'];
+              const bgColor = colors[Math.floor(Math.random() * colors.length)];
+              const initial = (name || '').trim().charAt(0).toUpperCase() || 'U';
+
+              ctx.fillStyle = bgColor;
+              ctx.beginPath();
+              ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.fillStyle = '#FFFFFF';
+              ctx.font = size * 0.5 + "px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(initial, size / 2, size / 2 + 4);
+
+              return canvas.toDataURL('image/png');
+            }
+
+            const profilePhoto = document.getElementById('profilePhoto');
+            if (profilePhoto) {
+              if (user.foto_profil) {
+                profilePhoto.src = '/static/uploads/profiles/' + user.foto_profil;
+              } else {
+                profilePhoto.src = generateInitialAvatar(user.nama_lengkap || '');
+              }
+            }
+
+            document.getElementById('profileName').textContent = user.nama_lengkap || '-';
+            document.getElementById('profileEmail').textContent = user.email || '-';
+
+            const navbarAvatar = document.getElementById('navbarAvatar');
+            const dropdownAvatar = document.getElementById('dropdownAvatar');
+            if (user.foto_profil) {
+              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
+              if (navbarAvatar) navbarAvatar.src = avatarUrl;
+              if (dropdownAvatar) dropdownAvatar.src = avatarUrl;
+            } else {
+              const avatarDataUrl = generateInitialAvatar(user.nama_lengkap || '');
+              if (navbarAvatar) navbarAvatar.src = avatarDataUrl;
+              if (dropdownAvatar) dropdownAvatar.src = avatarDataUrl;
+            }
+
+            const dropdownName = document.getElementById('dropdownName');
+            const dropdownEmail = document.getElementById('dropdownEmail');
+            if (dropdownName) dropdownName.textContent = user.nama_lengkap || 'Pengguna';
+            if (dropdownEmail) dropdownEmail.textContent = user.email || 'Member';
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
+      }
+
+      async function handleLogout() {
+        try {
+          const response = await fetch('/api/auth/logout', { method: 'POST' });
+          const result = await response.json();
+          if (result.success) {
+            window.location.href = '/login';
+          }
+        } catch (error) {
+          console.error('Error logging out:', error);
+          window.location.href = '/login';
+        }
+      }
+
+      let hollandChart = null;
+      let pendingHollandInvitationId = null;
+
+      function startHollandFromProfile() {
+        if (!pendingHollandInvitationId) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Belum ada tes Holland yang bisa dikerjakan',
+            text: 'Coba refresh halaman atau hubungi admin bila perlu.'
+          });
+          return;
+        }
+        window.location.href = '/profile/holland/start?invId=' + encodeURIComponent(pendingHollandInvitationId);
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        loadProfile();
+        loadHollandSummary();
+        loadPendingInvitation();
+      });
+
+      async function loadHollandSummary() {
+        try {
+          const resp = await fetch('/api/profile/test-summary');
+          if (!resp.ok) return;
+          const payload = await resp.json();
+          if (!payload.success || !payload.data) return;
+
+          const summary = payload.data;
+          if (summary.last_institution) {
+            document.getElementById('profileSchool').textContent = summary.last_institution;
+          }
+
+          if (summary.last_holland_result) {
+            displayHollandResult(summary.last_holland_result, summary.total_holland_tests);
+          } else {
+            document.getElementById('hollandNotFound').style.display = 'block';
+            document.getElementById('hollandResult').style.display = 'none';
+            document.getElementById('hollandViewBtn').style.display = 'none';
+          }
+        } catch (err) {
+          console.error('Error loading holland summary', err);
+        }
+      }
+
+      async function loadPendingInvitation() {
+        try {
+          const resp = await fetch('/api/profile/tests');
+          if (!resp.ok) return;
+          const payload = await resp.json();
+          if (!payload.success || !Array.isArray(payload.data)) return;
+
+          const tests = payload.data;
+          const hollandPending = tests.find(t => !t.has_holland);
+          pendingHollandInvitationId = hollandPending ? hollandPending.invitation_id : null;
+
+          const hollandBtn = document.getElementById('hollandStartBtn');
+          if (hollandBtn && pendingHollandInvitationId) hollandBtn.style.display = 'inline-block';
+        } catch (e) {
+          console.error('Error loading pending invitation for holland:', e);
+        }
+      }
+
+      function getScoreEntries(data) {
+        return [
+          { code: 'R', score: Number(data.score_r || 0) },
+          { code: 'I', score: Number(data.score_i || 0) },
+          { code: 'A', score: Number(data.score_a || 0) },
+          { code: 'S', score: Number(data.score_s || 0) },
+          { code: 'E', score: Number(data.score_e || 0) },
+          { code: 'C', score: Number(data.score_c || 0) }
+        ];
+      }
+
+      function getTopPersonalityCodes(data) {
+        const sourceOrder = ['R', 'I', 'A', 'S', 'E', 'C'];
+        const entries = getScoreEntries(data).sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return sourceOrder.indexOf(a.code) - sourceOrder.indexOf(b.code);
+        });
+
+        // Group by score so ties are handled as one block.
+        const groups = [];
+        entries.forEach(item => {
+          const last = groups[groups.length - 1];
+          if (last && last.score === item.score) {
+            last.items.push(item);
+          } else {
+            groups.push({ score: item.score, items: [item] });
+          }
+        });
+
+        // Include groups from top score downward, max 3 items total.
+        // If a tied group would exceed remaining slots, skip that group.
+        const selected = [];
+        for (const group of groups) {
+          if (selected.length === 0 && group.items.length > 3) {
+            selected.push(group.items[0]);
+            break;
+          }
+          if (selected.length + group.items.length > 3) {
+            break;
+          }
+          selected.push(...group.items);
+          if (selected.length >= 3) {
+            break;
+          }
+        }
+
+        if (selected.length === 0 && entries.length > 0) {
+          selected.push(entries[0]);
+        }
+        return selected.map(x => x.code);
+      }
+
+      function renderTopBadges(codes) {
+        const wrap = document.getElementById('hollandTopBadges');
+        if (!wrap) return;
+        const palette = ['primary', 'secondary', 'info'];
+        if (!codes || codes.length === 0) {
+          wrap.innerHTML = '<span class="badge bg-primary me-1">-</span>';
+          return;
+        }
+        wrap.innerHTML = codes
+          .map((code, idx) => `<span class="badge bg-${palette[idx % palette.length]} me-1">${code}</span>`)
+          .join('');
+      }
+
+      function displayHollandResult(hollandData, totalTests) {
+        document.getElementById('hollandNotFound').style.display = 'none';
+        document.getElementById('hollandResult').style.display = 'block';
+        document.getElementById('hollandViewBtn').style.display = 'inline-block';
+
+        const topCodes = getTopPersonalityCodes(hollandData);
+        document.getElementById('hollandCode').textContent = topCodes.length ? topCodes.join('') : (hollandData.code || '-');
+        document.getElementById('hollandTotalTests').textContent = totalTests > 0 ? `${totalTests} tes selesai` : '-';
+        renderTopBadges(topCodes);
+
+        const ctx = document.getElementById('hollandChart');
+        if (ctx) {
+          if (hollandChart) hollandChart.destroy();
+          hollandChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['R', 'I', 'A', 'S', 'E', 'C'],
+              datasets: [
+                {
+                  label: 'Skor',
+                  data: [
+                    hollandData.score_r || 0,
+                    hollandData.score_i || 0,
+                    hollandData.score_a || 0,
+                    hollandData.score_s || 0,
+                    hollandData.score_e || 0,
+                    hollandData.score_c || 0
+                  ],
+                  backgroundColor: [
+                    'rgba(255, 99, 132, 0.45)',
+                    'rgba(54, 162, 235, 0.45)',
+                    'rgba(255, 206, 86, 0.50)',
+                    'rgba(75, 192, 192, 0.45)',
+                    'rgba(153, 102, 255, 0.45)',
+                    'rgba(255, 159, 64, 0.50)'
+                  ],
+                  borderColor: [
+                    'rgba(255, 99, 132, 0.95)',
+                    'rgba(54, 162, 235, 0.95)',
+                    'rgba(255, 206, 86, 0.95)',
+                    'rgba(75, 192, 192, 0.95)',
+                    'rgba(153, 102, 255, 0.95)',
+                    'rgba(255, 159, 64, 0.95)'
+                  ],
+                  borderWidth: 1,
+                  borderRadius: 8,
+                  barThickness: 34,
+                  maxBarThickness: 46
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: { color: '#64748b', font: { size: 12 } }
+                },
+                y: {
+                  beginAtZero: true,
+                  ticks: { precision: 0, color: '#64748b' },
+                  grid: { color: 'rgba(100, 116, 139, 0.14)' }
+                }
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      return `Skor: ${context.parsed.y}`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        window.lastHollandData = hollandData;
+      }
+
+      function showHollandDetail() {
+        if (!window.lastHollandData) return;
+        const data = window.lastHollandData;
+        const topCodes = getTopPersonalityCodes(data);
+        const urutanMap = {};
+        topCodes.forEach((code, idx) => { urutanMap[code] = idx + 1; });
+
+        const aspectMaster = {
+          R: {
+            no: 1,
+            title: 'Realistic',
+            details: [
+              'Menyukai karier yang realistis seperti mekanik mobil, surveyor, ahli listrik, dan petani.',
+              'Biasanya memiliki kemampuan mekanik dan atletik.',
+              'Menyukai pekerjaan di luar ruangan dengan menggunakan alat-alat dan mesin.',
+              'Lebih menyukai bekerja dengan benda-benda dari pada dengan orang.',
+              'Dideskripsikan sebagai orang yang memiliki konformitas yang tinggi, jujur/ terus terang, ikhlas, keras kepala, materialistis, rendah hati, sederhana, gigih, praktis, pemalu, dan hemat.',
+              'Jurusan yang disarankan: Teknik mesin, Teknik Elektro, Pertanian.'
+            ]
+          },
+          I: {
+            no: 2,
+            title: 'Investigative',
+            details: [
+              'Menyukai karier yang bersifat penelitian, seperti ahli biologi, ahli kimia, ahli fisika, ahli fisiologi, ahli antropologi, asisten laboratorium, dan teknisi medis.',
+              'Biasanya memiliki kemampuan matematik dan ilmu pengetahuan (science).',
+              'Senang bekerja dan menyelesaikan masalah sendiri.',
+              'Lebih suka mengeksplorasi dan mengerti sesuatu atau kejadian-kejadian dari pada membuat orang atau menjual barang.',
+              'Digambarkan sebagai seorang yang analitis, berhati-hati, kompleks, kritis, ingin tahu, independen, intelek, metodis, rendah hati, pesimis, tepat, rasional, dan pendiam.',
+              'Jurusan yang disarankan: MIPA (kimia, fisika, biologi).'
+            ]
+          },
+          A: {
+            no: 3,
+            title: 'Artistic',
+            details: [
+              'Menyukai pekerjaan seni, seperti composer, musisi, penari, aktor, dan penulis.',
+              'Memiliki kemampuan seni, menikmati menciptakan sesuatu yang orisinil serta memiliki imajinasi yang baik.',
+              'Suka bekerja dengan menggunakan ide-ide kreatif dan ekspresi diri dari pada pekerjaan yang menuntut rutinitas dan peraturan.',
+              'Digambarkan sebagai orang yang rumit, tidak teratur, emosional, ekspresif, idealis, berimajinasi tinggi, impulsif, independen, memiliki intuisi yang tajam, terbuka dan tidak konformis.',
+              'Jurusan yang disarankan: Sastra dan bahasa, desain grafis, desain visual, dll.'
+            ]
+          },
+          S: {
+            no: 4,
+            title: 'Social',
+            details: [
+              'Menyukai karier yang bersifat sosial, seperti guru, terapis bicara, pekerja keagamaan, konselor, psikolog klinis, perawat, pekerja sosial, dll.',
+              'Suka berada bersama orang lain dan membantu orang lain mengatasi masalahnya.',
+              'Lebih suka menolong, mengajar dan membimbing orang dari pada terlibat dalam aktivitas mekanikal atau teknikal.',
+              'Digambarkan sebagai orang yang meyakinkan, kooperatif, bersahabat, murah hati, suka menolong, idealis, baik hati, sabar, bertanggung jawab, simpatik, pengertian, dan hangat.',
+              'Jurusan yang disarankan: Keguruan, psikologi, keperawatan, kebidanan, dokter, dll.'
+            ]
+          },
+          E: {
+            no: 5,
+            title: 'Enterprising',
+            details: [
+              'Mendeskripsikan diri sebagai seorang yang asertif dan persuasif.',
+              'Menikmati membujuk atau meyakinkan orang untuk melihat sudut pandang mereka.',
+              'Menyukai tugas-tugas dimana mereka dapat bertindak sebagai pemimpin.',
+              'Mencari pekerjaan yang membutuhkan peluang kewirausahaan.',
+              'Orang yang berminat dalam daerah enterprising biasanya mencari pekerjaan yang berkaitan dengan manajemen bisnis, penjualan (perdagangan) atau politik.',
+              'Jurusan yang disarankan: Manajemen, Ilmu Politik, Komunikasi.'
+            ]
+          },
+          C: {
+            no: 6,
+            title: 'Conventional',
+            details: [
+              'Menyukai pekerjaan yang bersifat konformis, seperti analisa keuangan, bank, ahli pajak, dan sekretaris.',
+              'Memiliki kemampuan klerikal dan matematik.',
+              'Suka bekerja dalam ruangan dan mengatur sesuatu. Suka pekerjaan yang rutin, teratur dan sesuai standar. Menghindari pekerjaan yang tidak memiliki arahan yang jelas.',
+              'Digambarkan sebagai seorang yang konformis, teliti, efisien, patuh, tertib/ rapi, praktis, gigih, hemat, cermat, dan tidak imajinatif.',
+              'Memiliki motivasi sistematis yang memerlukan perhatian yang akurat dan detail.',
+              'Seseorang yang konvensional cenderung mencari pekerjaan yang berhubungan dengan institusi keuangan, perusahaan akuntansi, atau bisnis yang lebih besar.',
+              'Jurusan yang disarankan: Akuntansi, Sekretaris, Ilmu Ekonomi.'
+            ]
+          }
+        };
+
+        const aspectOrder = ['R', 'I', 'A', 'S', 'E', 'C'];
+        const rowsHtml = aspectOrder.map(code => {
+          const meta = aspectMaster[code];
+          const bullets = meta.details.map(x => `<li>${x}</li>`).join('');
+          const urutan = urutanMap[code] || '';
+          const badgeClass = urutan === 1 ? 'bg-danger' : (urutan === 2 ? 'bg-warning text-dark' : (urutan === 3 ? 'bg-info text-dark' : 'bg-label-secondary'));
+          return `
+            <tr class="holland-row">
+              <td class="text-center align-middle fw-semibold">${meta.no}.</td>
+              <td class="align-middle">
+                <div class="fw-semibold d-flex align-items-center gap-2">
+                  <span class="badge rounded-pill text-bg-primary">${code}</span>
+                  <span>${meta.title}</span>
+                </div>
+                <div><small class="text-muted">Skor: ${Number(data['score_' + code.toLowerCase()] || 0)}</small></div>
+              </td>
+              <td class="align-middle text-center holland-keterangan-cell">
+                <ul class="mb-0 ps-0 d-inline-block text-start holland-keterangan-list">${bullets}</ul>
+              </td>
+              <td class="text-center align-middle fw-bold">
+                ${urutan ? `<span class="badge rounded-pill ${badgeClass} px-3 py-2">${urutan}</span>` : '<span class="text-muted">-</span>'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        const modalContent = `
+          <div class="modal fade" id="hollandDetailModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+              <div class="modal-content">
+                <style>
+                  #hollandDetailModal .modal-content {
+                    border: 0;
+                    border-radius: 0;
+                    box-shadow: 0 10px 26px rgba(44, 62, 80, 0.12);
+                    overflow: visible;
+                  }
+                  #hollandDetailModal .modal-header {
+                    background: #f7f8fc;
+                    color: #344054;
+                    border-bottom: 1px solid #e6eaf2;
+                    padding: 1rem 1.25rem;
+                  }
+                  #hollandDetailModal .modal-header .btn-close {
+                    display: none;
+                  }
+                  #hollandDetailModal .holland-close-btn {
+                    width: 2rem;
+                    height: 2rem;
+                    border: 1px solid #d7ddea;
+                    background: #fff;
+                    color: #6b7280;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1rem;
+                    line-height: 1;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                    margin-left: auto;
+                  }
+                  #hollandDetailModal .holland-close-btn:hover {
+                    background: #f3f4f6;
+                    color: #374151;
+                  }
+                  #hollandDetailModal .summary-card {
+                    border: 1px solid #e9ecf8;
+                    border-radius: 0;
+                    background: #fbfcff;
+                    height: 100%;
+                    padding: .8rem .9rem;
+                  }
+                  #hollandDetailModal .summary-label {
+                    font-size: .75rem;
+                    text-transform: uppercase;
+                    letter-spacing: .4px;
+                    color: #8592a3;
+                    margin-bottom: .25rem;
+                  }
+                  #hollandDetailModal .summary-value {
+                    font-weight: 600;
+                    color: #344054;
+                    margin-bottom: 0;
+                  }
+                  #hollandDetailModal .holland-table-wrap {
+                    border: 1px solid #e9ecf8;
+                    border-radius: 0;
+                    overflow: hidden;
+                  }
+                  #hollandDetailModal .holland-table {
+                    margin-bottom: 0;
+                  }
+                  #hollandDetailModal .holland-table thead th {
+                    background: #e9edf5;
+                    color: #334155;
+                    border-color: #dfe5ef;
+                    font-size: .78rem;
+                    text-transform: uppercase;
+                    letter-spacing: .4px;
+                  }
+                  #hollandDetailModal .holland-table td {
+                    border-color: rgba(15, 23, 42, 0.08);
+                  }
+                  #hollandDetailModal .holland-table th,
+                  #hollandDetailModal .holland-table td {
+                    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+                  }
+                  #hollandDetailModal .holland-table thead th {
+                    border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+                  }
+                  #hollandDetailModal .holland-row:nth-child(even) {
+                    background-color: #fcfdff;
+                  }
+                  #hollandDetailModal .holland-keterangan-cell {
+                    color: #374151;
+                  }
+                  #hollandDetailModal .holland-keterangan-list {
+                    max-width: 620px;
+                  }
+                  #hollandDetailModal .holland-keterangan-list li {
+                    margin-bottom: .35rem;
+                  }
+                  #hollandDetailModal .holland-keterangan-list li:last-child {
+                    margin-bottom: 0;
+                  }
+                  #hollandDetailModal .holland-section-title {
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    text-align: center;
+                    border: 1px solid #9cb0ca;
+                    background: #eef3fb;
+                    color: #1f2f46;
+                    border-radius: 0;
+                    padding: .45rem .75rem;
+                    letter-spacing: .3px;
+                    margin-bottom: .75rem;
+                    font-size: .92rem;
+                  }
+                </style>
+                <div class="modal-header">
+                  <h5 class="modal-title fw-semibold">Detail Hasil Tes Holland</h5>
+                  <button type="button" class="holland-close-btn" data-bs-dismiss="modal" aria-label="Close">✕</button>
+                </div>
+                <div class="modal-body">
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6 col-lg-3">
+                      <div class="summary-card">
+                        <p class="summary-label">Nama Tes</p>
+                        <p class="summary-value">${data.batch_name || '-'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <div class="summary-card">
+                        <p class="summary-label">Institusi</p>
+                        <p class="summary-value">${data.institution || '-'}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <div class="summary-card">
+                        <p class="summary-label">Tanggal Tes</p>
+                        <p class="summary-value">${new Date(data.test_date).toLocaleDateString('id-ID')}</p>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                      <div class="summary-card">
+                        <p class="summary-label">Kode Kepribadian</p>
+                        <p class="summary-value mb-1">
+                          <span class="badge bg-primary px-3 py-2">${topCodes.length ? topCodes.join('') : (data.code || '-')}</span>
+                        </p>
+                        <small class="text-muted">Top Kepribadian: ${topCodes.length ? topCodes.join(', ') : '-'}</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="holland-section-title">III. KECENDERUNGAN KEPRIBADIAN BERDASARKAN SKALA HOLLAND</div>
+
+                  <div class="table-responsive holland-table-wrap mb-3">
+                    <table class="table align-middle holland-table">
+                      <thead>
+                        <tr>
+                          <th class="text-center" style="width: 70px;">No.</th>
+                          <th style="width: 220px;">Aspek Kepribadian</th>
+                          <th class="text-center">Keterangan</th>
+                          <th class="text-center" style="width: 90px;">Urutan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${rowsHtml}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="d-flex justify-content-end mb-2">
+                    <a href="/test/holland/result/excel?invId=${data.invitation_id}" class="btn btn-outline-secondary btn-sm">
+                      Download Excel Holland
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const existingModal = document.getElementById('hollandDetailModal');
+        if (existingModal) existingModal.remove();
+
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+        const modal = new bootstrap.Modal(document.getElementById('hollandDetailModal'));
+        modal.show();
+      }
+    </script>
+  </body>
+</html>
+

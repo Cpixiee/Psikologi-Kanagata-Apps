@@ -42,6 +42,38 @@ func main() {
 		log.Printf("IST full seed warning: %v", err)
 		logs.Warning("IST full seed warning: %v", err)
 	}
+
+	// Seed Holland (RIASEC) activities & descriptions
+	if err := models.EnsureHollandExtraFields(); err != nil {
+		log.Printf("Holland extra fields ensure warning: %v", err)
+		logs.Warning("Holland extra fields ensure warning: %v", err)
+	}
+	if err := seeds.EnsureHollandDescriptions(); err != nil {
+		log.Printf("Holland descriptions seed warning: %v", err)
+		logs.Warning("Holland descriptions seed warning: %v", err)
+	}
+	if err := seeds.SeedHollandActivities(); err != nil {
+		log.Printf("Holland activities seed warning: %v", err)
+		logs.Warning("Holland activities seed warning: %v", err)
+	}
+
+	// Ensure Learning Style (VAK) schema exists (safe even without migrations).
+	if err := models.EnsureLearningStyleTables(); err != nil {
+		log.Printf("Learning style schema ensure warning: %v", err)
+		logs.Warning("Learning style schema ensure warning: %v", err)
+	}
+
+	// Ensure Kraepelin schema exists.
+	if err := models.EnsureKraepelinTables(); err != nil {
+		log.Printf("Kraepelin schema ensure warning: %v", err)
+		logs.Warning("Kraepelin schema ensure warning: %v", err)
+	}
+
+	// Seed Learning Style (VAK) questions.
+	if err := seeds.EnsureLearningStyleQuestions(); err != nil {
+		log.Printf("Learning style seed warning: %v", err)
+		logs.Warning("Learning style seed warning: %v", err)
+	}
 	
 	logs.Info("Application starting on port %s...", beego.AppConfig.DefaultString("httpport", "112"))
 	beego.Run()

@@ -30,6 +30,7 @@
     <!-- Core CSS -->
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
@@ -102,11 +103,28 @@
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Akun</span>
             </li>
-            <li class="menu-item">
-              <a href="/profile" class="menu-link">
+            <li class="menu-item open">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div class="text-truncate">Profil</div>
               </a>
+              <ul class="menu-sub">
+                <li class="menu-item">
+                  <a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a>
+                </li>
+              </ul>
             </li>
             <li class="menu-item">
               <a href="/settings" class="menu-link">

@@ -126,7 +126,7 @@ func SendEmail(config EmailConfig, data EmailData) error {
 	return err
 }
 
-func SendContactEmail(config EmailConfig, name, email, phone, message string) error {
+func SendContactEmail(config EmailConfig, name, email, phone, company, message string) error {
 	// Email to admin - use FROM_EMAIL as admin email
 	adminEmail := config.FromEmail
 	
@@ -163,6 +163,10 @@ func SendContactEmail(config EmailConfig, name, email, phone, message string) er
 					<div class="value">{{.Phone}}</div>
 				</div>
 				<div class="field">
+					<div class="label">Perusahaan:</div>
+					<div class="value">{{.Company}}</div>
+				</div>
+				<div class="field">
 					<div class="label">Pesan:</div>
 					<div class="value">{{.Message}}</div>
 				</div>
@@ -182,6 +186,7 @@ func SendContactEmail(config EmailConfig, name, email, phone, message string) er
 		"Name":    name,
 		"Email":   email,
 		"Phone":   phone,
+		"Company": company,
 		"Message": message,
 	})
 	if err != nil {

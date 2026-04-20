@@ -15,6 +15,7 @@ type ContactRequest struct {
 	Name    string `json:"name"`
 	Email   string `json:"email"`
 	Phone   string `json:"phone"`
+	Company string `json:"company"`
 	Message string `json:"message"`
 }
 
@@ -44,7 +45,7 @@ func (c *ContactController) SendMessage() {
 	config := utils.GetEmailConfig()
 
 	// Send email
-	err := utils.SendContactEmail(config, req.Name, req.Email, req.Phone, req.Message)
+	err := utils.SendContactEmail(config, req.Name, req.Email, req.Phone, req.Company, req.Message)
 	if err != nil {
 		c.Data["json"] = Response{
 			Success: false,

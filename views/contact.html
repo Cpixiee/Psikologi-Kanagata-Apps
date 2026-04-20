@@ -9,6 +9,7 @@
         <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/static/assets/css/public-navbar.css" rel="stylesheet" />
         <style>
             .navbar-brand {
                 display: flex;
@@ -23,23 +24,96 @@
             .bg-dark {
                 background-color: #212529 !important;
             }
-            .feature {
-                width: 4rem;
-                height: 4rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto;
+            body {
+                background: #eef2f7;
+                color: #0f172a;
             }
-            .feature i {
-                font-size: 2rem;
+            .contact-shell {
+                padding: 64px 0;
+            }
+            .contact-wrap {
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
+                background: #fff;
+            }
+            .contact-form-panel {
+                background: #fff;
+                padding: 42px 36px;
+            }
+            .contact-form-panel h3 {
+                color: #1e3a8a;
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin-bottom: 24px;
+            }
+            .contact-form-panel .col-form-label {
+                font-size: 0.86rem;
+                font-weight: 600;
+                color: #667085;
+                margin-bottom: 8px;
+            }
+            .contact-form-panel .form-control {
+                border: 0;
+                border-bottom: 1px solid #d0d5dd;
+                border-radius: 0;
+                padding-left: 0;
+                padding-right: 0;
+                background: transparent;
+                color: #101828;
+            }
+            .contact-form-panel .form-control:focus {
+                outline: none;
+                box-shadow: none;
+                border-color: #1d4ed8;
+            }
+            .contact-form-panel .btn-submit {
+                border: 0;
+                border-radius: 0;
+                background: #1f3b73;
+                color: #fff;
+                letter-spacing: 1.5px;
+                font-size: 0.76rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                padding: 11px 22px;
+            }
+            .contact-map-panel {
+                min-height: 100%;
+                background:
+                    linear-gradient(180deg, rgba(15, 23, 42, 0.44), rgba(15, 23, 42, 0.38)),
+                    url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80")
+                        center center / cover no-repeat;
+                position: relative;
+            }
+            .contact-map-panel iframe {
+                width: 100%;
+                height: 100%;
+                min-height: 420px;
+                border: 0;
+                display: block;
+                filter: saturate(0.95) contrast(1.02);
+            }
+            #form-message-success {
+                display: none;
+                color: #15803d;
+                font-weight: 700;
+                margin-top: 14px;
+            }
+            @media (max-width: 991.98px) {
+                .contact-form-panel {
+                    padding: 32px 24px;
+                }
+                .contact-map-panel {
+                    min-height: 300px;
+                }
             }
         </style>
     </head>
     <body class="d-flex flex-column">
         <main class="flex-shrink-0">
             <!-- Navigation-->
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-nav">
                 <div class="container px-5">
                     <a class="navbar-brand" href="/">
                         <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: inline-block; vertical-align: middle;" />
@@ -61,60 +135,59 @@
                 </div>
             </nav>
             <!-- Page content-->
-            <section class="py-5">
-                <div class="container px-5">
-                    <!-- Contact form-->
-                    <div class="bg-light rounded-3 py-5 px-4 px-md-5 mb-5">
-                        <div class="text-center mb-5">
-                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-envelope"></i></div>
-                            <h1 class="fw-bolder">Hubungi Kami</h1>
-                            <p class="lead fw-normal text-muted mb-0">Kami senang mendengar dari Anda</p>
-                        </div>
-                        <div class="row gx-5 justify-content-center">
-                            <div class="col-lg-8 col-xl-6">
+            <section class="contact-shell">
+                <div class="container px-4 px-md-5">
+                    <div class="row g-0 align-items-stretch contact-wrap">
+                        <div class="col-md-6">
+                            <div class="contact-form-panel h-100">
+                                <h3>Kirimkan pesan kepada kami</h3>
                                 <form id="contactForm">
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" id="name" type="text" placeholder="Masukkan nama lengkap..." required />
-                                        <label for="name">Nama Lengkap</label>
+                                    <div class="row">
+                                        <div class="col-md-6 form-group mb-4">
+                                            <label for="name" class="col-form-label">Nama *</label>
+                                            <input type="text" class="form-control" id="name" placeholder="Nama lengkap" required />
+                                        </div>
+                                        <div class="col-md-6 form-group mb-4">
+                                            <label for="email" class="col-form-label">Email *</label>
+                                            <input type="email" class="form-control" id="email" placeholder="nama@email.com" required />
+                                        </div>
                                     </div>
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" id="email" type="email" placeholder="name@example.com" required />
-                                        <label for="email">Alamat Email</label>
+                                    <div class="row">
+                                        <div class="col-md-6 form-group mb-4">
+                                            <label for="phone" class="col-form-label">Phone</label>
+                                            <input type="text" class="form-control" id="phone" placeholder="08xxxxxxxxxx" />
+                                        </div>
+                                        <div class="col-md-6 form-group mb-4">
+                                            <label for="company" class="col-form-label">Company</label>
+                                            <input type="text" class="form-control" id="company" placeholder="Nama perusahaan" />
+                                        </div>
                                     </div>
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" id="phone" type="tel" placeholder="(62) 812-3456-7890" required />
-                                        <label for="phone">Nomor Telepon</label>
+                                    <div class="row">
+                                        <div class="col-md-12 form-group mb-4">
+                                            <label for="message" class="col-form-label">Message *</label>
+                                            <textarea class="form-control" id="message" cols="30" rows="4" placeholder="Tulis pesan Anda di sini..." required></textarea>
+                                        </div>
                                     </div>
-                                    <div class="form-floating mb-3">
-                                        <textarea class="form-control" id="message" type="text" placeholder="Masukkan pesan Anda di sini..." style="height: 10rem" required></textarea>
-                                        <label for="message">Pesan</label>
+                                    <div class="row">
+                                        <div class="col-md-12 form-group">
+                                            <button class="btn btn-submit" type="submit">Send Message</button>
+                                            <span class="submitting"></span>
+                                        </div>
                                     </div>
-                                    <div class="d-grid"><button class="btn btn-primary btn-lg" type="submit">Kirim Pesan</button></div>
                                 </form>
+                                <div id="form-message-success">Pesan berhasil terkirim, terima kasih!</div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Contact cards-->
-                    <div class="row gx-5 row-cols-2 row-cols-lg-4 py-5">
-                        <div class="col">
-                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-chat-dots"></i></div>
-                            <div class="h5 mb-2">Chat dengan Kami</div>
-                            <p class="text-muted mb-0">Chat langsung dengan salah satu spesialis dukungan kami.</p>
-                        </div>
-                        <div class="col">
-                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-people"></i></div>
-                            <div class="h5">Tanya Komunitas</div>
-                            <p class="text-muted mb-0">Jelajahi forum komunitas kami dan berkomunikasi dengan pengguna lain.</p>
-                        </div>
-                        <div class="col">
-                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-question-circle"></i></div>
-                            <div class="h5">Pusat Bantuan</div>
-                            <p class="text-muted mb-0">Jelajahi FAQ dan artikel dukungan untuk menemukan solusi.</p>
-                        </div>
-                        <div class="col">
-                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-telephone"></i></div>
-                            <div class="h5">Hubungi Kami</div>
-                            <p class="text-muted mb-0">Hubungi kami pada jam kerja normal di (021) 1234-5678.</p>
+                        <div class="col-md-6">
+                            <div class="contact-map-panel h-100">
+                                <iframe
+                                    title="Lokasi Kantor Psychee Wellness"
+                                    loading="lazy"
+                                    allowfullscreen
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://maps.google.com/maps?q=-6.193406,106.866914&z=16&output=embed">
+                                </iframe>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,6 +268,7 @@
                     name: document.getElementById('name').value,
                     email: document.getElementById('email').value,
                     phone: document.getElementById('phone').value,
+                    company: document.getElementById('company').value,
                     message: document.getElementById('message').value
                 };
                 

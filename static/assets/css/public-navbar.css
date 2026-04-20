@@ -1,0 +1,52 @@
+:root {
+  --public-nav-bg: #173a5e;
+  --public-nav-bg-deep: #132f4b;
+  --public-nav-text: #e7eff8;
+}
+
+.navbar.top-nav,
+.navbar.bg-dark.top-nav {
+  background: linear-gradient(180deg, var(--public-nav-bg) 0%, var(--public-nav-bg-deep) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 20px rgba(10, 20, 34, 0.2);
+  backdrop-filter: blur(4px);
+  margin-top: 0;
+  padding-top: 0.62rem;
+  padding-bottom: 0.38rem;
+}
+
+.navbar.top-nav .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #f8fbff !important;
+  font-weight: 500;
+  font-size: 1.12rem;
+}
+
+.navbar.top-nav .navbar-brand img {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.navbar.top-nav .nav-link {
+  color: var(--public-nav-text) !important;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+  padding: 0.34rem 0.6rem !important;
+  transition: color 0.2s ease;
+}
+
+.navbar.top-nav .nav-link:hover,
+.navbar.top-nav .nav-link.active {
+  color: #ffffff !important;
+}
+
+@media (max-width: 991.98px) {
+  .navbar.top-nav .navbar-brand {
+    font-size: 1.02rem;
+  }
+}

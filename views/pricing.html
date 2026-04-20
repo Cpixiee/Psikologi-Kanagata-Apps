@@ -9,6 +9,7 @@
         <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/static/assets/css/public-navbar.css" rel="stylesheet" />
         <style>
             .navbar-brand {
                 display: flex;
@@ -23,12 +24,134 @@
             .bg-dark {
                 background-color: #212529 !important;
             }
+            body {
+                background: #f3f5fb;
+                color: #0f172a;
+            }
+            .pricing-soft-section {
+                padding: 56px 0 80px;
+            }
+            .pricing-heading {
+                text-align: center;
+                margin-bottom: 42px;
+            }
+            .pricing-heading h1 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }
+            .pricing-heading p {
+                color: #667085;
+                margin-bottom: 0;
+            }
+            .pricing-card {
+                background: #fff;
+                border-radius: 18px;
+                border: 1px solid #e6eaf1;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+                padding: 26px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+            }
+            .pricing-card.recommended {
+                border: 2px solid #4f46e5;
+                box-shadow: 0 16px 36px rgba(79, 70, 229, 0.2);
+            }
+            .recommended-badge {
+                position: absolute;
+                top: -11px;
+                right: 20px;
+                background: #4f46e5;
+                color: #fff;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.35px;
+                font-weight: 700;
+                padding: 5px 10px;
+                border-radius: 999px;
+            }
+            .plan-title {
+                font-weight: 700;
+                font-size: 1.3rem;
+                margin-bottom: 12px;
+            }
+            .price-wrap {
+                margin-bottom: 14px;
+            }
+            .price-main {
+                font-size: 2.2rem;
+                font-weight: 800;
+                line-height: 1;
+            }
+            .price-unit {
+                color: #98a2b3;
+                font-size: 0.9rem;
+            }
+            .plan-desc {
+                color: #667085;
+                font-size: 0.92rem;
+                margin-bottom: 18px;
+            }
+            .plan-btn {
+                width: 100%;
+                border-radius: 10px;
+                font-weight: 700;
+                padding: 0.62rem 0.9rem;
+                margin-bottom: 18px;
+            }
+            .plan-btn.btn-current {
+                background: #e4e7ec;
+                color: #344054;
+            }
+            .plan-btn.btn-plus {
+                background: #4f46e5;
+                color: #fff;
+            }
+            .plan-btn.btn-pro {
+                background: #111827;
+                color: #fff;
+            }
+            .plan-feature-list {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                flex-grow: 1;
+            }
+            .plan-feature-list li {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+                color: #667085;
+                margin-bottom: 9px;
+                font-size: 0.9rem;
+            }
+            .plan-feature-list i {
+                color: #22c55e;
+                font-size: 1rem;
+                margin-top: 2px;
+            }
+            .plan-footnote {
+                margin-top: 14px;
+                color: #98a2b3;
+                font-size: 0.78rem;
+                text-align: center;
+            }
+            @media (max-width: 991.98px) {
+                .pricing-card {
+                    padding: 22px;
+                }
+                .pricing-heading h1 {
+                    font-size: 1.8rem;
+                }
+            }
         </style>
     </head>
     <body class="d-flex flex-column">
         <main class="flex-shrink-0">
             <!-- Navigation-->
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-nav">
                 <div class="container px-5">
                     <a class="navbar-brand" href="/">
                         <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: inline-block; vertical-align: middle;" />
@@ -50,143 +173,71 @@
                 </div>
             </nav>
             <!-- Pricing section-->
-            <section class="bg-light py-5">
-                <div class="container px-5 my-5">
-                    <div class="text-center mb-5">
-                        <h1 class="fw-bolder">Pilih Paket Sesuai Kebutuhan Anda</h1>
-                        <p class="lead fw-normal text-muted mb-0">Dengan paket harga yang transparan tanpa biaya tersembunyi</p>
+            <section class="pricing-soft-section">
+                <div class="container px-4 px-md-5">
+                    <div class="pricing-heading">
+                        <h1>Paket Layanan</h1>
+                        <p>Pilih paket yang paling sesuai dengan kebutuhan Anda.</p>
                     </div>
-                    <div class="row gx-5 justify-content-center">
-                        <!-- Pricing card basic-->
-                        <div class="col-lg-6 col-xl-4 mb-5">
-                            <div class="card h-100">
-                                <div class="card-body p-5 d-flex flex-column">
-                                    <div class="small text-uppercase fw-bold text-muted">Basic</div>
-                                    <div class="mb-3">
-                                        <span class="display-4 fw-bold">Rp 50.000</span>
-                                        <span class="text-muted">/ bulan</span>
-                                    </div>
-                                    <ul class="list-unstyled mb-4 flex-grow-1">
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            <strong>1 tes psikologi</strong>
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Laporan hasil dasar
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Akses dashboard
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Dukungan email
-                                        </li>
-                                        <li class="mb-2 text-muted">
-                                            <i class="bi bi-x"></i>
-                                            Konsultasi dengan psikolog
-                                        </li>
-                                        <li class="mb-2 text-muted">
-                                            <i class="bi bi-x"></i>
-                                            Laporan komprehensif
-                                        </li>
-                                        <li class="mb-2 text-muted">
-                                            <i class="bi bi-x"></i>
-                                            Dukungan prioritas
-                                        </li>
-                                    </ul>
-                                    <div class="d-grid mt-auto"><a class="btn btn-outline-primary" href="/register">Pilih Paket</a></div>
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-12 col-lg-4">
+                            <div class="pricing-card">
+                                <h3 class="plan-title">Basic Plan</h3>
+                                <div class="price-wrap">
+                                    <span class="price-main">Rp 50.000</span>
+                                    <span class="price-unit">/ bulan</span>
                                 </div>
+                                <p class="plan-desc">Pilihan awal untuk pengguna individu yang ingin mulai memahami potensi diri.</p>
+                                <button class="btn plan-btn btn-current" type="button">Paket Saat Ini</button>
+                                <ul class="plan-feature-list">
+                                    <li><i class="bi bi-check2"></i><span>1 tes psikologi per bulan</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Laporan hasil dasar</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Akses dashboard personal</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Dukungan via email</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Riwayat hasil tes tersimpan</span></li>
+                                </ul>
+                                <p class="plan-footnote">Cocok untuk pengguna baru dan kebutuhan personal.</p>
                             </div>
                         </div>
-                        <!-- Pricing card pro-->
-                        <div class="col-lg-6 col-xl-4 mb-5">
-                            <div class="card h-100">
-                                <div class="card-body p-5 d-flex flex-column">
-                                    <div class="small text-uppercase fw-bold">
-                                        <i class="bi bi-star-fill text-warning"></i>
-                                        Pro
-                                    </div>
-                                    <div class="mb-3">
-                                        <span class="display-4 fw-bold">Rp 150.000</span>
-                                        <span class="text-muted">/ bulan</span>
-                                    </div>
-                                    <ul class="list-unstyled mb-4 flex-grow-1">
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            <strong>5 tes psikologi</strong>
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Laporan hasil lengkap
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Akses dashboard premium
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Dukungan email & chat
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            1x konsultasi dengan psikolog
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Laporan komprehensif
-                                        </li>
-                                        <li class="mb-2 text-muted">
-                                            <i class="bi bi-x"></i>
-                                            Dukungan prioritas 24/7
-                                        </li>
-                                    </ul>
-                                    <div class="d-grid mt-auto"><a class="btn btn-primary" href="/register">Pilih Paket</a></div>
+                        <div class="col-12 col-lg-4">
+                            <div class="pricing-card recommended">
+                                <span class="recommended-badge">Recommended</span>
+                                <h3 class="plan-title">Plus Plan</h3>
+                                <div class="price-wrap">
+                                    <span class="price-main">Rp 150.000</span>
+                                    <span class="price-unit">/ bulan</span>
                                 </div>
+                                <p class="plan-desc">Paket paling populer dengan fitur lebih lengkap untuk hasil analisis lebih mendalam.</p>
+                                <button class="btn plan-btn btn-plus" type="button">Pilih Plus Plan</button>
+                                <ul class="plan-feature-list">
+                                    <li><i class="bi bi-check2"></i><span>Semua fitur Basic Plan</span></li>
+                                    <li><i class="bi bi-check2"></i><span>5 tes psikologi per bulan</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Laporan hasil lengkap</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Dukungan email dan chat</span></li>
+                                    <li><i class="bi bi-check2"></i><span>1x konsultasi dengan psikolog</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Insight pengembangan diri lebih detail</span></li>
+                                </ul>
+                                <p class="plan-footnote">Paling direkomendasikan untuk pelajar, profesional, dan pencari kerja.</p>
                             </div>
                         </div>
-                        <!-- Pricing card enterprise-->
-                        <div class="col-lg-6 col-xl-4 mb-5">
-                            <div class="card h-100">
-                                <div class="card-body p-5 d-flex flex-column">
-                                    <div class="small text-uppercase fw-bold text-muted">Enterprise</div>
-                                    <div class="mb-3">
-                                        <span class="display-4 fw-bold">Rp 500.000</span>
-                                        <span class="text-muted">/ bulan</span>
-                                    </div>
-                                    <ul class="list-unstyled mb-4 flex-grow-1">
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            <strong>Tes psikologi unlimited</strong>
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Laporan hasil premium
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Akses dashboard enterprise
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Dukungan multi-channel
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Konsultasi unlimited dengan psikolog
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            Laporan komprehensif & analisis mendalam
-                                        </li>
-                                        <li class="mb-2">
-                                            <i class="bi bi-check text-primary"></i>
-                                            <strong>Dukungan prioritas 24/7</strong>
-                                        </li>
-                                    </ul>
-                                    <div class="d-grid mt-auto"><a class="btn btn-outline-primary" href="/register">Pilih Paket</a></div>
+                        <div class="col-12 col-lg-4">
+                            <div class="pricing-card">
+                                <h3 class="plan-title">Pro Plan</h3>
+                                <div class="price-wrap">
+                                    <span class="price-main">Rp 500.000</span>
+                                    <span class="price-unit">/ bulan</span>
                                 </div>
+                                <p class="plan-desc">Solusi menyeluruh untuk kebutuhan institusi, HR, dan asesmen skala besar.</p>
+                                <button class="btn plan-btn btn-pro" type="button">Pilih Pro Plan</button>
+                                <ul class="plan-feature-list">
+                                    <li><i class="bi bi-check2"></i><span>Semua fitur Plus Plan</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Tes psikologi unlimited</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Laporan premium + analisis mendalam</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Konsultasi psikolog tanpa batas</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Dukungan prioritas 24/7</span></li>
+                                    <li><i class="bi bi-check2"></i><span>Siap untuk kebutuhan tim dan organisasi</span></li>
+                                </ul>
+                                <p class="plan-footnote">Ideal untuk perusahaan, sekolah, kampus, dan kebutuhan enterprise.</p>
                             </div>
                         </div>
                     </div>

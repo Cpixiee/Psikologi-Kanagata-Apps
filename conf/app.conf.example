@@ -33,6 +33,11 @@ SMTP_PASSWORD =
 FROM_EMAIL =
 FROM_NAME = Psychee Wellness
 
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID =
+GOOGLE_CLIENT_SECRET =
+GOOGLE_REDIRECT_URL = http://localhost:112/api/auth/google/callback
+
 # Admin seed (optional)
 admin_email = admin@psikologi.local
 admin_password = admin123

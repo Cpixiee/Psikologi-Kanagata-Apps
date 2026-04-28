@@ -1,5 +1,27 @@
 let loginCaptchaId = "";
 
+function getNextPathFromQuery() {
+  try {
+    const qs = new URLSearchParams(window.location.search);
+    const next = (qs.get("next") || "").trim();
+    if (next && next.startsWith("/")) return next;
+  } catch (e) {}
+  return "/dashboard";
+}
+
+function getGoogleErrorMessage(code) {
+  const map = {
+    config: "Google login belum dikonfigurasi oleh admin.",
+    state: "Sesi login Google tidak valid. Silakan coba lagi.",
+    token: "Gagal verifikasi token Google.",
+    userinfo: "Gagal mengambil data akun Google.",
+    userdata: "Data akun Google tidak valid.",
+    internal: "Terjadi kesalahan internal saat login Google.",
+    device: "Perangkat ini diblokir. Hubungi administrator.",
+  };
+  return map[code] || "";
+}
+
 function loginLoadCaptcha() {
   fetch("/api/auth/captcha")
     .then((response) => response.json())
@@ -23,6 +45,13 @@ function loginLoadCaptcha() {
 window.addEventListener("DOMContentLoaded", function () {
   loginLoadCaptcha();
   psTogglePassword("password", "togglePassword");
+  const nextPath = getNextPathFromQuery();
+  try {
+    const qs = new URLSearchParams(window.location.search);
+    const gErr = (qs.get("google_error") || "").trim();
+    const gMsg = getGoogleErrorMessage(gErr);
+    if (gMsg) psShowAlert(gMsg, "error");
+  } catch (e) {}
 
   const captchaImage = document.getElementById("captchaImage");
   if (captchaImage) {
@@ -34,6 +63,14 @@ window.addEventListener("DOMContentLoaded", function () {
   }
 
   const form = document.getElementById("loginForm");
+  const googleBtn = document.getElementById("googleLoginBtn");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", function () {
+      const googleURL =
+        "/api/auth/google/login?next=" + encodeURIComponent(nextPath);
+      window.location.href = googleURL;
+    });
+  }
   if (!form) return;
 
   form.addEventListener("submit", function (e) {
@@ -73,7 +110,7 @@ window.addEventListener("DOMContentLoaded", function () {
         if (data.success) {
           psShowAlert("Login berhasil!", "success");
           setTimeout(() => {
-            window.location.href = "/dashboard";
+            window.location.href = nextPath;
           }, 900);
         } else {
           psShowAlert(data.message || "Login gagal", "error");

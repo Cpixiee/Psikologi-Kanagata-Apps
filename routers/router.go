@@ -159,6 +159,8 @@ func init() {
 	beego.Router("/api/auth/change-password", &controllers.AuthController{}, "post:ChangePassword")
 	beego.Router("/api/auth/captcha", &controllers.AuthController{}, "get:GetCaptcha")
 	beego.Router("/api/auth/captcha/:id", &controllers.AuthController{}, "get:CaptchaImage")
+	beego.Router("/api/auth/google/login", &controllers.AuthController{}, "get:GoogleLogin")
+	beego.Router("/api/auth/google/callback", &controllers.AuthController{}, "get:GoogleCallback")
 	beego.Router("/api/auth/request-reset", &controllers.PasswordResetController{}, "post:RequestOTP")
 	beego.Router("/api/auth/verify-reset", &controllers.PasswordResetController{}, "post:VerifyOTP")
 	

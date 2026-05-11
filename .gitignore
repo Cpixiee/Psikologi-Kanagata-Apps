@@ -11,8 +11,8 @@
 # Output of the go coverage tool
 *.out
 
-# Dependency directories
-vendor/
+# Dependency directories (Go vendor di root saja, jangan ikut block static/sneat/assets/vendor)
+/vendor/
 
 # Go workspace file
 go.work

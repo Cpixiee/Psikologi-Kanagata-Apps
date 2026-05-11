@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY static ./static
+COPY views ./views
 COPY tailwind.config.js postcss.config.js ./
 RUN npm run build:css
 

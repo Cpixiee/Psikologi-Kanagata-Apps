@@ -18,6 +18,7 @@ import (
 	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"golang.org/x/image/draw"
 )
@@ -100,6 +101,14 @@ func (c *ProfileController) UpdateProfile() {
 		Kota         string `json:"kota"`
 		Provinsi     string `json:"provinsi"`
 		Kodepos      string `json:"kodepos"`
+		// Onboarding fields (semua opsional di endpoint generic UpdateProfile)
+		NISN         string `json:"nisn"`
+		NIP          string `json:"nip"`
+		Kelas        string `json:"kelas"`
+		Jurusan      string `json:"jurusan"`
+		TempatLahir  string `json:"tempat_lahir"`
+		TanggalLahir string `json:"tanggal_lahir"` // ISO YYYY-MM-DD
+		Kecamatan    string `json:"kecamatan"`
 	}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &updateData); err != nil {
@@ -149,8 +158,25 @@ func (c *ProfileController) UpdateProfile() {
 	user.Kota = updateData.Kota
 	user.Provinsi = updateData.Provinsi
 	user.Kodepos = updateData.Kodepos
+	user.NISN = updateData.NISN
+	user.NIP = updateData.NIP
+	user.Kelas = updateData.Kelas
+	user.Jurusan = updateData.Jurusan
+	user.TempatLahir = updateData.TempatLahir
+	user.Kecamatan = updateData.Kecamatan
+	if strings.TrimSpace(updateData.TanggalLahir) != "" {
+		if t, perr := time.Parse("2006-01-02", strings.TrimSpace(updateData.TanggalLahir)); perr == nil {
+			user.TanggalLahir = &t
+		}
+	}
 
-	if _, err := o.Update(&user, "NamaLengkap", "Email", "NoHandphone", "AsalInstansi", "JenisKelamin", "Alamat", "Kota", "Provinsi", "Kodepos"); err != nil {
+	// Pisahkan tanggal_lahir → raw SQL (kolom DATE, ORM kirim sebagai datetime).
+	tanggalLahirToSet := user.TanggalLahir
+	if _, err := o.Update(&user,
+		"NamaLengkap", "Email", "NoHandphone", "AsalInstansi", "JenisKelamin",
+		"Alamat", "Kota", "Provinsi", "Kodepos",
+		"NISN", "NIP", "Kelas", "Jurusan", "TempatLahir", "Kecamatan",
+	); err != nil {
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = ProfileResponse{
 			Success: false,
@@ -158,6 +184,17 @@ func (c *ProfileController) UpdateProfile() {
 		}
 		c.ServeJSON()
 		return
+	}
+
+	if tanggalLahirToSet != nil {
+		dateStr := tanggalLahirToSet.Format("2006-01-02")
+		if _, err := o.Raw("UPDATE users SET tanggal_lahir = ? WHERE id = ?", dateStr, user.Id).Exec(); err != nil {
+			logs.Error("UpdateProfile update tanggal_lahir gagal: %v", err)
+			c.Ctx.Output.SetStatus(500)
+			c.Data["json"] = ProfileResponse{Success: false, Message: "Gagal memperbarui tanggal lahir: " + err.Error()}
+			c.ServeJSON()
+			return
+		}
 	}
 
 	// Send activity notification
@@ -170,6 +207,188 @@ func (c *ProfileController) UpdateProfile() {
 		Message: "Profil berhasil diperbarui",
 		Data:    user,
 	}
+	c.ServeJSON()
+}
+
+// @router /api/profile/onboarding-status [get]
+// Mengecek apakah profil user sudah lengkap. Dipakai oleh halaman dashboard
+// untuk memutuskan apakah modal onboarding perlu ditampilkan.
+func (c *ProfileController) OnboardingStatus() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	user := models.User{Id: userID.(int)}
+	if err := o.Read(&user); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "User tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	// Admin tidak diharuskan mengisi onboarding peserta (NISN/Kelas/Jurusan,
+	// dsb). Selalu anggap profil admin "lengkap" supaya modal onboarding tidak
+	// muncul untuk akun admin.
+	isAdmin := user.Role == models.RoleAdmin
+	completed := isAdmin || isOnboardingComplete(&user)
+	if user.ProfileCompleted != completed {
+		user.ProfileCompleted = completed
+		_, _ = o.Update(&user, "ProfileCompleted")
+	}
+
+	tglStr := ""
+	if user.TanggalLahir != nil {
+		tglStr = user.TanggalLahir.Format("2006-01-02")
+	}
+
+	c.Data["json"] = ProfileResponse{
+		Success: true,
+		Data: map[string]interface{}{
+			"completed":     completed,
+			"role":          user.Role,
+			"nisn":          user.NISN,
+			"nip":           user.NIP,
+			"kelas":         user.Kelas,
+			"jurusan":       user.Jurusan,
+			"tempat_lahir":  user.TempatLahir,
+			"tanggal_lahir": tglStr,
+			"alamat":        user.Alamat,
+			"kecamatan":     user.Kecamatan,
+			"kota":          user.Kota,
+			"provinsi":      user.Provinsi,
+		},
+	}
+	c.ServeJSON()
+}
+
+// isOnboardingComplete menentukan profil "lengkap" jika field-field wajib
+// terisi: NISN/NIP (paling tidak salah satu), Kelas, Jurusan, TempatLahir,
+// TanggalLahir, Kecamatan, Kota, dan Provinsi.
+func isOnboardingComplete(u *models.User) bool {
+	if u == nil {
+		return false
+	}
+	if strings.TrimSpace(u.NISN) == "" && strings.TrimSpace(u.NIP) == "" {
+		return false
+	}
+	if strings.TrimSpace(u.Kelas) == "" {
+		return false
+	}
+	if strings.TrimSpace(u.Jurusan) == "" {
+		return false
+	}
+	if strings.TrimSpace(u.TempatLahir) == "" || u.TanggalLahir == nil {
+		return false
+	}
+	if strings.TrimSpace(u.Kecamatan) == "" || strings.TrimSpace(u.Kota) == "" || strings.TrimSpace(u.Provinsi) == "" {
+		return false
+	}
+	return true
+}
+
+// @router /api/profile/onboarding [post]
+// Menyimpan data onboarding user (NISN/NIP, kelas, jurusan, ttl, alamat
+// regional). Setelah berhasil, ProfileCompleted di-set true.
+func (c *ProfileController) SaveOnboarding() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+
+	var p struct {
+		NISN         string `json:"nisn"`
+		NIP          string `json:"nip"`
+		Kelas        string `json:"kelas"`
+		Jurusan      string `json:"jurusan"`
+		TempatLahir  string `json:"tempat_lahir"`
+		TanggalLahir string `json:"tanggal_lahir"` // YYYY-MM-DD
+		Alamat       string `json:"alamat"`
+		Kecamatan    string `json:"kecamatan"`
+		Kota         string `json:"kota"`
+		Provinsi     string `json:"provinsi"`
+	}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &p); err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Format data tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	user := models.User{Id: userID.(int)}
+	if err := o.Read(&user); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "User tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	user.NISN = strings.TrimSpace(p.NISN)
+	user.NIP = strings.TrimSpace(p.NIP)
+	user.Kelas = strings.TrimSpace(p.Kelas)
+	user.Jurusan = strings.TrimSpace(p.Jurusan)
+	user.TempatLahir = strings.TrimSpace(p.TempatLahir)
+	user.Alamat = strings.TrimSpace(p.Alamat)
+	user.Kecamatan = strings.TrimSpace(p.Kecamatan)
+	user.Kota = strings.TrimSpace(p.Kota)
+	user.Provinsi = strings.TrimSpace(p.Provinsi)
+	if strings.TrimSpace(p.TanggalLahir) != "" {
+		if t, perr := time.Parse("2006-01-02", strings.TrimSpace(p.TanggalLahir)); perr == nil {
+			user.TanggalLahir = &t
+		}
+	}
+
+	// Validasi minimal: harus ada NISN atau NIP, kelas, jurusan, ttl, kec/kota/prov.
+	if user.NISN == "" && user.NIP == "" {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "NISN atau NIP wajib diisi"}
+		c.ServeJSON()
+		return
+	}
+	if user.Kelas == "" || user.Jurusan == "" || user.TempatLahir == "" || user.TanggalLahir == nil ||
+		user.Kecamatan == "" || user.Kota == "" || user.Provinsi == "" {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Semua field wajib diisi"}
+		c.ServeJSON()
+		return
+	}
+	user.ProfileCompleted = true
+
+	// Update field non-date via ORM.
+	if _, err := o.Update(&user,
+		"NISN", "NIP", "Kelas", "Jurusan", "TempatLahir",
+		"Alamat", "Kecamatan", "Kota", "Provinsi", "ProfileCompleted",
+	); err != nil {
+		logs.Error("SaveOnboarding update gagal: %v", err)
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Gagal menyimpan data profil: " + err.Error()}
+		c.ServeJSON()
+		return
+	}
+
+	// Beego ORM mengirim *time.Time sebagai timestamp (mis. "2007-02-26 00:00:00Z")
+	// ke kolom DATE PostgreSQL → ditolak. Karena itu update tanggal_lahir
+	// terpisah pakai raw SQL dengan format DATE.
+	if user.TanggalLahir != nil {
+		dateStr := user.TanggalLahir.Format("2006-01-02")
+		if _, err := o.Raw("UPDATE users SET tanggal_lahir = ? WHERE id = ?", dateStr, user.Id).Exec(); err != nil {
+			logs.Error("SaveOnboarding update tanggal_lahir gagal: %v", err)
+			c.Ctx.Output.SetStatus(500)
+			c.Data["json"] = ProfileResponse{Success: false, Message: "Gagal menyimpan tanggal lahir: " + err.Error()}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	c.Data["json"] = ProfileResponse{Success: true, Message: "Profil berhasil disimpan"}
 	c.ServeJSON()
 }
 
@@ -553,6 +772,142 @@ type KraepelinDetailResult struct {
 	TotalErrors  int       `json:"total_errors"`
 	TotalSkipped int       `json:"total_skipped"`
 	CorrectCounts []int    `json:"correct_counts"`
+}
+
+// RMIBProfileEntry digunakan untuk endpoint /api/profile/rmib.
+type RMIBProfileEntry struct {
+	Invitation map[string]interface{} `json:"invitation"`
+	RMIBResult map[string]interface{} `json:"rmib_result"`
+}
+
+// @router /api/profile/rmib [get]
+// Mengembalikan daftar hasil RMIB milik user yang login (paling baru di depan).
+func (c *ProfileController) GetRMIBResults() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+
+	var user models.User
+	user.Id = userID.(int)
+	if err := o.Read(&user); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "User tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	var results []models.RMIBResult
+	_, _ = o.QueryTable(new(models.RMIBResult)).
+		Filter("User__Id", userID.(int)).
+		OrderBy("-CompletedAt").
+		All(&results)
+
+	entries := []RMIBProfileEntry{}
+	for _, r := range results {
+		var inv models.TestInvitation
+		if r.Invitation != nil {
+			inv.Id = r.Invitation.Id
+			_ = o.Read(&inv)
+		}
+		entries = append(entries, RMIBProfileEntry{
+			Invitation: map[string]interface{}{
+				"id":         inv.Id,
+				"email":      inv.Email,
+				"batch_id":   inv.BatchId,
+				"created_at": inv.CreatedAt,
+			},
+			RMIBResult: map[string]interface{}{
+				"id":                r.Id,
+				"gender_version":    r.GenderVersion,
+				"result_json":       r.ResultJSON,
+				"dominant_category": r.DominantCategory,
+				"top1":              r.Top1,
+				"top2":              r.Top2,
+				"top3":              r.Top3,
+				"interpretation":    r.Interpretation,
+				"completed_at":      r.CompletedAt,
+			},
+		})
+	}
+
+	c.Data["json"] = ProfileResponse{
+		Success: true,
+		Data:    entries,
+	}
+	c.ServeJSON()
+}
+
+// PAPIProfileEntry untuk API profile PAPI
+type PAPIProfileEntry struct {
+	Invitation  map[string]interface{} `json:"invitation"`
+	PAPIResult  map[string]interface{} `json:"papi_result"`
+}
+
+// @router /api/profile/papi-results [get]
+// Mengembalikan daftar hasil PAPI milik user yang login (paling baru di depan).
+func (c *ProfileController) GetPAPIResults() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+
+	var user models.User
+	user.Id = userID.(int)
+	if err := o.Read(&user); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "User tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	var results []models.PAPIResult
+	_, _ = o.QueryTable(new(models.PAPIResult)).
+		Filter("User__Id", userID.(int)).
+		OrderBy("-CompletedAt").
+		All(&results)
+
+	entries := []PAPIProfileEntry{}
+	for _, r := range results {
+		var inv models.TestInvitation
+		if r.Invitation != nil {
+			inv.Id = r.Invitation.Id
+			_ = o.Read(&inv)
+		}
+		entries = append(entries, PAPIProfileEntry{
+			Invitation: map[string]interface{}{
+				"id":         inv.Id,
+				"email":      inv.Email,
+				"batch_id":   inv.BatchId,
+				"created_at": inv.CreatedAt,
+			},
+			PAPIResult: map[string]interface{}{
+				"id":                 r.Id,
+				"result_json":        r.ResultJSON,
+				"dominant_category":  r.DominantCategory,
+				"top_categories":     r.TopCategories,
+				"interpretation":     r.Interpretation,
+				"completed_at":       r.CompletedAt,
+				"time_taken_minutes": r.TimeTakenMinutes,
+			},
+		})
+	}
+
+	c.Data["json"] = ProfileResponse{
+		Success: true,
+		Data:    entries,
+	}
+	c.ServeJSON()
 }
 
 // @router /api/profile/test-summary [get]

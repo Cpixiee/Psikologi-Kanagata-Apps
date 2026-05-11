@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Soal Tes PAPI - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .page-card { border-radius: 14px; }
+      .sticky-header {
+        position: sticky; top: 0; z-index: 50;
+        background: #fff;
+        border-bottom: 1px solid #eceefd;
+        padding: 12px 16px;
+        border-radius: 14px 14px 0 0;
+      }
+      .timer-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 6px 14px; border-radius: 999px;
+        background: rgba(105,108,255,.12); color: #696cff;
+        font-weight: 700; font-size: 1rem;
+      }
+      .timer-pill.warn { background: rgba(255,171,0,.15); color: #ffab00; }
+      .timer-pill.danger { background: rgba(234,84,85,.15); color: #ea5455; animation: pulse .8s infinite; }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+      /* PAPI table */
+      .papi-table {
+        border: 1px solid #d9d9e7;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .papi-table table { width: 100%; margin: 0; border-collapse: collapse; }
+      .papi-table th, .papi-table td {
+        border: 1px solid #d9d9e7;
+        padding: 0;
+        vertical-align: middle;
+      }
+      .papi-table thead th {
+        background: #f5f5fb;
+        font-weight: 700;
+        text-align: center;
+        font-size: .85rem;
+        padding: 10px 12px;
+      }
+      .papi-num {
+        text-align: center;
+        font-weight: 700;
+        width: 56px;
+        background: #fafafe;
+        padding: 10px 12px;
+      }
+      .papi-statements { padding: 0; }
+      .papi-statements .stmt {
+        padding: 14px 14px;
+        font-size: .95rem;
+        line-height: 1.4;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+      }
+      .papi-statements .stmt.top {
+        border-bottom: 1px dashed #e0e0ec;
+      }
+
+      /* Kolom JAWAB: 2 kotak vertikal (atas / bawah) */
+      .papi-answer-cell {
+        width: 90px;
+        padding: 0;
+        text-align: center;
+        background: #fff;
+      }
+      .papi-answer-cell .pa-stack {
+        display: flex;
+        flex-direction: column;
+      }
+      .papi-answer-cell .pa-slot {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        transition: background .15s ease;
+      }
+      .papi-answer-cell .pa-slot:first-child {
+        border-bottom: 1px dashed #e0e0ec;
+      }
+      .papi-answer-cell .pa-slot:hover { background: #f8f9ff; }
+
+      .papi-box {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        border: 2px solid #b6b6cf;
+        background: #fff;
+        position: relative;
+        transition: all .15s ease;
+      }
+      .papi-box.selected {
+        border-color: #28c76f;
+        background: #28c76f;
+        box-shadow: 0 0 0 4px rgba(40, 199, 111, .25);
+      }
+      .papi-box.selected::after {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        border-radius: 3px;
+        background: #fff;
+      }
+      .papi-row.answered .papi-num {
+        background: #d4f4e2;
+        color: #1f7a45;
+      }
+
+      /* Pagination */
+      .papi-pager { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 10px; }
+      .papi-pager .page-pills { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; flex: 1 1 auto; }
+      .page-pill {
+        min-width: 36px; height: 32px;
+        padding: 0 10px;
+        border-radius: 8px;
+        border: 1px solid #d9d9e7;
+        background: #fff;
+        font-size: .85rem; font-weight: 600;
+        color: #6c757d;
+        cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .page-pill:hover:not(:disabled) { border-color: #696cff; color: #696cff; }
+      .page-pill.active { background: #696cff; color: #fff; border-color: #696cff; }
+      .page-pill.completed { background: #28c76f; color: #fff; border-color: #28c76f; }
+      .page-pill.partial { background: #fff3cd; color: #997404; border-color: #ffe69c; }
+      .page-pill:disabled,
+      .page-pill.locked {
+        opacity: .55;
+        cursor: not-allowed;
+        background: #f5f5fb;
+        color: #adb5bd;
+      }
+
+      .save-toast {
+        position: fixed; bottom: 24px; right: 24px;
+        background: #28c76f; color: #fff;
+        padding: 10px 16px; border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(40, 199, 111, .35);
+        opacity: 0; transform: translateY(8px);
+        transition: all .25s ease; z-index: 1050;
+        font-weight: 600; font-size: .85rem;
+      }
+      .save-toast.show { opacity: 1; transform: translateY(0); }
+
+      @media (max-width: 575.98px) {
+        .papi-answer-cell { width: 70px; }
+        .papi-statements .stmt { font-size: .9rem; padding: 10px 10px; min-height: 48px; }
+        .papi-answer-cell .pa-slot { height: 48px; }
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="row justify-content-center">
+        <div class="col-12 col-xxl-10">
+          <div class="card page-card shadow-sm">
+            <div class="sticky-header">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div>
+                  <div class="fw-bold">Tes PAPI</div>
+                  <small class="text-muted">Pilih pernyataan (atas atau bawah) yang paling menggambarkan Anda</small>
+                </div>
+                <div class="timer-pill" id="timer">
+                  &#9202;&nbsp;<span id="timeDisplay">60:00</span>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                  <span><strong id="progressText">Progress: {{.Answered}} dari {{.TotalItems}} soal</strong></span>
+                  <span id="progressPct">{{.ProgressPercent}}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar bg-success" role="progressbar"
+                       aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                       data-progress-percent="{{.ProgressPercent}}"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              {{if .Error}}
+              <div class="alert alert-danger">{{.Error}}</div>
+              {{end}}
+
+              <div class="papi-table" id="papiTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:56px;">No</th>
+                      <th>Pernyataan</th>
+                      <th style="width:90px;">Jawab</th>
+                    </tr>
+                  </thead>
+                  <tbody id="papiTbody">
+                    {{range $idx, $item := .Items}}
+                    <tr class="papi-row {{if ne $item.SelectedOption ""}}answered{{end}}"
+                        data-question-id="{{$item.ID}}"
+                        data-item-number="{{$item.ItemNumber}}"
+                        data-selected="{{$item.SelectedOption}}">
+                      <td class="papi-num">{{$item.ItemNumber}}</td>
+                      <td class="papi-statements">
+                        <div class="stmt top">{{$item.OptionA}}</div>
+                        <div class="stmt bottom">{{$item.OptionB}}</div>
+                      </td>
+                      <td class="papi-answer-cell">
+                        <div class="pa-stack">
+                          <div class="pa-slot" data-option="A" title="Pilih pernyataan atas">
+                            <span class="papi-box {{if eq $item.SelectedOption "A"}}selected{{end}}"></span>
+                          </div>
+                          <div class="pa-slot" data-option="B" title="Pilih pernyataan bawah">
+                            <span class="papi-box {{if eq $item.SelectedOption "B"}}selected{{end}}"></span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    {{end}}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination controls -->
+              <div class="papi-pager">
+                <div></div>
+                <div class="page-pills" id="pagePills"></div>
+                <button class="btn btn-primary" id="btnNext" type="button">
+                  Berikutnya &rarr;
+                </button>
+              </div>
+
+              <div class="text-center mt-4" id="submitWrap" style="display:none;">
+                <button class="btn btn-success btn-lg" id="submitBtn" disabled>
+                  &#10003;&nbsp; Selesaikan Tes
+                </button>
+                <div class="text-muted small mt-2">
+                  Pastikan semua {{.TotalItems}} soal terjawab sebelum submit. Jawaban tersimpan otomatis.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{if .IsDev}}
+    <button id="devAutoFillBtn" type="button"
+            style="position:fixed; bottom:24px; left:24px; z-index:1060;
+                   background:#ff5e7e; color:#fff; border:0; padding:10px 16px;
+                   border-radius:10px; font-weight:700; font-size:.85rem;
+                   box-shadow:0 6px 18px rgba(255,94,126,.4); cursor:pointer;">
+      &#9881; DEV: Auto-Fill &amp; Submit
+    </button>
+    {{end}}
+
+    <div class="save-toast" id="floatingSave">&#10003; Tersimpan</div>
+
+    <div id="app-config"
+         data-time-remaining="{{.Session.TimeRemainingSeconds}}"
+         data-total-questions="{{.TotalItems}}"
+         data-answered-count="{{.Answered}}"
+         data-progress-percent="{{.ProgressPercent}}"
+         data-page-size="10"
+         style="display:none;"></div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        var cfg = document.getElementById('app-config');
+        var timeRemaining = parseInt(cfg.dataset.timeRemaining, 10) || 0;
+        var totalQuestions = parseInt(cfg.dataset.totalQuestions, 10) || 0;
+        var pageSize = parseInt(cfg.dataset.pageSize, 10) || 10;
+
+        var rows = Array.prototype.slice.call(document.querySelectorAll('#papiTbody tr.papi-row'));
+        var totalPages = Math.ceil(rows.length / pageSize);
+        var currentPage = 1;
+
+        var answers = {};
+        rows.forEach(function (tr) {
+          var qid = tr.dataset.questionId;
+          var sel = tr.dataset.selected;
+          if (sel) answers[qid] = sel;
+        });
+
+        var progressBar = document.querySelector('.progress-bar');
+        var initPct = parseInt(progressBar.dataset.progressPercent, 10) || 0;
+        progressBar.style.width = initPct + '%';
+        progressBar.setAttribute('aria-valuenow', initPct);
+
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+        function updateTimerDisplay() {
+          var m = Math.floor(timeRemaining / 60);
+          var s = timeRemaining % 60;
+          document.getElementById('timeDisplay').textContent = m + ':' + pad(s);
+          var el = document.getElementById('timer');
+          el.classList.remove('warn', 'danger');
+          if (timeRemaining <= 300) el.classList.add('danger');
+          else if (timeRemaining <= 600) el.classList.add('warn');
+        }
+
+        var timerInterval;
+        function startTimer() {
+          updateTimerDisplay();
+          timerInterval = setInterval(function () {
+            timeRemaining--;
+            updateTimerDisplay();
+            if (timeRemaining <= 0) {
+              clearInterval(timerInterval);
+              Swal.fire({ icon: 'info', title: 'Waktu habis', text: 'Tes akan di-submit otomatis.' })
+                .then(function () { submitTest(); });
+            }
+          }, 1000);
+        }
+
+        function showSave() {
+          var t = document.getElementById('floatingSave');
+          t.classList.add('show');
+          setTimeout(function () { t.classList.remove('show'); }, 1500);
+        }
+
+        function submitTest() {
+          // Lewati prompt beforeunload
+          window.onbeforeunload = null;
+          fetch('/test/papi/submit', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' }
+          })
+            .then(function () { window.location.href = '/profile/papi'; })
+            .catch(function () { window.location.href = '/profile/papi'; });
+        }
+
+        function saveAnswer(qid, option) {
+          fetch('/api/test/papi/answer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_id: parseInt(qid, 10), selected_option: option })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d && d.success) showSave(); })
+            .catch(function (e) { console.error('save error', e); });
+        }
+
+        function isPageComplete(page) {
+          var start = (page - 1) * pageSize;
+          var end = Math.min(start + pageSize, rows.length);
+          for (var i = start; i < end; i++) {
+            if (!answers[rows[i].dataset.questionId]) return false;
+          }
+          return true;
+        }
+        function pageStatus(page) {
+          var start = (page - 1) * pageSize;
+          var end = Math.min(start + pageSize, rows.length);
+          var n = 0;
+          for (var i = start; i < end; i++) {
+            if (answers[rows[i].dataset.questionId]) n++;
+          }
+          var total = end - start;
+          if (n === total) return 'completed';
+          if (n > 0) return 'partial';
+          return 'empty';
+        }
+
+        // Page p hanya boleh diakses kalau semua page sebelumnya complete
+        function isPageUnlocked(p) {
+          for (var i = 1; i < p; i++) {
+            if (!isPageComplete(i)) return false;
+          }
+          return true;
+        }
+
+        function renderPills() {
+          var wrap = document.getElementById('pagePills');
+          wrap.innerHTML = '';
+          for (var p = 1; p <= totalPages; p++) {
+            var pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'page-pill';
+            pill.textContent = p;
+            pill.dataset.page = p;
+            var st = pageStatus(p);
+            if (st === 'completed') pill.classList.add('completed');
+            else if (st === 'partial') pill.classList.add('partial');
+            if (p === currentPage) pill.classList.add('active');
+            if (!isPageUnlocked(p)) {
+              pill.classList.add('locked');
+              pill.disabled = true;
+              pill.title = 'Selesaikan halaman sebelumnya terlebih dahulu';
+            }
+            wrap.appendChild(pill);
+          }
+        }
+
+        function updateNavButtons() {
+          var nextBtn = document.getElementById('btnNext');
+          var submitWrap = document.getElementById('submitWrap');
+          var submitBtn = document.getElementById('submitBtn');
+
+          // Tombol Berikutnya: hanya tampil kalau bukan halaman terakhir
+          if (currentPage >= totalPages) {
+            nextBtn.style.display = 'none';
+          } else {
+            nextBtn.style.display = '';
+            // disabled jika halaman saat ini belum lengkap
+            nextBtn.disabled = !isPageComplete(currentPage);
+          }
+
+          // Tombol Selesaikan Tes: hanya tampil di halaman terakhir
+          if (currentPage === totalPages) {
+            submitWrap.style.display = '';
+            submitBtn.disabled = (Object.keys(answers).length !== totalQuestions);
+          } else {
+            submitWrap.style.display = 'none';
+          }
+        }
+
+        function showPage(page) {
+          if (page < 1) page = 1;
+          if (page > totalPages) page = totalPages;
+          if (!isPageUnlocked(page)) {
+            // Lompat ke halaman pertama yang belum selesai
+            for (var p = 1; p <= totalPages; p++) {
+              if (!isPageComplete(p)) { page = p; break; }
+            }
+          }
+          currentPage = page;
+          var start = (page - 1) * pageSize;
+          var end = start + pageSize;
+          rows.forEach(function (tr, idx) {
+            tr.style.display = (idx >= start && idx < end) ? '' : 'none';
+          });
+          renderPills();
+          updateNavButtons();
+          document.getElementById('papiTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function updateProgress() {
+          var answered = Object.keys(answers).length;
+          var pct = totalQuestions ? Math.round((answered / totalQuestions) * 100) : 0;
+          progressBar.style.width = pct + '%';
+          progressBar.setAttribute('aria-valuenow', pct);
+          document.getElementById('progressText').textContent = 'Progress: ' + answered + ' dari ' + totalQuestions + ' soal';
+          document.getElementById('progressPct').textContent = pct + '%';
+          updateNavButtons();
+          renderPills();
+        }
+
+        function selectOption(tr, option) {
+          var qid = tr.dataset.questionId;
+          tr.querySelectorAll('.papi-box').forEach(function (r) { r.classList.remove('selected'); });
+          var box = tr.querySelector('.pa-slot[data-option="' + option + '"] .papi-box');
+          if (box) box.classList.add('selected');
+          tr.classList.add('answered');
+          answers[qid] = option;
+          saveAnswer(qid, option);
+          updateProgress();
+        }
+
+        function bindEvents() {
+          document.getElementById('papiTbody').addEventListener('click', function (e) {
+            var slot = e.target.closest('.pa-slot');
+            if (!slot) return;
+            var tr = slot.closest('tr.papi-row');
+            if (!tr) return;
+            selectOption(tr, slot.dataset.option);
+          });
+
+          document.getElementById('btnNext').addEventListener('click', function () {
+            if (!isPageComplete(currentPage)) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Halaman belum lengkap',
+                text: 'Mohon jawab semua soal pada halaman ini sebelum melanjutkan.'
+              });
+              return;
+            }
+            showPage(currentPage + 1);
+          });
+
+          document.getElementById('pagePills').addEventListener('click', function (e) {
+            var pill = e.target.closest('.page-pill');
+            if (!pill || pill.disabled) return;
+            showPage(parseInt(pill.dataset.page, 10));
+          });
+
+          document.getElementById('submitBtn').addEventListener('click', function () {
+            if (Object.keys(answers).length !== totalQuestions) {
+              Swal.fire({ icon: 'warning', title: 'Belum lengkap', text: 'Harap jawab semua pertanyaan terlebih dahulu.' });
+              return;
+            }
+            Swal.fire({
+              icon: 'question',
+              title: 'Selesaikan tes?',
+              text: 'Jawaban tidak dapat diubah setelah submit.',
+              showCancelButton: true,
+              confirmButtonText: 'Ya, submit',
+              cancelButtonText: 'Batal'
+            }).then(function (res) {
+              if (res.isConfirmed) submitTest();
+            });
+          });
+
+          window.addEventListener('beforeunload', function (e) {
+            var n = Object.keys(answers).length;
+            if (n > 0 && n < totalQuestions) {
+              e.preventDefault();
+              e.returnValue = '';
+            }
+          });
+
+          var devBtn = document.getElementById('devAutoFillBtn');
+          if (devBtn) {
+            devBtn.addEventListener('click', function () {
+              Swal.fire({
+                icon: 'warning',
+                title: 'DEV Auto-Fill',
+                text: 'Isi 90 jawaban secara acak lalu langsung submit?',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, lanjut',
+                cancelButtonText: 'Batal'
+              }).then(function (res) {
+                if (!res.isConfirmed) return;
+                window.removeEventListener('beforeunload', function () {});
+                devBtn.disabled = true;
+                devBtn.textContent = 'Memproses...';
+                fetch('/test/papi/dev-autofill', { method: 'POST' })
+                  .then(function (r) { return r.json(); })
+                  .then(function (d) {
+                    if (d && d.success) {
+                      window.location.href = d.next || '/profile/papi';
+                    } else {
+                      Swal.fire({ icon: 'error', title: 'Gagal', text: (d && d.message) || 'Auto-fill gagal' });
+                      devBtn.disabled = false;
+                      devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                    }
+                  })
+                  .catch(function (err) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: String(err) });
+                    devBtn.disabled = false;
+                    devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                  });
+              });
+            });
+          }
+        }
+
+        function init() {
+          rows.forEach(function (tr) {
+            if (answers[tr.dataset.questionId]) tr.classList.add('answered');
+          });
+          bindEvents();
+          // Mulai dari halaman pertama yang belum selesai
+          var startPage = 1;
+          for (var p = 1; p <= totalPages; p++) {
+            if (!isPageComplete(p)) { startPage = p; break; }
+            if (p === totalPages) startPage = totalPages;
+          }
+          showPage(startPage);
+          updateProgress();
+          startTimer();
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
+</html>

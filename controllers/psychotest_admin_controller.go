@@ -98,10 +98,13 @@ func (c *PsychotestAdminController) CreateBatch() {
 		EnableHolland   bool   `json:"enable_holland"`
 		EnableLearningStyle bool `json:"enable_learning_style"`
 		EnableKraepelin bool `json:"enable_kraepelin"`
+		EnableRMIB      bool   `json:"enable_rmib"`
+		EnablePAPI      bool   `json:"enable_papi"`
 		PurposeCategory string `json:"purpose_category"`
 		PurposeDetail   string `json:"purpose_detail"`
 		SendViaEmail    bool   `json:"send_via_email"`
 		SendViaBrowser  bool   `json:"send_via_browser"`
+		SendViaWhatsApp bool   `json:"send_via_whatsapp"`
 	}
 
 	// Parse JSON body (frontend mengirim JSON)
@@ -128,11 +131,17 @@ func (c *PsychotestAdminController) CreateBatch() {
 	if payload.EnableKraepelin {
 		enabledCount++
 	}
+	if payload.EnableRMIB {
+		enabledCount++
+	}
+	if payload.EnablePAPI {
+		enabledCount++
+	}
 	if enabledCount != 1 {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
-			Message: "Pilih tepat satu jenis tes untuk batch ini (IST / Holland / Gaya Belajar / Kraepelin).",
+			Message: "Pilih tepat satu jenis tes untuk batch ini (IST / Holland / Gaya Belajar / Kraepelin / RMIB / PAPI).",
 		}
 		c.ServeJSON()
 		return
@@ -156,10 +165,13 @@ func (c *PsychotestAdminController) CreateBatch() {
 		EnableHolland:   payload.EnableHolland,
 		EnableLearningStyle: payload.EnableLearningStyle,
 		EnableKraepelin: payload.EnableKraepelin,
+		EnableRMIB:      payload.EnableRMIB,
+		EnablePAPI:      payload.EnablePAPI,
 		PurposeCategory: payload.PurposeCategory,
 		PurposeDetail:   payload.PurposeDetail,
 		SendViaEmail:    payload.SendViaEmail,
 		SendViaBrowser:  payload.SendViaBrowser,
+		SendViaWhatsApp: payload.SendViaWhatsApp,
 		Status:          models.StatusBatchActive,
 		CreatedBy:       userID.(int),
 	}
@@ -184,7 +196,14 @@ func (c *PsychotestAdminController) CreateBatch() {
 }
 
 // @router /api/admin/test-batches/:id/invitations [post]
-// Buat undangan berdasarkan daftar email (dipisah koma / baris)
+// Buat undangan dari daftar peserta. Setiap entry boleh berformat:
+//   - "email"
+//   - "email,phone"   (phone opsional, untuk WA)
+//   - {email, phone}  (object, jika frontend mengirim daftar terstruktur)
+//
+// Email TIDAK harus sudah terdaftar di tabel users; cukup validasi FORMAT.
+// Saat undangan dibuat, sistem hanya mengirim PENGUMUMAN (tanpa token).
+// Token sesungguhnya baru dikirim saat operator klik "Kirim Code".
 func (c *PsychotestAdminController) CreateInvitations() {
 	if !c.verifyAdmin() {
 		return
@@ -201,10 +220,56 @@ func (c *PsychotestAdminController) CreateInvitations() {
 		return
 	}
 
+	// Terima dua bentuk: array string (legacy) atau array object {email, phone}.
 	var payload struct {
-		Emails []string `json:"emails"`
+		Emails    []string `json:"emails"`
+		Recipients []struct {
+			Email string `json:"email"`
+			Phone string `json:"phone"`
+		} `json:"recipients"`
 	}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &payload); err != nil || len(payload.Emails) == 0 {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &payload); err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Data tidak valid",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	type recipient struct {
+		Email string
+		Phone string
+	}
+	var recipients []recipient
+	for _, r := range payload.Recipients {
+		recipients = append(recipients, recipient{Email: strings.TrimSpace(r.Email), Phone: strings.TrimSpace(r.Phone)})
+	}
+	for _, raw := range payload.Emails {
+		// Setiap baris bisa berformat "email" atau "email,phone" / "email;phone" / "email\tphone"
+		line := strings.TrimSpace(raw)
+		if line == "" {
+			continue
+		}
+		// Pisah pakai koma / titik koma / tab
+		var email, phone string
+		seps := []string{",", ";", "\t", "|"}
+		split := []string{line}
+		for _, sep := range seps {
+			if strings.Contains(line, sep) {
+				split = strings.SplitN(line, sep, 2)
+				break
+			}
+		}
+		email = strings.TrimSpace(split[0])
+		if len(split) > 1 {
+			phone = strings.TrimSpace(split[1])
+		}
+		recipients = append(recipients, recipient{Email: email, Phone: phone})
+	}
+
+	if len(recipients) == 0 {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
@@ -216,7 +281,6 @@ func (c *PsychotestAdminController) CreateInvitations() {
 
 	o := orm.NewOrm()
 
-	// Ambil info batch untuk konfigurasi pengiriman (email / browser)
 	batch := models.TestBatch{Id: batchID}
 	if err := o.Read(&batch); err != nil {
 		c.Ctx.Output.SetStatus(404)
@@ -229,32 +293,50 @@ func (c *PsychotestAdminController) CreateInvitations() {
 	}
 
 	now := time.Now()
-	exp := now.Add(24 * time.Hour)
+	exp := now.Add(7 * 24 * time.Hour) // perpanjang ke 7 hari sejak token bersifat pengumuman dulu
 
 	var created []models.TestInvitation
 	var invalidEmails []string
+	seen := map[string]bool{}
 
-	for _, rawEmail := range payload.Emails {
-		email := strings.TrimSpace(rawEmail)
+	for _, r := range recipients {
+		email := strings.ToLower(strings.TrimSpace(r.Email))
 		if email == "" {
 			continue
 		}
+		if seen[email] {
+			continue
+		}
+		seen[email] = true
+		if !isValidEmailFormat(email) {
+			invalidEmails = append(invalidEmails, r.Email)
+			continue
+		}
 
-		// Pastikan email terdaftar sebagai user
+		// Auto-link ke user jika sudah terdaftar (opsional, tidak wajib).
 		var user models.User
 		user.Email = email
-		if err := o.Read(&user, "Email"); err != nil {
-			invalidEmails = append(invalidEmails, email)
-			continue
+		var userIDPtr *int
+		var displayName string
+		var phoneFromUser string
+		if err := o.Read(&user, "Email"); err == nil {
+			userIDPtr = &user.Id
+			displayName = user.NamaLengkap
+			phoneFromUser = user.NoHandphone
+		}
+
+		// Pilih nomor HP: dari input (kalau diisi) > dari user.NoHandphone.
+		phone := strings.TrimSpace(r.Phone)
+		if phone == "" {
+			phone = phoneFromUser
 		}
 
 		batchIDPtr := &batchID
 		inv := models.TestInvitation{
-			BatchId: batchIDPtr,
-			Email:   email,
-			UserId:  &user.Id,
-			// Token undangan sengaja dibuat lebih pendek (8 karakter)
-			// supaya mudah diketik manual oleh peserta.
+			BatchId:   batchIDPtr,
+			Email:     email,
+			Phone:     phone,
+			UserId:    userIDPtr,
 			Token:     generateToken(8),
 			ExpiresAt: exp,
 			Status:    models.StatusInvitationPending,
@@ -264,25 +346,25 @@ func (c *PsychotestAdminController) CreateInvitations() {
 			continue
 		}
 
-		// Kirim email undangan jika diaktifkan
+		// Kirim PENGUMUMAN (tanpa token) sesuai channel batch.
 		if batch.SendViaEmail {
-			go sendInvitationEmail(&batch, &user, &inv)
+			go sendInvitationAnnouncementEmail(&batch, displayName, email, &inv)
 		}
-
-		// Buat notifikasi browser jika diaktifkan
-		if batch.SendViaBrowser {
+		if batch.SendViaWhatsApp && phone != "" {
+			go sendInvitationAnnouncementWA(&batch, displayName, phone, &inv)
+		}
+		if batch.SendViaBrowser && userIDPtr != nil {
 			go createInvitationNotification(&batch, &user, &inv)
 		}
 
 		created = append(created, inv)
 	}
 
-	// Jika semua email tidak valid
 	if len(created) == 0 && len(invalidEmails) > 0 {
 		c.Ctx.Output.SetStatus(422)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
-			Message: "Sebagian atau semua email tidak terdaftar di sistem",
+			Message: "Format email tidak valid",
 			Data: map[string]interface{}{
 				"created": nil,
 				"invalid": invalidEmails,
@@ -300,6 +382,35 @@ func (c *PsychotestAdminController) CreateInvitations() {
 		},
 	}
 	c.ServeJSON()
+}
+
+// isValidEmailFormat validasi format email sederhana (tidak query DNS / Google).
+func isValidEmailFormat(s string) bool {
+	s = strings.TrimSpace(s)
+	if s == "" || len(s) > 254 {
+		return false
+	}
+	at := strings.IndexByte(s, '@')
+	if at <= 0 || at == len(s)-1 {
+		return false
+	}
+	local := s[:at]
+	domain := s[at+1:]
+	if len(local) == 0 || len(local) > 64 {
+		return false
+	}
+	if !strings.Contains(domain, ".") {
+		return false
+	}
+	for _, ch := range s {
+		if ch <= ' ' || ch == ',' || ch == ';' {
+			return false
+		}
+	}
+	if strings.HasPrefix(domain, ".") || strings.HasSuffix(domain, ".") {
+		return false
+	}
+	return true
 }
 
 // @router /api/admin/test-batches/:id/invitations [get]
@@ -343,11 +454,72 @@ func (c *PsychotestAdminController) ListInvitations() {
 	c.ServeJSON()
 }
 
-// Helper: kirim email undangan tes psikologi
-func sendInvitationEmail(batch *models.TestBatch, user *models.User, inv *models.TestInvitation) {
+// resolveDisplayName memilih nama untuk salam email/WA.
+func resolveDisplayName(name, email string) string {
+	if strings.TrimSpace(name) != "" {
+		return name
+	}
+	return email
+}
+
+// Helper: kirim email PENGUMUMAN undangan (tanpa token).
+// Email ini hanya memberitahu peserta bahwa mereka diundang ikut tes batch tertentu.
+// Token dikirim terpisah saat operator klik "Kirim Code".
+func sendInvitationAnnouncementEmail(batch *models.TestBatch, displayName, email string, inv *models.TestInvitation) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("panic in sendInvitationEmail: %v", r)
+			log.Printf("panic in sendInvitationAnnouncementEmail: %v", r)
+		}
+	}()
+
+	config := utils.GetEmailConfig()
+	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
+	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
+
+	subject := fmt.Sprintf("Undangan Tes Psikologi - %s", batch.Name)
+	body := fmt.Sprintf(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><style>
+body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0}
+.container{max-width:600px;margin:0 auto;padding:20px}
+.header{background:#696cff;color:#fff;padding:24px;text-align:center;border-radius:12px 12px 0 0}
+.content{background:#f8f9fa;padding:30px;border-radius:0 0 12px 12px}
+.info-list{list-style:none;padding:0;margin:20px 0}
+.info-list li{padding:8px 0;border-bottom:1px solid #e0e0e0}
+.button{display:inline-block;padding:14px 28px;background:#696cff;color:#fff;text-decoration:none;border-radius:8px;font-weight:600}
+.note{background:#fff3cd;border-left:4px solid #ffc107;padding:12px 16px;margin:20px 0;border-radius:4px;color:#856404;font-size:14px}
+</style></head><body>
+<div class="container">
+  <div class="header"><h2>Undangan Tes Psikologi</h2></div>
+  <div class="content">
+    <p>Halo <strong>%s</strong>,</p>
+    <p>Anda telah diundang untuk mengikuti tes psikologi dengan detail berikut:</p>
+    <ul class="info-list">
+      <li><strong>Batch</strong>: %s</li>
+      <li><strong>Institusi</strong>: %s</li>
+      <li><strong>Tipe Tes</strong>: %s</li>
+    </ul>
+    <div class="note">
+      <strong>Catatan:</strong> Kode (token) akses tes akan dikirim secara terpisah oleh admin.
+      Mohon menunggu pesan berikutnya yang berisi kode untuk mulai mengerjakan tes.
+    </div>
+    <p>Anda dapat membuka halaman tes terlebih dahulu (login / daftar bila belum punya akun):</p>
+    <p style="text-align:center"><a class="button" href="%s" target="_blank" rel="noopener">Buka Halaman Tes</a></p>
+    <p style="font-size:12px;color:#777">Undangan berlaku sampai: <strong>%s</strong>.</p>
+  </div>
+</div></body></html>`,
+		resolveDisplayName(displayName, email), batch.Name, batch.Institution,
+		invitationTestTypes(batch), link, inv.ExpiresAt.Format("02 Jan 2006 15:04"))
+
+	if err := utils.SendEmail(config, utils.EmailData{To: email, Subject: subject, Body: body}); err != nil {
+		log.Printf("Gagal mengirim pengumuman undangan ke %s: %v", email, err)
+	}
+}
+
+// Helper: kirim email berisi KODE / TOKEN tes.
+func sendInvitationCodeEmail(batch *models.TestBatch, displayName, email string, inv *models.TestInvitation) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("panic in sendInvitationCodeEmail: %v", r)
 		}
 	}()
 
@@ -356,7 +528,7 @@ func sendInvitationEmail(batch *models.TestBatch, user *models.User, inv *models
 	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
 	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
 
-	subject := fmt.Sprintf("Undangan Tes Psikologi - %s", batch.Name)
+	subject := fmt.Sprintf("Kode Tes Psikologi - %s", batch.Name)
 
 	body := fmt.Sprintf(`
 	<!DOCTYPE html>
@@ -455,16 +627,64 @@ func sendInvitationEmail(batch *models.TestBatch, user *models.User, inv *models
 		</div>
 	</body>
 	</html>
-	`, user.NamaLengkap, batch.Name, batch.Institution, invitationTestTypes(batch), inv.Token, link, inv.ExpiresAt.Format("02 Jan 2006 15:04"))
+	`, resolveDisplayName(displayName, email), batch.Name, batch.Institution, invitationTestTypes(batch), inv.Token, link, inv.ExpiresAt.Format("02 Jan 2006 15:04"))
 
 	emailData := utils.EmailData{
-		To:      user.Email,
+		To:      email,
 		Subject: subject,
 		Body:    body,
 	}
 
 	if err := utils.SendEmail(config, emailData); err != nil {
-		log.Printf("Gagal mengirim email undangan ke %s: %v", user.Email, err)
+		log.Printf("Gagal mengirim email kode tes ke %s: %v", email, err)
+	}
+}
+
+// Helper: kirim PENGUMUMAN undangan via WhatsApp.
+func sendInvitationAnnouncementWA(batch *models.TestBatch, displayName, phone string, inv *models.TestInvitation) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("panic in sendInvitationAnnouncementWA: %v", r)
+		}
+	}()
+
+	cfg := utils.GetWhatsAppConfig()
+	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
+	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
+
+	msg := fmt.Sprintf(
+		"Halo %s,\n\nAnda diundang mengikuti tes psikologi:\n• Batch: %s\n• Institusi: %s\n• Tipe Tes: %s\n\n"+
+			"Kode (token) akses akan dikirim terpisah oleh admin. Anda bisa membuka halaman tes terlebih dahulu di:\n%s\n\n"+
+			"Undangan berlaku sampai: %s.\n— Psychee Wellness",
+		resolveDisplayName(displayName, ""), batch.Name, batch.Institution, invitationTestTypes(batch),
+		link, inv.ExpiresAt.Format("02 Jan 2006 15:04"))
+
+	if err := utils.SendWhatsApp(cfg, phone, msg); err != nil {
+		log.Printf("Gagal mengirim WA pengumuman ke %s: %v", phone, err)
+	}
+}
+
+// Helper: kirim KODE tes via WhatsApp.
+func sendInvitationCodeWA(batch *models.TestBatch, displayName, phone string, inv *models.TestInvitation) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("panic in sendInvitationCodeWA: %v", r)
+		}
+	}()
+
+	cfg := utils.GetWhatsAppConfig()
+	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
+	link := fmt.Sprintf("%s/test?token=%s", strings.TrimRight(appURL, "/"), inv.Token)
+
+	msg := fmt.Sprintf(
+		"Halo %s,\n\nBerikut kode akses Tes Psikologi - %s:\n\n*KODE: %s*\n\n"+
+			"Buka halaman tes lalu masukkan kode di atas, atau klik link berikut:\n%s\n\n"+
+			"Kode berlaku sampai: %s. Jangan bagikan kode ini kepada orang lain.\n— Psychee Wellness",
+		resolveDisplayName(displayName, ""), batch.Name, inv.Token, link,
+		inv.ExpiresAt.Format("02 Jan 2006 15:04"))
+
+	if err := utils.SendWhatsApp(cfg, phone, msg); err != nil {
+		log.Printf("Gagal mengirim WA kode ke %s: %v", phone, err)
 	}
 }
 
@@ -502,6 +722,12 @@ func invitationTestTypes(batch *models.TestBatch) string {
 	}
 	if batch.EnableKraepelin {
 		parts = append(parts, "Kraepelin")
+	}
+	if batch.EnableRMIB {
+		parts = append(parts, "RMIB")
+	}
+	if batch.EnablePAPI {
+		parts = append(parts, "PAPI")
 	}
 	if len(parts) == 0 {
 		return "-"
@@ -547,6 +773,7 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		Invitation models.TestInvitation `json:"invitation"`
 		IST        *models.ISTResult     `json:"ist_result,omitempty"`
 		Holland    *models.HollandResult `json:"holland_result,omitempty"`
+		RMIB       *models.RMIBResult    `json:"rmib_result,omitempty"`
 	}
 
 	var result []InvitationSummary
@@ -771,6 +998,16 @@ func (c *PsychotestAdminController) ListBatchResults() {
 			summary.Holland = nil
 		}
 
+		var rmib models.RMIBResult
+		err = o.QueryTable(new(models.RMIBResult)).
+			Filter("Invitation__Id", inv.Id).
+			One(&rmib)
+		if err == nil && rmib.Id != 0 {
+			summary.RMIB = &rmib
+		} else {
+			summary.RMIB = nil
+		}
+
 		result = append(result, summary)
 	}
 
@@ -872,6 +1109,42 @@ func (c *PsychotestAdminController) ExportBatchAnswers() {
 			content, ferr := buildLearningStyleResultXLSX(o, &batch, &inv, user)
 			if ferr == nil && len(content) > 0 {
 				fname := fmt.Sprintf("%s_Hasil_Gaya_Belajar.xlsx", base)
+				fname = makeUniqueZipName(usedNames, fname, inv.Id)
+				w, _ := zw.Create(fname)
+				_, _ = w.Write(content)
+				written++
+			}
+		}
+
+		// RMIB
+		if batch.EnableRMIB {
+			content, ferr := buildRMIBResultXLSX(o, &batch, &inv, user)
+			if ferr == nil && len(content) > 0 {
+				fname := fmt.Sprintf("%s_Hasil_RMIB.xlsx", base)
+				fname = makeUniqueZipName(usedNames, fname, inv.Id)
+				w, _ := zw.Create(fname)
+				_, _ = w.Write(content)
+				written++
+			}
+		}
+
+		// PAPI
+		if batch.EnablePAPI {
+			content, ferr := buildPAPIResultXLSX(o, &batch, &inv, user)
+			if ferr == nil && len(content) > 0 {
+				fname := fmt.Sprintf("%s_Hasil_PAPI.xlsx", base)
+				fname = makeUniqueZipName(usedNames, fname, inv.Id)
+				w, _ := zw.Create(fname)
+				_, _ = w.Write(content)
+				written++
+			}
+		}
+
+		// Kraepelin
+		if batch.EnableKraepelin {
+			content, ferr := buildKraepelinResultXLSX(o, &batch, &inv, user)
+			if ferr == nil && len(content) > 0 {
+				fname := fmt.Sprintf("%s_Hasil_Kraepelin.xlsx", base)
 				fname = makeUniqueZipName(usedNames, fname, inv.Id)
 				w, _ := zw.Create(fname)
 				_, _ = w.Write(content)
@@ -1433,6 +1706,40 @@ func buildISTResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestIn
 	_ = f.SetCellValue(sheet, "B8", ":")
 	_ = f.SetCellValue(sheet, "C8", inv.CreatedAt.Format("2006-01-02"))
 
+	// NISN/NIP, Kelas, Jurusan di kolom kanan (slot kosong E:G)
+	idVal := ""
+	idLabel := "NISN"
+	if user != nil {
+		idVal = strings.TrimSpace(user.NISN)
+		if idVal == "" && strings.TrimSpace(user.NIP) != "" {
+			idVal = user.NIP
+			idLabel = "NIP"
+		}
+		if idVal == "" {
+			idLabel = "NISN/NIP"
+		}
+	}
+	_ = f.SetCellValue(sheet, "E4", idLabel)
+	_ = f.SetCellStyle(sheet, "E4", "E4", styleLabel)
+	_ = f.SetCellValue(sheet, "F4", ":")
+	_ = f.SetCellValue(sheet, "G4", idVal)
+
+	kelas := ""
+	jurusan := ""
+	if user != nil {
+		kelas = user.Kelas
+		jurusan = user.Jurusan
+	}
+	_ = f.SetCellValue(sheet, "E6", "Kelas")
+	_ = f.SetCellStyle(sheet, "E6", "E6", styleLabel)
+	_ = f.SetCellValue(sheet, "F6", ":")
+	_ = f.SetCellValue(sheet, "G6", kelas)
+
+	_ = f.SetCellValue(sheet, "E7", "Jurusan")
+	_ = f.SetCellStyle(sheet, "E7", "E7", styleLabel)
+	_ = f.SetCellValue(sheet, "F7", ":")
+	_ = f.SetCellValue(sheet, "G7", jurusan)
+
 	// Column widths (approx)
 	_ = f.SetColWidth(sheet, "A", "N", 11)
 	_ = f.SetColWidth(sheet, "A", "A", 6)  // No
@@ -1518,18 +1825,34 @@ func buildHollandAnswersCSV(o orm.Ormer, batch *models.TestBatch, inv *models.Te
 
 	nama := ""
 	email := inv.Email
+	nisnNip := ""
+	idLabel := "NISN/NIP"
+	kelas := ""
+	jurusan := ""
 	if user != nil {
 		nama = user.NamaLengkap
 		if user.Email != "" {
 			email = user.Email
 		}
+		nisnNip = strings.TrimSpace(user.NISN)
+		idLabel = "NISN"
+		if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
+			nisnNip = user.NIP
+			idLabel = "NIP"
+		}
+		kelas = user.Kelas
+		jurusan = user.Jurusan
 	}
 
 	_ = w.Write([]string{"HASIL HOLLAND (RIASEC)"})
 	_ = w.Write([]string{"Nama", nama})
+	_ = w.Write([]string{idLabel, nisnNip})
+	_ = w.Write([]string{"Kelas", kelas})
+	_ = w.Write([]string{"Jurusan", jurusan})
 	_ = w.Write([]string{"Email", email})
 	if batch != nil {
 		_ = w.Write([]string{"Batch", batch.Name})
+		_ = w.Write([]string{"Institusi", batch.Institution})
 	}
 	_ = w.Write([]string{})
 	_ = w.Write([]string{"Code", "Number", "Value"})
@@ -1601,20 +1924,46 @@ func buildLearningStyleResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *mod
 	_ = f.SetCellValue(sheet, "A1", "RESUME\nTES GAYA BELAJAR (VAK)")
 	_ = f.SetCellStyle(sheet, "A1", "C1", styleHeaderGreen)
 
-	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", res.TestName)
-	_ = f.SetCellValue(sheet, "A4", "Usia")
-	_ = f.SetCellValue(sheet, "B4", res.TestAge)
-	_ = f.SetCellValue(sheet, "A5", "Pendidikan")
-	_ = f.SetCellValue(sheet, "B5", res.TestInstitution)
-	_ = f.SetCellValue(sheet, "A6", "Jenis kelamin")
-	_ = f.SetCellValue(sheet, "B6", res.TestGender)
-	_ = f.SetCellValue(sheet, "A7", "Tanggal")
-	_ = f.SetCellValue(sheet, "B7", res.TestDate.Format("02-01-2006"))
-	_ = f.SetCellStyle(sheet, "A3", "A7", styleCenter)
-	_ = f.SetCellStyle(sheet, "B3", "B7", styleBody)
+	// Identitas peserta — pakai data User (lebih authoritative dari res.TestName)
+	nama := res.TestName
+	nisnNip := ""
+	idLabel := "NISN/NIP"
+	kelas := ""
+	jurusan := ""
+	if user != nil {
+		if strings.TrimSpace(user.NamaLengkap) != "" {
+			nama = user.NamaLengkap
+		}
+		nisnNip = strings.TrimSpace(user.NISN)
+		idLabel = "NISN"
+		if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
+			nisnNip = user.NIP
+			idLabel = "NIP"
+		}
+		kelas = user.Kelas
+		jurusan = user.Jurusan
+	}
 
-	startRow := 9
+	_ = f.SetCellValue(sheet, "A3", "Nama")
+	_ = f.SetCellValue(sheet, "B3", nama)
+	_ = f.SetCellValue(sheet, "A4", idLabel)
+	_ = f.SetCellValue(sheet, "B4", nisnNip)
+	_ = f.SetCellValue(sheet, "A5", "Kelas")
+	_ = f.SetCellValue(sheet, "B5", kelas)
+	_ = f.SetCellValue(sheet, "A6", "Jurusan")
+	_ = f.SetCellValue(sheet, "B6", jurusan)
+	_ = f.SetCellValue(sheet, "A7", "Usia")
+	_ = f.SetCellValue(sheet, "B7", res.TestAge)
+	_ = f.SetCellValue(sheet, "A8", "Pendidikan")
+	_ = f.SetCellValue(sheet, "B8", res.TestInstitution)
+	_ = f.SetCellValue(sheet, "A9", "Jenis kelamin")
+	_ = f.SetCellValue(sheet, "B9", res.TestGender)
+	_ = f.SetCellValue(sheet, "A10", "Tanggal")
+	_ = f.SetCellValue(sheet, "B10", res.TestDate.Format("02-01-2006"))
+	_ = f.SetCellStyle(sheet, "A3", "A10", styleCenter)
+	_ = f.SetCellStyle(sheet, "B3", "B10", styleBody)
+
+	startRow := 12
 	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", startRow), "TIPE GAYA\nBELAJAR")
 	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", startRow), "INTERPRETASI")
 	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", startRow), "NILAI SKOR")
@@ -1843,6 +2192,23 @@ func (c *PsychotestAdminController) BulkInvitations() {
 			c.ServeJSON()
 			return
 		}
+	case "send_code":
+		// Kirim KODE (token) ke semua undangan terpilih melalui channel sesuai konfigurasi batch.
+		var invs []models.TestInvitation
+		_, _ = o.QueryTable(new(models.TestInvitation)).Filter("Id__in", payload.IDs).All(&invs)
+		sent := 0
+		for i := range invs {
+			if err := dispatchSendCode(&invs[i]); err == nil {
+				sent++
+			}
+		}
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: true,
+			Message: fmt.Sprintf("Kode dikirim untuk %d undangan", sent),
+			Data:    map[string]interface{}{"sent": sent, "total": len(invs)},
+		}
+		c.ServeJSON()
+		return
 	default:
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = PsychotestAdminResponse{
@@ -1857,6 +2223,106 @@ func (c *PsychotestAdminController) BulkInvitations() {
 		Success: true,
 		Message: "Aksi massal berhasil dijalankan",
 	}
+	c.ServeJSON()
+}
+
+// dispatchSendCode mengirim kode (token) tes ke 1 invitation lewat channel
+// yang aktif di batch (email / WA). Browser notif tidak ikut karena fungsinya
+// untuk memberitahu pengumuman, bukan kirim kode.
+//
+// Untuk channel WhatsApp, nomor diambil berurutan dari:
+//  1. inv.Phone (yang dimasukkan operator saat CreateInvitations), kalau ada
+//  2. users.no_handphone (jika invitation sudah ter-link ke user)
+//  3. cari user by email (jika belum ter-link), lalu auto-link & ambil HP-nya
+func dispatchSendCode(inv *models.TestInvitation) error {
+	if inv == nil || inv.Id == 0 {
+		return fmt.Errorf("invitation kosong")
+	}
+	if inv.BatchId == nil {
+		return fmt.Errorf("invitation tidak terkait batch")
+	}
+	o := orm.NewOrm()
+
+	batch := models.TestBatch{Id: *inv.BatchId}
+	if err := o.Read(&batch); err != nil {
+		return fmt.Errorf("batch tidak ditemukan: %w", err)
+	}
+
+	displayName := ""
+	phoneFromUser := ""
+
+	// Resolve user: kalau sudah ter-link gunakan UserId; kalau belum, coba lookup via email
+	// supaya undangan lama (yang dibuat sebelum user registrasi) tetap bisa diisi nomor HP-nya.
+	if inv.UserId != nil && *inv.UserId != 0 {
+		var u models.User
+		u.Id = *inv.UserId
+		if err := o.Read(&u); err == nil {
+			displayName = u.NamaLengkap
+			phoneFromUser = u.NoHandphone
+		}
+	} else if inv.Email != "" {
+		var u models.User
+		u.Email = inv.Email
+		if err := o.Read(&u, "Email"); err == nil {
+			displayName = u.NamaLengkap
+			phoneFromUser = u.NoHandphone
+			// auto-link untuk konsistensi data
+			inv.UserId = &u.Id
+			_, _ = o.Update(inv, "UserId")
+		}
+	}
+
+	// Fallback: kalau inv.Phone kosong tapi user punya nomor, pakai nomor user
+	// dan simpan ke invitation supaya konsisten dengan history.
+	if strings.TrimSpace(inv.Phone) == "" && strings.TrimSpace(phoneFromUser) != "" {
+		inv.Phone = strings.TrimSpace(phoneFromUser)
+		_, _ = o.Update(inv, "Phone")
+	}
+
+	logs.Info("dispatchSendCode invID=%d email=%q phone=%q via_email=%v via_wa=%v",
+		inv.Id, inv.Email, inv.Phone, batch.SendViaEmail, batch.SendViaWhatsApp)
+
+	if batch.SendViaEmail && inv.Email != "" {
+		go sendInvitationCodeEmail(&batch, displayName, inv.Email, inv)
+	}
+	if batch.SendViaWhatsApp {
+		if strings.TrimSpace(inv.Phone) == "" {
+			logs.Warning("WA skip: inv #%d (%s) tidak punya nomor HP. Update profil user atau ketik 'email,nomor' saat membuat undangan.", inv.Id, inv.Email)
+		} else {
+			go sendInvitationCodeWA(&batch, displayName, inv.Phone, inv)
+		}
+	}
+	return nil
+}
+
+// @router /api/admin/test-invitations/:id/send-code [post]
+// Kirim TOKEN ke 1 peserta lewat channel sesuai pengaturan batch.
+func (c *PsychotestAdminController) SendCode() {
+	if !c.verifyAdmin() {
+		return
+	}
+	invID, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = PsychotestAdminResponse{Success: false, Message: "ID undangan tidak valid"}
+		c.ServeJSON()
+		return
+	}
+	o := orm.NewOrm()
+	var inv models.TestInvitation
+	if err := o.QueryTable(new(models.TestInvitation)).Filter("Id", invID).One(&inv); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = PsychotestAdminResponse{Success: false, Message: "Undangan tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+	if err := dispatchSendCode(&inv); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = PsychotestAdminResponse{Success: false, Message: err.Error()}
+		c.ServeJSON()
+		return
+	}
+	c.Data["json"] = PsychotestAdminResponse{Success: true, Message: "Kode tes sedang dikirim"}
 	c.ServeJSON()
 }
 
@@ -1886,6 +2352,11 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		EnableHolland       *bool  `json:"enable_holland"`
 		EnableLearningStyle *bool  `json:"enable_learning_style"`
 		EnableKraepelin     *bool  `json:"enable_kraepelin"`
+		EnableRMIB          *bool  `json:"enable_rmib"`
+		EnablePAPI          *bool  `json:"enable_papi"`
+		SendViaEmail        *bool  `json:"send_via_email"`
+		SendViaBrowser      *bool  `json:"send_via_browser"`
+		SendViaWhatsApp     *bool  `json:"send_via_whatsapp"`
 	}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &payload); err != nil {
 		c.Ctx.Output.SetStatus(400)
@@ -1938,9 +2409,29 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		batch.EnableKraepelin = *payload.EnableKraepelin
 		fields = append(fields, "EnableKraepelin")
 	}
+	if payload.EnableRMIB != nil && batch.EnableRMIB != *payload.EnableRMIB {
+		batch.EnableRMIB = *payload.EnableRMIB
+		fields = append(fields, "EnableRMIB")
+	}
+	if payload.EnablePAPI != nil && batch.EnablePAPI != *payload.EnablePAPI {
+		batch.EnablePAPI = *payload.EnablePAPI
+		fields = append(fields, "EnablePAPI")
+	}
+	if payload.SendViaEmail != nil && batch.SendViaEmail != *payload.SendViaEmail {
+		batch.SendViaEmail = *payload.SendViaEmail
+		fields = append(fields, "SendViaEmail")
+	}
+	if payload.SendViaBrowser != nil && batch.SendViaBrowser != *payload.SendViaBrowser {
+		batch.SendViaBrowser = *payload.SendViaBrowser
+		fields = append(fields, "SendViaBrowser")
+	}
+	if payload.SendViaWhatsApp != nil && batch.SendViaWhatsApp != *payload.SendViaWhatsApp {
+		batch.SendViaWhatsApp = *payload.SendViaWhatsApp
+		fields = append(fields, "SendViaWhatsApp")
+	}
 
 	// Enforce exactly one test enabled when toggles are provided.
-	if payload.EnableIST != nil || payload.EnableHolland != nil || payload.EnableLearningStyle != nil || payload.EnableKraepelin != nil {
+	if payload.EnableIST != nil || payload.EnableHolland != nil || payload.EnableLearningStyle != nil || payload.EnableKraepelin != nil || payload.EnableRMIB != nil || payload.EnablePAPI != nil {
 		enabledCount := 0
 		if batch.EnableIST {
 			enabledCount++
@@ -1954,11 +2445,17 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		if batch.EnableKraepelin {
 			enabledCount++
 		}
+		if batch.EnableRMIB {
+			enabledCount++
+		}
+		if batch.EnablePAPI {
+			enabledCount++
+		}
 		if enabledCount != 1 {
 			c.Ctx.Output.SetStatus(400)
 			c.Data["json"] = PsychotestAdminResponse{
 				Success: false,
-				Message: "Batch harus mengaktifkan tepat satu jenis tes (IST / Holland / Gaya Belajar / Kraepelin).",
+				Message: "Batch harus mengaktifkan tepat satu jenis tes (IST / Holland / Gaya Belajar / Kraepelin / RMIB / PAPI).",
 			}
 			c.ServeJSON()
 			return

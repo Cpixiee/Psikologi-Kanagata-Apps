@@ -38,7 +38,7 @@
             <li class="menu-item"><a href="javascript:void(0);" class="menu-link"><i class="menu-icon tf-icons bx bx-chat"></i><div class="text-truncate">Konseling</div></a></li>
             <li class="menu-item"><a href="javascript:void(0);" class="menu-link"><i class="menu-icon tf-icons bx bx-history"></i><div class="text-truncate">Riwayat</div></a></li>
             <li class="menu-header small text-uppercase"><span class="menu-header-text">Akun</span></li>
-            <li class="menu-item open active">
+            <li class="menu-item active">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div class="text-truncate">Profil</div>
@@ -49,6 +49,7 @@
                 <li class="menu-item"><a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a></li>
                 <li class="menu-item"><a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a></li>
                 <li class="menu-item"><a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a></li>
+                <li class="menu-item"><a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a></li>
               </ul>
             </li>
             <li class="menu-item"><a href="/settings" class="menu-link"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengaturan</div></a></li>
@@ -74,6 +75,11 @@
                     <div class="col-md-6 mb-3"><label class="form-label">No. Handphone</label><div class="form-control bg-light"><span id="profilePhone">-</span></div></div>
                     <div class="col-md-6 mb-3"><label class="form-label">Asal Instansi</label><div class="form-control bg-light"><span id="profileSchool">-</span></div></div>
                     <div class="col-md-6 mb-3"><label class="form-label">Email</label><div class="form-control bg-light"><span id="profileEmail">-</span></div></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">NISN / NIP</label><div class="form-control bg-light"><span id="profileNisnNip">-</span></div></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Kelas</label><div class="form-control bg-light"><span id="profileKelas">-</span></div></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Jurusan</label><div class="form-control bg-light"><span id="profileJurusan">-</span></div></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Tempat, Tanggal Lahir</label><div class="form-control bg-light"><span id="profileTTL">-</span></div></div>
+                    <div class="col-12 mb-3"><label class="form-label">Alamat</label><div class="form-control bg-light"><span id="profileFullAddress">-</span></div></div>
                   </div>
                 </div>
               </div>
@@ -99,6 +105,42 @@
         document.getElementById('profileName').textContent = user.nama_lengkap || '-';
         document.getElementById('profilePhone').textContent = user.no_handphone || '-';
         document.getElementById('profileEmail').textContent = user.email || '-';
+        const schoolEl = document.getElementById('profileSchool');
+        if (schoolEl) schoolEl.textContent = user.asal_instansi || '-';
+        const nisnNipEl = document.getElementById('profileNisnNip');
+        if (nisnNipEl) {
+          if (user.nisn) nisnNipEl.textContent = 'NISN: ' + user.nisn;
+          else if (user.nip) nisnNipEl.textContent = 'NIP: ' + user.nip;
+          else nisnNipEl.textContent = '-';
+        }
+        const kelasEl = document.getElementById('profileKelas');
+        if (kelasEl) kelasEl.textContent = user.kelas || '-';
+        const jurEl = document.getElementById('profileJurusan');
+        if (jurEl) jurEl.textContent = user.jurusan || '-';
+        const ttlEl = document.getElementById('profileTTL');
+        if (ttlEl) {
+          let ttl = user.tempat_lahir || '';
+          if (user.tanggal_lahir) {
+            try {
+              const d = new Date(user.tanggal_lahir);
+              if (!isNaN(d)) {
+                const fmt = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                ttl = ttl ? (ttl + ', ' + fmt) : fmt;
+              }
+            } catch (_) {}
+          }
+          ttlEl.textContent = ttl || '-';
+        }
+        const fullAddrEl = document.getElementById('profileFullAddress');
+        if (fullAddrEl) {
+          // Format header tes: "Jl. ..., Kec. ..., Kota ..., Provinsi ..."
+          const parts = [];
+          if (user.alamat) parts.push(user.alamat);
+          if (user.kecamatan) parts.push('Kec. ' + user.kecamatan);
+          if (user.kota) parts.push(user.kota);
+          if (user.provinsi) parts.push(user.provinsi);
+          fullAddrEl.textContent = parts.length ? parts.join(', ') : '-';
+        }
         if (user.foto_profil) {
           document.getElementById('profilePhoto').src = '/static/uploads/profiles/' + user.foto_profil;
         }

@@ -1,0 +1,8 @@
+ALTER TABLE users
+  DROP COLUMN IF EXISTS nisn,
+  DROP COLUMN IF EXISTS nip,
+  DROP COLUMN IF EXISTS kelas,
+  DROP COLUMN IF EXISTS jurusan,
+  DROP COLUMN IF EXISTS tempat_lahir,
+  DROP COLUMN IF EXISTS kecamatan,
+  DROP COLUMN IF EXISTS profile_completed;

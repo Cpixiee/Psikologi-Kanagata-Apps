@@ -74,6 +74,20 @@ func main() {
 		log.Printf("Learning style seed warning: %v", err)
 		logs.Warning("Learning style seed warning: %v", err)
 	}
+
+	// Ensure RMIB schema exists & seed soal RMIB pria (96 item).
+	if err := models.EnsureRMIBTables(); err != nil {
+		log.Printf("RMIB schema ensure warning: %v", err)
+		logs.Warning("RMIB schema ensure warning: %v", err)
+	}
+	if err := seeds.SeedRMIBPria(); err != nil {
+		log.Printf("RMIB pria seed warning: %v", err)
+		logs.Warning("RMIB pria seed warning: %v", err)
+	}
+	if err := seeds.SeedRMIBWanita(); err != nil {
+		log.Printf("RMIB wanita seed warning: %v", err)
+		logs.Warning("RMIB wanita seed warning: %v", err)
+	}
 	
 	logs.Info("Application starting on port %s...", beego.AppConfig.DefaultString("httpport", "112"))
 	beego.Run()

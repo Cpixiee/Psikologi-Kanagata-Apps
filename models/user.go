@@ -38,8 +38,18 @@ type User struct {
 	FotoProfil   string    `orm:"size(255);null" json:"foto_profil"`
 	Password     string    `orm:"size(255)" json:"-"`
 	Role         Role      `orm:"size(20)" json:"role"`
-	CreatedAt    time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
-	UpdatedAt    time.Time `orm:"auto_now;type(datetime)" json:"updated_at"`
+
+	// === Onboarding & data tambahan untuk header alat tes ===
+	NISN              string `orm:"column(nisn);size(20)" json:"nisn"`
+	NIP               string `orm:"column(nip);size(30)" json:"nip"`
+	Kelas             string `orm:"column(kelas);size(50)" json:"kelas"`
+	Jurusan           string `orm:"column(jurusan);size(100)" json:"jurusan"`
+	TempatLahir       string `orm:"column(tempat_lahir);size(100)" json:"tempat_lahir"`
+	Kecamatan         string `orm:"column(kecamatan);size(100)" json:"kecamatan"`
+	ProfileCompleted  bool   `orm:"column(profile_completed);default(false)" json:"profile_completed"`
+
+	CreatedAt time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
+	UpdatedAt time.Time `orm:"auto_now;type(datetime)" json:"updated_at"`
 }
 
 func (u *User) TableName() string {

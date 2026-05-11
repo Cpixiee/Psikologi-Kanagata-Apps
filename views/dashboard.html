@@ -104,7 +104,7 @@
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Akun</span>
             </li>
-            <li class="menu-item open">
+            <li class="menu-item">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div class="text-truncate">Profil</div>
@@ -124,6 +124,12 @@
                 </li>
                 <li class="menu-item">
                   <a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/papi" class="menu-link"><div class="text-truncate">Hasil PAPI</div></a>
                 </li>
               </ul>
             </li>
@@ -925,5 +931,80 @@
       });
     </script>
 
+    <!-- ===== Modal Onboarding (otomatis tampil bila profil belum lengkap) ===== -->
+    <div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="onboardingModalLabel">Lengkapi Data Profil Anda</h5>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted small mb-3">
+              Sebelum mulai mengerjakan tes, mohon lengkapi data berikut. Data ini akan dipakai
+              di header laporan hasil tes (NISN/NIP, kelas, tempat tanggal lahir, dan alamat).
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="ob_nisn" class="form-label">NISN</label>
+                <input type="text" class="form-control" id="ob_nisn" placeholder="Untuk siswa" maxlength="20" />
+                <small class="text-muted">Isi salah satu: NISN <em>atau</em> NIP.</small>
+              </div>
+              <div class="col-md-6">
+                <label for="ob_nip" class="form-label">NIP</label>
+                <input type="text" class="form-control" id="ob_nip" placeholder="Untuk guru / pegawai" maxlength="30" />
+              </div>
+              <div class="col-md-6">
+                <label for="ob_kelas" class="form-label">Kelas <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="ob_kelas" placeholder="Contoh: XII IPA 2" maxlength="50" required />
+              </div>
+              <div class="col-md-6">
+                <label for="ob_jurusan" class="form-label">Jurusan <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="ob_jurusan" placeholder="Contoh: IPA / IPS / RPL" maxlength="100" required />
+              </div>
+              <div class="col-md-6">
+                <label for="ob_tempat_lahir" class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="ob_tempat_lahir" placeholder="Contoh: Jakarta" maxlength="100" required />
+              </div>
+              <div class="col-md-6">
+                <label for="ob_tanggal_lahir" class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="ob_tanggal_lahir" required />
+              </div>
+              <div class="col-12">
+                <label for="ob_alamat" class="form-label">Alamat (jalan / nomor rumah, opsional)</label>
+                <textarea class="form-control" id="ob_alamat" rows="2" placeholder="Contoh: Jl. Mawar No. 12, RT 03/RW 05"></textarea>
+              </div>
+              <div class="col-md-4">
+                <label for="ob_provinsi" class="form-label">Provinsi <span class="text-danger">*</span></label>
+                <select class="form-select" id="ob_provinsi" required>
+                  <option value="">Memuat...</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="ob_kota" class="form-label">Kota / Kabupaten <span class="text-danger">*</span></label>
+                <select class="form-select" id="ob_kota" required>
+                  <option value="">-- Pilih Provinsi dahulu --</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="ob_kecamatan" class="form-label">Kecamatan <span class="text-danger">*</span></label>
+                <select class="form-select" id="ob_kecamatan" required>
+                  <option value="">-- Pilih Kota dahulu --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary w-100" id="ob_btnSimpanMulai">
+              <i class="bx bx-save me-1"></i>Simpan &amp; Mulai Test
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SweetAlert + Onboarding script -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/modern/wilayah.js?v=2"></script>
+    <script src="/static/modern/onboarding.js?v=2"></script>
   </body>
 </html>

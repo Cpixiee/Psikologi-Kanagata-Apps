@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instruksi Tes RMIB</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .rmib-card { max-width: 860px; margin: 0 auto; }
+      .rmib-section-title { font-weight: 600; color: #2d3748; margin-bottom: .35rem; }
+      .rmib-info-box {
+        background: #f4f6ff;
+        border-left: 4px solid #696cff;
+        padding: 1rem 1.25rem;
+        border-radius: .5rem;
+        margin-top: 1rem;
+      }
+      .rmib-progress-wrap { height: 8px; background:#e9ecef; border-radius:8px; overflow:hidden; }
+      .rmib-progress-bar { height:100%; width:0%; background:linear-gradient(90deg,#696cff,#9f86ff); }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="card shadow-sm rmib-card">
+            <div class="card-header bg-primary text-white text-center">
+              <h5 class="mb-0">
+                Instruksi Tes RMIB
+                {{if eq .GenderVersion "wanita"}}(Wanita){{else}}(Pria){{end}}
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted">Progress 0%</small>
+                <small class="text-muted">Estimasi: &plusmn;{{.EstimatedMinutes}} menit</small>
+              </div>
+              <div class="rmib-progress-wrap mb-4">
+                <div class="rmib-progress-bar" style="width:0%"></div>
+              </div>
+
+              <div class="rmib-section-title">Skenario</div>
+              <p class="text-muted">
+                Bayangkan Anda dikelompokkan dengan sebelas orang mahasiswa
+                {{if eq .GenderVersion "wanita"}}wanita{{else}}pria{{end}}
+                dalam proyek <strong>"Wisma Kerja Nyata" (WKN)</strong>, yang bertujuan menyadari makna
+                Kelestarian Lingkungan Hidup (KLH). Perjalanan akan berlangsung ke beberapa tempat.
+                Di tiap tempat, tim Anda akan mengerjakan proyek dan mendapat bantuan ahli yang akan
+                membimbing dan melatih anggota tim bila diperlukan.
+              </p>
+
+              <div class="rmib-section-title mt-3">Cara Mengerjakan</div>
+              <p class="text-muted mb-2">
+                Pada tiap kelompok, akan disajikan daftar 12 aktivitas. Urutkan sesuai minat pribadi Anda:
+              </p>
+              <ul class="text-muted">
+                <li>Angka <strong>1</strong> = paling Anda senangi.</li>
+                <li>Angka <strong>12</strong> = paling tidak Anda senangi.</li>
+                <li>Setiap angka hanya boleh digunakan satu kali per kelompok.</li>
+                <li>Semua 12 aktivitas wajib diberi ranking sebelum lanjut.</li>
+              </ul>
+              <p class="text-muted">
+                Yang dinilai adalah <strong>minat</strong> dan kesediaan Anda, bukan kemampuan
+                (anggota tim akan dilatih bila perlu). Jawablah dengan jujur sesuai diri Anda sendiri.
+              </p>
+
+              <div class="rmib-info-box">
+                <div class="mb-1"><strong>Total: {{.TotalGroups}} kelompok</strong> berisi 12 aktivitas tiap kelompok.</div>
+                <div class="text-muted small">Anda dapat berpindah Previous/Next antar kelompok. Jawaban tersimpan otomatis.</div>
+              </div>
+            </div>
+            <div class="card-footer text-center">
+              <a href="/test/rmib/group/1" class="btn btn-primary px-4">Mulai Tes</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Mulai Tes PAPI - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .page-card { border-radius: 14px; }
+      .info-tile {
+        background: #f8f9ff;
+        border: 1px solid rgba(105, 108, 255, 0.15);
+        border-radius: 10px;
+        padding: 14px;
+        height: 100%;
+      }
+      .info-tile .icon {
+        width: 36px; height: 36px; border-radius: 8px;
+        background: rgba(105, 108, 255, 0.12);
+        color: #696cff;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; margin-bottom: 10px;
+      }
+      .info-tile h6 { font-weight: 700; margin-bottom: 4px; }
+      .info-tile p { color: #6c757d; font-size: 0.85rem; margin: 0; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+          <div class="mb-4 text-center">
+            <h4 class="fw-bold mb-1">Tes PAPI</h4>
+            <p class="mb-0 text-muted">Perception and Preference Inventory</p>
+          </div>
+
+          {{if .Error}}
+          <div class="alert alert-danger">{{.Error}}</div>
+          {{end}}
+
+          <div class="card page-card shadow-sm">
+            <div class="card-body">
+              <p class="text-muted mb-3">
+                Tes PAPI digunakan untuk memetakan preferensi dan kecenderungan kepribadian Anda melalui
+                <strong>20 kategori (10 Peran + 10 Kebutuhan)</strong>.
+                Tidak ada jawaban benar atau salah &mdash; pilih pernyataan yang paling sesuai dengan diri Anda.
+              </p>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-3 col-sm-6">
+                  <div class="info-tile">
+                    <div class="icon">&#128221;</div>
+                    <h6>{{.TotalItems}} Soal</h6>
+                    <p>Pernyataan berpasangan</p>
+                  </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                  <div class="info-tile">
+                    <div class="icon">&#9202;</div>
+                    <h6>{{.TimeLimitMinutes}} Menit</h6>
+                    <p>Durasi pengerjaan</p>
+                  </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                  <div class="info-tile">
+                    <div class="icon">&#128202;</div>
+                    <h6>20 Kategori</h6>
+                    <p>10 Peran + 10 Kebutuhan</p>
+                  </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                  <div class="info-tile">
+                    <div class="icon">&#128161;</div>
+                    <h6>Atas / Bawah</h6>
+                    <p>Pilih pernyataan yang paling sesuai</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-info mb-4">
+                <strong>Pastikan:</strong> Anda mengerjakan di tempat yang tenang dan menjawab sesuai kondisi diri sendiri.
+                Jawaban akan disimpan otomatis.
+              </div>
+
+              <div class="d-flex justify-content-end align-items-center">
+                <a href="/test/papi/instruction" class="btn btn-primary">Lanjut ke Instruksi &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+  </body>
+</html>

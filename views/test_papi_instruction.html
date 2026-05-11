@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Instruksi Tes PAPI - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .page-card { border-radius: 14px; }
+      .step { display: flex; gap: 12px; margin-bottom: 14px; }
+      .step-badge {
+        width: 28px; height: 28px; border-radius: 8px;
+        background: rgba(105,108,255,.12); color:#696cff;
+        display:flex; align-items:center; justify-content:center;
+        font-weight:700; flex: 0 0 auto;
+      }
+      .dim-row {
+        display:flex; align-items:center; gap:10px;
+        padding: 10px 12px; border:1px solid #e7e7ff;
+        border-radius: 10px; background:#fff; margin-bottom: 8px;
+      }
+      .dim-code {
+        display:inline-block; padding: 2px 10px;
+        background:#696cff; color:#fff; border-radius: 6px;
+        font-size:.75rem; font-weight:700; letter-spacing:.5px;
+        min-width: 72px; text-align:center;
+      }
+      .dim-label { font-weight: 600; }
+      .dim-desc { color:#6c757d; font-size:.85rem; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+          <div class="mb-4 text-center">
+            <h4 class="fw-bold mb-1">Instruksi Tes PAPI</h4>
+            <p class="mb-0 text-muted">Baca petunjuk berikut sebelum memulai.</p>
+          </div>
+
+          <div class="card page-card mb-4 shadow-sm">
+            <div class="card-body">
+              <div class="alert alert-warning mb-4">
+                <strong>Penting:</strong> Tes ini berjalan dengan timer
+                <strong>{{.TimeLimitMinutes}} menit</strong> untuk mengerjakan
+                <strong>{{.TotalItems}} soal</strong>. Jika waktu habis, jawaban tersimpan otomatis.
+              </div>
+
+              <div class="step">
+                <div class="step-badge">1</div>
+                <div>
+                  <div class="fw-semibold">Cara menjawab</div>
+                  <div class="text-muted">
+                    Setiap soal berisi <strong>2 pernyataan</strong> (atas dan bawah).
+                    Di kolom <strong>Jawab</strong> tersedia <strong>2 kotak</strong> sejajar dengan masing-masing pernyataan.
+                    Klik kotak <strong>atas</strong> bila pernyataan atas paling menggambarkan diri Anda,
+                    atau klik kotak <strong>bawah</strong> bila pernyataan bawah lebih sesuai.
+                    Kotak yang dipilih akan ditandai dengan <strong>lingkaran hijau</strong>.
+                  </div>
+                  <div class="mt-2">
+                    <div style="border:1px solid #d9d9e7; border-radius:10px; max-width:560px; overflow:hidden;">
+                      <table class="mb-0" style="width:100%; border-collapse:collapse; font-size:.9rem;">
+                        <thead>
+                          <tr style="background:#f5f5fb;">
+                            <th style="border:1px solid #d9d9e7; padding:8px 10px; width:48px; text-align:center;">No</th>
+                            <th style="border:1px solid #d9d9e7; padding:8px 10px;">Pernyataan</th>
+                            <th style="border:1px solid #d9d9e7; padding:8px 10px; width:80px; text-align:center;">Jawab</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style="border:1px solid #d9d9e7; padding:0; text-align:center; font-weight:700; background:#d4f4e2; color:#1f7a45;">1</td>
+                            <td style="border:1px solid #d9d9e7; padding:0;">
+                              <div style="padding:10px 12px; border-bottom:1px dashed #e0e0ec;">Saya seorang pekerja keras</div>
+                              <div style="padding:10px 12px;">Saya bukan seorang pemurung</div>
+                            </td>
+                            <td style="border:1px solid #d9d9e7; padding:0; text-align:center;">
+                              <div style="display:flex; flex-direction:column;">
+                                <div style="height:42px; display:flex; align-items:center; justify-content:center; border-bottom:1px dashed #e0e0ec;">
+                                  <span style="display:inline-block; width:22px; height:22px; border-radius:6px; border:2px solid #28c76f; background:#28c76f; box-shadow:0 0 0 4px rgba(40,199,111,.25); position:relative;"><span style="position:absolute; inset:4px; border-radius:3px; background:#fff; display:block;"></span></span>
+                                </div>
+                                <div style="height:42px; display:flex; align-items:center; justify-content:center;">
+                                  <span style="display:inline-block; width:22px; height:22px; border-radius:6px; border:2px solid #b6b6cf; background:#fff;"></span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="text-muted small mt-1">Contoh: kotak <strong>atas</strong> dipilih (pernyataan &ldquo;Saya seorang pekerja keras&rdquo;).</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="step">
+                <div class="step-badge">2</div>
+                <div>
+                  <div class="fw-semibold">Pengerjaan per halaman (10 soal)</div>
+                  <div class="text-muted">
+                    Soal ditampilkan <strong>10 per halaman</strong> dari total <strong>{{.TotalItems}} soal</strong>.
+                    Anda harus menjawab <strong>seluruh 10 soal</strong> di halaman ini sebelum dapat melanjutkan ke halaman berikutnya.
+                    Tombol <em>Selesaikan Tes</em> hanya muncul di halaman terakhir.
+                  </div>
+                </div>
+              </div>
+
+              <div class="step">
+                <div class="step-badge">3</div>
+                <div>
+                  <div class="fw-semibold">Jawaban tersimpan otomatis</div>
+                  <div class="text-muted">
+                    Setiap kali Anda memilih, jawaban langsung tersimpan ke server.
+                    Pindah halaman pun aman tanpa kehilangan jawaban.
+                  </div>
+                </div>
+              </div>
+
+              <div class="step">
+                <div class="step-badge">4</div>
+                <div>
+                  <div class="fw-semibold">Tidak ada benar / salah</div>
+                  <div class="text-muted">
+                    Jawab dengan jujur sesuai kondisi diri Anda. Tidak ada jawaban benar atau salah.
+                    Mungkin Anda menyukai kedua pernyataan, tetap pilih yang <strong>paling</strong> menggambarkan Anda.
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4" />
+
+              <div class="fw-semibold mb-3">20 Kategori yang Diukur</div>
+              <div class="text-muted small mb-3">10 Peran (Roles) + 10 Kebutuhan (Needs)</div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="text-uppercase small fw-bold text-primary mb-2">Peran (Roles)</div>
+                  <div class="dim-row"><span class="dim-code">G</span><div><div class="dim-label">Pekerja keras</div></div></div>
+                  <div class="dim-row"><span class="dim-code">L</span><div><div class="dim-label">Kepemimpinan</div></div></div>
+                  <div class="dim-row"><span class="dim-code">I</span><div><div class="dim-label">Mudah membuat keputusan</div></div></div>
+                  <div class="dim-row"><span class="dim-code">T</span><div><div class="dim-label">Tipe orang yang sibuk</div></div></div>
+                  <div class="dim-row"><span class="dim-code">V</span><div><div class="dim-label">Tipe orang yang bersemangat</div></div></div>
+                  <div class="dim-row"><span class="dim-code">S</span><div><div class="dim-label">Hubungan sosial / pergaulan luas</div></div></div>
+                  <div class="dim-row"><span class="dim-code">R</span><div><div class="dim-label">Tipe teoritis</div></div></div>
+                  <div class="dim-row"><span class="dim-code">D</span><div><div class="dim-label">Tipe orang teratur / bekerja detail</div></div></div>
+                  <div class="dim-row"><span class="dim-code">C</span><div><div class="dim-label">Mengatur / mengorganisir</div></div></div>
+                  <div class="dim-row"><span class="dim-code">E</span><div><div class="dim-label">Pengendalian emosi</div></div></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="text-uppercase small fw-bold text-primary mb-2">Kebutuhan (Needs)</div>
+                  <div class="dim-row"><span class="dim-code">N</span><div><div class="dim-label">Penyelesaian mandiri</div></div></div>
+                  <div class="dim-row"><span class="dim-code">A</span><div><div class="dim-label">Kebutuhan untuk berprestasi</div></div></div>
+                  <div class="dim-row"><span class="dim-code">P</span><div><div class="dim-label">Mengatur orang lain</div></div></div>
+                  <div class="dim-row"><span class="dim-code">X</span><div><div class="dim-label">Untuk mendapat perhatian</div></div></div>
+                  <div class="dim-row"><span class="dim-code">B</span><div><div class="dim-label">Diterima dalam kelompok</div></div></div>
+                  <div class="dim-row"><span class="dim-code">O</span><div><div class="dim-label">Hubungan akrab / intim</div></div></div>
+                  <div class="dim-row"><span class="dim-code">Z</span><div><div class="dim-label">Hasrat untuk berubah</div></div></div>
+                  <div class="dim-row"><span class="dim-code">K</span><div><div class="dim-label">Agresi</div></div></div>
+                  <div class="dim-row"><span class="dim-code">F</span><div><div class="dim-label">Mendukung / membantu atasan</div></div></div>
+                  <div class="dim-row"><span class="dim-code">W</span><div><div class="dim-label">Mengikuti aturan</div></div></div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end mt-4">
+                <a href="/test/papi/questions" class="btn btn-primary">Mulai Tes &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+  </body>
+</html>

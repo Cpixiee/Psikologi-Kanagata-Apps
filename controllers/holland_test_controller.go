@@ -878,15 +878,37 @@ func (c *HollandTestController) ExportResultExcel() {
 		email = inv.Email
 	}
 
+	nisnNip := strings.TrimSpace(user.NISN)
+	idLabel := "NISN"
+	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
+		nisnNip = user.NIP
+		idLabel = "NIP"
+	}
+	if nisnNip == "" {
+		idLabel = "NISN/NIP"
+	}
+
 	_ = f.SetCellValue(sheet, "A3", "Nama")
 	_ = f.SetCellValue(sheet, "B3", ":")
 	_ = f.SetCellValue(sheet, "C3", nama)
 
-	_ = f.SetCellValue(sheet, "A4", "Email")
+	_ = f.SetCellValue(sheet, "A4", idLabel)
 	_ = f.SetCellValue(sheet, "B4", ":")
-	_ = f.SetCellValue(sheet, "C4", email)
+	_ = f.SetCellValue(sheet, "C4", nisnNip)
 
-	labelRow := 6
+	_ = f.SetCellValue(sheet, "A5", "Kelas")
+	_ = f.SetCellValue(sheet, "B5", ":")
+	_ = f.SetCellValue(sheet, "C5", user.Kelas)
+
+	_ = f.SetCellValue(sheet, "A6", "Jurusan")
+	_ = f.SetCellValue(sheet, "B6", ":")
+	_ = f.SetCellValue(sheet, "C6", user.Jurusan)
+
+	_ = f.SetCellValue(sheet, "A7", "Email")
+	_ = f.SetCellValue(sheet, "B7", ":")
+	_ = f.SetCellValue(sheet, "C7", email)
+
+	labelRow := 9
 	_ = f.MergeCell(sheet, fmt.Sprintf("A%d", labelRow), fmt.Sprintf("F%d", labelRow))
 	if complete {
 		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", labelRow), "Jawaban lengkap")

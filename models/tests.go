@@ -40,10 +40,13 @@ type TestBatch struct {
 	EnableHolland   bool      `orm:"column(enable_holland);default(false)" json:"enable_holland"`
 	EnableLearningStyle bool  `orm:"column(enable_learning_style);default(false)" json:"enable_learning_style"`
 	EnableKraepelin bool      `orm:"column(enable_kraepelin);default(false)" json:"enable_kraepelin"`
+	EnableRMIB      bool      `orm:"column(enable_rmib);default(false)" json:"enable_rmib"`
+	EnablePAPI      bool      `orm:"column(enable_papi);default(false)" json:"enable_papi"`
 	PurposeCategory string    `orm:"column(purpose_category);size(50)" json:"purpose_category"`
 	PurposeDetail   string    `orm:"column(purpose_detail);size(100)" json:"purpose_detail"`
 	SendViaEmail    bool      `orm:"column(send_via_email);default(true)" json:"send_via_email"`
 	SendViaBrowser  bool      `orm:"column(send_via_browser);default(false)" json:"send_via_browser"`
+	SendViaWhatsApp bool      `orm:"column(send_via_whatsapp);default(false)" json:"send_via_whatsapp"`
 	Status          string    `orm:"column(status);size(20);default(active)" json:"status"`
 	CreatedBy       int       `orm:"column(created_by)" json:"created_by"`
 	CreatedAt       time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
@@ -58,6 +61,7 @@ type TestInvitation struct {
 	Id         int       `orm:"auto;pk" json:"id"`
 	BatchId    *int      `orm:"null" json:"batch_id,omitempty"` // Bisa NULL jika batch sudah dihapus
 	Email      string    `orm:"size(255)" json:"email"`
+	Phone      string    `orm:"column(phone);size(20)" json:"phone"`
 	UserId     *int      `orm:"null" json:"user_id,omitempty"`
 	Token      string    `orm:"size(64);unique" json:"token"`
 	ExpiresAt  time.Time `orm:"type(timestamp)" json:"expires_at"`
@@ -367,6 +371,133 @@ func (a *KraepelinAttempt) TableName() string {
 	return "kraepelin_attempts"
 }
 
+// RMIBQuestion: master 96 item RMIB per gender_version (pria/wanita), 8 kelompok x 12 aktivitas.
+type RMIBQuestion struct {
+	Id               int    `orm:"auto;pk" json:"id"`
+	GenderVersion    string `orm:"column(gender_version);size(10)" json:"gender_version"`
+	GroupNumber      int    `orm:"column(group_number)" json:"group_number"`
+	GroupTitle       string `orm:"column(group_title);size(255)" json:"group_title"`
+	GroupDescription string `orm:"column(group_description);type(text);null" json:"group_description"`
+	ItemOrder        int    `orm:"column(item_order)" json:"item_order"`
+	QuestionText     string `orm:"column(question_text);type(text)" json:"question_text"`
+	CategoryCode     string `orm:"column(category_code);size(8)" json:"category_code"`
+}
+
+func (q *RMIBQuestion) TableName() string {
+	return "rmib_questions"
+}
+
+// RMIBSession: satu attempt RMIB per invitation.
+type RMIBSession struct {
+	Id            int             `orm:"auto;pk" json:"id"`
+	Invitation    *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
+	User          *User           `orm:"rel(fk)" json:"user"`
+	BatchId       *int            `orm:"column(batch_id);null" json:"batch_id,omitempty"`
+	GenderVersion string          `orm:"column(gender_version);size(10)" json:"gender_version"`
+	Status        string          `orm:"column(status);size(20);default(in_progress)" json:"status"`
+	StartedAt     time.Time       `orm:"column(started_at);auto_now_add;type(datetime)" json:"started_at"`
+	CompletedAt   time.Time       `orm:"column(completed_at);null;type(datetime)" json:"completed_at,omitempty"`
+}
+
+func (s *RMIBSession) TableName() string {
+	return "rmib_sessions"
+}
+
+// RMIBAnswer: ranking 1-12 per item; UPSERT by (session_id, question_id).
+type RMIBAnswer struct {
+	Id           int           `orm:"auto;pk" json:"id"`
+	Session      *RMIBSession  `orm:"rel(fk);on_delete(cascade)" json:"session"`
+	GroupNumber  int           `orm:"column(group_number)" json:"group_number"`
+	Question     *RMIBQuestion `orm:"rel(fk);on_delete(cascade)" json:"question"`
+	SelectedRank int           `orm:"column(selected_rank)" json:"selected_rank"`
+	UpdatedAt    time.Time     `orm:"column(updated_at);auto_now;type(datetime)" json:"updated_at"`
+}
+
+func (a *RMIBAnswer) TableName() string {
+	return "rmib_answers"
+}
+
+// RMIBResult: ringkasan skor + top-3 per invitation.
+type RMIBResult struct {
+	Id               int             `orm:"auto;pk" json:"id"`
+	Invitation       *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
+	User             *User           `orm:"rel(fk)" json:"user"`
+	GenderVersion    string          `orm:"column(gender_version);size(10)" json:"gender_version"`
+	ResultJSON       string          `orm:"column(result_json);type(text)" json:"result_json"`
+	DominantCategory string          `orm:"column(dominant_category);size(8)" json:"dominant_category"`
+	Top1             string          `orm:"column(top1);size(8)" json:"top1"`
+	Top2             string          `orm:"column(top2);size(8)" json:"top2"`
+	Top3             string          `orm:"column(top3);size(8)" json:"top3"`
+	Interpretation   string          `orm:"column(interpretation);type(text);null" json:"interpretation"`
+	CompletedAt      time.Time       `orm:"column(completed_at);auto_now_add;type(datetime)" json:"completed_at"`
+}
+
+func (r *RMIBResult) TableName() string {
+	return "rmib_results"
+}
+
+// PAPIQuestion: master 90 item PAPI dengan format paired comparison.
+// Setiap soal berisi 2 pernyataan (OptionA = atas, OptionB = bawah), peserta memilih SATU.
+type PAPIQuestion struct {
+	Id         int    `orm:"auto;pk" json:"id"`
+	ItemNumber int    `orm:"column(item_number)" json:"item_number"`
+	OptionA    string `orm:"column(option_a);type(text)" json:"option_a"`
+	OptionB    string `orm:"column(option_b);type(text)" json:"option_b"`
+	CategoryA  string `orm:"column(category_a);size(8)" json:"category_a"`
+	CategoryB  string `orm:"column(category_b);size(8)" json:"category_b"`
+}
+
+func (q *PAPIQuestion) TableName() string {
+	return "papi_questions"
+}
+
+// PAPISession: satu attempt PAPI per invitation
+type PAPISession struct {
+	Id                   int             `orm:"auto;pk" json:"id"`
+	Invitation           *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
+	User                 *User           `orm:"rel(fk)" json:"user"`
+	BatchId              *int            `orm:"column(batch_id);null" json:"batch_id,omitempty"`
+	Status               string          `orm:"column(status);size(20);default(in_progress)" json:"status"`
+	StartedAt            time.Time       `orm:"column(started_at);auto_now_add;type(datetime)" json:"started_at"`
+	CompletedAt          time.Time       `orm:"column(completed_at);null;type(datetime)" json:"completed_at,omitempty"`
+	TimeLimitMinutes     int             `orm:"column(time_limit_minutes);default(60)" json:"time_limit_minutes"`
+	TimeRemainingSeconds int             `orm:"column(time_remaining_seconds);default(3600)" json:"time_remaining_seconds"`
+}
+
+func (s *PAPISession) TableName() string {
+	return "papi_sessions"
+}
+
+// PAPIAnswer: jawaban A/B/C/D per item; UPSERT by (session_id, question_id)
+type PAPIAnswer struct {
+	Id             int           `orm:"auto;pk" json:"id"`
+	Session        *PAPISession  `orm:"rel(fk);on_delete(cascade)" json:"session"`
+	Question       *PAPIQuestion `orm:"rel(fk);on_delete(cascade)" json:"question"`
+	SelectedOption string        `orm:"column(selected_option);size(1)" json:"selected_option"`
+	UpdatedAt      time.Time     `orm:"column(updated_at);auto_now;type(datetime)" json:"updated_at"`
+}
+
+func (a *PAPIAnswer) TableName() string {
+	return "papi_answers"
+}
+
+// PAPIResult: ringkasan skor per invitation
+type PAPIResult struct {
+	Id               int             `orm:"auto;pk" json:"id"`
+	Invitation       *TestInvitation `orm:"rel(one);on_delete(cascade)" json:"invitation"`
+	User             *User           `orm:"rel(fk)" json:"user"`
+	ResultJSON       string          `orm:"column(result_json);type(text)" json:"result_json"`
+	DominantCategory string          `orm:"column(dominant_category);size(8)" json:"dominant_category"`
+	TopCategories    string          `orm:"column(top_categories);type(text)" json:"top_categories"`
+	Interpretation   string          `orm:"column(interpretation);type(text);null" json:"interpretation"`
+	CompletedAt      time.Time       `orm:"column(completed_at);auto_now_add;type(datetime)" json:"completed_at"`
+	TimeTakenMinutes int             `orm:"column(time_taken_minutes)" json:"time_taken_minutes"`
+}
+
+func (r *PAPIResult) TableName() string {
+	return "papi_results"
+}
+
 func init() {
 	orm.RegisterModel(
 		new(TestBatch),
@@ -386,6 +517,14 @@ func init() {
 		new(LearningStyleAnswer),
 		new(LearningStyleResult),
 		new(KraepelinAttempt),
+		new(RMIBQuestion),
+		new(RMIBSession),
+		new(RMIBAnswer),
+		new(RMIBResult),
+		new(PAPIQuestion),
+		new(PAPISession),
+		new(PAPIAnswer),
+		new(PAPIResult),
 	)
 }
 
@@ -562,5 +701,87 @@ func EnsureKraepelinTables() error {
 
 	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_kraepelin_attempts_user_id ON kraepelin_attempts(user_id);`).Exec()
 	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_kraepelin_attempts_invitation_id ON kraepelin_attempts(invitation_id);`).Exec()
+	return nil
+}
+
+// EnsureRMIBTables membuat schema RMIB jika belum ada (fallback selain migration).
+func EnsureRMIBTables() error {
+	o := orm.NewOrm()
+
+	// Toggle RMIB di test_batches.
+	if _, err := o.Raw(`
+		ALTER TABLE IF EXISTS test_batches
+		ADD COLUMN IF NOT EXISTS enable_rmib BOOLEAN NOT NULL DEFAULT FALSE;
+	`).Exec(); err != nil {
+		return err
+	}
+
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS rmib_questions (
+			id SERIAL PRIMARY KEY,
+			gender_version VARCHAR(10) NOT NULL,
+			group_number INT NOT NULL,
+			group_title VARCHAR(255) NOT NULL,
+			group_description TEXT,
+			item_order INT NOT NULL,
+			question_text TEXT NOT NULL,
+			category_code VARCHAR(8) NOT NULL,
+			UNIQUE (gender_version, group_number, item_order)
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_rmib_questions_gv_group ON rmib_questions(gender_version, group_number);`).Exec()
+
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS rmib_sessions (
+			id SERIAL PRIMARY KEY,
+			invitation_id INT NOT NULL UNIQUE REFERENCES test_invitations(id) ON DELETE CASCADE,
+			user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			batch_id INT REFERENCES test_batches(id) ON DELETE SET NULL,
+			gender_version VARCHAR(10) NOT NULL,
+			status VARCHAR(20) NOT NULL DEFAULT 'in_progress',
+			started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			completed_at TIMESTAMP NULL
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_rmib_sessions_user ON rmib_sessions(user_id);`).Exec()
+
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS rmib_answers (
+			id SERIAL PRIMARY KEY,
+			session_id INT NOT NULL REFERENCES rmib_sessions(id) ON DELETE CASCADE,
+			group_number INT NOT NULL,
+			question_id INT NOT NULL REFERENCES rmib_questions(id) ON DELETE CASCADE,
+			selected_rank INT NOT NULL CHECK (selected_rank BETWEEN 1 AND 12),
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE (session_id, question_id)
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_rmib_answers_session_group ON rmib_answers(session_id, group_number);`).Exec()
+
+	if _, err := o.Raw(`
+		CREATE TABLE IF NOT EXISTS rmib_results (
+			id SERIAL PRIMARY KEY,
+			invitation_id INT NOT NULL UNIQUE REFERENCES test_invitations(id) ON DELETE CASCADE,
+			user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			gender_version VARCHAR(10) NOT NULL,
+			result_json TEXT NOT NULL,
+			dominant_category VARCHAR(8) NOT NULL,
+			top1 VARCHAR(8) NOT NULL,
+			top2 VARCHAR(8) NOT NULL,
+			top3 VARCHAR(8) NOT NULL,
+			interpretation TEXT,
+			completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
+	`).Exec(); err != nil {
+		return err
+	}
+	_, _ = o.Raw(`CREATE INDEX IF NOT EXISTS idx_rmib_results_user ON rmib_results(user_id);`).Exec()
+
 	return nil
 }

@@ -24,6 +24,22 @@ window.addEventListener("DOMContentLoaded", function () {
   registerLoadCaptcha();
   psTogglePassword("password", "togglePassword");
 
+  // Auto-fill email dari ?email=... (mis. dari link undangan tes psikologi).
+  // Saat email berasal dari undangan, kunci field-nya supaya peserta tidak
+  // mengubah email dan kehilangan tautan ke invitation.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const prefillEmail = params.get("email");
+    if (prefillEmail) {
+      const emailInput = document.getElementById("email");
+      if (emailInput) {
+        emailInput.value = prefillEmail;
+        emailInput.readOnly = true;
+        emailInput.classList.add("bg-slate-100");
+      }
+    }
+  } catch (_) {}
+
   const captchaImage = document.getElementById("captchaImage");
   if (captchaImage) {
     captchaImage.addEventListener("click", function () {
@@ -76,9 +92,20 @@ window.addEventListener("DOMContentLoaded", function () {
         if (btn) btn.disabled = false;
 
         if (data.success) {
+          // Jika peserta datang dari link undangan (?next=...), arahkan ke
+          // /login dengan parameter next agar setelah login otomatis
+          // diteruskan ke halaman tes (/test?token=...).
+          let redirectTo = "/";
+          try {
+            const params = new URLSearchParams(window.location.search);
+            const next = params.get("next");
+            if (next) {
+              redirectTo = "/login?next=" + encodeURIComponent(next);
+            }
+          } catch (_) {}
           psShowAlert("Registrasi berhasil! Silakan login.", "success");
           setTimeout(() => {
-            window.location.href = "/";
+            window.location.href = redirectTo;
           }, 1500);
         } else {
           psShowAlert(data.message || "Registrasi gagal", "error");

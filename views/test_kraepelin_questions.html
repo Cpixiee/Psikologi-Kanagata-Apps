@@ -50,18 +50,6 @@
               <div class="hint text-center mt-3">
                 Tidak ada tombol simpan/berikutnya. Setelah 30 detik, jawaban otomatis tersimpan dan lanjut ke raw data berikutnya.
               </div>
-              {{if .IsDev}}
-              <div class="d-flex justify-content-center flex-wrap gap-2 mt-2">
-                <button type="button" class="btn btn-sm btn-warning" id="fillCorrectDevBtn">Isi Jawaban Benar (DEV)</button>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="prevDevBtn">Raw Sebelumnya (DEV)</button>
-                <button type="button" class="btn btn-sm btn-primary" id="nextDevBtn">Raw Berikutnya (DEV)</button>
-                <div class="d-flex align-items-center gap-1">
-                  <span class="hint mb-0">Ke raw</span>
-                  <input id="jumpDevInput" class="form-control form-control-sm" style="width:70px;" inputmode="numeric" placeholder="1-40" />
-                  <button type="button" class="btn btn-sm btn-outline-secondary" id="jumpDevBtn">Go</button>
-                </div>
-              </div>
-              {{end}}
             </div>
           </div>
         </div>
@@ -188,18 +176,6 @@
         }
       }
 
-      function fillCorrectAnswersDev() {
-        const colDigits = Array.isArray(digits[currentColIndex]) ? digits[currentColIndex] : [];
-        if (colDigits.length < 27) return;
-        for (let i = 0; i < 26; i++) {
-          const expected = (colDigits[i] + colDigits[i + 1]) % 10;
-          saved[currentColIndex][i] = expected;
-        }
-        persistLocal();
-        scheduleAutoSave();
-        renderActiveColumn();
-      }
-
       function scheduleAutoSave() {
         if (autoSaveTimer) clearTimeout(autoSaveTimer);
         autoSaveTimer = setTimeout(async () => {
@@ -241,21 +217,6 @@
         window.location.href = `/test/kraepelin/questions?raw=${currentRaw + 1}`;
       }
 
-      async function goPrevAfterSubmit() {
-        await submitColumn(currentColIndex, false);
-        if (currentRaw <= 1) {
-          window.location.href = `/test/kraepelin/questions?raw=1`;
-          return;
-        }
-        window.location.href = `/test/kraepelin/questions?raw=${currentRaw - 1}`;
-      }
-
-      async function goJumpAfterSubmit(rawTarget) {
-        await submitColumn(currentColIndex, false);
-        const r = Math.max(1, Math.min(attempt.column_count, rawTarget));
-        window.location.href = `/test/kraepelin/questions?raw=${r}`;
-      }
-
       async function tickSecond() {
         if (ticking) return;
         ticking = true;
@@ -275,37 +236,8 @@
       tickSecond();
       setInterval(tickSecond, 1000);
 
-      const fillCorrectDevBtn = document.getElementById("fillCorrectDevBtn");
-      if (fillCorrectDevBtn) {
-        fillCorrectDevBtn.addEventListener("click", fillCorrectAnswersDev);
-      }
-
-      const prevDevBtn = document.getElementById("prevDevBtn");
-      if (prevDevBtn) {
-        prevDevBtn.addEventListener("click", async () => {
-          try { await goPrevAfterSubmit(); } catch (_) {}
-        });
-      }
-      const nextDevBtn = document.getElementById("nextDevBtn");
-      if (nextDevBtn) {
-        nextDevBtn.addEventListener("click", async () => {
-          try { await goNextAfterSubmit(false); } catch (_) {}
-        });
-      }
-      const jumpDevBtn = document.getElementById("jumpDevBtn");
-      const jumpDevInput = document.getElementById("jumpDevInput");
-      if (jumpDevBtn && jumpDevInput) {
-        jumpDevBtn.addEventListener("click", async () => {
-          const v = String(jumpDevInput.value || "").trim();
-          const n = parseInt(v, 10);
-          if (!Number.isFinite(n)) return;
-          try { await goJumpAfterSubmit(n); } catch (_) {}
-        });
-      }
-
-      // Cegah user kembali ke raw sebelumnya via tombol Back browser (kecuali DEV).
-      const isDev = {{if .IsDev}}true{{else}}false{{end}};
-      if (!isDev) {
+      // Cegah user kembali ke raw sebelumnya via tombol Back browser.
+      {
         const currentUrl = `/test/kraepelin/questions?raw=${currentRaw}`;
         history.replaceState({ raw: currentRaw }, "", currentUrl);
         history.pushState({ raw: currentRaw }, "", currentUrl);

@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Hasil RMIB - Profil Saya</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .top-card { border:1px solid #e7e9f5; border-radius:.75rem; padding:1rem 1.25rem; height:100%; }
+      .top-card .top-rank { font-size:.78rem; color:#696cff; font-weight:600; letter-spacing:.05em; }
+      .top-card .top-label { font-size:1.1rem; font-weight:700; color:#2d3748; }
+      .top-card .top-score { color:#7a7d9c; font-size:.85rem; }
+      .top-card-1 { background:linear-gradient(135deg,#eef0ff,#f6f7ff); border-color:#c7c9ff; }
+      .top-card-2 { background:linear-gradient(135deg,#eaf7ef,#f4fbf6); border-color:#bfe1cc; }
+      .top-card-3 { background:linear-gradient(135deg,#fff5e6,#fffaf0); border-color:#f3d6a6; }
+
+      .bar-row { display:grid; grid-template-columns: 220px 1fr 160px; gap:.75rem; align-items:center; padding:.55rem 0; border-bottom:1px solid #f1f2fb; }
+      .bar-row:last-child { border-bottom:none; }
+      .bar-track { background:#f1f2fb; height:18px; border-radius:999px; overflow:hidden; }
+      .bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#9aa0ff,#696cff); transition: width .5s ease; }
+      .bar-fill.is-top1 { background:linear-gradient(90deg,#3da66c,#1b9750); }
+      .bar-fill.is-top2 { background:linear-gradient(90deg,#5b8bff,#2c5fe7); }
+      .bar-fill.is-top3 { background:linear-gradient(90deg,#f0a35a,#d97a1f); }
+      .bar-meta { font-size:.85rem; color:#5a5e7a; text-align:right; }
+      .badge-top { font-size:.7rem; padding:.2rem .55rem; border-radius:.4rem; font-weight:600; margin-left:.4rem; }
+      .badge-top-1 { background:#e6f7ed; color:#1b6f3a; }
+      .badge-top-2 { background:#e6efff; color:#2c5fe7; }
+      .badge-top-3 { background:#fff1de; color:#a05a0a; }
+      .rmib-table th { background:#f8fafc; }
+      .rmib-table td.is-top { background:#f3fbf6; font-weight:600; }
+      .empty-card { border:1px dashed #d4d6e8; border-radius:.75rem; padding:2.5rem 1rem; text-align:center; color:#7a7d9c; }
+
+      /* === Psikogram RMIB (laporan standar) === */
+      .psikogram-title { text-align:center; font-weight:700; font-size:1.05rem; margin:0 0 .25rem; letter-spacing:.02em; }
+      .psikogram-subtitle { font-weight:700; text-transform:uppercase; font-size:.95rem; margin:1rem 0 .5rem; }
+      .psikogram-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+      .psikogram-table th, .psikogram-table td { border:1px solid #b9c2d0; padding:.5rem .65rem; vertical-align:top; }
+      .psikogram-table thead th { background:#dbe5f1; text-align:center; font-weight:700; }
+      .psikogram-table .col-no { width:46px; text-align:center; }
+      .psikogram-table .col-name { width:170px; }
+      .psikogram-table .cat-name { font-weight:700; text-transform:uppercase; margin-bottom:.4rem; display:block; }
+      .psikogram-table .nilai-label { color:#444; font-size:.85rem; margin-top:.4rem; }
+      .psikogram-table .nilai-score { font-size:1.4rem; font-weight:700; line-height:1.1; }
+      .psikogram-table .desc { margin:0 0 .4rem; }
+      .psikogram-table .contoh { margin:0; }
+      .psikogram-table tr.is-top td { background:#eef5ff; }
+      .psikogram-keterangan { font-size:.85rem; margin-top:.75rem; }
+      .psikogram-keterangan ol { padding-left:1.2rem; margin-bottom:0; }
+      .psikogram-keterangan em { font-style:italic; }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+          </div>
+          <div class="menu-divider mt-0"></div>
+          <div class="menu-inner-shadow"></div>
+          <ul class="menu-inner py-1">
+            <li class="menu-item"><a href="/dashboard" class="menu-link"><i class="menu-icon tf-icons bx bx-home-smile"></i><div class="text-truncate">Dashboard</div></a></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Layanan</span></li>
+            <li class="menu-item"><a href="/test" class="menu-link"><i class="menu-icon tf-icons bx bx-clipboard"></i><div class="text-truncate">Tes Psikologi</div></a></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Akun</span></li>
+            <li class="menu-item active">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-user"></i><div class="text-truncate">Profil</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a></li>
+                <li class="menu-item"><a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a></li>
+                <li class="menu-item"><a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a></li>
+                <li class="menu-item"><a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a></li>
+                <li class="menu-item"><a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a></li>
+                <li class="menu-item active"><a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a></li>
+                <li class="menu-item"><a href="/profile/papi" class="menu-link"><div class="text-truncate">Hasil PAPI</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item"><a href="/settings" class="menu-link"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengaturan</div></a></li>
+          </ul>
+        </aside>
+
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="card mb-3">
+                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <h5 class="mb-1">Hasil RMIB</h5>
+                    <p class="mb-0 text-muted">Riwayat &amp; ringkasan minat berdasarkan Tes RMIB Anda.</p>
+                  </div>
+                  <button type="button" id="rmibViewBtn" class="btn btn-sm btn-outline-primary" style="display:none;">
+                    <i class="bx bx-show me-1"></i><span id="rmibViewBtnText">Lihat Detail</span>
+                  </button>
+                </div>
+              </div>
+
+              <div id="rmibProfileBody">
+                <div class="card"><div class="card-body">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="text-muted small mt-2">Memuat hasil RMIB...</div>
+                  </div>
+                </div></div>
+              </div>
+
+              <!-- Modal Detail Skor (popup besar, dibuka via tombol Lihat Detail) -->
+              <div class="modal fade" id="rmibDetailModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Detail Hasil RMIB</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body" id="rmibDetailModalBody">
+                      <div class="text-center text-muted py-3">Memuat detail...</div>
+                    </div>
+                    <div class="modal-footer">
+                      <a id="rmibDetailExcel" href="#" class="btn btn-success">
+                        <i class="bx bx-download me-1"></i>Unduh Excel
+                      </a>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <script>
+      (function () {
+        var labelByCode = {
+          OUT:'Outdoor', MEC:'Mechanical', COMP:'Computational', SCI:'Scientific',
+          PERS:'Personal Contact', AEST:'Aesthetic', MUS:'Musical', LIT:'Literary',
+          SOC:'Social Service', CLER:'Clerical', PRAC:'Practical', MED:'Medical'
+        };
+        var orderedCodes = ['OUT','MEC','COMP','SCI','PERS','AEST','MUS','LIT','SOC','CLER','PRAC','MED'];
+
+        // Urutan dan deskripsi standar Psikogram RMIB (Minat Terhadap Pekerjaan).
+        var psikogramOrder = ['OUT','MEC','COMP','SCI','PERS','AEST','LIT','MUS','SOC','CLER','PRAC','MED'];
+        var psikogramInfo = {
+          OUT:  { name:'OUTDOOR',          desc:'Pekerjaan yang aktifitasnya dilakukan di luar atau di ruang terbuka, atau pekerjaan yang tidak berhubungan dengan hal-hal yang rutin sifatnya.', contoh:'petani, penjaga hutan, juru rawat, prospector, ahli sortir kulit, nelayan, sopir pengangkutan, petani tanaman hias.' },
+          MEC:  { name:'MECHANICAL',       desc:'Pekerjaan yang berhubungan atau menggunakan mesin, alat-alat dan daya mekanik.', contoh:'insinyur sipil, ahli pembuat alat-alat, tukang bubut, tukang lisrik, montir, instalator, pembuat arloji, montir radio, tukang las.' },
+          COMP: { name:'COMPUTATIONAL',    desc:'Pekerjaan yang berhubungan dengan angka-angka.', contoh:'akuntan, ahli statistik, auditor, penilai pajak pendapatan, guru matematik, pembantu kasir bank, kasir, juru bayar, petugas pajak.' },
+          SCI:  { name:'SCIENTIFIC',       desc:'Pekerjaan yang dapat disebutkan sebagai keaktifan dalam hal analisa, penyelidikan dan eksperimen, kimia dan ilmu pengetahuan pada umumnya.', contoh:'ilmuwan, insinyur kimia industri, ahli meteorologi, ahli biologi, ahli pertanian, ahli botani, ahli astronomi, ahli geologi, asisten laboratorium.' },
+          PERS: { name:'PERSONAL CONTACT', desc:'Pekerjaan yang berhubungan dengan manusia, diskusi, membujuk, bergaul dengan orang lain, pada dasarnya adalah suatu pekerjaan yang membutuhkan kontak dengan orang lain.', contoh:'manager bidang penjualan, penyiar radio, salesman, agen biro iklan, petugas wawancara, pedagang keliling, juru lelang, petugas hubungan kemasyarakatan, salesman asuransi.' },
+          AEST: { name:'AESTHETIC',        desc:'Pekerjaan yang berhubungan dengan hal-hal yang bersifat seni dan menciptakan sesuatu.', contoh:'seniman, artis profesional, arsitek, decorator interior, perancang perhiasan, pemotret, penata panggung, penata etalase, perancang motif tekstil.' },
+          LIT:  { name:'LITERARY',         desc:'Pekerjaan yang berhubungan dengan buku-buku, kegiatan membaca, dan mengarang.', contoh:'wartawan, pengarang, penulis drama, ahli sejarah, ahli perpustakaan, penulis majalah, kritikus buku, penulis sandiwara radio, penyair.' },
+          MUS:  { name:'MUSICAL',          desc:'Minat memainkan alat-alat musik, atau mendengarkan orang lain bermain, bernyanyi atau membaca sesuatu yang berhubungan dengan musik, penghargaan terhadap musik.', contoh:'pianis konser, dirigent orkes, komponis, kritikus musik, pemain organ, ahli pustaka musik, pemain musik band, pramuniaga toko musik.' },
+          SOC:  { name:'SOSIAL SERVICE',   desc:'Minat terhadap kesejahteraan penduduk, dengan keinginan untuk menolong dan membimbing/menasehati tentang problem dan kesulitan mereka. Keinginan untuk mengerti orang lain dan mempunyai idea yang benar dan kuat tentang pelayanan.', contoh:'guru SD, psikolog pendidikan, kepala sekolah, pekerja sosial, pembina rohani, organisator kepramukaan, pejabat klub remaja, ahli penyuluh pejabat, petugas kesejahteraan sosial.' },
+          CLER: { name:'CLERICAL',         desc:'Minat terhadap tugas-tugas rutin yang menuntut ketepatan dan ketelitian.', contoh:'manager bank, sekretaris perusahaan, pegawai pemerintah daerah, pegawai asuransi, petugas arsip, petugas pengiriman barang/ekspedisi, pegawai kantor, pegawai pos.' },
+          PRAC: { name:'PRACTICAL',        desc:'Minat terhadap pekerjaan-pekerjaan yang praktis, karya petukangan dan yang memerlukan ketrampilan.', contoh:'tukang kayu, ahli bangunan, ahli meubel, tukang cat, tukang batu, petugas mesin perkayuan, tukang plaster tembok, tukang ledeng, tukang sepatu.' },
+          MED:  { name:'MEDICAL',          desc:'Minat terhadap pengobatan, mengurangi akibat dari pada penyakit, penyembuhan dan didalam bidang medis serta hal-hal biologis pada umumnya.', contoh:'dokter, ahli bedah, dokter hewan, ahli farmasi/apoteker, dokter gigi, ahli kacamata, ahli rontgent, ahli physiotherapy, mantri kesehatan.' }
+        };
+
+        function escapeHtml(str){
+          if (str === null || str === undefined) return '';
+          return String(str).replace(/[&<>"']/g, function(c){
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+          });
+        }
+
+        function renderEmpty(body) {
+          var btn = document.getElementById('rmibViewBtn');
+          if (btn) btn.style.display = 'none';
+          body.innerHTML =
+            '<div class="card"><div class="card-body">' +
+              '<div class="text-center py-5">' +
+                '<i class="bx bx-info-circle text-muted" style="font-size:3rem;"></i>' +
+                '<p class="text-muted mt-2 mb-0">Tes RMIB belum pernah dikerjakan</p>' +
+                '<a href="/test" class="btn btn-primary mt-3">' +
+                  '<i class="bx bx-play me-1"></i>Buka Halaman Tes</a>' +
+              '</div>' +
+            '</div></div>';
+        }
+
+        function categoryLabelFromRank(rank) {
+          if (rank === 1) return { label: 'Sangat Tinggi', css: 'bg-success' };
+          if (rank <= 3) return { label: 'Tinggi',        css: 'bg-primary' };
+          if (rank <= 6) return { label: 'Cukup',         css: 'bg-info' };
+          if (rank <= 9) return { label: 'Rendah',        css: 'bg-warning' };
+          return { label: 'Sangat Rendah', css: 'bg-secondary' };
+        }
+
+        function renderResult(body, summary) {
+          var inv = summary.invitation;
+          var res = summary.rmib_result;
+          if (!res) { renderEmpty(body); return; }
+
+          var parsed = {};
+          try { parsed = JSON.parse(res.result_json || '{}') || {}; } catch (e) { parsed = {}; }
+
+          var maxScore = 0, minScore = Infinity;
+          orderedCodes.forEach(function (c) {
+            var e = parsed[c];
+            if (!e) return;
+            if (e.score > maxScore) maxScore = e.score;
+            if (e.score < minScore) minScore = e.score;
+          });
+          if (maxScore === 0) maxScore = 1;
+          if (!isFinite(minScore)) minScore = 0;
+
+          // Bangun rows ter-sort by rank
+          var rows = orderedCodes.map(function (code) {
+            var e = parsed[code] || { score: 0, rank: 99 };
+            var pct = (maxScore > minScore)
+              ? Math.round((maxScore - e.score) / (maxScore - minScore) * 100)
+              : 50;
+            if (pct < 5) pct = 5;
+            var cat = categoryLabelFromRank(e.rank);
+            return {
+              code: code,
+              label: labelByCode[code] || code,
+              score: e.score,
+              rank: e.rank,
+              pct: pct,
+              category: cat.label,
+              categoryCss: cat.css,
+              isTop3: e.rank >= 1 && e.rank <= 3
+            };
+          }).sort(function (a, b) { return a.rank - b.rank; });
+
+          var top1 = res.top1, top2 = res.top2, top3 = res.top3;
+          var top1Lbl = labelByCode[top1] || top1;
+          var top2Lbl = labelByCode[top2] || top2;
+          var top3Lbl = labelByCode[top3] || top3;
+
+          // Top-3 cards (gradient ungu/hijau/kuning)
+          var top3Html =
+            '<div class="row g-3 mb-4">' +
+              '<div class="col-md-4"><div class="top-card top-card-1">' +
+                '<div class="top-rank">#1 MINAT TERTINGGI</div>' +
+                '<div class="top-label mt-1">'+escapeHtml(top1Lbl)+'</div>' +
+                '<div class="top-score">Kode: '+escapeHtml(top1 || '-')+'</div>' +
+              '</div></div>' +
+              '<div class="col-md-4"><div class="top-card top-card-2">' +
+                '<div class="top-rank">#2</div>' +
+                '<div class="top-label mt-1">'+escapeHtml(top2Lbl)+'</div>' +
+                '<div class="top-score">Kode: '+escapeHtml(top2 || '-')+'</div>' +
+              '</div></div>' +
+              '<div class="col-md-4"><div class="top-card top-card-3">' +
+                '<div class="top-rank">#3</div>' +
+                '<div class="top-label mt-1">'+escapeHtml(top3Lbl)+'</div>' +
+                '<div class="top-score">Kode: '+escapeHtml(top3 || '-')+'</div>' +
+              '</div></div>' +
+            '</div>';
+
+          // Distribusi bar per kategori
+          var bars = rows.map(function (r) {
+            var cls = '';
+            var badge = '';
+            if (r.rank === 1) { cls = 'is-top1'; badge = '<span class="badge-top badge-top-1">#1</span>'; }
+            else if (r.rank === 2) { cls = 'is-top2'; badge = '<span class="badge-top badge-top-2">#2</span>'; }
+            else if (r.rank === 3) { cls = 'is-top3'; badge = '<span class="badge-top badge-top-3">#3</span>'; }
+            return '<div class="bar-row">' +
+              '<div><strong>'+escapeHtml(r.label)+'</strong>'+badge+
+                '<div class="text-muted small">'+escapeHtml(r.code)+' &middot; '+escapeHtml(r.category)+'</div></div>' +
+              '<div class="bar-track"><div class="bar-fill '+cls+'" style="width:'+r.pct+'%"></div></div>' +
+              '<div class="bar-meta">Skor <strong>'+r.score+'</strong> &middot; Peringkat <strong>'+r.rank+'</strong></div>' +
+              '</div>';
+          }).join('');
+
+          var distroHtml =
+            '<div class="card shadow-sm mb-4">' +
+              '<div class="card-header">' +
+                '<h6 class="mb-0">Distribusi Minat per Kategori</h6>' +
+                '<small class="text-muted">Bar lebih panjang = minat lebih tinggi (skor total ranking lebih kecil)</small>' +
+              '</div>' +
+              '<div class="card-body">' + bars + '</div>' +
+            '</div>';
+
+          // Detail table (collapsed by default) + tombol Unduh Excel di bawah
+          var tableRows = rows.map(function (r) {
+            return '<tr>' +
+              '<td class="text-center">'+r.rank+'</td>' +
+              '<td class="'+(r.isTop3 ? 'is-top' : '')+'">'+escapeHtml(r.label)+' <span class="text-muted small">('+escapeHtml(r.code)+')</span></td>' +
+              '<td class="text-center">'+r.score+'</td>' +
+              '<td class="text-center">'+r.rank+'</td>' +
+              '<td class="text-center"><span class="badge '+r.categoryCss+'">'+escapeHtml(r.category)+'</span></td>' +
+            '</tr>';
+          }).join('');
+
+          var excelUrl = '/test/rmib/result/excel?invId=' + (inv ? inv.id : '');
+          var date = res.completed_at ? new Date(res.completed_at).toLocaleString() : '-';
+
+          // ===== Default body: HANYA Distribusi + Interpretasi (dua card terpisah) =====
+          var interpCard = res.interpretation
+            ? '<div class="card shadow-sm">' +
+                '<div class="card-header"><h6 class="mb-0">Interpretasi Otomatis</h6></div>' +
+                '<div class="card-body">' +
+                  '<pre class="mb-0" style="white-space:pre-wrap;font-family:inherit;">'+escapeHtml(res.interpretation)+'</pre>' +
+                '</div>' +
+              '</div>'
+            : '';
+
+          body.innerHTML = distroHtml + interpCard;
+
+          // ===== Modal: info versi/tanggal + Top-3 cards + tabel =====
+          var modalInfoHtml =
+            '<div class="mb-3">' +
+              '<div class="text-muted small">Versi: <strong class="text-capitalize">'+escapeHtml(res.gender_version || '-')+'</strong></div>' +
+              '<div class="text-muted small">Tanggal selesai: '+escapeHtml(date)+'</div>' +
+            '</div>';
+
+          var modalTableHtml =
+            '<div class="table-responsive">' +
+              '<table class="table table-bordered rmib-table align-middle mb-0">' +
+                '<thead><tr>' +
+                  '<th style="width:60px;" class="text-center">No</th>' +
+                  '<th>Kategori</th>' +
+                  '<th style="width:110px;" class="text-center">Total Skor</th>' +
+                  '<th style="width:110px;" class="text-center">Peringkat</th>' +
+                  '<th style="width:160px;" class="text-center">Tingkat Minat</th>' +
+                '</tr></thead>' +
+                '<tbody>' + tableRows + '</tbody>' +
+              '</table>' +
+            '</div>';
+
+          // ===== Psikogram RMIB (format laporan standar) =====
+          var topSet = {};
+          if (top1) topSet[top1] = true;
+          if (top2) topSet[top2] = true;
+          if (top3) topSet[top3] = true;
+
+          var psikogramRows = psikogramOrder.map(function (code, idx) {
+            var info = psikogramInfo[code] || { name: code, desc: '', contoh: '' };
+            var entry = parsed[code] || { score: 0 };
+            var isTop = !!topSet[code];
+            return '<tr'+(isTop ? ' class="is-top"' : '')+'>' +
+              '<td class="col-no">'+(idx + 1)+'</td>' +
+              '<td class="col-name">' +
+                '<span class="cat-name">'+escapeHtml(info.name)+'</span>' +
+                '<div class="nilai-label">Nilai</div>' +
+                '<div class="nilai-score">'+(entry.score || 0)+'</div>' +
+              '</td>' +
+              '<td>' +
+                '<p class="desc">'+escapeHtml(info.desc)+'</p>' +
+                '<p class="contoh"><strong>Contoh:</strong> '+escapeHtml(info.contoh)+'</p>' +
+              '</td>' +
+            '</tr>';
+          }).join('');
+
+          var verLabel = (res.gender_version || '').toLowerCase() === 'wanita' ? 'Versi Wanita'
+            : ((res.gender_version || '').toLowerCase() === 'pria' ? 'Versi Pria' : '');
+          var psikogramHtml =
+            '<div class="mb-4">' +
+              '<h5 class="psikogram-title">Psikogram RMIB'+(verLabel ? ' &mdash; '+escapeHtml(verLabel) : '')+'</h5>' +
+              '<div class="psikogram-subtitle">Minat Terhadap Pekerjaan</div>' +
+              '<div class="table-responsive">' +
+                '<table class="psikogram-table">' +
+                  '<thead><tr>' +
+                    '<th class="col-no">No</th>' +
+                    '<th class="col-name">Bidang Pekerjaan</th>' +
+                    '<th>Deskripsi &amp; Contoh Pekerjaan</th>' +
+                  '</tr></thead>' +
+                  '<tbody>'+psikogramRows+'</tbody>' +
+                '</table>' +
+              '</div>' +
+              '<div class="psikogram-keterangan">' +
+                '<strong>Keterangan:</strong>' +
+                '<ol>' +
+                  '<li>Penilaian angka di tabel, pada tiap-tiap bidang pekerjaan bermakna:' +
+                    '<ul style="list-style:disc;padding-left:1.25rem;margin:.25rem 0;">' +
+                      '<li>Nilai <em>rendah</em> menunjukkan minat yang <em>tinggi</em>.</li>' +
+                      '<li>Nilai <em>tinggi</em> menunjukkan minat yang <em>rendah</em>.</li>' +
+                    '</ul>' +
+                  '</li>' +
+                  '<li>Minat hanya mencatat arah perasaan ke bidang pekerjaan tertentu, karena itu minat yang tinggi dalam suatu bidang pekerjaan tidak harus diikuti oleh tingkat kemampuan dan prestasi dalam bidang tersebut.</li>' +
+                '</ol>' +
+              '</div>' +
+            '</div>';
+
+          var modalBody = document.getElementById('rmibDetailModalBody');
+          if (modalBody) modalBody.innerHTML = modalInfoHtml + top3Html + psikogramHtml;
+          var excelLink = document.getElementById('rmibDetailExcel');
+          if (excelLink) excelLink.href = excelUrl;
+
+          // Tombol Lihat Detail buka modal
+          var viewBtn = document.getElementById('rmibViewBtn');
+          if (viewBtn) {
+            viewBtn.style.display = 'inline-block';
+            viewBtn.setAttribute('data-bs-toggle', 'modal');
+            viewBtn.setAttribute('data-bs-target', '#rmibDetailModal');
+          }
+        }
+
+        function load() {
+          var body = document.getElementById('rmibProfileBody');
+          fetch('/api/profile/rmib', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (!data || !data.success) { renderEmpty(body); return; }
+              var arr = Array.isArray(data.data) ? data.data : [];
+              if (arr.length > 0) {
+                renderResult(body, arr[0]);
+                return;
+              }
+              renderEmpty(body);
+            })
+            .catch(function () { renderEmpty(body); });
+        }
+
+        load();
+      })();
+    </script>
+  </body>
+</html>

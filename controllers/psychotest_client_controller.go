@@ -17,15 +17,39 @@ type PsychotestClientController struct {
 
 // @router /test [get]
 // Halaman input token undangan tes psikologi.
-// User harus login, lalu memasukkan token yang dikirim via email.
+// Mendukung deep link `?token=...` dari email/WA undangan.
+// Jika user belum login:
+//   - token+email punya akun  -> redirect /login?next=/test?token=...
+//   - token+email belum punya akun -> redirect /register?email=...&next=/test?token=...
+//   - tanpa token              -> redirect /login?next=/test seperti biasa.
 func (c *PsychotestClientController) TokenPage() {
+	tokenQ := strings.TrimSpace(c.GetString("token"))
 	sessionUser := c.GetSession("user_id")
+
 	if sessionUser == nil {
+		if tokenQ != "" {
+			// Coba lookup invitation untuk arahkan ke register / login otomatis.
+			o := orm.NewOrm()
+			var inv models.TestInvitation
+			if err := o.QueryTable(new(models.TestInvitation)).Filter("Token__iexact", tokenQ).One(&inv); err == nil && inv.Id != 0 {
+				next := "/test?token=" + tokenQ
+				if inv.UserId != nil && *inv.UserId != 0 {
+					c.Redirect("/login?next="+next, 302)
+					return
+				}
+				// Email belum terdaftar -> register dengan email pre-filled.
+				c.Redirect("/register?email="+inv.Email+"&next="+next, 302)
+				return
+			}
+		}
 		c.Redirect("/login?next=/test", 302)
 		return
 	}
 
-	// Pesan error (jika ada) bisa dikirim via flash / query, tapi untuk sederhana sekarang langsung render form.
+	// Sudah login: kalau token disediakan via query, auto-fill pada template.
+	if tokenQ != "" {
+		c.Data["Token"] = tokenQ
+	}
 	c.TplName = "test_token.html"
 }
 
@@ -77,8 +101,19 @@ func (c *PsychotestClientController) StartTest() {
 		return
 	}
 
-	// Pastikan token memang milik user yang login (proteksi jika token dibocorkan)
-	if inv.UserId == nil || *inv.UserId != user.Id || inv.Email != user.Email {
+	// Pastikan token memang milik user yang login (proteksi jika token dibocorkan).
+	// Pencocokan dilakukan via EMAIL (case-insensitive) karena invitation untuk
+	// email yang belum terdaftar boleh memiliki UserId == nil; setelah user
+	// registrasi, kita auto-link UserId-nya.
+	if !strings.EqualFold(strings.TrimSpace(inv.Email), strings.TrimSpace(user.Email)) {
+		c.Data["Error"] = "Token ini tidak terhubung dengan akun yang sedang login. Silakan login dengan email yang diundang."
+		c.TplName = "test_token.html"
+		return
+	}
+	if inv.UserId == nil || *inv.UserId == 0 {
+		inv.UserId = &user.Id
+		_, _ = o.Update(&inv, "UserId")
+	} else if *inv.UserId != user.Id {
 		c.Data["Error"] = "Token ini tidak terhubung dengan akun yang sedang login. Silakan login dengan email yang diundang."
 		c.TplName = "test_token.html"
 		return
@@ -127,6 +162,15 @@ func (c *PsychotestClientController) StartTest() {
 			c.Redirect("/profile/holland", 302)
 			return
 		}
+
+		// PAPI fallback: jika hasil PAPI ada, arahkan ke profile.
+		var papiRes models.PAPIResult
+		if err := o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&papiRes); err == nil && papiRes.Id != 0 {
+			c.SetSession("current_invitation_id", inv.Id)
+			c.SetSession("current_batch_id", inv.BatchId)
+			c.Redirect("/profile/papi", 302)
+			return
+		}
 	}
 
 	// Hanya status pending yang boleh memulai tes baru
@@ -165,6 +209,14 @@ func (c *PsychotestClientController) StartTest() {
 	}
 	if batch.EnableKraepelin {
 		c.Redirect("/test/kraepelin/start", 302)
+		return
+	}
+	if batch.EnableRMIB {
+		c.Redirect("/test/rmib/start", 302)
+		return
+	}
+	if batch.EnablePAPI {
+		c.Redirect("/test/papi/start", 302)
 		return
 	}
 	c.Data["Error"] = "Batch tes belum dikonfigurasi (pilih jenis tes). Silakan hubungi admin."

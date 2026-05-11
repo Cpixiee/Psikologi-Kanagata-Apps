@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Tes PAPI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .result-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .result-header {
+            text-align: center;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 2rem;
+        }
+        .result-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        .result-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .result-subtitle {
+            color: #666;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        .stat-box i {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .top-3-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .top-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .top-rank {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .top-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .top-score {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .detail-table {
+            margin-top: 2rem;
+        }
+        .detail-table th {
+            background: #667eea;
+            color: white;
+        }
+        .bar-container {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        .category-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .category-high {
+            background: #d4edda;
+            color: #155724;
+        }
+        .category-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .category-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .btn-excel {
+            background: #28a745;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-left: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn-excel:hover {
+            background: #218838;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="result-container">
+            <div class="result-header">
+                <div class="result-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h1 class="result-title">Hasil Tes PAPI</h1>
+                <p class="result-subtitle">Perception and Preference Inventory</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="stat-box">
+                            <i class="fas fa-user"></i>
+                            <div class="stat-value">{{.User.NamaLengkap}}</div>
+                            <div class="stat-label">{{.User.Email}}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box">
+                            <i class="fas fa-clock"></i>
+                            <div class="stat-value">{{.TimeTakenMinutes}}</div>
+                            <div class="stat-label">Menit</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box">
+                            <i class="fas fa-calendar"></i>
+                            <div class="stat-value">{{.CompletedAt.Format "02/01/2006"}}</div>
+                            <div class="stat-label">{{.CompletedAt.Format "15:04"}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h3 class="text-center mb-3">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        Grafik Hasil PAPI
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="papiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 3 Categories -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h3 class="mb-3">
+                        <i class="fas fa-trophy text-warning me-2"></i>
+                        3 Kategori Dominan
+                    </h3>
+                    <div id="top3Container" class="top-3-container">
+                        {{range $index, $row := .Rows}}
+                        {{if lt $index 3}}
+                        <div class="top-item">
+                            <div class="top-rank" data-rank="{{$index}}">#{{$index}}</div>
+                            <div class="top-label">{{$row.Label}}</div>
+                            <div class="top-score">Skor: {{$row.Score}}</div>
+                            <span class="category-badge {{$row.CategoryCSS}}">{{$row.Category}}</span>
+                        </div>
+                        {{end}}
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Table -->
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mb-3">
+                        <i class="fas fa-list text-primary me-2"></i>
+                        Detail Skor
+                    </h3>
+                    <div class="table-responsive detail-table">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Kategori</th>
+                                    <th>Skor</th>
+                                    <th>Visualisasi</th>
+                                    <th>Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $index, $row := .Rows}}
+                                <tr>
+                                    <td>
+                                        <span class="table-rank" data-rank="{{$index}}">#{{$index}}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{$row.Label}}</strong>
+                                        <br>
+                                        <small class="text-muted">{{$row.Code}}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{$row.Score}}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="bar-container">
+                                            <div class="bar-fill" data-percent="{{$row.Percent}}"></div>
+                                        </div>
+                                        <small class="text-muted">{{$row.Percent}}%</small>
+                                    </td>
+                                    <td>
+                                        <span class="category-badge {{$row.CategoryCSS}}">{{$row.Category}}</span>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interpretation -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        <h5><i class="fas fa-info-circle me-2"></i>Interpretasi Hasil</h5>
+                        <p class="mb-0">{{.Interpretation}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <a href="/dashboard" class="btn btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>Kembali ke Dashboard
+                    </a>
+                    <a href="/test/papi/result/excel?invId={{.InvitationID}}" class="btn btn-excel">
+                        <i class="fas fa-file-excel me-2"></i>Download Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Data -->
+    <div id="chart-data" 
+         data-labels='[{{range $i, $r := .Rows}}{{if $i}},{{end}}"{{$r.Label}}"{{end}}]'
+         data-scores='[{{range $i, $r := .Rows}}{{if $i}},{{end}}{{$r.Score}}{{end}}]'
+         data-categories='[{{range $i, $r := .Rows}}{{if $i}},{{end}}"{{$r.Category}}"{{end}}]'
+         style="display: none;">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            'use strict';
+            
+            // Fix rank numbers (add 1 to index)
+            document.querySelectorAll('.top-rank[data-rank]').forEach(function(elem) {
+                var rank = parseInt(elem.dataset.rank);
+                elem.textContent = '#' + (rank + 1);
+            });
+            
+            document.querySelectorAll('.table-rank[data-rank]').forEach(function(elem) {
+                var rank = parseInt(elem.dataset.rank);
+                elem.textContent = '#' + (rank + 1);
+            });
+            
+            // Get chart data from data attributes
+            var chartDataElem = document.getElementById('chart-data');
+            var labels = JSON.parse(chartDataElem.dataset.labels);
+            var scores = JSON.parse(chartDataElem.dataset.scores);
+            var categories = JSON.parse(chartDataElem.dataset.categories);
+            
+            // Chart.js configuration
+            var ctx = document.getElementById('papiChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Skor PAPI',
+                        data: scores,
+                        backgroundColor: categories.map(function(cat) {
+                            if (cat === 'Sangat Dominan') return 'rgba(40, 167, 69, 0.8)';
+                            if (cat === 'Dominan') return 'rgba(0, 123, 255, 0.8)';
+                            if (cat === 'Cukup') return 'rgba(255, 193, 7, 0.8)';
+                            return 'rgba(108, 117, 125, 0.8)';
+                        }),
+                        borderColor: categories.map(function(cat) {
+                            if (cat === 'Sangat Dominan') return 'rgb(40, 167, 69)';
+                            if (cat === 'Dominan') return 'rgb(0, 123, 255)';
+                            if (cat === 'Cukup') return 'rgb(255, 193, 7)';
+                            return 'rgb(108, 117, 125)';
+                        }),
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Skor: ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: Math.max.apply(Math, scores) + 5,
+                            title: {
+                                display: true,
+                                text: 'Skor'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Kategori'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+            
+            // Set bar widths and animate on page load
+            window.addEventListener('load', function() {
+                document.querySelectorAll('.bar-fill[data-percent]').forEach(function(bar, index) {
+                    var percent = bar.dataset.percent;
+                    bar.style.width = '0%';
+                    setTimeout(function() {
+                        bar.style.width = percent + '%';
+                    }, index * 100);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

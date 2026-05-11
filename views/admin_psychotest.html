@@ -61,6 +61,23 @@
         z-index: 20000 !important;
       }
 
+      /* === Psikogram RMIB (laporan standar) === */
+      .psikogram-title { text-align:center; font-weight:700; font-size:1.05rem; margin:0 0 .25rem; letter-spacing:.02em; }
+      .psikogram-subtitle { font-weight:700; text-transform:uppercase; font-size:.95rem; margin:1rem 0 .5rem; }
+      .psikogram-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+      .psikogram-table th, .psikogram-table td { border:1px solid #b9c2d0; padding:.5rem .65rem; vertical-align:top; }
+      .psikogram-table thead th { background:#dbe5f1; text-align:center; font-weight:700; }
+      .psikogram-table .col-no { width:46px; text-align:center; }
+      .psikogram-table .col-name { width:170px; }
+      .psikogram-table .cat-name { font-weight:700; text-transform:uppercase; margin-bottom:.4rem; display:block; }
+      .psikogram-table .nilai-label { color:#444; font-size:.85rem; margin-top:.4rem; }
+      .psikogram-table .nilai-score { font-size:1.4rem; font-weight:700; line-height:1.1; }
+      .psikogram-table .desc { margin:0 0 .4rem; }
+      .psikogram-table .contoh { margin:0; }
+      .psikogram-table tr.is-top td { background:#eef5ff; }
+      .psikogram-keterangan { font-size:.85rem; }
+      .psikogram-keterangan ol { padding-left:1.2rem; margin-bottom:0; }
+      .psikogram-keterangan em { font-style:italic; }
     </style>
   </head>
   <body>
@@ -102,7 +119,7 @@
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Akun</span>
             </li>
-            <li class="menu-item open">
+            <li class="menu-item">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div class="text-truncate">Profil</div>
@@ -122,6 +139,9 @@
                 </li>
                 <li class="menu-item">
                   <a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a>
                 </li>
               </ul>
             </li>
@@ -206,6 +226,10 @@
                             <input class="form-check-input" type="checkbox" id="sendViaBrowser" />
                             <label class="form-check-label" for="sendViaBrowser">Browser / Notifikasi</label>
                           </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendViaWhatsapp" />
+                            <label class="form-check-label" for="sendViaWhatsapp">WhatsApp</label>
+                          </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Simpan Batch</button>
                       </form>
@@ -249,18 +273,18 @@
                       </div>
                     </div>
                     <div class="table-responsive">
-                      <table class="table table-striped mb-0">
+                      <table class="table table-striped mb-0 align-middle">
                         <thead>
                           <tr>
-                            <th id="batchSelectHeader" style="width: 40px;" class="d-none">
+                            <th id="batchSelectHeader" style="width: 40px;" class="d-none text-center">
                               <input type="checkbox" class="form-check-input" id="selectAllBatches" />
                             </th>
                             <th>Batch</th>
                             <th>Institusi</th>
-                            <th>Jenis Tes</th>
-                            <th>Tujuan</th>
-                            <th>Dibuat</th>
-                            <th>Aksi</th>
+                            <th class="text-center">Jenis Tes</th>
+                            <th class="text-center">Tujuan</th>
+                            <th class="text-center">Dibuat</th>
+                            <th class="text-center">Aksi</th>
                           </tr>
                         </thead>
                         <tbody id="batchTableBody">
@@ -283,11 +307,14 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                      <div class="d-flex justify-content-between align-items-center mb-3">
+                      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <p class="mb-0 text-muted">Undang peserta dan lihat ringkasan hasil IST & Holland.</p>
-                        <button class="btn btn-outline-primary btn-sm" id="exportAnswersBtn">
-                          <i class="bx bx-download me-1"></i> Export Jawaban (ZIP)
-                        </button>
+                        <div class="d-flex gap-2 flex-wrap" id="batchActionToolbar">
+                          <div id="rankingButtonContainer"></div>
+                          <button class="btn btn-outline-primary btn-sm" id="exportAnswersBtn">
+                            <i class="bx bx-download me-1"></i> Export Jawaban (ZIP)
+                          </button>
+                        </div>
                       </div>
 
                       <!-- Undang Peserta -->
@@ -312,33 +339,51 @@
                         <textarea
                           id="inviteEmails"
                           class="form-control mb-2"
-                          rows="3"
-                          placeholder="contoh1@sekolah.sch.id&#10;contoh2@sekolah.sch.id"></textarea>
-                        <div class="d-flex justify-content-between align-items-center">
-                          <small class="text-muted">Hanya email yang terdaftar yang akan dibuatkan undangan. Email lain akan ditandai sebagai tidak valid.</small>
+                          rows="6"
+                          placeholder="example1@gmail.com&#10;example2@gmail.com,081234567890&#10;example3@gmail.com&#10;&#10;Tip: Anda bisa langsung salin daftar email dari Excel (1 baris = 1 peserta).&#10;Format opsional: email,nomor_hp (untuk pengiriman WhatsApp)."></textarea>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                          <small class="text-muted">
+                            Email yang belum terdaftar tetap akan dibuatkan undangan; peserta diminta registrasi saat klik link.
+                            <br/>Tombol <strong>Buat Undangan</strong> hanya mengirim pengumuman tanpa kode. Untuk mengirim kode tes, klik <strong>Kirim Code</strong> per peserta atau gunakan aksi massal.
+                          </small>
                           <button type="button" class="btn btn-sm btn-primary" onclick="handleCreateInvitations()">
-                            Buat Undangan
+                            <i class="bx bx-envelope me-1"></i>Buat Undangan
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-muted small" id="resultsSelectionInfo">Pilih peserta untuk aksi massal</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                          <button type="button" class="btn btn-sm btn-warning" id="btnBulkSendCode" onclick="handleBulkSendCode()" disabled>
+                            <i class="bx bx-paper-plane me-1"></i>Kirim Code Massal
                           </button>
                         </div>
                       </div>
 
                       <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                           <thead>
-                            <tr>
-                              <th>Email</th>
+                            <tr class="text-center">
+                              <th style="width:40px;">
+                                <input type="checkbox" id="selectAllInvitations" onclick="toggleSelectAllInvitations(this)" />
+                              </th>
+                              <th class="text-start">Email</th>
                               <th>Token</th>
                               <th>Status</th>
                               <th>IST - IQ</th>
                               <th>IST - Total SS</th>
                               <th>Holland</th>
+                              <th>RMIB</th>
                               <th>Dibuat</th>
                               <th>Aksi</th>
                             </tr>
                           </thead>
                           <tbody id="batchResultsBody">
                             <tr>
-                              <td colspan="8" class="text-center text-muted py-4">Belum ada data.</td>
+                              <td colspan="10" class="text-center text-muted py-4">Belum ada data.</td>
                             </tr>
                           </tbody>
                         </table>
@@ -366,6 +411,62 @@
       let currentBatchName = '';
       let batchSettingsMode = false;
       let batchViewMode = 'active'; // active | archived
+      const batchCache = {}; // id -> batch object (lengkap dengan flag enable_*)
+
+      // Daftar metadata alat tes — dipakai untuk render tombol "Download Result Hasil"
+      // sesuai tes yang diaktifkan di batch.
+      const TEST_META = [
+        { key: 'ist',            flag: 'enable_ist',             label: 'IST' },
+        { key: 'holland',        flag: 'enable_holland',         label: 'Holland (RIASEC)' },
+        { key: 'rmib',           flag: 'enable_rmib',            label: 'RMIB' },
+        { key: 'papi',           flag: 'enable_papi',            label: 'PAPI' },
+        { key: 'kraepelin',      flag: 'enable_kraepelin',       label: 'Kraepelin' },
+        { key: 'learning-style', flag: 'enable_learning_style',  label: 'Gaya Belajar (VAK)' },
+      ];
+
+      // Render tombol Download Result Hasil sesuai tes aktif di batch:
+      // - 0 tes aktif: tombol hilang
+      // - 1 tes aktif: 1 tombol langsung download
+      // - >1 tes aktif: dropdown berisi pilihan tes aktif saja
+      function renderRankingButton(batch) {
+        const container = document.getElementById('rankingButtonContainer');
+        if (!container) return;
+        if (!batch) { container.innerHTML = ''; return; }
+        const enabled = TEST_META.filter(function (t) { return !!batch[t.flag]; });
+        if (enabled.length === 0) { container.innerHTML = ''; return; }
+
+        if (enabled.length === 1) {
+          const t = enabled[0];
+          container.innerHTML =
+            '<button type="button" class="btn btn-outline-success btn-sm" data-test="' + t.key + '" id="rankingSingleBtn" title="Download ranking Top 10 / Bottom 10 untuk tes ' + t.label + '">' +
+            '<i class="bx bx-trophy me-1"></i> Download Result Hasil (' + t.label + ')' +
+            '</button>';
+          document.getElementById('rankingSingleBtn').addEventListener('click', function () {
+            if (!currentBatchId) return;
+            window.location.href = '/api/admin/test-batches/' + currentBatchId + '/ranking/' + t.key;
+          });
+        } else {
+          let items = '';
+          enabled.forEach(function (t) {
+            items += '<li><a class="dropdown-item ranking-link" data-test="' + t.key + '" href="#"><i class="bx bx-bar-chart-alt me-1"></i> ' + t.label + '</a></li>';
+          });
+          container.innerHTML =
+            '<div class="dropdown">' +
+            '<button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Download ranking Top 10 / Bottom 10 per alat tes">' +
+            '<i class="bx bx-trophy me-1"></i> Download Result Hasil' +
+            '</button>' +
+            '<ul class="dropdown-menu">' + items + '</ul>' +
+            '</div>';
+          container.querySelectorAll('.ranking-link').forEach(function (el) {
+            el.addEventListener('click', function (ev) {
+              ev.preventDefault();
+              if (!currentBatchId) return;
+              const test = el.getAttribute('data-test');
+              window.location.href = '/api/admin/test-batches/' + currentBatchId + '/ranking/' + test;
+            });
+          });
+        }
+      }
 
       function switchBatchView(mode) {
         batchViewMode = mode;
@@ -416,25 +517,28 @@
 
           tbody.innerHTML = '';
           batches.forEach(function (batch) {
+            batchCache[batch.id] = batch; // simpan untuk dipakai renderRankingButton
             const tr = document.createElement('tr');
             const safeName = batch.name ? batch.name.replace(/'/g, "\\'") : '';
             const safeInst = batch.institution ? batch.institution.replace(/'/g, "\\'") : '';
             tr.innerHTML = `
-              <td class="batch-select-cell d-none" style="width: 40px;">
+              <td class="batch-select-cell d-none text-center" style="width: 40px;">
                 <input type="checkbox" class="form-check-input batch-checkbox" data-id="${batch.id}" />
               </td>
               <td>${batch.name}</td>
               <td>${batch.institution}</td>
-              <td>
+              <td class="text-center">
                 ${batch.enable_ist ? '<span class="badge bg-label-primary me-1">IST</span>' : ''}
                 ${batch.enable_holland ? '<span class="badge bg-label-success me-1">Holland</span>' : ''}
                 ${batch.enable_learning_style ? '<span class="badge bg-label-info me-1">VAK</span>' : ''}
-                ${batch.enable_kraepelin ? '<span class="badge bg-label-warning">Kraepelin</span>' : ''}
+                ${batch.enable_kraepelin ? '<span class="badge bg-label-warning me-1">Kraepelin</span>' : ''}
+                ${batch.enable_rmib ? '<span class="badge bg-label-danger">RMIB</span>' : ''}
+                ${batch.enable_papi ? '<span class="badge bg-label-info">PAPI</span>' : ''}
               </td>
-              <td><small>${batch.purpose_category} &mdash; ${batch.purpose_detail}</small></td>
-              <td><small>${new Date(batch.created_at).toLocaleString('id-ID')}</small></td>
-              <td>
-                <div class="batch-view-btn">
+              <td class="text-center"><small>${batch.purpose_category} &mdash; ${batch.purpose_detail}</small></td>
+              <td class="text-center"><small>${new Date(batch.created_at).toLocaleString('id-ID')}</small></td>
+              <td class="text-center text-nowrap">
+                <div class="batch-view-btn d-inline-flex justify-content-center">
                   <button type="button" class="btn btn-outline-primary btn-sm" onclick="openBatchResults(${batch.id}, '${safeName}')">
                     Lihat Hasil
                   </button>
@@ -480,7 +584,8 @@
           purpose_category: document.getElementById('purposeCategory').value,
           purpose_detail: document.getElementById('purposeDetail').value,
           send_via_email: document.getElementById('sendViaEmail').checked,
-          send_via_browser: document.getElementById('sendViaBrowser').checked
+          send_via_browser: document.getElementById('sendViaBrowser').checked,
+          send_via_whatsapp: document.getElementById('sendViaWhatsapp') ? document.getElementById('sendViaWhatsapp').checked : false
         };
 
         try {
@@ -716,8 +821,10 @@
         currentBatchId = batchId;
         currentBatchName = batchName;
         document.getElementById('batchResultsTitle').textContent = 'Hasil Batch - ' + batchName;
+        // Render tombol Download Result Hasil sesuai tes yang aktif di batch ini
+        renderRankingButton(batchCache[batchId] || null);
         const tbody = document.getElementById('batchResultsBody');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Memuat data...</td></tr>';
 
         // Tampilkan modal DULU supaya selalu muncul, data menyusul
         const modalEl = document.getElementById('batchResultsModal');
@@ -751,7 +858,7 @@
           const data = await res.json();
 
           if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
             return;
           }
 
@@ -759,6 +866,7 @@
           data.data.forEach(function (row) {
             const ist = row.ist_result;
             const holland = row.holland_result;
+            const rmib = row.rmib_result;
             const inv = row.invitation;
             
             // Debug logging (bisa dihapus setelah fix)
@@ -784,35 +892,172 @@
               ? ist.total_standard_score
               : '<span class="text-muted">-</span>';
             
+            const rmibTopDisplay = rmib && (rmib.top1 || rmib.top2 || rmib.top3)
+              ? [rmib.top1, rmib.top2, rmib.top3].filter(Boolean).join(' / ')
+              : '<span class="text-muted">-</span>';
+            const rmibDetailBtn = rmib
+              ? `<button type="button" class="btn btn-sm btn-outline-info ms-1" data-rmib-inv="${inv.id}" data-rmib-email="${(inv.email || '').replace(/"/g,'&quot;')}">`+
+                  `<i class="bx bx-detail"></i> Detail RMIB</button>`
+              : '';
             tr.innerHTML = `
+              <td class="text-center">
+                <input type="checkbox" class="invitation-checkbox" value="${inv.id}" onchange="updateInvitationSelectionInfo()" />
+              </td>
               <td>${inv.email}</td>
-              <td>
+              <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="showTokenModal('${inv.token}', '${inv.email}')">
                   <i class="bx bx-show"></i> Lihat Token
                 </button>
               </td>
-              <td><small>${inv.status}</small></td>
-              <td>${iqDisplay}</td>
-              <td>${totalSSDisplay}</td>
-              <td>${holland ? holland.code : '<span class="text-muted">-</span>'}</td>
-              <td><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
-              <td>
-                <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadInvitation(${inv.id})">
-                  <i class="bx bx-download"></i> Download
-                </button>
+              <td class="text-center"><small>${inv.status}</small></td>
+              <td class="text-center">${iqDisplay}</td>
+              <td class="text-center">${totalSSDisplay}</td>
+              <td class="text-center">${holland ? holland.code : '<span class="text-muted">-</span>'}</td>
+              <td class="text-center">${rmibTopDisplay}</td>
+              <td class="text-center"><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
+              <td class="text-center text-nowrap">
+                <div class="d-inline-flex flex-wrap gap-1 justify-content-center">
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="sendInvitationCode(${inv.id})" title="Kirim kode tes via email/WhatsApp sesuai pengaturan batch">
+                    <i class="bx bx-paper-plane"></i> Kirim Code
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadInvitation(${inv.id})">
+                    <i class="bx bx-download"></i> Download
+                  </button>
+                  ${rmibDetailBtn}
+                </div>
               </td>
             `;
+            // Pasang handler tombol Detail RMIB (akses object rmib via closure)
+            if (rmib) {
+              const btn = tr.querySelector('button[data-rmib-inv]');
+              if (btn) {
+                btn.addEventListener('click', function () {
+                  showRMIBDetail(inv, rmib);
+                });
+              }
+            }
             tbody.appendChild(tr);
           });
         } catch (err) {
           console.error('Error load batch results:', err);
-          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
         }
       }
 
       function downloadInvitation(invId) {
         if (!currentBatchId || !invId) return;
         window.location.href = '/api/admin/test-batches/' + currentBatchId + '/invitations/' + invId + '/export';
+      }
+
+      async function sendInvitationCode(invId) {
+        if (!invId) return;
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Kirim Kode Tes?',
+          text: 'Kode (token) akan dikirim ke peserta melalui channel yang aktif di pengaturan batch (email / WhatsApp).',
+          showCancelButton: true,
+          confirmButtonText: 'Kirim',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+          const res = await fetch('/api/admin/test-invitations/' + invId + '/send-code', { method: 'POST' });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal mengirim kode');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil', text: data.message || 'Kode tes sedang dikirim', timer: 2200, showConfirmButton: false });
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat mengirim kode' });
+        }
+      }
+
+      // ===== Bulk Kirim Code =====
+      function getSelectedInvitationIds() {
+        return Array.from(document.querySelectorAll('.invitation-checkbox:checked'))
+          .map(function (cb) { return parseInt(cb.value, 10); })
+          .filter(function (v) { return !isNaN(v); });
+      }
+
+      function updateInvitationSelectionInfo() {
+        const ids = getSelectedInvitationIds();
+        const info = document.getElementById('resultsSelectionInfo');
+        const btn = document.getElementById('btnBulkSendCode');
+        if (info) {
+          info.textContent = ids.length === 0
+            ? 'Pilih peserta untuk aksi massal'
+            : ids.length + ' peserta dipilih';
+        }
+        if (btn) btn.disabled = ids.length === 0;
+
+        // Sinkron checkbox header
+        const all = document.querySelectorAll('.invitation-checkbox');
+        const selectAll = document.getElementById('selectAllInvitations');
+        if (selectAll) {
+          if (all.length === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+          } else if (ids.length === all.length) {
+            selectAll.checked = true;
+            selectAll.indeterminate = false;
+          } else if (ids.length === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+          } else {
+            selectAll.checked = false;
+            selectAll.indeterminate = true;
+          }
+        }
+      }
+
+      function toggleSelectAllInvitations(headerCb) {
+        const checked = !!(headerCb && headerCb.checked);
+        document.querySelectorAll('.invitation-checkbox').forEach(function (cb) {
+          cb.checked = checked;
+        });
+        updateInvitationSelectionInfo();
+      }
+
+      async function handleBulkSendCode() {
+        const ids = getSelectedInvitationIds();
+        if (ids.length === 0) {
+          Swal.fire({ icon: 'info', title: 'Belum ada pilihan', text: 'Centang minimal satu peserta untuk mengirim kode secara massal.' });
+          return;
+        }
+        const confirm = await Swal.fire({
+          icon: 'question',
+          title: 'Kirim Kode Massal?',
+          text: 'Kode (token) akan dikirim ke ' + ids.length + ' peserta melalui channel yang aktif di pengaturan batch (email / WhatsApp).',
+          showCancelButton: true,
+          confirmButtonText: 'Kirim',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+
+        const btn = document.getElementById('btnBulkSendCode');
+        if (btn) btn.disabled = true;
+        try {
+          const res = await fetch('/api/admin/test-invitations/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: ids, action: 'send_code' })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal mengirim kode massal');
+          }
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: data.message || ('Kode tes sedang dikirim untuk ' + ids.length + ' peserta'),
+            timer: 2500,
+            showConfirmButton: false
+          });
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat mengirim kode massal' });
+        } finally {
+          if (btn) btn.disabled = getSelectedInvitationIds().length === 0;
+        }
       }
 
       function showTokenModal(token, email) {
@@ -887,6 +1132,9 @@
         if (!currentBatchId) return;
         window.location.href = '/api/admin/test-batches/' + currentBatchId + '/export-answers';
       });
+
+      // Tombol "Download Result Hasil" di-render dinamis oleh renderRankingButton()
+      // saat modal batch dibuka, jadi event listener-nya dipasang di sana.
 
       function parseEmails(raw) {
         return raw
@@ -1150,6 +1398,107 @@
         }
       }
 
+      // =========================================================
+      // Detail RMIB (Psikogram) untuk admin
+      // =========================================================
+      var rmibPsikogramOrder = ['OUT','MEC','COMP','SCI','PERS','AEST','LIT','MUS','SOC','CLER','PRAC','MED'];
+      var rmibPsikogramInfo = {
+        OUT:  { name:'OUTDOOR',          desc:'Pekerjaan yang aktifitasnya dilakukan di luar atau di ruang terbuka, atau pekerjaan yang tidak berhubungan dengan hal-hal yang rutin sifatnya.', contoh:'petani, penjaga hutan, juru rawat, prospector, ahli sortir kulit, nelayan, sopir pengangkutan, petani tanaman hias.' },
+        MEC:  { name:'MECHANICAL',       desc:'Pekerjaan yang berhubungan atau menggunakan mesin, alat-alat dan daya mekanik.', contoh:'insinyur sipil, ahli pembuat alat-alat, tukang bubut, tukang lisrik, montir, instalator, pembuat arloji, montir radio, tukang las.' },
+        COMP: { name:'COMPUTATIONAL',    desc:'Pekerjaan yang berhubungan dengan angka-angka.', contoh:'akuntan, ahli statistik, auditor, penilai pajak pendapatan, guru matematik, pembantu kasir bank, kasir, juru bayar, petugas pajak.' },
+        SCI:  { name:'SCIENTIFIC',       desc:'Pekerjaan yang dapat disebutkan sebagai keaktifan dalam hal analisa, penyelidikan dan eksperimen, kimia dan ilmu pengetahuan pada umumnya.', contoh:'ilmuwan, insinyur kimia industri, ahli meteorologi, ahli biologi, ahli pertanian, ahli botani, ahli astronomi, ahli geologi, asisten laboratorium.' },
+        PERS: { name:'PERSONAL CONTACT', desc:'Pekerjaan yang berhubungan dengan manusia, diskusi, membujuk, bergaul dengan orang lain, pada dasarnya adalah suatu pekerjaan yang membutuhkan kontak dengan orang lain.', contoh:'manager bidang penjualan, penyiar radio, salesman, agen biro iklan, petugas wawancara, pedagang keliling, juru lelang, petugas hubungan kemasyarakatan, salesman asuransi.' },
+        AEST: { name:'AESTHETIC',        desc:'Pekerjaan yang berhubungan dengan hal-hal yang bersifat seni dan menciptakan sesuatu.', contoh:'seniman, artis profesional, arsitek, decorator interior, perancang perhiasan, pemotret, penata panggung, penata etalase, perancang motif tekstil.' },
+        LIT:  { name:'LITERARY',         desc:'Pekerjaan yang berhubungan dengan buku-buku, kegiatan membaca, dan mengarang.', contoh:'wartawan, pengarang, penulis drama, ahli sejarah, ahli perpustakaan, penulis majalah, kritikus buku, penulis sandiwara radio, penyair.' },
+        MUS:  { name:'MUSICAL',          desc:'Minat memainkan alat-alat musik, atau mendengarkan orang lain bermain, bernyanyi atau membaca sesuatu yang berhubungan dengan musik, penghargaan terhadap musik.', contoh:'pianis konser, dirigent orkes, komponis, kritikus musik, pemain organ, ahli pustaka musik, pemain musik band, pramuniaga toko musik.' },
+        SOC:  { name:'SOSIAL SERVICE',   desc:'Minat terhadap kesejahteraan penduduk, dengan keinginan untuk menolong dan membimbing/menasehati tentang problem dan kesulitan mereka. Keinginan untuk mengerti orang lain dan mempunyai idea yang benar dan kuat tentang pelayanan.', contoh:'guru SD, psikolog pendidikan, kepala sekolah, pekerja sosial, pembina rohani, organisator kepramukaan, pejabat klub remaja, ahli penyuluh pejabat, petugas kesejahteraan sosial.' },
+        CLER: { name:'CLERICAL',         desc:'Minat terhadap tugas-tugas rutin yang menuntut ketepatan dan ketelitian.', contoh:'manager bank, sekretaris perusahaan, pegawai pemerintah daerah, pegawai asuransi, petugas arsip, petugas pengiriman barang/ekspedisi, pegawai kantor, pegawai pos.' },
+        PRAC: { name:'PRACTICAL',        desc:'Minat terhadap pekerjaan-pekerjaan yang praktis, karya petukangan dan yang memerlukan ketrampilan.', contoh:'tukang kayu, ahli bangunan, ahli meubel, tukang cat, tukang batu, petugas mesin perkayuan, tukang plaster tembok, tukang ledeng, tukang sepatu.' },
+        MED:  { name:'MEDICAL',          desc:'Minat terhadap pengobatan, mengurangi akibat dari pada penyakit, penyembuhan dan didalam bidang medis serta hal-hal biologis pada umumnya.', contoh:'dokter, ahli bedah, dokter hewan, ahli farmasi/apoteker, dokter gigi, ahli kacamata, ahli rontgent, ahli physiotherapy, mantri kesehatan.' }
+      };
+
+      function rmibEscapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+        });
+      }
+
+      function showRMIBDetail(inv, rmib) {
+        var modalEl = document.getElementById('adminRmibDetailModal');
+        if (!modalEl) return;
+
+        var parsed = {};
+        try { parsed = JSON.parse(rmib.result_json || '{}') || {}; } catch (e) { parsed = {}; }
+
+        var topSet = {};
+        if (rmib.top1) topSet[rmib.top1] = true;
+        if (rmib.top2) topSet[rmib.top2] = true;
+        if (rmib.top3) topSet[rmib.top3] = true;
+
+        var rows = rmibPsikogramOrder.map(function (code, idx) {
+          var info = rmibPsikogramInfo[code] || { name: code, desc: '', contoh: '' };
+          var entry = parsed[code] || { score: 0 };
+          var isTop = !!topSet[code];
+          return '<tr' + (isTop ? ' class="is-top"' : '') + '>' +
+            '<td class="col-no">' + (idx + 1) + '</td>' +
+            '<td class="col-name">' +
+              '<span class="cat-name">' + rmibEscapeHtml(info.name) + '</span>' +
+              '<div class="nilai-label">Nilai</div>' +
+              '<div class="nilai-score">' + (entry.score || 0) + '</div>' +
+            '</td>' +
+            '<td>' +
+              '<p class="desc">' + rmibEscapeHtml(info.desc) + '</p>' +
+              '<p class="contoh"><strong>Contoh:</strong> ' + rmibEscapeHtml(info.contoh) + '</p>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+
+        var ver = (rmib.gender_version || '').toLowerCase();
+        var verLabel = ver === 'wanita' ? 'Versi Wanita' : (ver === 'pria' ? 'Versi Pria' : '');
+        var date = rmib.completed_at ? new Date(rmib.completed_at).toLocaleString('id-ID') : '-';
+
+        var html =
+          '<div class="mb-3 small text-muted">' +
+            '<div><strong>Peserta:</strong> ' + rmibEscapeHtml(inv.email || '-') + '</div>' +
+            '<div><strong>Tanggal selesai:</strong> ' + rmibEscapeHtml(date) + '</div>' +
+          '</div>' +
+          '<h5 class="psikogram-title">Psikogram RMIB' + (verLabel ? ' &mdash; ' + rmibEscapeHtml(verLabel) : '') + '</h5>' +
+          '<div class="psikogram-subtitle">Minat Terhadap Pekerjaan</div>' +
+          '<div class="table-responsive">' +
+            '<table class="psikogram-table">' +
+              '<thead><tr>' +
+                '<th class="col-no">No</th>' +
+                '<th class="col-name">Bidang Pekerjaan</th>' +
+                '<th>Deskripsi &amp; Contoh Pekerjaan</th>' +
+              '</tr></thead>' +
+              '<tbody>' + rows + '</tbody>' +
+            '</table>' +
+          '</div>' +
+          '<div class="psikogram-keterangan mt-2">' +
+            '<strong>Keterangan:</strong>' +
+            '<ol class="mb-0">' +
+              '<li>Penilaian angka di tabel, pada tiap-tiap bidang pekerjaan bermakna:' +
+                '<ul style="list-style:disc;padding-left:1.25rem;margin:.25rem 0;">' +
+                  '<li>Nilai <em>rendah</em> menunjukkan minat yang <em>tinggi</em>.</li>' +
+                  '<li>Nilai <em>tinggi</em> menunjukkan minat yang <em>rendah</em>.</li>' +
+                '</ul>' +
+              '</li>' +
+              '<li>Minat hanya mencatat arah perasaan ke bidang pekerjaan tertentu, karena itu minat yang tinggi dalam suatu bidang pekerjaan tidak harus diikuti oleh tingkat kemampuan dan prestasi dalam bidang tersebut.</li>' +
+            '</ol>' +
+          '</div>';
+
+        document.getElementById('adminRmibDetailBody').innerHTML = html;
+        var excelBtn = document.getElementById('adminRmibDetailExcel');
+        if (excelBtn) excelBtn.href = '/test/rmib/result/excel?invId=' + inv.id;
+
+        if (window.bootstrap && bootstrap.Modal) {
+          bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } else if (window.$ && typeof $('#adminRmibDetailModal').modal === 'function') {
+          $('#adminRmibDetailModal').modal('show');
+        }
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
         loadBatches();
         const searchInput = document.getElementById('inviteSearch');
@@ -1165,6 +1514,27 @@
         }
       });
     </script>
+
+    <!-- Modal Detail RMIB (Psikogram) -->
+    <div class="modal fade" id="adminRmibDetailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detail Hasil RMIB &mdash; Psikogram</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+          </div>
+          <div class="modal-body" id="adminRmibDetailBody">
+            <div class="text-center text-muted py-3">Memuat detail...</div>
+          </div>
+          <div class="modal-footer">
+            <a id="adminRmibDetailExcel" href="#" class="btn btn-success">
+              <i class="bx bx-download me-1"></i>Unduh Excel
+            </a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
 

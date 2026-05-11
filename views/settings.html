@@ -116,7 +116,7 @@
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text">Akun</span>
             </li>
-            <li class="menu-item open">
+            <li class="menu-item">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div class="text-truncate">Profil</div>
@@ -145,6 +145,16 @@
                 <li class="menu-item">
                   <a href="/profile/kraepelin" class="menu-link">
                     <div class="text-truncate">Hasil Kraepelin</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/rmib" class="menu-link">
+                    <div class="text-truncate">Hasil RMIB</div>
+                  </a>
+                </li>
+                <li class="menu-item">
+                  <a href="/profile/papi" class="menu-link">
+                    <div class="text-truncate">Hasil PAPI</div>
                   </a>
                 </li>
               </ul>
@@ -383,6 +393,55 @@
                               name="asal_instansi"
                               placeholder="Contoh: SMA Kanagata / Perusahaan X" />
                           </div>
+                          <div class="col-12"><hr class="my-1" /><h6 class="mb-0 text-muted small text-uppercase">Data Akademik &amp; Identitas</h6></div>
+                          <div class="col-md-6">
+                            <label for="settNisn" class="form-label">NISN</label>
+                            <input class="form-control" type="text" id="settNisn" name="nisn" maxlength="20" placeholder="Untuk siswa" />
+                          </div>
+                          <div class="col-md-6">
+                            <label for="settNip" class="form-label">NIP</label>
+                            <input class="form-control" type="text" id="settNip" name="nip" maxlength="30" placeholder="Untuk guru / pegawai" />
+                          </div>
+                          <div class="col-md-6">
+                            <label for="settKelas" class="form-label">Kelas</label>
+                            <input class="form-control" type="text" id="settKelas" name="kelas" maxlength="50" placeholder="Contoh: XII IPA 2" />
+                          </div>
+                          <div class="col-md-6">
+                            <label for="settJurusan" class="form-label">Jurusan</label>
+                            <input class="form-control" type="text" id="settJurusan" name="jurusan" maxlength="100" placeholder="Contoh: IPA / IPS / RPL" />
+                          </div>
+                          <div class="col-md-6">
+                            <label for="settTempatLahir" class="form-label">Tempat Lahir</label>
+                            <input class="form-control" type="text" id="settTempatLahir" name="tempat_lahir" maxlength="100" placeholder="Contoh: Jakarta" />
+                          </div>
+                          <div class="col-md-6">
+                            <label for="settTanggalLahir" class="form-label">Tanggal Lahir</label>
+                            <input class="form-control" type="date" id="settTanggalLahir" name="tanggal_lahir" />
+                          </div>
+
+                          <div class="col-12"><hr class="my-1" /><h6 class="mb-0 text-muted small text-uppercase">Alamat</h6></div>
+                          <div class="col-12">
+                            <label for="settAlamat" class="form-label">Alamat (jalan / nomor rumah)</label>
+                            <textarea class="form-control" id="settAlamat" name="alamat" rows="2" placeholder="Contoh: Jl. Mawar No. 12"></textarea>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="settProvinsi" class="form-label">Provinsi</label>
+                            <select class="form-select" id="settProvinsi" name="provinsi">
+                              <option value="">Memuat...</option>
+                            </select>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="settKota" class="form-label">Kota / Kabupaten</label>
+                            <select class="form-select" id="settKota" name="kota">
+                              <option value="">-- Pilih Provinsi dahulu --</option>
+                            </select>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="settKecamatan" class="form-label">Kecamatan</label>
+                            <select class="form-select" id="settKecamatan" name="kecamatan">
+                              <option value="">-- Pilih Kota dahulu --</option>
+                            </select>
+                          </div>
                         </div>
                         <div class="mt-4">
                           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
@@ -572,6 +631,9 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Wilayah cascading helper -->
+    <script src="/static/modern/wilayah.js?v=2"></script>
+
     <!-- Page JS -->
     <script>
       let settingsEmail = '';
@@ -680,6 +742,34 @@
             const instInput = document.getElementById('asalInstansi');
             if (instInput) {
               instInput.value = user.asal_instansi || '';
+            }
+
+            // === Field onboarding tambahan ===
+            const setVal = function (id, v) {
+              const el = document.getElementById(id);
+              if (el) el.value = v == null ? '' : v;
+            };
+            setVal('settNisn', user.nisn);
+            setVal('settNip', user.nip);
+            setVal('settKelas', user.kelas);
+            setVal('settJurusan', user.jurusan);
+            setVal('settTempatLahir', user.tempat_lahir);
+            if (user.tanggal_lahir) {
+              try {
+                const dStr = (user.tanggal_lahir + '').slice(0, 10);
+                setVal('settTanggalLahir', dStr);
+              } catch (_) {}
+            }
+            setVal('settAlamat', user.alamat);
+            // Cascading wilayah (sekali setup); kalau sudah pernah dipanggil, idempotent karena cache.
+            if (typeof window.setupWilayahCascading === 'function') {
+              try {
+                await window.setupWilayahCascading('settProvinsi', 'settKota', 'settKecamatan', {
+                  provinsi: user.provinsi || '',
+                  kota: user.kota || '',
+                  kecamatan: user.kecamatan || ''
+                });
+              } catch (_) {}
             }
             
             // Fallback dari ringkasan tes bila data profil belum terisi.
@@ -857,7 +947,15 @@
           kota: formData.get('kota'),
           provinsi: formData.get('provinsi'),
           kodepos: formData.get('kodepos'),
-          asal_instansi: formData.get('asal_instansi')
+          asal_instansi: formData.get('asal_instansi'),
+          // Field onboarding tambahan
+          nisn: formData.get('nisn') || '',
+          nip: formData.get('nip') || '',
+          kelas: formData.get('kelas') || '',
+          jurusan: formData.get('jurusan') || '',
+          tempat_lahir: formData.get('tempat_lahir') || '',
+          tanggal_lahir: formData.get('tanggal_lahir') || '',
+          kecamatan: formData.get('kecamatan') || ''
         };
 
         try {

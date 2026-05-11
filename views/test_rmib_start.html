@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mulai Tes RMIB</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+          <div class="card shadow-sm">
+            <div class="card-header text-center bg-primary text-white">
+              <h5 class="mb-0">
+                Tes RMIB
+                {{if eq .GenderVersion "wanita"}}(Wanita){{else}}(Pria){{end}}
+              </h5>
+            </div>
+            <div class="card-body">
+              {{if .Error}}
+              <div class="alert alert-warning">{{.Error}}</div>
+              {{end}}
+              <p class="text-muted mb-3">
+                Tes RMIB digunakan untuk memetakan minat Anda terhadap 12 kategori bidang aktivitas.
+                Anda akan diminta mengurutkan 12 aktivitas dalam tiap kelompok dari yang paling Anda senangi (1)
+                sampai paling tidak Anda senangi (12).
+              </p>
+              <ul class="text-muted small mb-4">
+                <li>8 kelompok soal, masing-masing 12 aktivitas.</li>
+                <li>Setiap angka 1&ndash;12 hanya boleh dipakai sekali per kelompok.</li>
+                <li>Versi soal otomatis menyesuaikan jenis kelamin pada profil Anda.</li>
+              </ul>
+
+              <div class="alert alert-info mb-4">
+                <strong>Pastikan:</strong> Anda mengisi sesuai minat pribadi, bukan kemampuan.
+              </div>
+
+              <div class="d-grid">
+                <a href="/test/rmib/instruction" class="btn btn-primary w-100">Mulai Tes</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

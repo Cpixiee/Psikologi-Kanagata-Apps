@@ -103,6 +103,9 @@ func init() {
 	beego.Router("/profile/ist/start", &controllers.PageController{}, "get:ProfileISTStartPage")
 	beego.Router("/profile/holland/start", &controllers.PageController{}, "get:ProfileHollandStartPage")
 	beego.Router("/profile/learning-style/start", &controllers.PageController{}, "get:ProfileLearningStyleStartPage")
+	beego.Router("/profile/rmib", &controllers.PageController{}, "get:ProfileRMIBPage")
+	beego.Router("/profile/rmib/start", &controllers.PageController{}, "get:ProfileRMIBStartPage")
+	beego.Router("/profile/papi", &controllers.PageController{}, "get:ProfilePAPIPage")
 	beego.Router("/settings", &controllers.PageController{}, "get:SettingsPage")
 	// Admin psychotest dashboard (only for admin via filter)
 	beego.Router("/admin/psychotest", &controllers.PageController{}, "get:PsychotestAdminPage")
@@ -152,6 +155,31 @@ func init() {
 	beego.Router("/test/kraepelin/finish", &controllers.KraepelinTestController{}, "get:FinishPage")
 	beego.Router("/test/kraepelin/result/excel", &controllers.KraepelinTestController{}, "get:ExportResultExcel")
 	beego.Router("/api/test/kraepelin/submit", &controllers.KraepelinTestController{}, "post:SubmitAnswersAPI")
+
+	// RMIB test flow (peserta) - versi pria/wanita ditentukan otomatis dari gender user.
+	beego.Router("/test/rmib/start", &controllers.RMIBTestController{}, "get:StartPage")
+	beego.Router("/test/rmib/instruction", &controllers.RMIBTestController{}, "get:InstructionPage")
+	beego.Router("/test/rmib/group/:n", &controllers.RMIBTestController{}, "get:GroupPage")
+	beego.Router("/test/rmib/summary", &controllers.RMIBTestController{}, "get:SummaryPage")
+	beego.Router("/test/rmib/submit", &controllers.RMIBTestController{}, "post:SubmitFinal")
+	beego.Router("/test/rmib/finish", &controllers.RMIBTestController{}, "get:FinishPage")
+	beego.Router("/test/rmib/result", &controllers.RMIBTestController{}, "get:ResultPage")
+	beego.Router("/test/rmib/result/excel", &controllers.RMIBTestController{}, "get:ExportResultExcel")
+	beego.Router("/api/test/rmib/answer", &controllers.RMIBTestController{}, "post:SaveAnswerAPI")
+	beego.Router("/api/test/rmib/group/:n", &controllers.RMIBTestController{}, "post:SubmitGroupAPI")
+	beego.Router("/test/rmib/dev-autofill", &controllers.RMIBTestController{}, "post:DevAutoFill")
+
+	// PAPI test flow (peserta)
+	beego.Router("/test/papi/start", &controllers.PAPITestController{}, "get:StartPage")
+	beego.Router("/test/papi/instruction", &controllers.PAPITestController{}, "get:InstructionPage")
+	beego.Router("/test/papi/questions", &controllers.PAPITestController{}, "get:QuestionsPage")
+	beego.Router("/test/papi/submit", &controllers.PAPITestController{}, "post:SubmitFinal")
+	beego.Router("/test/papi/finish", &controllers.PAPITestController{}, "get:FinishPage")
+	beego.Router("/test/papi/result", &controllers.PAPITestController{}, "get:ResultPage")
+	beego.Router("/test/papi/result/excel", &controllers.PAPITestController{}, "get:ExportResultExcel")
+	beego.Router("/api/test/papi/answer", &controllers.PAPITestController{}, "post:SaveAnswerAPI")
+	beego.Router("/test/papi/dev-autofill", &controllers.PAPITestController{}, "post:DevAutoFill")
+
 	// API routes
 	beego.Router("/api/auth/register", &controllers.AuthController{}, "post:Register")
 	beego.Router("/api/auth/login", &controllers.AuthController{}, "post:Login")
@@ -169,9 +197,18 @@ func init() {
 	
 	// Profile routes
 	beego.Router("/api/profile", &controllers.ProfileController{}, "get:GetProfile;put:UpdateProfile")
+	beego.Router("/api/profile/onboarding-status", &controllers.ProfileController{}, "get:OnboardingStatus")
+	beego.Router("/api/profile/onboarding", &controllers.ProfileController{}, "post:SaveOnboarding")
+
+	// Proxy data wilayah Indonesia (mengatasi mixed-content & CORS pada sumber publik)
+	beego.Router("/api/wilayah/provinces", &controllers.WilayahController{}, "get:Provinces")
+	beego.Router("/api/wilayah/regencies/:id", &controllers.WilayahController{}, "get:Regencies")
+	beego.Router("/api/wilayah/districts/:id", &controllers.WilayahController{}, "get:Districts")
 	beego.Router("/api/profile/upload", &controllers.ProfileController{}, "post:UploadFoto")
 	beego.Router("/api/profile/tests", &controllers.ProfileController{}, "get:GetTestResults")
 	beego.Router("/api/profile/test-summary", &controllers.ProfileController{}, "get:GetTestSummary")
+	beego.Router("/api/profile/rmib", &controllers.ProfileController{}, "get:GetRMIBResults")
+	beego.Router("/api/profile/papi-results", &controllers.ProfileController{}, "get:GetPAPIResults")
 	
 	// Settings routes
 	beego.Router("/api/settings", &controllers.SettingsController{}, "get:GetSettings;put:UpdateSettings")
@@ -183,10 +220,12 @@ func init() {
 	beego.Router("/api/admin/test-batches/:id/invitations", &controllers.PsychotestAdminController{}, "get:ListInvitations;post:CreateInvitations")
 	beego.Router("/api/admin/test-batches/:id/results", &controllers.PsychotestAdminController{}, "get:ListBatchResults")
 	beego.Router("/api/admin/test-batches/:id/export-answers", &controllers.PsychotestAdminController{}, "get:ExportBatchAnswers")
+	beego.Router("/api/admin/test-batches/:id/ranking/:test", &controllers.RankingController{}, "get:ExportRanking")
 	// Export jawaban untuk satu anak (berdasarkan invitation)
 	beego.Router("/api/admin/test-batches/:batchId/invitations/:invId/export", &controllers.PsychotestAdminController{}, "get:ExportInvitationAnswers")
 	// Invitation CRUD & bulk actions
 	beego.Router("/api/admin/test-invitations/:id", &controllers.PsychotestAdminController{}, "put:UpdateInvitation;delete:DeleteInvitation")
+	beego.Router("/api/admin/test-invitations/:id/send-code", &controllers.PsychotestAdminController{}, "post:SendCode")
 	beego.Router("/api/admin/test-invitations/bulk", &controllers.PsychotestAdminController{}, "post:BulkInvitations")
 	// Admin user search (suggestion email)
 	beego.Router("/api/admin/users/search", &controllers.AdminUserController{}, "get:Search")

@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelompok {{.GroupNumber}} - Tes RMIB</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .rmib-wrap { max-width: 980px; margin: 0 auto; }
+      .rmib-progress-wrap { height: 10px; background:#e9ecef; border-radius:8px; overflow:hidden; }
+      .rmib-progress-bar { height:100%; background:linear-gradient(90deg,#696cff,#9f86ff); transition: width .35s ease; }
+      .rmib-table th { background:#f8fafc; font-weight: 600; }
+      .rmib-table td { vertical-align: middle; }
+      .rmib-rank-select { min-width: 90px; }
+      .rmib-rank-select.is-duplicate { border-color: #dc3545 !important; box-shadow: 0 0 0 .15rem rgba(220,53,69,.18); }
+      .rmib-row.is-duplicate { background-color: #fff5f5; }
+      .rmib-status-bar { padding: .65rem 1rem; border-radius: .5rem; font-size: .9rem; }
+      .rmib-status-ok { background:#e6f7ed; color:#1b6f3a; }
+      .rmib-status-warn { background:#fff4e1; color:#8a5a00; }
+      .rmib-status-err { background:#ffe9eb; color:#a01828; }
+      .rmib-saving-pill { font-size:.78rem; color:#5a5e7a; }
+
+      /* Toast container */
+      .rmib-toast-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1080;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        pointer-events: none;
+      }
+      .rmib-toast {
+        min-width: 280px;
+        max-width: 360px;
+        background: #fff;
+        border-left: 4px solid #696cff;
+        box-shadow: 0 6px 24px rgba(0,0,0,.12);
+        border-radius: .5rem;
+        padding: .75rem 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: .65rem;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: opacity .25s ease, transform .25s ease;
+        pointer-events: auto;
+      }
+      .rmib-toast.show { opacity: 1; transform: translateX(0); }
+      .rmib-toast-icon { font-size: 1.25rem; line-height: 1; flex-shrink: 0; }
+      .rmib-toast-body { flex: 1; font-size: .9rem; color: #2d3748; }
+      .rmib-toast-title { font-weight: 700; margin-bottom: .15rem; }
+      .rmib-toast-close { background: transparent; border: none; color: #99a0c2; font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 0; }
+      .rmib-toast.is-warn { border-left-color: #ffba1a; }
+      .rmib-toast.is-warn .rmib-toast-icon { color: #c87f00; }
+      .rmib-toast.is-err  { border-left-color: #dc3545; }
+      .rmib-toast.is-err  .rmib-toast-icon { color: #c01a2a; }
+      .rmib-toast.is-ok   { border-left-color: #28c76f; }
+      .rmib-toast.is-ok   .rmib-toast-icon { color: #1b9750; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div id="rmibToastContainer" class="rmib-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="container-xxl py-4">
+      <div class="rmib-wrap">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <div class="text-muted small mb-1">Kelompok {{.GroupNumber}} dari {{.TotalGroups}}</div>
+                <h5 class="mb-0">{{.GroupTitle}}</h5>
+              </div>
+              <div class="text-end">
+                <div class="rmib-saving-pill" id="rmibSaveStatus">Tersimpan otomatis</div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-1">
+              <small class="text-muted">Progress {{.ProgressPercent}}%</small>
+              <small class="text-muted">{{.CompletedGroups}}/{{.TotalGroups}} kelompok lengkap</small>
+            </div>
+            <div class="rmib-progress-wrap">
+              <div class="rmib-progress-bar" style="width:{{.ProgressPercent}}%"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            {{if .Error}}
+            <div class="alert alert-danger">{{.Error}}</div>
+            {{else}}
+            <p class="text-muted mb-3">{{.GroupDescription}}</p>
+
+            <div class="alert alert-info mb-3">
+              Berikan ranking <strong>1</strong> (paling Anda senangi) sampai <strong>12</strong> (paling tidak Anda senangi).
+              Setiap angka hanya boleh dipakai sekali.
+            </div>
+
+            <div id="rmibStatus" class="mb-3" style="display:none;"></div>
+
+            <form id="formRMIBGroup" data-group="{{.GroupNumber}}">
+              <div class="table-responsive">
+                <table class="table table-bordered rmib-table align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px;" class="text-center">No</th>
+                      <th>Aktivitas</th>
+                      <th style="width: 130px;" class="text-center">Ranking</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{range $idx, $item := .Items}}
+                    <tr class="rmib-row" data-qid="{{$item.ID}}" id="rmibRow_{{$item.ID}}">
+                      <td class="text-center">{{$item.ItemOrder}}</td>
+                      <td>{{$item.QuestionText}}</td>
+                      <td class="text-center">
+                        <select class="form-select rmib-rank-select" name="q_{{$item.ID}}" data-qid="{{$item.ID}}">
+                          <option value="">-</option>
+                          <option value="1"{{if eq $item.SelectedRank 1}} selected{{end}}>1</option>
+                          <option value="2"{{if eq $item.SelectedRank 2}} selected{{end}}>2</option>
+                          <option value="3"{{if eq $item.SelectedRank 3}} selected{{end}}>3</option>
+                          <option value="4"{{if eq $item.SelectedRank 4}} selected{{end}}>4</option>
+                          <option value="5"{{if eq $item.SelectedRank 5}} selected{{end}}>5</option>
+                          <option value="6"{{if eq $item.SelectedRank 6}} selected{{end}}>6</option>
+                          <option value="7"{{if eq $item.SelectedRank 7}} selected{{end}}>7</option>
+                          <option value="8"{{if eq $item.SelectedRank 8}} selected{{end}}>8</option>
+                          <option value="9"{{if eq $item.SelectedRank 9}} selected{{end}}>9</option>
+                          <option value="10"{{if eq $item.SelectedRank 10}} selected{{end}}>10</option>
+                          <option value="11"{{if eq $item.SelectedRank 11}} selected{{end}}>11</option>
+                          <option value="12"{{if eq $item.SelectedRank 12}} selected{{end}}>12</option>
+                        </select>
+                      </td>
+                    </tr>
+                    {{end}}
+                  </tbody>
+                </table>
+              </div>
+            </form>
+            {{end}}
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              {{if .PrevGroup}}
+              <a href="/test/rmib/group/{{.PrevGroup}}" class="btn btn-outline-secondary">
+                &laquo; Previous
+              </a>
+              {{end}}
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              {{if .IsDev}}
+              <button type="button" id="rmibBtnFillDev" class="btn btn-warning btn-sm" title="Mode development: isi ranking acak unik 1-12">
+                Isi Acak (DEV)
+              </button>
+              <button type="button" id="rmibBtnFillAllDev" class="btn btn-danger btn-sm" title="Mode development: isi semua kelompok dengan acak lalu submit final">
+                Auto Selesai Semua (DEV)
+              </button>
+              {{end}}
+              <button type="button" id="rmibBtnNext" class="btn btn-primary">
+                {{if .NextGroup}}Next &raquo;{{else}}Lanjut ke Ringkasan &raquo;{{end}}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center text-muted small mt-3">
+          Jawaban Anda otomatis tersimpan setiap kali memilih ranking.
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script>
+      (function () {
+        var groupNumber = {{.GroupNumber}};
+        var nextGroup = {{if .NextGroup}}{{.NextGroup}}{{else}}null{{end}};
+        var form = document.getElementById('formRMIBGroup');
+        var btnNext = document.getElementById('rmibBtnNext');
+        var statusEl = document.getElementById('rmibStatus');
+        var saveStatus = document.getElementById('rmibSaveStatus');
+        if (!form || !btnNext) return;
+
+        var selects = form.querySelectorAll('.rmib-rank-select');
+        var debounceMap = {};
+
+        function showStatus(msg, level) {
+          if (!statusEl) return;
+          statusEl.style.display = 'block';
+          statusEl.className = 'rmib-status-bar ' + (level === 'ok' ? 'rmib-status-ok' : (level === 'warn' ? 'rmib-status-warn' : 'rmib-status-err'));
+          statusEl.textContent = msg;
+        }
+        function hideStatus() {
+          if (!statusEl) return;
+          statusEl.style.display = 'none';
+        }
+
+        // Toast helper
+        var toastContainer = document.getElementById('rmibToastContainer');
+        function showToast(opts) {
+          if (!toastContainer) return;
+          var level = opts.level || 'warn';
+          var title = opts.title || (level === 'err' ? 'Terjadi kesalahan' : (level === 'ok' ? 'Berhasil' : 'Perhatian'));
+          var msg = opts.message || '';
+          var dur = opts.duration || 3500;
+          var icon = level === 'err' ? '&#9888;' : (level === 'ok' ? '&#10003;' : '&#9432;');
+
+          var el = document.createElement('div');
+          el.className = 'rmib-toast is-' + level;
+          el.innerHTML =
+            '<div class="rmib-toast-icon">' + icon + '</div>' +
+            '<div class="rmib-toast-body">' +
+              '<div class="rmib-toast-title"></div>' +
+              '<div class="rmib-toast-msg"></div>' +
+            '</div>' +
+            '<button type="button" class="rmib-toast-close" aria-label="Tutup">&times;</button>';
+          el.querySelector('.rmib-toast-title').textContent = title;
+          el.querySelector('.rmib-toast-msg').textContent = msg;
+
+          var closeBtn = el.querySelector('.rmib-toast-close');
+          var hideTimer = null;
+          function hide() {
+            el.classList.remove('show');
+            setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 250);
+            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+          }
+            // toast hanya saat user benar-benar memicu (lihat onChange handler), bukan setiap kali highlight ulang
+          closeBtn.addEventListener('click', hide);
+          toastContainer.appendChild(el);
+          // trigger transition
+          requestAnimationFrame(function () { el.classList.add('show'); });
+          hideTimer = setTimeout(hide, dur);
+        }
+
+        function highlightDuplicates() {
+          var counts = {};
+          var values = [];
+          selects.forEach(function (s) {
+            var v = s.value;
+            if (v === '') return;
+            counts[v] = (counts[v] || 0) + 1;
+            values.push({ select: s, val: v });
+          });
+
+          // reset highlight
+          selects.forEach(function (s) {
+            s.classList.remove('is-duplicate');
+            var row = s.closest('.rmib-row');
+            if (row) row.classList.remove('is-duplicate');
+          });
+
+          var hasDup = false;
+          values.forEach(function (entry) {
+            if (counts[entry.val] > 1) {
+              hasDup = true;
+              entry.select.classList.add('is-duplicate');
+              var row = entry.select.closest('.rmib-row');
+              if (row) row.classList.add('is-duplicate');
+            }
+          });
+
+          if (hasDup) {
+            showStatus('Setiap angka hanya boleh digunakan satu kali dalam satu kelompok.', 'err');
+          } else {
+            // cek kelengkapan
+            var filled = 0;
+            selects.forEach(function (s) { if (s.value !== '') filled++; });
+            if (filled === selects.length) {
+              showStatus('Semua ranking terisi & valid. Klik tombol Next untuk lanjut.', 'ok');
+            } else {
+              showStatus('Lengkapi semua 12 ranking sebelum lanjut. Terisi ' + filled + '/' + selects.length + '.', 'warn');
+            }
+          }
+          return !hasDup;
+        }
+
+        function setSavingState(text) {
+          if (saveStatus) saveStatus.textContent = text;
+        }
+
+        function autosave(qid, rank) {
+          if (debounceMap[qid]) clearTimeout(debounceMap[qid]);
+          debounceMap[qid] = setTimeout(function () {
+            setSavingState('Menyimpan...');
+            fetch('/api/test/rmib/answer', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ question_id: parseInt(qid, 10), selected_rank: parseInt(rank, 10) })
+            }).then(function (r) { return r.json(); }).then(function (data) {
+              if (data && data.success) setSavingState('Tersimpan otomatis');
+              else setSavingState('Gagal menyimpan, coba lagi');
+            }).catch(function () {
+              setSavingState('Offline / koneksi gagal');
+            });
+          }, 500);
+        }
+
+        selects.forEach(function (s) {
+          s.addEventListener('change', function () {
+            var qid = s.getAttribute('data-qid');
+            var v = s.value;
+            highlightDuplicates();
+            if (v !== '') autosave(qid, v);
+          });
+        });
+
+        // initial highlight (if user navigated back)
+        highlightDuplicates();
+
+        // ====== DEV: isi ranking acak unik 1..12 di kelompok ini ======
+        var btnFillDev = document.getElementById('rmibBtnFillDev');
+        if (btnFillDev) {
+          btnFillDev.addEventListener('click', function () {
+            // permutasi acak 1..12
+            var ranks = [1,2,3,4,5,6,7,8,9,10,11,12];
+            for (var i = ranks.length - 1; i > 0; i--) {
+              var j = Math.floor(Math.random() * (i + 1));
+              var tmp = ranks[i]; ranks[i] = ranks[j]; ranks[j] = tmp;
+            }
+            selects.forEach(function (s, idx) {
+              s.value = String(ranks[idx]);
+              var qid = s.getAttribute('data-qid');
+              autosave(qid, ranks[idx]);
+            });
+            highlightDuplicates();
+            showToast({ level: 'ok', title: 'DEV mode', message: 'Ranking acak telah diisi & disimpan otomatis.' });
+          });
+        }
+
+        // ====== DEV: auto-fill semua kelompok + submit final ======
+        var btnFillAllDev = document.getElementById('rmibBtnFillAllDev');
+        if (btnFillAllDev) {
+          btnFillAllDev.addEventListener('click', function () {
+            if (!window.confirm('Mode DEV: ini akan mengisi acak SEMUA kelompok dan menyelesaikan tes. Lanjutkan?')) return;
+            btnFillAllDev.disabled = true;
+            showToast({ level: 'warn', title: 'DEV mode', message: 'Mengisi semua kelompok & menyelesaikan tes...' , duration: 4000 });
+            fetch('/test/rmib/dev-autofill', { method: 'POST' })
+              .then(function (r) { return r.json().catch(function () { return null; }).then(function (j) { return { status: r.status, data: j }; }); })
+              .then(function (res) {
+                if (res.data && res.data.success) {
+                  window.location.href = res.data.next || '/test/rmib/result';
+                } else {
+                  showToast({ level: 'err', title: 'Gagal', message: (res.data && res.data.message) || 'Tidak dapat menjalankan auto-fill.' });
+                  btnFillAllDev.disabled = false;
+                }
+              })
+              .catch(function () {
+                showToast({ level: 'err', title: 'Gagal terhubung', message: 'Periksa koneksi & coba lagi.' });
+                btnFillAllDev.disabled = false;
+              });
+          });
+        }
+
+        btnNext.addEventListener('click', function () {
+          var ok = highlightDuplicates();
+          var answers = {};
+          var filled = 0;
+          selects.forEach(function (s) {
+            var qid = s.getAttribute('data-qid');
+            var v = s.value;
+            if (v !== '') {
+              answers[qid] = parseInt(v, 10);
+              filled++;
+            }
+          });
+          if (filled !== selects.length) {
+            var missing = selects.length - filled;
+            showStatus('Lengkapi semua 12 ranking sebelum lanjut.', 'warn');
+            showToast({
+              level: 'warn',
+              title: 'Soal belum lengkap',
+              message: 'Masih ada ' + missing + ' aktivitas yang belum diberi ranking.'
+            });
+            return;
+          }
+          if (!ok) {
+            showToast({
+              level: 'err',
+              title: 'Ranking duplikat',
+              message: 'Setiap angka 1-12 hanya boleh dipakai sekali. Periksa baris yang ditandai merah.'
+            });
+            return;
+          }
+
+          btnNext.disabled = true;
+          fetch('/api/test/rmib/group/' + groupNumber, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: answers })
+          }).then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+            .then(function (res) {
+              if (!res.data || !res.data.success) {
+                var msg = (res.data && res.data.message) ? res.data.message : 'Gagal menyimpan kelompok.';
+                showStatus(msg, 'err');
+                showToast({ level: 'err', title: 'Gagal menyimpan', message: msg });
+                btnNext.disabled = false;
+                return;
+              }
+              window.location.href = res.data.next_redirect || (nextGroup ? ('/test/rmib/group/' + nextGroup) : '/test/rmib/summary');
+            }).catch(function () {
+              showStatus('Terjadi error saat mengirim jawaban.', 'err');
+              showToast({ level: 'err', title: 'Gagal terhubung', message: 'Cek koneksi internet Anda lalu coba lagi.' });
+              btnNext.disabled = false;
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

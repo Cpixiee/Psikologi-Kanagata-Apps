@@ -1665,6 +1665,24 @@ func (c *ISTTestController) ExportResultExcel() {
 	}
 	_ = f.SetCellStyle(sheet, "A3", "A5", styleBold)
 
+	// NISN/NIP, Kelas, Jurusan di kolom kanan
+	nisnNip := strings.TrimSpace(user.NISN)
+	idLabel := "NISN"
+	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
+		nisnNip = user.NIP
+		idLabel = "NIP"
+	}
+	if nisnNip == "" {
+		idLabel = "NISN/NIP"
+	}
+	_ = f.SetCellValue(sheet, "E3", idLabel)
+	_ = f.SetCellValue(sheet, "F3", nisnNip)
+	_ = f.SetCellValue(sheet, "E4", "Kelas")
+	_ = f.SetCellValue(sheet, "F4", user.Kelas)
+	_ = f.SetCellValue(sheet, "E5", "Jurusan")
+	_ = f.SetCellValue(sheet, "F5", user.Jurusan)
+	_ = f.SetCellStyle(sheet, "E3", "E5", styleBold)
+
 	// A. Kecerdasan umum
 	_ = f.SetCellValue(sheet, "A7", "A. KECERDASAN UMUM (Skala IST)")
 	_ = f.SetCellStyle(sheet, "A7", "A7", styleBold)

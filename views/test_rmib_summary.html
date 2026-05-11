@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ringkasan Tes RMIB</title>
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <style>
+      .rmib-wrap { max-width: 760px; margin: 0 auto; }
+      .rmib-summary-row { display:flex; justify-content:space-between; align-items:center; padding: .85rem 1rem; border:1px solid #e7e9f5; border-radius:.5rem; margin-bottom:.5rem; }
+      .rmib-summary-row .rmib-summary-title { font-weight: 600; }
+      .badge-completed { background:#e6f7ed; color:#1b6f3a; padding:.35rem .65rem; border-radius:.45rem; font-weight:600; font-size:.78rem; }
+      .badge-incomplete { background:#fff4e1; color:#8a5a00; padding:.35rem .65rem; border-radius:.45rem; font-weight:600; font-size:.78rem; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container-xxl py-4">
+      <div class="rmib-wrap">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white text-center">
+            <h5 class="mb-0">Ringkasan Jawaban Tes RMIB</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted">Periksa kembali jawaban Anda sebelum submit. Semua kelompok harus berstatus <strong>Lengkap</strong>.</p>
+
+            {{range $g := .Groups}}
+            <div class="rmib-summary-row">
+              <div>
+                <div class="text-muted small">Kelompok {{$g.GroupNumber}}</div>
+                <div class="rmib-summary-title">{{$g.Title}}</div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                {{if $g.Completed}}
+                <span class="badge-completed">&#10003; Lengkap</span>
+                {{else}}
+                <span class="badge-incomplete">! Belum lengkap</span>
+                {{end}}
+                <a class="btn btn-sm btn-outline-secondary" href="/test/rmib/group/{{$g.GroupNumber}}">Edit</a>
+              </div>
+            </div>
+            {{end}}
+
+            <form action="/test/rmib/submit" method="post" class="mt-4">
+              <div class="d-flex flex-wrap gap-2 justify-content-end">
+                <a href="/test/rmib/group/1" class="btn btn-outline-secondary">Kembali Edit</a>
+                <button type="submit" class="btn btn-primary" {{if not .AllComplete}}disabled{{end}}>
+                  Submit Final
+                </button>
+              </div>
+              {{if not .AllComplete}}
+              <div class="text-end text-muted small mt-2">
+                Lengkapi semua kelompok terlebih dahulu agar tombol submit aktif.
+              </div>
+              {{end}}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

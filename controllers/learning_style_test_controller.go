@@ -590,21 +590,40 @@ func (c *LearningStyleTestController) ExportResultExcel() {
 	_ = f.SetRowHeight(sheet, 1, 32)
 	_ = f.SetCellValue(sheet, "A1", "RESUME\nTES GAYA BELAJAR (VAK)")
 	_ = f.SetCellStyle(sheet, "A1", "C1", styleHeaderGreen)
+	nisnNip := strings.TrimSpace(user.NISN)
+	idLabel := "NISN"
+	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
+		nisnNip = user.NIP
+		idLabel = "NIP"
+	}
+	if nisnNip == "" {
+		idLabel = "NISN/NIP"
+	}
+	nama := res.TestName
+	if strings.TrimSpace(user.NamaLengkap) != "" {
+		nama = user.NamaLengkap
+	}
 	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", res.TestName)
-	_ = f.SetCellValue(sheet, "A4", "Usia")
-	_ = f.SetCellValue(sheet, "B4", res.TestAge)
-	_ = f.SetCellValue(sheet, "A5", "Pendidikan")
-	_ = f.SetCellValue(sheet, "B5", res.TestInstitution)
-	_ = f.SetCellValue(sheet, "A6", "Jenis kelamin")
-	_ = f.SetCellValue(sheet, "B6", res.TestGender)
-	_ = f.SetCellValue(sheet, "A7", "Tanggal")
-	_ = f.SetCellValue(sheet, "B7", res.TestDate.Format("02-01-2006"))
-	_ = f.SetCellStyle(sheet, "A3", "A7", styleCenter)
-	_ = f.SetCellStyle(sheet, "B3", "B7", styleBody)
+	_ = f.SetCellValue(sheet, "B3", nama)
+	_ = f.SetCellValue(sheet, "A4", idLabel)
+	_ = f.SetCellValue(sheet, "B4", nisnNip)
+	_ = f.SetCellValue(sheet, "A5", "Kelas")
+	_ = f.SetCellValue(sheet, "B5", user.Kelas)
+	_ = f.SetCellValue(sheet, "A6", "Jurusan")
+	_ = f.SetCellValue(sheet, "B6", user.Jurusan)
+	_ = f.SetCellValue(sheet, "A7", "Usia")
+	_ = f.SetCellValue(sheet, "B7", res.TestAge)
+	_ = f.SetCellValue(sheet, "A8", "Pendidikan")
+	_ = f.SetCellValue(sheet, "B8", res.TestInstitution)
+	_ = f.SetCellValue(sheet, "A9", "Jenis kelamin")
+	_ = f.SetCellValue(sheet, "B9", res.TestGender)
+	_ = f.SetCellValue(sheet, "A10", "Tanggal")
+	_ = f.SetCellValue(sheet, "B10", res.TestDate.Format("02-01-2006"))
+	_ = f.SetCellStyle(sheet, "A3", "A10", styleCenter)
+	_ = f.SetCellStyle(sheet, "B3", "B10", styleBody)
 
 	// Table header
-	startRow := 9
+	startRow := 12
 	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", startRow), "TIPE GAYA\nBELAJAR")
 	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", startRow), "INTERPRETASI")
 	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", startRow), "NILAI SKOR")

@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Hasil PAPI - Profil Saya</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .top-card { border:1px solid #e7e9f5; border-radius:.75rem; padding:1rem 1.25rem; height:100%; }
+      .top-card .top-rank { font-size:.78rem; color:#696cff; font-weight:600; letter-spacing:.05em; }
+      .top-card .top-label { font-size:1.1rem; font-weight:700; color:#2d3748; }
+      .top-card .top-score { color:#7a7d9c; font-size:.85rem; }
+      .top-card-1 { background:linear-gradient(135deg,#eef0ff,#f6f7ff); border-color:#c7c9ff; }
+      .top-card-2 { background:linear-gradient(135deg,#eaf7ef,#f4fbf6); border-color:#bfe1cc; }
+      .top-card-3 { background:linear-gradient(135deg,#fff5e6,#fffaf0); border-color:#f3d6a6; }
+
+      .bar-row { display:grid; grid-template-columns: 240px 1fr 180px; gap:.75rem; align-items:center; padding:.55rem 0; border-bottom:1px solid #f1f2fb; }
+      .bar-row:last-child { border-bottom:none; }
+      .bar-track { background:#f1f2fb; height:18px; border-radius:999px; overflow:hidden; }
+      .bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#9aa0ff,#696cff); transition: width .5s ease; }
+      .bar-fill.is-top1 { background:linear-gradient(90deg,#3da66c,#1b9750); }
+      .bar-fill.is-top2 { background:linear-gradient(90deg,#5b8bff,#2c5fe7); }
+      .bar-fill.is-top3 { background:linear-gradient(90deg,#f0a35a,#d97a1f); }
+      .bar-meta { font-size:.85rem; color:#5a5e7a; text-align:right; }
+      .badge-top { font-size:.7rem; padding:.2rem .55rem; border-radius:.4rem; font-weight:600; margin-left:.4rem; }
+      .badge-top-1 { background:#e6f7ed; color:#1b6f3a; }
+      .badge-top-2 { background:#e6efff; color:#2c5fe7; }
+      .badge-top-3 { background:#fff1de; color:#a05a0a; }
+      .empty-card { border:1px dashed #d4d6e8; border-radius:.75rem; padding:2.5rem 1rem; text-align:center; color:#7a7d9c; }
+
+      /* === Psikogram PAPI (laporan standar) === */
+      .psikogram-title { text-align:center; font-weight:700; font-size:1.05rem; margin:0 0 .25rem; letter-spacing:.02em; }
+      .psikogram-subtitle { font-weight:700; text-transform:uppercase; font-size:.95rem; margin:1rem 0 .5rem; }
+      .psikogram-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+      .psikogram-table th, .psikogram-table td { border:1px solid #b9c2d0; padding:.5rem .65rem; vertical-align:top; }
+      .psikogram-table thead th { background:#dbe5f1; text-align:center; font-weight:700; }
+      .psikogram-table .col-no { width:46px; text-align:center; }
+      .psikogram-table .col-code { width:70px; text-align:center; font-weight:700; font-size:1.1rem; }
+      .psikogram-table .col-score { width:90px; text-align:center; }
+      .psikogram-table .col-rank { width:90px; text-align:center; }
+      .psikogram-table .col-level { width:140px; text-align:center; }
+      .psikogram-table .col-name { width:200px; }
+      .psikogram-table .col-rank-cell { width:90px; text-align:center; vertical-align:middle; }
+      .psikogram-table .cat-code { display:inline-block; min-width:1.6rem; padding:.05rem .35rem; background:#dbe5f1; color:#2c5fe7; border-radius:.3rem; font-weight:700; font-size:.95rem; margin-right:.25rem; }
+      .psikogram-table .cat-name { font-weight:700; }
+      .psikogram-table .nilai-label { color:#444; font-size:.85rem; margin-top:.4rem; }
+      .psikogram-table .nilai-score { font-size:1.4rem; font-weight:700; line-height:1.1; }
+      .psikogram-table .desc { margin:0 0 .4rem; }
+      .psikogram-table .contoh { margin:0; }
+      .psikogram-table .rank-num { font-size:1.4rem; font-weight:800; color:#2d3748; line-height:1; }
+      .psikogram-table .rank-label { font-size:.7rem; color:#7a7d9c; margin-top:.2rem; }
+      .psikogram-table tr.is-top td { background:#eef5ff; font-weight:600; }
+      .psikogram-keterangan { font-size:.85rem; margin-top:.75rem; }
+      .psikogram-keterangan ol { padding-left:1.2rem; margin-bottom:0; }
+      .psikogram-keterangan em { font-style:italic; }
+      .level-badge { display:inline-block; padding:.2rem .6rem; border-radius:.4rem; font-weight:600; font-size:.8rem; }
+      .level-st { background:#e6f7ed; color:#1b6f3a; }
+      .level-t  { background:#e6efff; color:#2c5fe7; }
+      .level-s  { background:#fff9e6; color:#8a6d1a; }
+      .level-r  { background:#fdeceb; color:#a23b2d; }
+
+      /* === Diagram lingkaran PAPI === */
+      .papi-wheel-card { background:#fff; border-radius:.75rem; box-shadow:0 2px 10px rgba(0,0,0,.05); padding:1rem 1rem 0; margin-bottom:1.25rem; }
+      .papi-wheel-card h6 { margin:0; }
+      .papi-wheel-wrap { display:flex; justify-content:center; padding:.5rem 0; }
+      .papi-wheel { width:100%; max-width:640px; height:auto; }
+      .papi-wheel text { font-family: 'Public Sans', system-ui, sans-serif; }
+      .papi-wheel .num-text { font-size:11px; fill:#6b7280; }
+      .papi-wheel .num-text.is-active { fill:#fff; font-weight:700; }
+      .papi-legend { display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem .9rem; padding:.5rem 0 1rem; font-size:.78rem; color:#5a5e7a; }
+      .papi-legend .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:.3rem; vertical-align:middle; }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <div class="app-brand demo">
+            <a href="/dashboard" class="app-brand-link">
+              <span class="app-brand-logo demo">
+                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+              </span>
+              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
+            </a>
+          </div>
+          <div class="menu-divider mt-0"></div>
+          <div class="menu-inner-shadow"></div>
+          <ul class="menu-inner py-1">
+            <li class="menu-item"><a href="/dashboard" class="menu-link"><i class="menu-icon tf-icons bx bx-home-smile"></i><div class="text-truncate">Dashboard</div></a></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Layanan</span></li>
+            <li class="menu-item"><a href="/test" class="menu-link"><i class="menu-icon tf-icons bx bx-clipboard"></i><div class="text-truncate">Tes Psikologi</div></a></li>
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Akun</span></li>
+            <li class="menu-item active">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-user"></i><div class="text-truncate">Profil</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item"><a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a></li>
+                <li class="menu-item"><a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a></li>
+                <li class="menu-item"><a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a></li>
+                <li class="menu-item"><a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a></li>
+                <li class="menu-item"><a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a></li>
+                <li class="menu-item"><a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a></li>
+                <li class="menu-item active"><a href="/profile/papi" class="menu-link"><div class="text-truncate">Hasil PAPI</div></a></li>
+              </ul>
+            </li>
+            <li class="menu-item"><a href="/settings" class="menu-link"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengaturan</div></a></li>
+          </ul>
+        </aside>
+
+        <div class="layout-page">
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <div class="card mb-3">
+                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <h5 class="mb-1">Hasil PAPI</h5>
+                    <p class="mb-0 text-muted">Riwayat &amp; ringkasan profil kepribadian kerja berdasarkan Tes PAPI Anda.</p>
+                  </div>
+                  <button type="button" id="papiViewBtn" class="btn btn-sm btn-outline-primary" style="display:none;">
+                    <i class="bx bx-show me-1"></i>Lihat Detail
+                  </button>
+                </div>
+              </div>
+
+              <div id="papiProfileBody">
+                <div class="card"><div class="card-body">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="text-muted small mt-2">Memuat hasil PAPI...</div>
+                  </div>
+                </div></div>
+              </div>
+
+              <!-- Modal Detail PAPI -->
+              <div class="modal fade" id="papiDetailModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Detail Hasil PAPI &mdash; Psikogram</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body" id="papiDetailModalBody">
+                      <div class="text-center text-muted py-3">Memuat detail...</div>
+                    </div>
+                    <div class="modal-footer">
+                      <a id="papiDetailExcel" href="#" class="btn btn-success">
+                        <i class="bx bx-download me-1"></i>Unduh Excel
+                      </a>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="content-backdrop fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
+    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <script>
+      (function () {
+        // 20 kode PAPI (10 Peran + 10 Kebutuhan) - urutan sesuai buku panduan
+        var peranCodes = ['G','L','I','T','V','S','R','D','C','E'];
+        var kebCodes   = ['N','A','P','X','B','O','Z','K','F','W'];
+        var papiOrder  = peranCodes.concat(kebCodes);
+
+        var papiLabel = {
+          G:'Pekerja keras',
+          L:'Kepemimpinan',
+          I:'Mudah membuat keputusan',
+          T:'Tipe orang yang sibuk',
+          V:'Tipe orang yang bersemangat',
+          S:'Hubungan sosial / pergaulan luas',
+          R:'Tipe teoritis',
+          D:'Tipe orang teratur / bekerja detail',
+          C:'Mengatur / mengorganisir',
+          E:'Pengendalian emosi',
+          N:'Penyelesaian mandiri',
+          A:'Kebutuhan untuk berprestasi',
+          P:'Mengatur orang lain',
+          X:'Untuk mendapat perhatian',
+          B:'Diterima dalam kelompok',
+          O:'Hubungan akrab / intim',
+          Z:'Hasrat untuk berubah',
+          K:'Agresi',
+          F:'Mendukung / membantu atasan',
+          W:'Mengikuti aturan'
+        };
+        var papiGroup = {};
+        peranCodes.forEach(function (c) { papiGroup[c] = 'Peran'; });
+        kebCodes.forEach(function (c)   { papiGroup[c] = 'Kebutuhan'; });
+
+        function levelFromScore(score) {
+          // PAPI skor per kategori umumnya 0..9 (paired comparison 9 pasangan)
+          if (score >= 7) return { label:'Sangat Tinggi', css:'level-st' };
+          if (score >= 5) return { label:'Tinggi',        css:'level-t'  };
+          if (score >= 3) return { label:'Sedang',        css:'level-s'  };
+          return             { label:'Rendah',        css:'level-r'  };
+        }
+
+        function escapeHtml(str) {
+          if (str === null || str === undefined) return '';
+          return String(str).replace(/[&<>"']/g, function (c) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+          });
+        }
+
+        function renderEmpty(body) {
+          var btn = document.getElementById('papiViewBtn');
+          if (btn) btn.style.display = 'none';
+          body.innerHTML =
+            '<div class="card"><div class="card-body">' +
+              '<div class="text-center py-5">' +
+                '<i class="bx bx-info-circle text-muted" style="font-size:3rem;"></i>' +
+                '<p class="text-muted mt-2 mb-0">Tes PAPI belum pernah dikerjakan</p>' +
+                '<a href="/test" class="btn btn-primary mt-3">' +
+                  '<i class="bx bx-play me-1"></i>Buka Halaman Tes</a>' +
+              '</div>' +
+            '</div></div>';
+        }
+
+        function renderResult(body, entry) {
+          var inv = entry.invitation || {};
+          var res = entry.papi_result;
+          if (!res) { renderEmpty(body); return; }
+
+          var parsed = {};
+          try { parsed = JSON.parse(res.result_json || '{}') || {}; } catch (e) { parsed = {}; }
+
+          var topCodes = [];
+          try {
+            var tc = res.top_categories ? JSON.parse(res.top_categories) : null;
+            if (Array.isArray(tc)) topCodes = tc;
+          } catch (e) { topCodes = []; }
+          // fallback: ambil 3 rank terkecil
+          if (topCodes.length === 0) {
+            var tmp = papiOrder.map(function (c) { return { code:c, rank:(parsed[c] && parsed[c].rank) || 99 }; });
+            tmp.sort(function (a, b) { return a.rank - b.rank; });
+            topCodes = tmp.slice(0, 3).map(function (x) { return x.code; });
+          }
+          var top1 = topCodes[0] || '', top2 = topCodes[1] || '', top3 = topCodes[2] || '';
+
+          // Nilai maks untuk bar chart (skala proporsional)
+          var maxScore = 0;
+          papiOrder.forEach(function (c) {
+            var s = (parsed[c] && parsed[c].score) || 0;
+            if (s > maxScore) maxScore = s;
+          });
+          if (maxScore === 0) maxScore = 1;
+
+          // Top-3 cards
+          var top3Html =
+            '<div class="row g-3 mb-4">' +
+              '<div class="col-md-4"><div class="top-card top-card-1">' +
+                '<div class="top-rank">#1 KATEGORI TERTINGGI</div>' +
+                '<div class="top-label mt-1">' + escapeHtml(papiLabel[top1] || top1 || '-') + '</div>' +
+                '<div class="top-score">Kode: ' + escapeHtml(top1 || '-') + ' &middot; ' + escapeHtml(papiGroup[top1] || '-') + '</div>' +
+              '</div></div>' +
+              '<div class="col-md-4"><div class="top-card top-card-2">' +
+                '<div class="top-rank">#2</div>' +
+                '<div class="top-label mt-1">' + escapeHtml(papiLabel[top2] || top2 || '-') + '</div>' +
+                '<div class="top-score">Kode: ' + escapeHtml(top2 || '-') + ' &middot; ' + escapeHtml(papiGroup[top2] || '-') + '</div>' +
+              '</div></div>' +
+              '<div class="col-md-4"><div class="top-card top-card-3">' +
+                '<div class="top-rank">#3</div>' +
+                '<div class="top-label mt-1">' + escapeHtml(papiLabel[top3] || top3 || '-') + '</div>' +
+                '<div class="top-score">Kode: ' + escapeHtml(top3 || '-') + ' &middot; ' + escapeHtml(papiGroup[top3] || '-') + '</div>' +
+              '</div></div>' +
+            '</div>';
+
+          // Distribusi bar per kategori (urut sesuai papiOrder)
+          var topSet = {};
+          if (top1) topSet[top1] = 1;
+          if (top2) topSet[top2] = 2;
+          if (top3) topSet[top3] = 3;
+
+          var bars = papiOrder.map(function (code) {
+            var e = parsed[code] || { score:0, rank:0 };
+            var pct = Math.round((e.score / maxScore) * 100);
+            if (pct < 4) pct = 4;
+            var cls = '', badge = '';
+            if (topSet[code] === 1) { cls = 'is-top1'; badge = '<span class="badge-top badge-top-1">#1</span>'; }
+            else if (topSet[code] === 2) { cls = 'is-top2'; badge = '<span class="badge-top badge-top-2">#2</span>'; }
+            else if (topSet[code] === 3) { cls = 'is-top3'; badge = '<span class="badge-top badge-top-3">#3</span>'; }
+            return '<div class="bar-row">' +
+              '<div><strong>' + escapeHtml(code) + ' &mdash; ' + escapeHtml(papiLabel[code] || code) + '</strong>' + badge +
+                '<div class="text-muted small">' + escapeHtml(papiGroup[code] || '-') + '</div></div>' +
+              '<div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+              '<div class="bar-meta">Skor <strong>' + (e.score || 0) + '</strong> &middot; Peringkat <strong>' + (e.rank || '-') + '</strong></div>' +
+              '</div>';
+          }).join('');
+
+          var distroHtml =
+            '<div class="card shadow-sm mb-4">' +
+              '<div class="card-header">' +
+                '<h6 class="mb-0">Distribusi Skor per Kategori PAPI</h6>' +
+                '<small class="text-muted">Bar lebih panjang = skor lebih tinggi (kategori lebih dominan).</small>' +
+              '</div>' +
+              '<div class="card-body">' + bars + '</div>' +
+            '</div>';
+
+          var interpCard = res.interpretation
+            ? '<div class="card shadow-sm">' +
+                '<div class="card-header"><h6 class="mb-0">Interpretasi Otomatis</h6></div>' +
+                '<div class="card-body">' +
+                  '<pre class="mb-0" style="white-space:pre-wrap;font-family:inherit;">' + escapeHtml(res.interpretation) + '</pre>' +
+                '</div>' +
+              '</div>'
+            : '';
+
+          var wheelHtml = renderPapiWheel(parsed);
+          body.innerHTML = top3Html + wheelHtml + interpCard;
+
+          // ===== Modal Psikogram PAPI (RMIB-style) =====
+          function renderSection(title, codes) {
+            var rows = codes.map(function (code, idx) {
+              var e = parsed[code] || { score:0, rank:0 };
+              var meta = papiInterp[code] || { desc:'', tinggi:'', rendah:'' };
+              var lvl = levelFromScore(e.score || 0);
+              var levelText = (e.score || 0) >= 5 ? meta.tinggi : meta.rendah;
+              var isTop = !!topSet[code];
+              return '<tr' + (isTop ? ' class="is-top"' : '') + '>' +
+                '<td class="col-no">' + (idx + 1) + '</td>' +
+                '<td class="col-name">' +
+                  '<span class="cat-code">' + escapeHtml(code) + '</span> ' +
+                  '<span class="cat-name">' + escapeHtml(papiLabel[code] || code) + '</span>' +
+                  '<div class="nilai-label">Skor</div>' +
+                  '<div class="nilai-score">' + (e.score || 0) + '</div>' +
+                  '<div class="mt-1"><span class="level-badge ' + lvl.css + '">' + lvl.label + '</span></div>' +
+                '</td>' +
+                '<td>' +
+                  '<p class="desc mb-1">' + escapeHtml(meta.desc) + '</p>' +
+                  (levelText ? '<p class="contoh mb-0"><strong>Interpretasi:</strong> ' + escapeHtml(levelText) + '</p>' : '') +
+                '</td>' +
+                '<td class="col-rank-cell"><div class="rank-num">' + (e.rank || '-') + '</div><div class="rank-label">dari 20</div></td>' +
+              '</tr>';
+            }).join('');
+            return '<div class="psikogram-subtitle">' + escapeHtml(title) + '</div>' +
+              '<div class="table-responsive">' +
+                '<table class="psikogram-table">' +
+                  '<thead><tr>' +
+                    '<th class="col-no">No</th>' +
+                    '<th class="col-name">Aspek</th>' +
+                    '<th>Interpretasi</th>' +
+                    '<th class="col-rank-cell">Peringkat</th>' +
+                  '</tr></thead>' +
+                  '<tbody>' + rows + '</tbody>' +
+                '</table>' +
+              '</div>';
+          }
+
+          var date = res.completed_at ? new Date(res.completed_at).toLocaleString('id-ID') : '-';
+          var timeTaken = (typeof res.time_taken_minutes === 'number') ? res.time_taken_minutes : 0;
+
+          var modalInfo =
+            '<div class="mb-3 small text-muted">' +
+              '<div><strong>Tanggal selesai:</strong> ' + escapeHtml(date) + '</div>' +
+              (timeTaken > 0 ? '<div><strong>Waktu pengerjaan:</strong> ' + timeTaken + ' menit</div>' : '') +
+              '<div><strong>Kategori dominan:</strong> ' + escapeHtml(res.dominant_category || '-') +
+                (res.dominant_category ? ' &mdash; ' + escapeHtml(papiLabel[res.dominant_category] || '') : '') + '</div>' +
+            '</div>';
+
+          var modalBodyHtml =
+            modalInfo +
+            '<h5 class="psikogram-title">Psikogram PAPI</h5>' +
+            renderPapiWheel(parsed) +
+            renderSection('A. PERAN (Roles)', peranCodes) +
+            renderSection('B. KEBUTUHAN (Needs)', kebCodes) +
+            '<div class="psikogram-keterangan">' +
+              '<strong>Keterangan:</strong>' +
+              '<ol>' +
+                '<li>Skor setiap aspek berkisar <em>0 sampai 9</em>. Semakin <em>tinggi</em> skor, semakin <em>dominan</em> aspek tersebut dalam profil kepribadian kerja Anda.</li>' +
+                '<li>Peringkat menunjukkan urutan dominasi aspek (1 = paling dominan) di antara 20 kategori PAPI.</li>' +
+                '<li>Tes PAPI membedakan dua dimensi: <strong>Peran</strong> (perilaku yang ditampilkan) dan <strong>Kebutuhan</strong> (motivasi dasar di baliknya).</li>' +
+                '<li>Hasil tes bersifat deskriptif, bukan penilaian baik/buruk; gunakan sebagai bahan refleksi dan pengembangan diri.</li>' +
+              '</ol>' +
+            '</div>';
+
+          var mBody = document.getElementById('papiDetailModalBody');
+          if (mBody) mBody.innerHTML = modalBodyHtml;
+
+          var excelLink = document.getElementById('papiDetailExcel');
+          if (excelLink && inv.id) {
+            excelLink.href = '/test/papi/result/excel?invId=' + inv.id;
+            excelLink.style.display = '';
+          } else if (excelLink) {
+            excelLink.style.display = 'none';
+          }
+
+          var viewBtn = document.getElementById('papiViewBtn');
+          if (viewBtn) {
+            viewBtn.style.display = 'inline-block';
+            viewBtn.setAttribute('data-bs-toggle', 'modal');
+            viewBtn.setAttribute('data-bs-target', '#papiDetailModal');
+          }
+        }
+
+        // Diagram lingkaran PAPI 20-kategori (mirip lembar manual)
+        var wheelOrder = ['Z','E','K','F','W','N','G','A','L','P','I','T','V','X','S','B','O','R','D','C'];
+        var wheelGroups = [
+          { label:'SIFAT',        start:0,  count:3, color:'#4F46E5' },
+          { label:'KETAATAN',     start:3,  count:2, color:'#0EA5A5' },
+          { label:'ARAH KERJA',   start:5,  count:3, color:'#16A34A' },
+          { label:'KEPEMIMPINAN', start:8,  count:3, color:'#CA8A04' },
+          { label:'AKTIFITAS',    start:11, count:2, color:'#EA580C' },
+          { label:'PERGAULAN',    start:13, count:4, color:'#DC2626' },
+          { label:'GAYA KERJA',   start:17, count:3, color:'#7C3AED' }
+        ];
+
+        // Interpretasi singkat per aspek (Bahasa Indonesia)
+        var papiInterp = {
+          G: { desc:'Kecenderungan untuk bekerja keras dan tahan dengan beban kerja yang tinggi.',
+               tinggi:'Skor tinggi: tipe pekerja keras, terus berusaha keras menyelesaikan tugas, sulit berhenti sebelum tuntas.',
+               rendah:'Skor rendah: cenderung menjaga ritme, kurang menyukai beban kerja yang berlebihan.' },
+          L: { desc:'Kecenderungan untuk mengambil peran sebagai pemimpin dalam suatu kelompok.',
+               tinggi:'Skor tinggi: senang dan terbiasa memegang kendali, mudah memimpin orang lain.',
+               rendah:'Skor rendah: kurang menyukai peran sebagai pemimpin, lebih nyaman menjadi anggota.' },
+          I: { desc:'Kemampuan untuk mengambil keputusan secara cepat dan mandiri.',
+               tinggi:'Skor tinggi: cepat dan tegas dalam mengambil keputusan, tidak ragu-ragu.',
+               rendah:'Skor rendah: lebih hati-hati, cenderung menunda keputusan atau butuh banyak pertimbangan.' },
+          T: { desc:'Tingkat aktivitas / kesibukan dalam menjalankan pekerjaan.',
+               tinggi:'Skor tinggi: tipe orang sibuk, selalu mencari kegiatan dan tidak suka menganggur.',
+               rendah:'Skor rendah: lebih santai, menjalani pekerjaan dengan tempo yang lebih tenang.' },
+          V: { desc:'Tingkat semangat, energi, dan vitalitas dalam bekerja.',
+               tinggi:'Skor tinggi: penuh semangat, energik, dan bergairah dalam menjalankan aktivitas.',
+               rendah:'Skor rendah: kurang ekspresif, lebih kalem dan menjaga energi.' },
+          S: { desc:'Kebutuhan dan kemampuan untuk berinteraksi sosial / bergaul luas.',
+               tinggi:'Skor tinggi: ramah, mudah bergaul, suka memperluas relasi sosial.',
+               rendah:'Skor rendah: lebih tertutup, nyaman dengan lingkup pergaulan yang terbatas.' },
+          R: { desc:'Kecenderungan untuk berpikir teoritis / analitis sebelum bertindak.',
+               tinggi:'Skor tinggi: tipe teoritis, suka berpikir mendalam, analitis, dan konseptual.',
+               rendah:'Skor rendah: lebih praktis dan langsung, kurang tertarik pada analisis panjang.' },
+          D: { desc:'Perhatian terhadap detail, ketelitian, dan keteraturan kerja.',
+               tinggi:'Skor tinggi: sangat teliti, teratur, menyukai pekerjaan detail.',
+               rendah:'Skor rendah: cenderung melihat gambar besar, kurang sabar dengan detail.' },
+          C: { desc:'Kemampuan mengorganisir, mengatur, dan mengelola pekerjaan.',
+               tinggi:'Skor tinggi: terampil mengatur dan mengorganisir hal-hal di sekitarnya.',
+               rendah:'Skor rendah: kurang menyukai pekerjaan administratif / pengaturan.' },
+          E: { desc:'Pengendalian emosi dan ketenangan dalam menghadapi tekanan.',
+               tinggi:'Skor tinggi: mampu mengendalikan emosi dengan baik, tenang, dan tidak meluap-luap.',
+               rendah:'Skor rendah: emosi mudah terbaca, ekspresif, dan kurang menahan reaksi.' },
+          N: { desc:'Dorongan untuk menyelesaikan tugas secara mandiri sampai tuntas.',
+               tinggi:'Skor tinggi: termotivasi menyelesaikan tugas sendiri sampai selesai.',
+               rendah:'Skor rendah: lebih nyaman bekerja bersama orang lain atau dengan dukungan tim.' },
+          A: { desc:'Kebutuhan untuk berprestasi dan mencapai standar yang tinggi.',
+               tinggi:'Skor tinggi: ambisius, terdorong untuk mencapai prestasi yang tinggi.',
+               rendah:'Skor rendah: kurang terobsesi dengan prestasi, cenderung menerima apa adanya.' },
+          P: { desc:'Kebutuhan untuk mengarahkan dan mengatur orang lain.',
+               tinggi:'Skor tinggi: senang mengatur orang lain dan mengarahkan tim.',
+               rendah:'Skor rendah: lebih suka memberi ruang pada orang lain untuk mengatur diri sendiri.' },
+          X: { desc:'Kebutuhan untuk memperoleh perhatian dan pengakuan dari orang lain.',
+               tinggi:'Skor tinggi: menyukai sorotan, ingin dilihat dan diakui kontribusinya.',
+               rendah:'Skor rendah: nyaman bekerja di belakang layar tanpa banyak perhatian.' },
+          B: { desc:'Kebutuhan untuk diterima sebagai bagian dari kelompok.',
+               tinggi:'Skor tinggi: penting baginya untuk merasa diterima dan menjadi bagian kelompok.',
+               rendah:'Skor rendah: tidak terlalu bergantung pada penerimaan kelompok untuk merasa nyaman.' },
+          O: { desc:'Kebutuhan akan hubungan yang akrab / hangat secara personal.',
+               tinggi:'Skor tinggi: menghargai hubungan yang akrab dan hangat dengan orang dekat.',
+               rendah:'Skor rendah: menjaga jarak emosional, lebih profesional dan formal.' },
+          Z: { desc:'Hasrat untuk mengalami perubahan, variasi, dan hal-hal baru.',
+               tinggi:'Skor tinggi: mudah bosan dengan rutinitas, menyukai variasi dan tantangan baru.',
+               rendah:'Skor rendah: nyaman dengan rutinitas, kurang menyukai perubahan mendadak.' },
+          K: { desc:'Kebutuhan untuk bersikap tegas, berani berkonfrontasi (agresi konstruktif).',
+               tinggi:'Skor tinggi: tegas, berani menyampaikan pendapat, tidak takut berkonfrontasi.',
+               rendah:'Skor rendah: cenderung menghindari konflik, lebih akomodatif.' },
+          F: { desc:'Kebutuhan untuk mendukung / membantu atasan / figur otoritas.',
+               tinggi:'Skor tinggi: setia mendukung atasan, kooperatif terhadap arahan dari atas.',
+               rendah:'Skor rendah: kurang ekspresif dalam mendukung atasan, lebih mandiri.' },
+          W: { desc:'Kebutuhan untuk mengikuti aturan, prosedur, dan struktur yang jelas.',
+               tinggi:'Skor tinggi: taat aturan, menyukai prosedur dan struktur yang jelas.',
+               rendah:'Skor rendah: lebih fleksibel, kadang menafsir aturan secara longgar.' }
+        };
+
+        function renderPapiWheel(parsed) {
+          var size = 640, cx = 320, cy = 320;
+          var rNumIn = 88, rNumOut = 215;
+          var rCodeIn = 228, rCodeOut = 268;
+          var rGroupIn = 272, rGroupOut = 315;
+          var startAngle = -27; // 3 segmen SIFAT terpusat di atas
+
+          var groupOf = {};
+          wheelGroups.forEach(function (g) {
+            for (var i = g.start; i < g.start + g.count; i++) groupOf[wheelOrder[i]] = g;
+          });
+
+          function polar(r, deg) {
+            var rad = (deg - 90) * Math.PI / 180;
+            return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+          }
+          function arcPath(r, a0, a1) {
+            var p0 = polar(r, a0), p1 = polar(r, a1);
+            var large = (a1 - a0) > 180 ? 1 : 0;
+            return 'M ' + p0[0] + ' ' + p0[1] + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + p1[0] + ' ' + p1[1];
+          }
+          function ringSlice(rIn, rOut, a0, a1) {
+            var p1 = polar(rOut, a0), p2 = polar(rOut, a1);
+            var p3 = polar(rIn, a1),  p4 = polar(rIn, a0);
+            var large = (a1 - a0) > 180 ? 1 : 0;
+            return 'M ' + p1[0] + ' ' + p1[1] +
+                   ' A ' + rOut + ' ' + rOut + ' 0 ' + large + ' 1 ' + p2[0] + ' ' + p2[1] +
+                   ' L ' + p3[0] + ' ' + p3[1] +
+                   ' A ' + rIn  + ' ' + rIn  + ' 0 ' + large + ' 0 ' + p4[0] + ' ' + p4[1] +
+                   ' Z';
+          }
+          function segAngles(i) {
+            var a0 = startAngle + i * 18;
+            return { start: a0, end: a0 + 18, mid: a0 + 9 };
+          }
+
+          var s = '<svg viewBox="0 0 ' + size + ' ' + size + '" xmlns="http://www.w3.org/2000/svg" class="papi-wheel" role="img" aria-label="Diagram PAPI">';
+
+          // Ring grup (luar)
+          wheelGroups.forEach(function (g, idx) {
+            var a0 = startAngle + g.start * 18;
+            var a1 = a0 + g.count * 18;
+            s += '<path d="' + ringSlice(rGroupIn, rGroupOut, a0, a1) + '" fill="' + g.color + '" stroke="#fff" stroke-width="1.2"/>';
+            // Path arc untuk text label, dibalik arah jika di sisi bawah biar tetap terbaca
+            var rMid = (rGroupIn + rGroupOut) / 2 + 4;
+            var midAng = (a0 + a1) / 2;
+            var flipped = midAng > 90 && midAng < 270;
+            var pathId = 'papiGrp_' + idx;
+            var d = flipped
+              ? (function(){ var p0 = polar(rMid, a1 - 1), p1 = polar(rMid, a0 + 1); return 'M ' + p0[0] + ' ' + p0[1] + ' A ' + rMid + ' ' + rMid + ' 0 0 0 ' + p1[0] + ' ' + p1[1]; })()
+              : arcPath(rMid, a0 + 1, a1 - 1);
+            s += '<path id="' + pathId + '" d="' + d + '" fill="none" stroke="none"/>';
+            s += '<text fill="#fff" font-size="13" font-weight="700" letter-spacing="2"><textPath href="#' + pathId + '" startOffset="50%" text-anchor="middle">' + g.label + '</textPath></text>';
+          });
+
+          // Ring kode (tengah)
+          for (var i = 0; i < 20; i++) {
+            var code = wheelOrder[i];
+            var seg = segAngles(i);
+            var g = groupOf[code];
+            s += '<path d="' + ringSlice(rCodeIn, rCodeOut, seg.start, seg.end) + '" fill="#fff" stroke="' + g.color + '" stroke-width="1.2"/>';
+            var pos = polar((rCodeIn + rCodeOut) / 2, seg.mid);
+            s += '<text x="' + pos[0] + '" y="' + pos[1] + '" font-size="15" font-weight="700" fill="' + g.color + '" text-anchor="middle" dominant-baseline="central" transform="rotate(' + seg.mid + ' ' + pos[0] + ' ' + pos[1] + ')">' + code + '</text>';
+          }
+
+          // Garis pemisah radial antar segmen
+          for (var k = 0; k <= 20; k++) {
+            var a = startAngle + k * 18;
+            var p1 = polar(rNumIn - 6, a), p2 = polar(rNumOut + 6, a);
+            s += '<line x1="' + p1[0] + '" y1="' + p1[1] + '" x2="' + p2[0] + '" y2="' + p2[1] + '" stroke="#e5e7eb" stroke-width="0.8"/>';
+          }
+
+          // Angka 0..9 + bulatan penanda skor user
+          for (var i = 0; i < 20; i++) {
+            var code = wheelOrder[i];
+            var seg = segAngles(i);
+            var g = groupOf[code];
+            var entry = parsed[code] || { score: 0 };
+            var score = Math.max(0, Math.min(9, entry.score || 0));
+            for (var n = 0; n <= 9; n++) {
+              var r = rNumIn + (n / 9) * (rNumOut - rNumIn);
+              var pos = polar(r, seg.mid);
+              if (n === score) {
+                s += '<circle cx="' + pos[0] + '" cy="' + pos[1] + '" r="12" fill="' + g.color + '" stroke="#fff" stroke-width="1.5"/>';
+              }
+              s += '<text x="' + pos[0] + '" y="' + pos[1] + '" class="num-text' + (n === score ? ' is-active' : '') + '" text-anchor="middle" dominant-baseline="central" transform="rotate(' + seg.mid + ' ' + pos[0] + ' ' + pos[1] + ')">' + n + '</text>';
+            }
+          }
+
+          // Pusat
+          s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (rNumIn - 14) + '" fill="#f8fafc" stroke="#e5e7eb" stroke-width="1"/>';
+          s += '<text x="' + cx + '" y="' + (cy - 6) + '" font-size="15" font-weight="800" fill="#2d3748" text-anchor="middle">PAPI</text>';
+          s += '<text x="' + cx + '" y="' + (cy + 14) + '" font-size="10" fill="#7a7d9c" text-anchor="middle" letter-spacing="2">PROFILE</text>';
+          s += '</svg>';
+
+          // Legend grup
+          var legend = '<div class="papi-legend">' +
+            wheelGroups.map(function (g) {
+              return '<span><span class="dot" style="background:' + g.color + '"></span>' + escapeHtml(g.label) + '</span>';
+            }).join('') +
+          '</div>';
+
+          return '<div class="papi-wheel-card">' +
+            '<div class="d-flex justify-content-between align-items-center pt-2">' +
+              '<h6>Diagram PAPI</h6>' +
+              '<small class="text-muted">Bulatan menandai skor (0–9) Anda untuk tiap aspek.</small>' +
+            '</div>' +
+            '<div class="papi-wheel-wrap">' + s + '</div>' +
+            legend +
+          '</div>';
+        }
+
+        function load() {
+          var body = document.getElementById('papiProfileBody');
+          fetch('/api/profile/papi-results', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (!data || !data.success) { renderEmpty(body); return; }
+              var arr = Array.isArray(data.data) ? data.data : [];
+              if (arr.length === 0) { renderEmpty(body); return; }
+              renderResult(body, arr[0]);
+            })
+            .catch(function () { renderEmpty(body); });
+        }
+
+        load();
+      })();
+    </script>
+  </body>
+</html>

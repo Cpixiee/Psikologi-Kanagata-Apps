@@ -304,7 +304,6 @@ func (c *KraepelinTestController) QuestionsPage() {
 	c.Data["Attempt"] = att
 	c.Data["CurrentRaw"] = rawIdx
 	c.Data["TotalRaw"] = 40
-	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_kraepelin_questions.html"
 }
 
@@ -721,20 +720,43 @@ func (c *KraepelinTestController) ExportResultExcel() {
 	_ = f.SetCellValue(sheet, "A1", "TES KRAEPELIN")
 	_ = f.MergeCell(sheet, "A1", "E1")
 	_ = f.SetCellStyle(sheet, "A1", "E1", titleStyle)
+	// NISN/NIP & Kelas dari profil User (authoritative), Jurusan tetap dari att.TestMajor
+	nisnNip := strings.TrimSpace(user.NISN)
+	idLabel := "NISN"
+	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
+		nisnNip = user.NIP
+		idLabel = "NIP"
+	}
+	if nisnNip == "" {
+		idLabel = "NISN/NIP"
+	}
+	nama := att.TestName
+	if strings.TrimSpace(user.NamaLengkap) != "" {
+		nama = user.NamaLengkap
+	}
+	jurusan := att.TestMajor
+	if strings.TrimSpace(jurusan) == "" {
+		jurusan = user.Jurusan
+	}
+
 	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", att.TestName)
-	_ = f.SetCellValue(sheet, "A4", "Jenis kelamin")
-	_ = f.SetCellValue(sheet, "B4", att.TestGender)
-	_ = f.SetCellValue(sheet, "A5", "Pendidikan")
-	_ = f.SetCellValue(sheet, "B5", att.TestEducation)
+	_ = f.SetCellValue(sheet, "B3", nama)
+	_ = f.SetCellValue(sheet, "A4", idLabel)
+	_ = f.SetCellValue(sheet, "B4", nisnNip)
+	_ = f.SetCellValue(sheet, "A5", "Kelas")
+	_ = f.SetCellValue(sheet, "B5", user.Kelas)
 	_ = f.SetCellValue(sheet, "A6", "Jurusan")
-	_ = f.SetCellValue(sheet, "B6", att.TestMajor)
-	_ = f.SetCellValue(sheet, "A7", "Tanggal tes")
-	_ = f.SetCellValue(sheet, "B7", att.TestDate.Format("2006-01-02 15:04"))
-	_ = f.SetCellValue(sheet, "A8", "Tester")
-	_ = f.SetCellValue(sheet, "B8", att.Tester)
-	_ = f.SetCellStyle(sheet, "A3", "A8", labelStyle)
-	_ = f.SetCellStyle(sheet, "B3", "B8", valueStyle)
+	_ = f.SetCellValue(sheet, "B6", jurusan)
+	_ = f.SetCellValue(sheet, "A7", "Jenis kelamin")
+	_ = f.SetCellValue(sheet, "B7", att.TestGender)
+	_ = f.SetCellValue(sheet, "A8", "Pendidikan")
+	_ = f.SetCellValue(sheet, "B8", att.TestEducation)
+	_ = f.SetCellValue(sheet, "A9", "Tanggal tes")
+	_ = f.SetCellValue(sheet, "B9", att.TestDate.Format("2006-01-02 15:04"))
+	_ = f.SetCellValue(sheet, "A10", "Tester")
+	_ = f.SetCellValue(sheet, "B10", att.Tester)
+	_ = f.SetCellStyle(sheet, "A3", "A10", labelStyle)
+	_ = f.SetCellStyle(sheet, "B3", "B10", valueStyle)
 
 	// Table input (x=1..40, y=benar per kolom) sesuai jumlah raw data tes.
 	startRow := 11

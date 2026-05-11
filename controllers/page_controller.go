@@ -94,6 +94,16 @@ func (c *PageController) ProfileKraepelinPage() {
 	c.TplName = "profile_kraepelin.html"
 }
 
+// @router /profile/rmib [get]
+func (c *PageController) ProfileRMIBPage() {
+	c.TplName = "profile_rmib.html"
+}
+
+// @router /profile/papi [get]
+func (c *PageController) ProfilePAPIPage() {
+	c.TplName = "profile_papi.html"
+}
+
 // @router /settings [get]
 func (c *PageController) SettingsPage() {
 	c.TplName = "settings.html"
@@ -330,6 +340,76 @@ func (c *PageController) ProfileLearningStyleStartPage() {
 	c.SetSession("current_invitation_id", inv.Id)
 	c.SetSession("current_batch_id", *inv.BatchId)
 	c.Redirect("/test/learning-style/start", 302)
+}
+
+// @router /profile/rmib/start [get]
+// Sub-page di dalam profile untuk memulai / melanjutkan RMIB.
+func (c *PageController) ProfileRMIBStartPage() {
+	userIDAny := c.GetSession("user_id")
+	if userIDAny == nil {
+		c.Redirect("/login?next=/profile", 302)
+		return
+	}
+	userID, ok := userIDAny.(int)
+	if !ok || userID == 0 {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	invIDStr := strings.TrimSpace(c.GetString("invId"))
+	invID, err := strconv.Atoi(invIDStr)
+	if err != nil || invID <= 0 {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	o := orm.NewOrm()
+
+	var user models.User
+	user.Id = userID
+	if err := o.Read(&user); err != nil {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	var inv models.TestInvitation
+	inv.Id = invID
+	if err := o.Read(&inv); err != nil || inv.Id == 0 {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	allowed := false
+	if inv.UserId != nil && *inv.UserId == userID {
+		allowed = true
+	}
+	if !allowed && strings.TrimSpace(inv.Email) != "" && user.Email != "" && strings.EqualFold(inv.Email, user.Email) {
+		allowed = true
+	}
+	if !allowed {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	if inv.BatchId == nil {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	var batch models.TestBatch
+	batch.Id = *inv.BatchId
+	if err := o.Read(&batch); err != nil {
+		c.Redirect("/profile", 302)
+		return
+	}
+	if !batch.EnableRMIB {
+		c.Redirect("/profile", 302)
+		return
+	}
+
+	c.SetSession("current_invitation_id", inv.Id)
+	c.SetSession("current_batch_id", *inv.BatchId)
+	c.Redirect("/test/rmib/start", 302)
 }
 
 // @router /notifications [get]

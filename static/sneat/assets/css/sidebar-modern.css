@@ -45,18 +45,11 @@
   display: none !important;
 }
 
-@media (max-width: 1199.98px) {
-  #layout-menu .layout-menu-toggle {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #0ea5c6;
-    color: #fff !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    margin-right: 6px;
-    box-shadow: 0 3px 10px rgba(14, 165, 198, 0.45);
+/* Mobile navbar: tampilkan hanya hamburger + logo (avatar user).
+   Sembunyikan search icon dan input search supaya navbar bersih. */
+@media (max-width: 991.98px) {
+  #layout-navbar .navbar-nav-right > .navbar-nav.me-auto {
+    display: none !important;
   }
 }
 

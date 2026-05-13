@@ -404,11 +404,17 @@
                           </div>
                           <div class="col-md-6">
                             <label for="settKelas" class="form-label">Kelas</label>
-                            <input class="form-control" type="text" id="settKelas" name="kelas" maxlength="50" placeholder="Contoh: XII IPA 2" />
+                            <select class="form-select" id="settKelas" name="kelas">
+                              <option value="">-- Pilih Kelas --</option>
+                            </select>
                           </div>
                           <div class="col-md-6">
                             <label for="settJurusan" class="form-label">Jurusan</label>
-                            <input class="form-control" type="text" id="settJurusan" name="jurusan" maxlength="100" placeholder="Contoh: IPA / IPS / RPL" />
+                            <select class="form-select" id="settJurusan" name="jurusan">
+                              <option value="">-- Pilih Jurusan --</option>
+                            </select>
+                            <input type="text" class="form-control mt-2 d-none" id="settJurusanCustom" placeholder="Tulis nama jurusan Anda" maxlength="100" />
+                            <small class="text-muted" id="settJurusanDesc"></small>
                           </div>
                           <div class="col-md-6">
                             <label for="settTempatLahir" class="form-label">Tempat Lahir</label>
@@ -633,6 +639,8 @@
 
     <!-- Wilayah cascading helper -->
     <script src="/static/modern/wilayah.js?v=2"></script>
+    <!-- Enum kelas & jurusan -->
+    <script src="/static/modern/enums.js?v=1"></script>
 
     <!-- Page JS -->
     <script>
@@ -751,8 +759,18 @@
             };
             setVal('settNisn', user.nisn);
             setVal('settNip', user.nip);
-            setVal('settKelas', user.kelas);
-            setVal('settJurusan', user.jurusan);
+            if (window.AppEnums) {
+              window.AppEnums.populateKelasSelect(
+                document.getElementById('settKelas'),
+                user.kelas || ''
+              );
+              window.AppEnums.populateJurusanSelect({
+                select: document.getElementById('settJurusan'),
+                customInput: document.getElementById('settJurusanCustom'),
+                descriptionEl: document.getElementById('settJurusanDesc'),
+                currentValue: user.jurusan || ''
+              });
+            }
             setVal('settTempatLahir', user.tempat_lahir);
             if (user.tanggal_lahir) {
               try {
@@ -952,7 +970,12 @@
           nisn: formData.get('nisn') || '',
           nip: formData.get('nip') || '',
           kelas: formData.get('kelas') || '',
-          jurusan: formData.get('jurusan') || '',
+          jurusan: (window.AppEnums && window.AppEnums.getJurusanValue)
+            ? window.AppEnums.getJurusanValue(
+                document.getElementById('settJurusan'),
+                document.getElementById('settJurusanCustom')
+              )
+            : (formData.get('jurusan') || ''),
           tempat_lahir: formData.get('tempat_lahir') || '',
           tanggal_lahir: formData.get('tanggal_lahir') || '',
           kecamatan: formData.get('kecamatan') || ''

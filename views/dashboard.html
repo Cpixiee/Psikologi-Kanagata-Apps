@@ -955,11 +955,17 @@
               </div>
               <div class="col-md-6">
                 <label for="ob_kelas" class="form-label">Kelas <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="ob_kelas" placeholder="Contoh: XII IPA 2" maxlength="50" required />
+                <select class="form-select" id="ob_kelas" required>
+                  <option value="">-- Pilih Kelas --</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label for="ob_jurusan" class="form-label">Jurusan <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="ob_jurusan" placeholder="Contoh: IPA / IPS / RPL" maxlength="100" required />
+                <select class="form-select" id="ob_jurusan" required>
+                  <option value="">-- Pilih Jurusan --</option>
+                </select>
+                <input type="text" class="form-control mt-2 d-none" id="ob_jurusan_custom" placeholder="Tulis nama jurusan Anda" maxlength="100" />
+                <small class="text-muted" id="ob_jurusan_desc"></small>
               </div>
               <div class="col-md-6">
                 <label for="ob_tempat_lahir" class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
@@ -1005,6 +1011,7 @@
     <!-- SweetAlert + Onboarding script -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/static/modern/wilayah.js?v=2"></script>
-    <script src="/static/modern/onboarding.js?v=2"></script>
+    <script src="/static/modern/enums.js?v=1"></script>
+    <script src="/static/modern/onboarding.js?v=3"></script>
   </body>
 </html>

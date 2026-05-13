@@ -24,11 +24,17 @@
   }
 
   async function submitOnboarding() {
+    const jurusanSelect = document.getElementById("ob_jurusan");
+    const jurusanCustom = document.getElementById("ob_jurusan_custom");
+    const jurusanValue = (window.AppEnums && window.AppEnums.getJurusanValue)
+      ? window.AppEnums.getJurusanValue(jurusanSelect, jurusanCustom)
+      : getValue("ob_jurusan");
+
     const payload = {
       nisn: getValue("ob_nisn"),
       nip: getValue("ob_nip"),
       kelas: getValue("ob_kelas"),
-      jurusan: getValue("ob_jurusan"),
+      jurusan: jurusanValue,
       tempat_lahir: getValue("ob_tempat_lahir"),
       tanggal_lahir: getValue("ob_tanggal_lahir"),
       alamat: getValue("ob_alamat"),
@@ -82,11 +88,23 @@
     const d = data.data;
     if (d.nisn) document.getElementById("ob_nisn").value = d.nisn;
     if (d.nip) document.getElementById("ob_nip").value = d.nip;
-    if (d.kelas) document.getElementById("ob_kelas").value = d.kelas;
-    if (d.jurusan) document.getElementById("ob_jurusan").value = d.jurusan;
     if (d.tempat_lahir) document.getElementById("ob_tempat_lahir").value = d.tempat_lahir;
     if (d.tanggal_lahir) document.getElementById("ob_tanggal_lahir").value = d.tanggal_lahir;
     if (d.alamat) document.getElementById("ob_alamat").value = d.alamat;
+
+    // Populate enum kelas & jurusan (pakai helper shared).
+    if (window.AppEnums) {
+      window.AppEnums.populateKelasSelect(
+        document.getElementById("ob_kelas"),
+        d.kelas || ""
+      );
+      window.AppEnums.populateJurusanSelect({
+        select: document.getElementById("ob_jurusan"),
+        customInput: document.getElementById("ob_jurusan_custom"),
+        descriptionEl: document.getElementById("ob_jurusan_desc"),
+        currentValue: d.jurusan || "",
+      });
+    }
 
     await setupCascading({
       provinsi: d.provinsi || "",

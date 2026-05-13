@@ -375,15 +375,24 @@ func seedWU(o orm.Ormer, sub *models.ISTSubtest) {
 		153: "A", 154: "E", 155: "B", 156: "C",
 	}
 	
-	// Soal 137-141: Soal gambar kelompok 8 hal 137 - 141.png
-	// Soal 142-156: Soal gambar kelompok 8 142 - 156.png
-	
+	// Mapping gambar per range nomor soal supaya peserta tidak perlu scroll
+	// untuk melihat pilihan a–e. Tiap file gambar berisi tepat 5 soal.
+	//   137-141 → Soal gambar kelompok 8 hal 137 - 141.png
+	//   142-146 → Soal gambar kelompok 8 142 - 146.png
+	//   147-151 → Soal Gambar Kelompok 8 Hal 147 - 151.png
+	//   152-156 → Soal Gambar Kelompok 8 Hal 152 - 156.png
+
 	for i := 137; i <= 156; i++ {
 		var imageFile string
-		if i <= 141 {
+		switch {
+		case i <= 141:
 			imageFile = "Soal gambar kelompok 8 hal 137 - 141.png"
-		} else {
-			imageFile = "Soal gambar kelompok 8 142 - 156.png"
+		case i <= 146:
+			imageFile = "Soal gambar kelompok 8 142 - 146.png"
+		case i <= 151:
+			imageFile = "Soal Gambar Kelompok 8 Hal 147 - 151.png"
+		default:
+			imageFile = "Soal Gambar Kelompok 8 Hal 152 - 156.png"
 		}
 		
 		prompt := fmt.Sprintf("Soal nomor %d - Identifikasi kubus yang sesuai dengan gambar di bawah ini.", i)

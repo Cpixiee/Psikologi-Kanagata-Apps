@@ -35,6 +35,7 @@
       nip: getValue("ob_nip"),
       kelas: getValue("ob_kelas"),
       jurusan: jurusanValue,
+      sekolah: getValue("ob_sekolah"),
       tempat_lahir: getValue("ob_tempat_lahir"),
       tanggal_lahir: getValue("ob_tanggal_lahir"),
       alamat: getValue("ob_alamat"),
@@ -47,7 +48,7 @@
       Swal.fire({ icon: "warning", title: "NISN atau NIP wajib diisi", confirmButtonText: "OK" });
       return false;
     }
-    const required = ["kelas", "jurusan", "tempat_lahir", "tanggal_lahir", "kecamatan", "kota", "provinsi"];
+    const required = ["kelas", "jurusan", "sekolah", "tempat_lahir", "tanggal_lahir", "kecamatan", "kota", "provinsi"];
     for (const k of required) {
       if (!payload[k]) {
         Swal.fire({ icon: "warning", title: "Lengkapi semua field", text: "Field " + k.replace(/_/g, " ") + " wajib diisi", confirmButtonText: "OK" });
@@ -88,6 +89,10 @@
     const d = data.data;
     if (d.nisn) document.getElementById("ob_nisn").value = d.nisn;
     if (d.nip) document.getElementById("ob_nip").value = d.nip;
+    if (d.sekolah) {
+      const sk = document.getElementById("ob_sekolah");
+      if (sk) sk.value = d.sekolah;
+    }
     if (d.tempat_lahir) document.getElementById("ob_tempat_lahir").value = d.tempat_lahir;
     if (d.tanggal_lahir) document.getElementById("ob_tanggal_lahir").value = d.tanggal_lahir;
     if (d.alamat) document.getElementById("ob_alamat").value = d.alamat;

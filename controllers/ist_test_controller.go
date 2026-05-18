@@ -1096,6 +1096,7 @@ func (c *ISTTestController) SubmitSubtestAPI() {
 		inv.Status = models.StatusInvitationUsed
 		inv.UsedAt = time.Now()
 		_, _ = o.Update(inv, "Status", "UsedAt")
+		go utils.SendTestCompletionNotification(inv.UserId, "IST")
 	}
 
 	c.Data["json"] = map[string]interface{}{
@@ -2001,6 +2002,7 @@ func (c *ISTTestController) AutoCompleteAllSubtestsAPI() {
 		inv.Status = models.StatusInvitationUsed
 		inv.UsedAt = time.Now()
 		_, _ = o.Update(inv, "Status", "UsedAt")
+		go utils.SendTestCompletionNotification(inv.UserId, "IST")
 	}
 
 	c.Data["json"] = map[string]interface{}{

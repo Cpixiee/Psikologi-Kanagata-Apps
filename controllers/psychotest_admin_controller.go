@@ -49,9 +49,68 @@ func (c *PsychotestAdminController) verifyAdmin() bool {
 	return true
 }
 
+// verifyAdminOrSchool mengizinkan admin maupun akun sekolah (read-only).
+// Mengembalikan true jika valid, plus role & sekolah session (sekolah string
+// kosong jika user adalah admin).
+func (c *PsychotestAdminController) verifyAdminOrSchool() (bool, string, string) {
+	userRole := c.GetSession("user_role")
+	roleStr, _ := userRole.(string)
+	if roleStr != string(models.RoleAdmin) && roleStr != string(models.RoleSekolah) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Akses ditolak",
+		}
+		c.ServeJSON()
+		return false, "", ""
+	}
+	sekolah := ""
+	if roleStr == string(models.RoleSekolah) {
+		uidAny := c.GetSession("user_id")
+		if uid, ok := uidAny.(int); ok && uid > 0 {
+			u := models.User{Id: uid}
+			if err := orm.NewOrm().Read(&u); err == nil {
+				sekolah = u.Sekolah
+			}
+		}
+	}
+	return true, roleStr, sekolah
+}
+
+// filterInvitationsBySchool memfilter slice TestInvitation hanya menyisakan
+// yang user-nya (berdasarkan UserId atau email) berasal dari sekolah yang
+// diberikan. Jika sekolah kosong (admin), slice dikembalikan apa adanya.
+func filterInvitationsBySchool(invs []models.TestInvitation, sekolah string) []models.TestInvitation {
+	if sekolah == "" {
+		return invs
+	}
+	if len(invs) == 0 {
+		return invs
+	}
+	o := orm.NewOrm()
+	out := make([]models.TestInvitation, 0, len(invs))
+	for _, inv := range invs {
+		var u models.User
+		var err error
+		if inv.UserId != nil && *inv.UserId > 0 {
+			u = models.User{Id: *inv.UserId}
+			err = o.Read(&u)
+		} else if strings.TrimSpace(inv.Email) != "" {
+			u = models.User{Email: strings.TrimSpace(inv.Email)}
+			err = o.Read(&u, "Email")
+		} else {
+			continue
+		}
+		if err == nil && strings.EqualFold(u.Sekolah, sekolah) {
+			out = append(out, inv)
+		}
+	}
+	return out
+}
+
 // @router /api/admin/test-batches [get]
 func (c *PsychotestAdminController) ListBatches() {
-	if !c.verifyAdmin() {
+	if ok, _, _ := c.verifyAdminOrSchool(); !ok {
 		return
 	}
 
@@ -415,7 +474,8 @@ func isValidEmailFormat(s string) bool {
 
 // @router /api/admin/test-batches/:id/invitations [get]
 func (c *PsychotestAdminController) ListInvitations() {
-	if !c.verifyAdmin() {
+	ok, _, sekolah := c.verifyAdminOrSchool()
+	if !ok {
 		return
 	}
 
@@ -446,6 +506,8 @@ func (c *PsychotestAdminController) ListInvitations() {
 		c.ServeJSON()
 		return
 	}
+
+	invitations = filterInvitationsBySchool(invitations, sekolah)
 
 	c.Data["json"] = PsychotestAdminResponse{
 		Success: true,
@@ -737,7 +799,8 @@ func invitationTestTypes(batch *models.TestBatch) string {
 
 // @router /api/admin/test-batches/:id/results [get]
 func (c *PsychotestAdminController) ListBatchResults() {
-	if !c.verifyAdmin() {
+	ok, _, sekolahFilter := c.verifyAdminOrSchool()
+	if !ok {
 		return
 	}
 
@@ -768,6 +831,8 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		c.ServeJSON()
 		return
 	}
+
+	invitations = filterInvitationsBySchool(invitations, sekolahFilter)
 
 	type InvitationSummary struct {
 		Invitation models.TestInvitation `json:"invitation"`
@@ -2291,6 +2356,15 @@ func dispatchSendCode(inv *models.TestInvitation) error {
 		} else {
 			go sendInvitationCodeWA(&batch, displayName, inv.Phone, inv)
 		}
+	}
+	// Buat notifikasi in-app saat kode/token dikirim (jika invitation sudah
+	// ter-link ke akun user).
+	if inv.UserId != nil {
+		batchName := strings.TrimSpace(batch.Name)
+		if batchName == "" {
+			batchName = fmt.Sprintf("#%d", batch.Id)
+		}
+		go utils.SendInvitationCodeSentNotification(inv.UserId, batchName)
 	}
 	return nil
 }

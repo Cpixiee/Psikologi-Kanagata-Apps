@@ -1,937 +1,337 @@
-<!doctype html>
-
-<html
-  lang="en"
-  class="layout-menu-fixed layout-compact"
-  data-assets-path="/static/sneat/assets/"
-  data-template="vertical-menu-template-free">
+﻿<!doctype html>
+<html lang="id">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Integrated Student Dashboard - Psychee Wellness</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-    <title>Dashboard - Psychee Wellness</title>
-
-    <meta name="description" content="" />
-
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
-      rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
-
-    <!-- Core CSS -->
+    <!-- Bootstrap (untuk modal onboarding) -->
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
-    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
 
-    <!-- Vendors CSS -->
-    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/apex-charts/apex-charts.css" />
+    <!-- Dashboard styles -->
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
 
-    <!-- Helpers -->
-    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
-    <!-- Config: Mandatory theme config file -->
-    <script src="/static/sneat/assets/js/config.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   </head>
 
   <body>
-    <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        <!-- Menu -->
-
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <div class="app-brand demo">
-            <a href="/dashboard" class="app-brand-link">
-              <span class="app-brand-logo demo">
-                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
-              </span>
-              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
-            </a>
-
-            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-              <i class="bx bx-chevron-left d-block d-xl-none align-middle"></i>
-            </a>
+    <div class="ds-shell">
+      <!-- ============== SIDEBAR ============== -->
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
           </div>
-
-          <div class="menu-divider mt-0"></div>
-
-          <div class="menu-inner-shadow"></div>
-
-          <ul class="menu-inner py-1">
-            <!-- Dashboard -->
-            <li class="menu-item active">
-              <a href="/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-home-smile"></i>
-                <div class="text-truncate">Dashboard</div>
-              </a>
-            </li>
-
-            <!-- Layanan -->
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Layanan</span>
-            </li>
-            <li class="menu-item">
-              <a href="/test" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-clipboard"></i>
-                <div class="text-truncate">Tes Psikologi</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-chat"></i>
-                <div class="text-truncate">Konseling</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-history"></i>
-                <div class="text-truncate">Riwayat</div>
-              </a>
-            </li>
-            
-            <!-- Akun -->
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Akun</span>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">Profil</div>
-              </a>
-              <ul class="menu-sub">
-                <li class="menu-item">
-                  <a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/papi" class="menu-link"><div class="text-truncate">Hasil PAPI</div></a>
-                </li>
-              </ul>
-            </li>
-            <li class="menu-item">
-              <a href="/settings" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-cog"></i>
-                <div class="text-truncate">Pengaturan</div>
-              </a>
-            </li>
-            <li class="menu-item d-none" id="menuAdminPsychotest">
-              <a href="/admin/psychotest" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
-                <div class="text-truncate">Admin Psychotest</div>
-              </a>
-            </li>
-          </ul>
-        </aside>
-        <!-- / Menu -->
-
-        <!-- Layout container -->
-        <div class="layout-page">
-          <!-- Navbar -->
-
-          <nav
-            class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
-            id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
-                <i class="icon-base bx bx-menu icon-md"></i>
-              </a>
-            </div>
-
-            <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
-              <!-- Search -->
-              <div class="navbar-nav align-items-center me-auto">
-                <div class="nav-item d-flex align-items-center">
-                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
-                  <input
-                    type="text"
-                    id="dashboardSearch"
-                    class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
-                    placeholder="Cari..."
-                    aria-label="Cari..."
-                    onkeyup="handleDashboardSearch(event)" />
-                </div>
-              </div>
-              <!-- /Search -->
-
-              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-
-                <!-- User -->
-                <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                  <a
-                    class="nav-link dropdown-toggle hide-arrow p-0"
-                    href="javascript:void(0);"
-                    data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="navbarAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
-                    </div>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="dropdownAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <h6 class="mb-0" id="dropdownName">Pengguna</h6>
-                            <small class="text-body-secondary" id="dropdownEmail">Member</small>
-                          </div>
-                        </div>
-                      </a>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="/profile">
-                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="/settings">
-                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Pengaturan</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="/notifications">
-                        <i class="icon-base bx bx-bell icon-md me-3"></i><span>Notifikasi</span>
-                      </a>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="javascript:void(0);" onclick="handleLogout()">
-                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <!--/ User -->
-              </ul>
-            </div>
-          </nav>
-
-          <!-- / Navbar -->
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <!-- Content -->
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <div class="row">
-                <div class="col-xxl-8 mb-6 order-0">
-                  <div class="card">
-                    <div class="d-flex align-items-start row">
-                      <div class="col-sm-7">
-                        <div class="card-body">
-                          <h5 class="card-title text-primary mb-3">Selamat Datang! 🎉</h5>
-                          <p class="mb-6">
-                            Progress kesehatan mental Anda meningkat 15% minggu ini.<br />Lanjutkan perjalanan kesehatan mental Anda.
-                          </p>
-
-                          <a href="javascript:;" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                      </div>
-                      <div class="col-sm-5 text-center text-sm-left">
-                        <div class="card-body pb-0 px-0 px-md-6">
-                          <img
-                            src="/static/sneat/assets/img/illustrations/man-with-laptop.png"
-                            height="175"
-                            alt="View Badge User" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-xxl-4 col-lg-12 col-md-4 order-1">
-                  <div class="row">
-                    <div class="col-lg-6 col-md-12 col-6 mb-6">
-                      <div class="card h-100">
-                        <div class="card-body">
-                          <div class="card-title d-flex align-items-start justify-content-between mb-4">
-                            <div class="avatar flex-shrink-0">
-                              <img
-                                src="/static/sneat/assets/img/icons/unicons/chart-success.png"
-                                alt="chart success"
-                                class="rounded" />
-                            </div>
-                            <div class="dropdown">
-                              <button
-                                class="btn p-0"
-                                type="button"
-                                id="cardOpt3"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                              </button>
-                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                              </div>
-                            </div>
-                          </div>
-                          <p class="mb-1">Total Tes</p>
-                          <h4 class="card-title mb-3">24</h4>
-                          <small class="text-success fw-medium"
-                            ><i class="icon-base bx bx-up-arrow-alt"></i> +12.5%</small
-                          >
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-lg-6 col-md-12 col-6 mb-6">
-                      <div class="card h-100">
-                        <div class="card-body">
-                          <div class="card-title d-flex align-items-start justify-content-between mb-4">
-                            <div class="avatar flex-shrink-0">
-                              <img
-                                src="/static/sneat/assets/img/icons/unicons/wallet-info.png"
-                                alt="wallet info"
-                                class="rounded" />
-                            </div>
-                            <div class="dropdown">
-                              <button
-                                class="btn p-0"
-                                type="button"
-                                id="cardOpt6"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                              </button>
-                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                              </div>
-                            </div>
-                          </div>
-                          <p class="mb-1">Sesi Konseling</p>
-                          <h4 class="card-title mb-3">8</h4>
-                          <small class="text-success fw-medium"
-                            ><i class="icon-base bx bx-up-arrow-alt"></i> +25%</small
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Total Revenue -->
-                <div class="col-12 col-xxl-8 order-2 order-md-3 order-xxl-2 mb-6 total-revenue">
-                  <div class="card">
-                    <div class="row row-bordered g-0">
-                      <div class="col-lg-8">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                          <div class="card-title mb-0">
-                            <h5 class="m-0 me-2">Progress Kesehatan Mental</h5>
-                          </div>
-                          <div class="dropdown">
-                            <button
-                              class="btn p-0"
-                              type="button"
-                              id="totalRevenue"
-                              data-bs-toggle="dropdown"
-                              aria-haspopup="true"
-                              aria-expanded="false">
-                              <i class="icon-base bx bx-dots-vertical-rounded icon-lg text-body-secondary"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="totalRevenue">
-                              <a class="dropdown-item" href="javascript:void(0);">Select All</a>
-                              <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
-                              <a class="dropdown-item" href="javascript:void(0);">Share</a>
-                            </div>
-                          </div>
-                        </div>
-                        <div id="totalRevenueChart" class="px-3"></div>
-                      </div>
-                      <div class="col-lg-4">
-                        <div class="card-body px-xl-9 py-12 d-flex align-items-center flex-column">
-                          <div class="text-center mb-6">
-                            <div class="btn-group">
-                              <button type="button" class="btn btn-outline-primary">
-                                <script>
-                                  document.write(new Date().getFullYear() - 1);
-                                </script>
-                              </button>
-                              <button
-                                type="button"
-                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <span class="visually-hidden">Toggle Dropdown</span>
-                              </button>
-                              <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="javascript:void(0);">2021</a></li>
-                                <li><a class="dropdown-item" href="javascript:void(0);">2020</a></li>
-                                <li><a class="dropdown-item" href="javascript:void(0);">2019</a></li>
-                              </ul>
-                            </div>
-                          </div>
-
-                          <div id="growthChart"></div>
-                          <div class="text-center fw-medium my-6">75% Progress Kesehatan Mental</div>
-
-                          <div class="d-flex gap-11 justify-content-between">
-                            <div class="d-flex">
-                              <div class="avatar me-2">
-                                <span class="avatar-initial rounded-2 bg-label-primary"
-                                  ><i class="icon-base bx bx-dollar icon-lg text-primary"></i
-                                ></span>
-                              </div>
-                              <div class="d-flex flex-column">
-                                <small>
-                                  <script>
-                                    document.write(new Date().getFullYear() - 1);
-                                  </script>
-                                </small>
-                                <h6 class="mb-0">$32.5k</h6>
-                              </div>
-                            </div>
-                            <div class="d-flex">
-                              <div class="avatar me-2">
-                                <span class="avatar-initial rounded-2 bg-label-info"
-                                  ><i class="icon-base bx bx-wallet icon-lg text-info"></i
-                                ></span>
-                              </div>
-                              <div class="d-flex flex-column">
-                                <small>
-                                  <script>
-                                    document.write(new Date().getFullYear() - 2);
-                                  </script>
-                                </small>
-                                <h6 class="mb-0">$41.2k</h6>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!--/ Total Revenue -->
-                <div class="col-12 col-md-8 col-lg-12 col-xxl-4 order-3 order-md-2 profile-report">
-                  <div class="row">
-                    <div class="col-6 mb-6 payments">
-                      <div class="card h-100">
-                        <div class="card-body">
-                          <div class="card-title d-flex align-items-start justify-content-between mb-4">
-                            <div class="avatar flex-shrink-0">
-                              <img src="/static/sneat/assets/img/icons/unicons/paypal.png" alt="paypal" class="rounded" />
-                            </div>
-                            <div class="dropdown">
-                              <button
-                                class="btn p-0"
-                                type="button"
-                                id="cardOpt4"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                              </button>
-                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
-                                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                              </div>
-                            </div>
-                          </div>
-                          <p class="mb-1">Skor Rata-rata</p>
-                          <h4 class="card-title mb-3">82</h4>
-                          <small class="text-success fw-medium"
-                            ><i class="icon-base bx bx-up-arrow-alt"></i> +5.2%</small
-                          >
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-6 mb-6 transactions">
-                      <div class="card h-100">
-                        <div class="card-body">
-                          <div class="card-title d-flex align-items-start justify-content-between mb-4">
-                            <div class="avatar flex-shrink-0">
-                              <img src="/static/sneat/assets/img/icons/unicons/cc-primary.png" alt="Credit Card" class="rounded" />
-                            </div>
-                            <div class="dropdown">
-                              <button
-                                class="btn p-0"
-                                type="button"
-                                id="cardOpt1"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                                <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
-                              </button>
-                              <div class="dropdown-menu" aria-labelledby="cardOpt1">
-                                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                              </div>
-                            </div>
-                          </div>
-                          <p class="mb-1">Aktivitas</p>
-                          <h4 class="card-title mb-3">156</h4>
-                          <small class="text-success fw-medium"
-                            ><i class="icon-base bx bx-up-arrow-alt"></i> +18.5%</small
-                          >
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-12 mb-6 profile-report">
-                      <div class="card h-100">
-                        <div class="card-body">
-                          <div
-                            class="d-flex justify-content-between align-items-center flex-sm-row flex-column gap-10 flex-wrap">
-                            <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
-                              <div class="card-title mb-6">
-                                <h5 class="text-nowrap mb-1">Laporan Profil</h5>
-                                <span class="badge bg-label-warning">TAHUN 2024</span>
-                              </div>
-                              <div class="mt-sm-auto">
-                                <span class="text-success text-nowrap fw-medium"
-                                  ><i class="icon-base bx bx-up-arrow-alt"></i> 75.5%</span
-                                >
-                                <h4 class="mb-0">Skor: 85</h4>
-                              </div>
-                            </div>
-                            <div id="profileReportChart"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <!-- Order Statistics -->
-                <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-6">
-                  <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between">
-                        <div class="card-title mb-0">
-                          <h5 class="mb-1 me-2">Statistik Tes</h5>
-                          <p class="card-subtitle">24 Total Tes Selesai</p>
-                        </div>
-                      <div class="dropdown">
-                        <button
-                          class="btn text-body-secondary p-0"
-                          type="button"
-                          id="orederStatistics"
-                          data-bs-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false">
-                          <i class="icon-base bx bx-dots-vertical-rounded icon-lg"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orederStatistics">
-                          <a class="dropdown-item" href="javascript:void(0);">Select All</a>
-                          <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
-                          <a class="dropdown-item" href="javascript:void(0);">Share</a>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-6">
-                          <div class="d-flex flex-column align-items-center gap-1">
-                            <h3 class="mb-1">24</h3>
-                            <small>Total Tes</small>
-                          </div>
-                        <div id="orderStatisticsChart"></div>
-                      </div>
-                      <ul class="p-0 m-0">
-                        <li class="d-flex align-items-center mb-5">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded bg-label-primary"
-                              ><i class="icon-base bx bx-mobile-alt"></i
-                            ></span>
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <h6 class="mb-0">Kepribadian</h6>
-                              <small>MBTI, Big Five, DISC</small>
-                            </div>
-                            <div class="user-progress">
-                              <h6 class="mb-0">12</h6>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center mb-5">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded bg-label-success"
-                              ><i class="icon-base bx bx-heart"></i
-                            ></span>
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <h6 class="mb-0">Kesehatan Mental</h6>
-                              <small>Stres, Depresi, Kecemasan</small>
-                            </div>
-                            <div class="user-progress">
-                              <h6 class="mb-0">8</h6>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center mb-5">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded bg-label-info"
-                              ><i class="icon-base bx bx-brain"></i
-                            ></span>
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <h6 class="mb-0">Kognitif</h6>
-                              <small>IQ, Memory, Attention</small>
-                            </div>
-                            <div class="user-progress">
-                              <h6 class="mb-0">3</h6>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <span class="avatar-initial rounded bg-label-secondary"
-                              ><i class="icon-base bx bx-user"></i
-                            ></span>
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <h6 class="mb-0">Lainnya</h6>
-                              <small>Emotional, Social</small>
-                            </div>
-                            <div class="user-progress">
-                              <h6 class="mb-0">1</h6>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <!--/ Order Statistics -->
-
-                <!-- Expense Overview -->
-                <div class="col-md-6 col-lg-4 order-1 mb-6">
-                  <div class="card h-100">
-                    <div class="card-header nav-align-top">
-                      <ul class="nav nav-pills flex-wrap row-gap-2" role="tablist">
-                        <li class="nav-item">
-                          <button
-                            type="button"
-                            class="nav-link active"
-                            role="tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#navs-tabs-line-card-income"
-                            aria-controls="navs-tabs-line-card-income"
-                            aria-selected="true">
-                            Progress
-                          </button>
-                        </li>
-                        <li class="nav-item">
-                          <button type="button" class="nav-link" role="tab">Skor</button>
-                        </li>
-                        <li class="nav-item">
-                          <button type="button" class="nav-link" role="tab">Aktivitas</button>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="card-body">
-                      <div class="tab-content p-0">
-                        <div class="tab-pane fade show active" id="navs-tabs-line-card-income" role="tabpanel">
-                          <div class="d-flex mb-6">
-                            <div class="avatar flex-shrink-0 me-3">
-                              <img src="/static/sneat/assets/img/icons/unicons/wallet.png" alt="User" />
-                            </div>
-                            <div>
-                              <p class="mb-0">Skor Kesehatan Mental</p>
-                              <div class="d-flex align-items-center">
-                                <h6 class="mb-0 me-1">85</h6>
-                                <small class="text-success fw-medium">
-                                  <i class="icon-base bx bx-chevron-up icon-lg"></i>
-                                  12.5%
-                                </small>
-                              </div>
-                            </div>
-                          </div>
-                          <div id="incomeChart"></div>
-                          <div class="d-flex align-items-center justify-content-center mt-6 gap-3">
-                            <div class="flex-shrink-0">
-                              <div id="expensesOfWeek"></div>
-                            </div>
-                            <div>
-                              <h6 class="mb-0">Progress minggu ini</h6>
-                              <small>Meningkat 5 poin dari minggu lalu</small>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!--/ Expense Overview -->
-
-                <!-- Transactions -->
-                <div class="col-md-6 col-lg-4 order-2 mb-6">
-                  <div class="card h-100">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                      <h5 class="card-title m-0 me-2">Aktivitas Terkini</h5>
-                      <div class="dropdown">
-                        <button
-                          class="btn text-body-secondary p-0"
-                          type="button"
-                          id="transactionID"
-                          data-bs-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false">
-                          <i class="icon-base bx bx-dots-vertical-rounded icon-lg"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionID">
-                          <a class="dropdown-item" href="javascript:void(0);">28 Hari Terakhir</a>
-                          <a class="dropdown-item" href="javascript:void(0);">Bulan Lalu</a>
-                          <a class="dropdown-item" href="javascript:void(0);">Tahun Lalu</a>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="card-body pt-4">
-                      <ul class="p-0 m-0">
-                        <li class="d-flex align-items-center mb-6">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <img src="/static/sneat/assets/img/icons/unicons/paypal.png" alt="User" class="rounded" />
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <small class="d-block">Tes Kepribadian</small>
-                              <h6 class="fw-normal mb-0">Selesai</h6>
-                            </div>
-                            <div class="user-progress d-flex align-items-center gap-2">
-                              <h6 class="fw-normal mb-0">Skor: 85</h6>
-                              <span class="text-body-secondary">Baik</span>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center mb-6">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <img src="/static/sneat/assets/img/icons/unicons/wallet.png" alt="User" class="rounded" />
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <small class="d-block">Sesi Konseling</small>
-                              <h6 class="fw-normal mb-0">Selesai</h6>
-                            </div>
-                            <div class="user-progress d-flex align-items-center gap-2">
-                              <h6 class="fw-normal mb-0">1 jam</h6>
-                              <span class="text-body-secondary">Lalu</span>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center mb-6">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <img src="/static/sneat/assets/img/icons/unicons/chart.png" alt="User" class="rounded" />
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <small class="d-block">Tes Stres</small>
-                              <h6 class="fw-normal mb-0">Selesai</h6>
-                            </div>
-                            <div class="user-progress d-flex align-items-center gap-2">
-                              <h6 class="fw-normal mb-0">Skor: 72</h6>
-                              <span class="text-body-secondary">Normal</span>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center mb-6">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <img src="/static/sneat/assets/img/icons/unicons/cc-primary.png" alt="User" class="rounded" />
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <small class="d-block">Tes Depresi</small>
-                              <h6 class="fw-normal mb-0">Selesai</h6>
-                            </div>
-                            <div class="user-progress d-flex align-items-center gap-2">
-                              <h6 class="fw-normal mb-0">Skor: 68</h6>
-                              <span class="text-body-secondary">Rendah</span>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center mb-6">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <img src="/static/sneat/assets/img/icons/unicons/wallet.png" alt="User" class="rounded" />
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <small class="d-block">Jurnal Emosi</small>
-                              <h6 class="fw-normal mb-0">Ditambahkan</h6>
-                            </div>
-                            <div class="user-progress d-flex align-items-center gap-2">
-                              <h6 class="fw-normal mb-0">3 hari</h6>
-                              <span class="text-body-secondary">Lalu</span>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="d-flex align-items-center">
-                          <div class="avatar flex-shrink-0 me-3">
-                            <img src="/static/sneat/assets/img/icons/unicons/cc-warning.png" alt="User" class="rounded" />
-                          </div>
-                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                              <small class="d-block">Tes Kecemasan</small>
-                              <h6 class="fw-normal mb-0">Selesai</h6>
-                            </div>
-                            <div class="user-progress d-flex align-items-center gap-2">
-                              <h6 class="fw-normal mb-0">Skor: 75</h6>
-                              <span class="text-body-secondary">Sedang</span>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <!--/ Transactions -->
-              </div>
-            </div>
-            <!-- / Content -->
-
-            <div class="content-backdrop fade"></div>
-          </div>
-          <!-- Content wrapper -->
         </div>
-        <!-- / Layout page -->
-      </div>
 
-      <!-- Overlay -->
-      <div class="layout-overlay layout-menu-toggle"></div>
+        <nav class="ds-nav">
+          <a href="/dashboard" class="active"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+          <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+
+        <div class="ds-side-card">
+          <div class="label">Kelas</div>
+          <div class="value" id="sbKelasValue">-</div>
+        </div>
+        <div class="ds-side-card" style="margin-top: 0;">
+          <div class="label">Jurusan</div>
+          <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+        </div>
+
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+
+      <!-- ============== MAIN ============== -->
+      <main class="ds-main">
+        <!-- Topbar -->
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Integrated Student Dashboard</h1>
+            <p>Psychological Mapping &amp; AI Recommendation System</p>
+          </div>
+          <div class="ds-search">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" placeholder="Search anything&hellip;" />
+            <span class="kbd">&#x2318;K</span>
+          </div>
+          <a href="/profile" class="ds-bell"><i data-lucide="bell"></i><span class="badge">3</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Siswa&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta">
+                <div class="name" id="topUserName">Siswa</div>
+                <div class="role" id="topUserRole">Siswa</div>
+              </div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+        <!-- ============== GRID ============== -->
+        <section class="ds-grid">
+          <!-- ROW 1 -->
+          <!-- Student Profile -->
+          <div class="ds-card">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="user" class="icon"></i> Student Profile</div>
+              <button class="ds-card-action btn-pill" type="button"><i data-lucide="more-horizontal" style="width:14px;height:14px;"></i></button>
+            </div>
+            <div class="ds-profile-head">
+              <img id="spAvatar" class="ds-profile-avatar" src="https://ui-avatars.com/api/?name=Siswa&size=200&background=4f46e5&color=fff&bold=true" alt="" />
+              <div style="min-width:0; flex:1;">
+                <div class="ds-profile-name" id="spName">&mdash;</div>
+                <div style="font-size: 11px; color: var(--ds-muted); margin-top: 2px;" id="spStudentId">Student ID: &mdash;</div>
+                <div class="ds-profile-meta" id="spMeta"></div>
+              </div>
+            </div>
+            <div class="ds-profile-stats">
+              <div class="ds-stat-tile purple">
+                <div class="lab"><i data-lucide="book-open" style="width:12px;height:12px;"></i> Kelas</div>
+                <div class="val" id="spKelas">-</div>
+              </div>
+              <div class="ds-stat-tile amber">
+                <div class="lab"><i data-lucide="award" style="width:12px;height:12px;"></i> Jurusan</div>
+                <div class="val" id="spJurusan">-</div>
+              </div>
+              <div class="ds-stat-tile blue">
+                <div class="lab"><i data-lucide="lightbulb" style="width:12px;height:12px;"></i> Dominant Talent</div>
+                <div class="val" id="spTalent">&mdash;</div>
+              </div>
+              <div class="ds-stat-tile green">
+                <div class="lab"><i data-lucide="target" style="width:12px;height:12px;"></i> Career Match</div>
+                <div class="val"><span id="spCareerName">&mdash;</span> <small id="spCareerMatch" style="color: var(--ds-success);">&mdash;</small></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Psychological Mapping -->
+          <div class="ds-card col-span-2">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="brain" class="icon"></i> Psychological Mapping</div>
+            </div>
+            <div class="ds-pmap-grid">
+              <div class="ds-pmap-list">
+                <div class="ds-pmap-item">
+                  <div class="ic"><i data-lucide="id-card"></i></div>
+                  <div>
+                    <div class="lab">Personality Type</div>
+                    <div class="val" id="pmPersonality">&mdash;</div>
+                    <div style="font-size: 10px; color: var(--ds-muted);"><span id="pmPersonalityCode">&mdash;</span></div>
+                  </div>
+                </div>
+                <div class="ds-pmap-item">
+                  <div class="ic"><i data-lucide="book-open"></i></div>
+                  <div>
+                    <div class="lab">Learning Style</div>
+                    <div class="val" id="pmLearningStyle">&mdash;</div>
+                  </div>
+                </div>
+                <div class="ds-pmap-item">
+                  <div class="ic"><i data-lucide="calculator"></i></div>
+                  <div>
+                    <div class="lab">Dominant Intelligence</div>
+                    <div class="val" id="pmDominant">&mdash;</div>
+                  </div>
+                </div>
+                <div class="ds-pmap-item">
+                  <div class="ic"><i data-lucide="flame"></i></div>
+                  <div>
+                    <div class="lab">Motivation Level</div>
+                    <div class="val" id="pmMotivation">&mdash;</div>
+                  </div>
+                </div>
+                <div class="ds-pmap-item">
+                  <div class="ic"><i data-lucide="activity"></i></div>
+                  <div>
+                    <div class="lab">Stress Level</div>
+                    <div class="val" id="pmStress">&mdash;</div>
+                  </div>
+                </div>
+                <div class="ds-pmap-item">
+                  <div class="ic"><i data-lucide="star"></i></div>
+                  <div>
+                    <div class="lab">Leadership Potential</div>
+                    <div class="val" id="pmLeadership">&mdash;</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-radar-wrap"><canvas id="pmRadar"></canvas></div>
+              <div class="ds-pmap-note" id="pmNote">&mdash;</div>
+            </div>
+          </div>
+
+          <!-- Emotional Analytics -->
+          <div class="ds-card">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="heart" class="icon"></i> Emotional Analytics</div>
+              <a href="/profile" class="ds-card-action">View Detail</a>
+            </div>
+            <div class="ds-gauge-grid">
+              <div class="ds-gauge" id="gSelfAware">
+                <div class="label">Self Awareness</div>
+                <div class="ring"><span class="num">0</span></div>
+                <div class="desc">&mdash;</div>
+              </div>
+              <div class="ds-gauge" id="gSelfReg">
+                <div class="label">Self Regulation</div>
+                <div class="ring"><span class="num">0</span></div>
+                <div class="desc">&mdash;</div>
+              </div>
+              <div class="ds-gauge" id="gMotivation">
+                <div class="label">Motivation</div>
+                <div class="ring"><span class="num">0</span></div>
+                <div class="desc">&mdash;</div>
+              </div>
+              <div class="ds-gauge" id="gEmpathy">
+                <div class="label">Empathy</div>
+                <div class="ring"><span class="num">0</span></div>
+                <div class="desc">&mdash;</div>
+              </div>
+              <div class="ds-gauge" id="gStressMgmt">
+                <div class="label">Stress Management</div>
+                <div class="ring"><span class="num">0</span></div>
+                <div class="desc">&mdash;</div>
+              </div>
+              <div class="ds-gauge" id="gResilience">
+                <div class="label">Mental Resilience</div>
+                <div class="ring"><span class="num">0</span></div>
+                <div class="desc">&mdash;</div>
+              </div>
+            </div>
+            <div class="ds-emo-status">
+              <div class="ds-status-pill" id="emoStable"><span>Emotional Status</span><span class="v good">&mdash; &mdash;</span></div>
+              <div class="ds-status-pill" id="emoBurnout"><span>Burnout Risk</span><span class="v good">&mdash; &mdash;</span></div>
+            </div>
+          </div>
+
+          <!-- ROW 2 -->
+          <!-- Skill Tracker -->
+          <div class="ds-card">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="bar-chart-2" class="icon"></i> Skill Tracker</div>
+              <a href="/profile" class="ds-card-action">View All</a>
+            </div>
+            <div class="ds-skill-list" id="skillList"></div>
+            <div class="ds-skill-total">
+              <div class="ic"><i data-lucide="trending-up"></i></div>
+              <div style="flex: 1;">
+                <div class="num" id="skillTotal">0 /100</div>
+                <div style="font-size: 11px; color: var(--ds-muted);">Total Skill Score</div>
+              </div>
+              <div class="lbl" id="skillTotalLabel">&mdash;</div>
+            </div>
+          </div>
+
+          <!-- Career Roadmap -->
+          <div class="ds-card">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="briefcase" class="icon"></i> Career Roadmap</div>
+              <a href="/profile/holland" class="ds-card-action">View Detail</a>
+            </div>
+            <div class="ds-career-grid">
+              <div>
+                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Top Career Matches</div>
+                <div class="ds-career-list" id="careerList"></div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Roadmap Timeline</div>
+                <div class="ds-roadmap" id="careerTimeline"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Recommendation -->
+          <div class="ds-card col-span-3">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="sparkles" class="icon"></i> AI Recommendation</div>
+              <a href="/profile" class="ds-card-action">View All</a>
+            </div>
+            <div class="ds-rec-list" id="aiRecList"></div>
+          </div>
+
+          <!-- ROW 3: Smart Summary (full width) -->
+          <div class="ds-card col-span-3">
+            <div class="ds-card-header">
+              <div class="ds-card-title"><i data-lucide="wand-2" class="icon"></i> AI Smart Summary</div>
+            </div>
+            <div class="ds-smart-grid">
+              <div class="ds-smart-block green">
+                <h5><i data-lucide="check-circle-2" style="width:14px;height:14px;"></i> Strengths</h5>
+                <ul id="smStrengths"></ul>
+              </div>
+              <div class="ds-smart-block amber">
+                <h5><i data-lucide="alert-triangle" style="width:14px;height:14px;"></i> Development Areas</h5>
+                <ul id="smDev"></ul>
+              </div>
+              <div class="ds-potential">
+                <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;"><i data-lucide="target" style="width:14px;height:14px;"></i> Potential Prediction</div>
+                <div class="ring" id="smPotentialRing"><span class="v num" id="smPotentialVal">0%</span></div>
+                <div class="lab">High Potential</div>
+                <div class="desc" id="smPotentialDesc">&mdash;</div>
+              </div>
+              <div>
+                <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;"><i data-lucide="book" style="width:14px;height:14px;"></i> Learning Strategy</div>
+                <div class="ds-strategy" id="smStrategy"></div>
+              </div>
+              <div class="ds-insight">
+                <div class="bot"><img src="/static/assets/AI BOT.jpg" alt="AI Bot" /></div>
+                <div>
+                  <h5>AI Insight</h5>
+                  <div id="smInsight">&mdash;</div>
+                  <em>&mdash; AI SmartAssistant</em>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-    <!-- / Layout wrapper -->
 
-
-    <!-- Core JS -->
-
-    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
-
-    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
-
-    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
-    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
-
-    <!-- endbuild -->
-
-    <!-- Vendors JS -->
-    <script src="/static/sneat/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-
-    <!-- Main JS -->
-
-    <script src="/static/sneat/assets/js/main.js"></script>
-
-    <!-- Page JS -->
-    <script src="/static/sneat/assets/js/dashboards-analytics.js"></script>
-
-    <!-- Load User Profile -->
-    <script>
-      // Load user profile data
-      async function loadUserProfile() {
-        try {
-          const response = await fetch('/api/profile');
-          if (!response.ok) {
-            if (response.status === 401) {
-              window.location.href = '/login';
-              return;
-            }
-            return;
-          }
-          const data = await response.json();
-          if (data.success && data.data) {
-            const user = data.data;
-            
-            // Tampilkan menu admin psychotest bila role admin
-            if (user.role === 'admin') {
-              const adminMenu = document.getElementById('menuAdminPsychotest');
-              if (adminMenu) adminMenu.classList.remove('d-none');
-            }
-
-            // Update avatar
-            if (user.foto_profil) {
-              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
-              document.getElementById('navbarAvatar').src = avatarUrl;
-              document.getElementById('dropdownAvatar').src = avatarUrl;
-            }
-            
-            // Update dropdown info
-            document.getElementById('dropdownName').textContent = user.nama_lengkap || 'Pengguna';
-            document.getElementById('dropdownEmail').textContent = user.email || 'Member';
-          }
-        } catch (error) {
-          console.error('Error loading profile:', error);
-        }
-      }
-
-      // Handle logout
-      async function handleLogout() {
-        try {
-          const response = await fetch('/api/auth/logout', {
-            method: 'POST'
-          });
-          const result = await response.json();
-          if (result.success) {
-            window.location.href = '/login';
-          }
-        } catch (error) {
-          console.error('Error logging out:', error);
-          window.location.href = '/login';
-        }
-      }
-
-      // Handle dashboard search
-      function handleDashboardSearch(event) {
-        const searchTerm = event.target.value.toLowerCase().trim();
-        if (searchTerm.length === 0) {
-          // Show all content when search is empty
-          document.querySelectorAll('.card, .col-md-6, .col-lg-4').forEach(el => {
-            el.style.display = '';
-          });
-          return;
-        }
-
-        // Search in cards and content
-        document.querySelectorAll('.card, .col-md-6, .col-lg-4').forEach(card => {
-          const text = card.textContent.toLowerCase();
-          if (text.includes(searchTerm)) {
-            card.style.display = '';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      }
-
-      // Load profile on page load
-      document.addEventListener('DOMContentLoaded', function() {
-        loadUserProfile();
-      });
-    </script>
-
-    <!-- ===== Modal Onboarding (otomatis tampil bila profil belum lengkap) ===== -->
+    <!-- ============== Modal Onboarding (otomatis tampil bila profil belum lengkap) ============== -->
     <div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -966,6 +366,18 @@
                 </select>
                 <input type="text" class="form-control mt-2 d-none" id="ob_jurusan_custom" placeholder="Tulis nama jurusan Anda" maxlength="100" />
                 <small class="text-muted" id="ob_jurusan_desc"></small>
+              </div>
+              <div class="col-md-6">
+                <label for="ob_sekolah" class="form-label">Sekolah <span class="text-danger">*</span></label>
+                <select class="form-select" id="ob_sekolah" required>
+                  <option value="">-- Pilih Sekolah --</option>
+                  <option value="SMKN 22 Jakarta">SMKN 22 Jakarta</option>
+                  <option value="SMKN 46 Jakarta">SMKN 46 Jakarta</option>
+                  <option value="SMKN 43 Jakarta">SMKN 43 Jakarta</option>
+                  <option value="SMKN 20 Jakarta">SMKN 20 Jakarta</option>
+                  <option value="SMKN 70 Jakarta">SMKN 70 Jakarta</option>
+                </select>
+                <small class="text-muted">Diperlukan untuk filter akun sekolah.</small>
               </div>
               <div class="col-md-6">
                 <label for="ob_tempat_lahir" class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
@@ -1008,10 +420,50 @@
       </div>
     </div>
 
-    <!-- SweetAlert + Onboarding script -->
+    <!-- Bootstrap bundle (untuk modal onboarding) -->
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+
+    <!-- SweetAlert + Wilayah + Enums + Onboarding -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/static/modern/wilayah.js?v=2"></script>
     <script src="/static/modern/enums.js?v=1"></script>
     <script src="/static/modern/onboarding.js?v=3"></script>
+
+    <!-- Dashboard renderer -->
+    <script src="/static/modern/dashboard_integrated.js?v=20260514d"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+
+    <!-- Logout & dropdown handler -->
+    <script>
+      function dsDoLogout(e) {
+        if (e) e.preventDefault();
+        fetch("/api/auth/logout", { method: "POST" })
+          .then(() => { window.location.href = "/login"; })
+          .catch(() => { window.location.href = "/login"; });
+      }
+      document.getElementById("ds-logout-btn")?.addEventListener("click", dsDoLogout);
+      document.getElementById("ds-logout-btn-2")?.addEventListener("click", dsDoLogout);
+
+      // Dropdown topbar
+      (function () {
+        const btn = document.getElementById("ds-userpill-btn");
+        const menu = document.getElementById("ds-userpill-menu");
+        if (!btn || !menu) return;
+        function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+        function open() { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); }
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (menu.hidden) open(); else close();
+        });
+        document.addEventListener("click", function (e) {
+          if (!menu.contains(e.target) && !btn.contains(e.target)) close();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") close();
+        });
+      })();
+    </script>
+    <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>

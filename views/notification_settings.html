@@ -1,0 +1,416 @@
+﻿<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pengaturan Notifikasi - Psychee Wellness</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap core (utility kelas yang dipakai komponen) -->
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+
+    <!-- Dashboard styles (samakan dengan /dashboard) -->
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
+
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <style>
+      /* Halaman pengaturan notifikasi */
+      .ns-card { padding: 0; overflow: hidden; }
+      .ns-head {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c83ff 100%);
+        color: #fff; padding: 20px 24px;
+      }
+      .ns-head h2 { font-size: 18px; font-weight: 700; margin: 0 0 4px; color: #fff; }
+      .ns-head p { font-size: 13px; margin: 0; color: rgba(255,255,255,.85); }
+      .ns-section { padding: 20px 24px; }
+      .ns-section + .ns-section { border-top: 1px solid var(--ds-border, #eef0f4); }
+      .ns-table { width: 100%; border-collapse: collapse; }
+      .ns-table th, .ns-table td { padding: 14px 16px; text-align: left; vertical-align: middle; font-size: 13px; }
+      .ns-table thead th {
+        background: #f5f6fa; color: #6b7280; font-size: 11px; font-weight: 700;
+        letter-spacing: .5px; text-transform: uppercase;
+        border-bottom: 1px solid var(--ds-border, #eef0f4);
+      }
+      .ns-table tbody tr + tr td { border-top: 1px solid var(--ds-border, #eef0f4); }
+      .ns-table th.center, .ns-table td.center { text-align: center; }
+      .ns-table .lab { font-weight: 600; color: var(--ds-text, #111827); }
+      .ns-table .desc { font-size: 11px; color: var(--ds-muted, #6b7280); margin-top: 2px; }
+
+      /* Switch */
+      .ns-switch { position: relative; display: inline-block; width: 42px; height: 22px; }
+      .ns-switch input { opacity: 0; width: 0; height: 0; }
+      .ns-switch .track {
+        position: absolute; cursor: pointer; inset: 0; background: #d1d5db;
+        border-radius: 999px; transition: .2s;
+      }
+      .ns-switch .track:before {
+        content: ""; position: absolute; height: 16px; width: 16px;
+        left: 3px; top: 3px; background: #fff; border-radius: 50%;
+        transition: .2s; box-shadow: 0 1px 2px rgba(0,0,0,.15);
+      }
+      .ns-switch input:checked + .track { background: #4f46e5; }
+      .ns-switch input:checked + .track:before { transform: translateX(20px); }
+
+      /* Form helpers */
+      .ns-select {
+        appearance: none; -webkit-appearance: none;
+        width: 100%; max-width: 320px;
+        padding: 10px 36px 10px 14px; border-radius: 8px;
+        border: 1px solid var(--ds-border, #e5e7eb); background-color: #fff;
+        font-size: 13px; color: var(--ds-text, #111827);
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+        background-repeat: no-repeat; background-position: right 12px center;
+      }
+      .ns-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+      .ns-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        border: 1px solid transparent; cursor: pointer; transition: .15s;
+      }
+      .ns-btn.primary { background: #4f46e5; color: #fff; }
+      .ns-btn.primary:hover { background: #4338ca; }
+      .ns-btn.ghost { background: #fff; color: #374151; border-color: #e5e7eb; }
+      .ns-btn.ghost:hover { background: #f9fafb; }
+
+      .ns-permission {
+        display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+        background: #f5f6fa; border-radius: 8px; font-size: 13px; color: #4b5563;
+      }
+      .ns-permission b { color: #111827; }
+      .ns-permission a { color: #4f46e5; font-weight: 600; text-decoration: none; }
+      .ns-permission a:hover { text-decoration: underline; }
+    </style>
+  </head>
+
+  <body>
+    <div class="ds-shell">
+      <!-- ============== SIDEBAR ============== -->
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
+          </div>
+        </div>
+
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu" open>
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications" class="active"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+
+        <div class="ds-side-card">
+          <div class="label">Kelas</div>
+          <div class="value" id="sbKelasValue">-</div>
+        </div>
+        <div class="ds-side-card" style="margin-top: 0;">
+          <div class="label">Jurusan</div>
+          <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+        </div>
+
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+
+      <!-- ============== MAIN ============== -->
+      <main class="ds-main">
+        <!-- Topbar (samakan dengan dashboard) -->
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Pengaturan Notifikasi</h1>
+            <p>Atur kanal &amp; waktu pengiriman notifikasi Anda.</p>
+          </div>
+          <div class="ds-search">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" placeholder="Search anything&hellip;" />
+            <span class="kbd">&#x2318;K</span>
+          </div>
+          <a href="/profile" class="ds-bell"><i data-lucide="bell"></i><span class="badge">3</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Siswa&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta">
+                <div class="name" id="topUserName">Siswa</div>
+                <div class="role" id="topUserRole">Siswa</div>
+              </div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+        <!-- Konten -->
+        <section class="ds-grid" style="grid-template-columns: 1fr;">
+          <div class="ds-card ns-card col-span-3">
+            <div class="ns-head">
+              <h2><i data-lucide="bell-ring" style="width:18px;height:18px;vertical-align:-3px;"></i> Pengaturan Notifikasi</h2>
+              <p>Pilih kanal yang ingin Anda gunakan untuk menerima notifikasi.</p>
+            </div>
+
+            <form id="notifSettingsForm" onsubmit="handleSettingsSubmit(event)">
+              <div class="ns-section">
+                <div class="ns-permission">
+                  <i data-lucide="info" style="width:18px;height:18px;color:#4f46e5;"></i>
+                  <div>
+                    <b>Perangkat saat ini.</b>
+                    Kami memerlukan izin browser untuk menampilkan notifikasi.
+                    <a href="javascript:void(0)" onclick="requestNotificationPermission()">Minta Izin</a>
+                  </div>
+                </div>
+              </div>
+
+              <div style="overflow-x:auto;">
+                <table class="ns-table">
+                  <thead>
+                    <tr>
+                      <th>Tipe</th>
+                      <th class="center">Email</th>
+                      <th class="center">Browser</th>
+                      <th class="center">WhatsApp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="lab">Baru untuk Anda</div>
+                        <div class="desc">Tes baru, materi atau pengumuman dari sekolah/instansi.</div>
+                      </td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifNewForYouEmail" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifNewForYouBrowser" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifNewForYouApp" /><span class="track"></span></label></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="lab">Aktivitas Akun</div>
+                        <div class="desc">Update status akun, perubahan profil, dan pengingat tes.</div>
+                      </td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifActivityEmail" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifActivityBrowser" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifActivityApp" /><span class="track"></span></label></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="lab">Login Browser Baru</div>
+                        <div class="desc">Pemberitahuan ketika akun diakses dari browser baru.</div>
+                      </td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifBrowserLoginEmail" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifBrowserLoginBrowser" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifBrowserLoginApp" /><span class="track"></span></label></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="lab">Perangkat Baru Terhubung</div>
+                        <div class="desc">Pemberitahuan ketika perangkat baru terhubung ke akun Anda.</div>
+                      </td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifDeviceLinkEmail" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifDeviceLinkBrowser" /><span class="track"></span></label></td>
+                      <td class="center"><label class="ns-switch"><input type="checkbox" id="notifDeviceLinkApp" /><span class="track"></span></label></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="ns-section">
+                <div style="font-size:13px; font-weight:600; color:#111827; margin-bottom:8px;">
+                  Kapan kami harus mengirim notifikasi kepada Anda?
+                </div>
+                <select id="sendNotification" class="ns-select">
+                  <option value="online">Hanya saat saya online</option>
+                  <option value="always">Kapan saja</option>
+                  <option value="never">Jangan kirim</option>
+                </select>
+              </div>
+
+              <div class="ns-section ns-actions">
+                <button type="submit" class="ns-btn primary">
+                  <i data-lucide="save" style="width:14px;height:14px;"></i> Simpan Perubahan
+                </button>
+                <button type="button" class="ns-btn ghost" onclick="loadSettings()">Batal</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- SweetAlert2 (notifikasi popup yang sama dengan halaman lain) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      // ===== Topbar / sidebar info (avatar, nama, kelas, jurusan) =====
+      async function loadUserProfile() {
+        try {
+          const res = await fetch('/api/profile');
+          if (!res.ok) {
+            if (res.status === 401) { window.location.href = '/login'; return; }
+            return;
+          }
+          const data = await res.json();
+          if (!data.success || !data.data) return;
+          const u = data.data;
+          const name = u.nama_lengkap || 'Siswa';
+          document.getElementById('topUserName').textContent = name;
+          document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+
+          const avatarEl = document.getElementById('topUserAvatar');
+          if (u.foto_profil) {
+            avatarEl.src = '/static/uploads/profiles/' + u.foto_profil;
+          } else {
+            avatarEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+          }
+
+          const k = document.getElementById('sbKelasValue'); if (k) k.textContent = u.kelas || '-';
+          const j = document.getElementById('sbJurusanValue'); if (j) j.textContent = u.jurusan || '-';
+        } catch (e) { console.error(e); }
+      }
+
+      // ===== Settings =====
+      const FIELDS = [
+        'notif_new_for_you_email', 'notif_new_for_you_browser', 'notif_new_for_you_app',
+        'notif_activity_email', 'notif_activity_browser', 'notif_activity_app',
+        'notif_browser_login_email', 'notif_browser_login_browser', 'notif_browser_login_app',
+        'notif_device_link_email', 'notif_device_link_browser', 'notif_device_link_app'
+      ];
+
+      const toCamel = s => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+      async function loadSettings() {
+        try {
+          const res = await fetch('/api/settings');
+          if (!res.ok) {
+            if (res.status === 401) { window.location.href = '/login'; return; }
+            throw new Error('Gagal memuat pengaturan');
+          }
+          const data = await res.json();
+          if (!data.success || !data.data) return;
+          const s = data.data;
+          FIELDS.forEach(f => {
+            const el = document.getElementById(toCamel(f));
+            if (el) el.checked = !!s[f];
+          });
+          const sel = document.getElementById('sendNotification');
+          if (sel) sel.value = s.notification_timing || 'online';
+        } catch (err) {
+          console.error(err);
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal memuat pengaturan' });
+        }
+      }
+
+      async function handleSettingsSubmit(event) {
+        event.preventDefault();
+        const payload = { notification_timing: document.getElementById('sendNotification').value };
+        FIELDS.forEach(f => {
+          const el = document.getElementById(toCamel(f));
+          payload[f] = el ? el.checked : false;
+        });
+        try {
+          const res = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const result = await res.json();
+          if (result.success) {
+            Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Pengaturan berhasil disimpan', timer: 1800, showConfirmButton: false });
+          } else {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: result.message || 'Gagal menyimpan pengaturan' });
+          }
+        } catch (err) {
+          console.error(err);
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan saat menyimpan pengaturan' });
+        }
+      }
+
+      function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+          Swal.fire({ icon: 'warning', title: 'Tidak Didukung', text: 'Browser Anda tidak mendukung notifikasi' });
+          return;
+        }
+        Notification.requestPermission().then(p => {
+          if (p === 'granted') {
+            Swal.fire({ icon: 'success', title: 'Izin Diberikan', text: 'Notifikasi browser telah diaktifkan' });
+          } else {
+            Swal.fire({ icon: 'info', title: 'Izin Ditolak', text: 'Anda dapat mengaktifkan notifikasi melalui pengaturan browser' });
+          }
+        });
+      }
+
+      // ===== Userpill dropdown (sama seperti dashboard) =====
+      function setupUserpill() {
+        const btn = document.getElementById('ds-userpill-btn');
+        const menu = document.getElementById('ds-userpill-menu');
+        if (!btn || !menu) return;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const open = !menu.hasAttribute('hidden');
+          if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+          btn.setAttribute('aria-expanded', String(!open));
+        });
+        document.addEventListener('click', e => {
+          if (!menu.contains(e.target) && e.target !== btn) {
+            menu.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      async function handleLogout(e) {
+        if (e) e.preventDefault();
+        try {
+          const res = await fetch('/api/auth/logout', { method: 'POST' });
+          const r = await res.json();
+          if (r.success) window.location.href = '/login';
+        } catch (_) { window.location.href = '/login'; }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+        loadUserProfile();
+        loadSettings();
+        setupUserpill();
+        const lo = document.getElementById('ds-logout-btn');
+        const lo2 = document.getElementById('ds-logout-btn-2');
+        if (lo) lo.addEventListener('click', handleLogout);
+        if (lo2) lo2.addEventListener('click', handleLogout);
+      });
+    </script>
+    <script src="/static/js/admin_menu.js"></script>
+  </body>
+</html>

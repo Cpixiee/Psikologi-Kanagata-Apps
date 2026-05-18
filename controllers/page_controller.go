@@ -74,6 +74,16 @@ func (c *PageController) ProfilePage() {
 	c.TplName = "profile_main.html"
 }
 
+// @router /profile/edit [get]
+func (c *PageController) ProfileEditPage() {
+	c.TplName = "profile_edit.html"
+}
+
+// @router /hasil-tes [get]
+func (c *PageController) HasilTesPage() {
+	c.TplName = "hasil_tes.html"
+}
+
 // @router /profile/ist [get]
 func (c *PageController) ProfileISTPage() {
 	c.TplName = "profile.html"
@@ -109,6 +119,11 @@ func (c *PageController) SettingsPage() {
 	c.TplName = "settings.html"
 }
 
+// @router /settings/notifications [get]
+func (c *PageController) NotificationSettingsPage() {
+	c.TplName = "notification_settings.html"
+}
+
 // @router /admin/psychotest [get]
 func (c *PageController) PsychotestAdminPage() {
 	// Backward compatible: redirect old URL to the new list page.
@@ -124,6 +139,18 @@ func (c *PageController) PsychotestAdminBatchesPage() {
 // @router /admin/psychotest/batches/add [get]
 func (c *PageController) PsychotestAdminAddBatchPage() {
 	c.TplName = "admin_psychotest_add_batch.html"
+}
+
+// @router /admin/schools [get]
+// Daftar akun sekolah (read-only listing untuk admin).
+func (c *PageController) AdminSchoolsPage() {
+	c.TplName = "admin_schools.html"
+}
+
+// @router /admin/schools/add [get]
+// Form tambah akun sekolah beserta daftar guru.
+func (c *PageController) AdminSchoolsAddPage() {
+	c.TplName = "admin_schools_add.html"
 }
 
 // @router /profile/holland/start [get]

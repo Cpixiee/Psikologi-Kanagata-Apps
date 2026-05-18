@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html
   lang="id"
   class="layout-menu-fixed layout-compact"
@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
@@ -55,72 +56,48 @@
   <body>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <div class="app-brand demo">
-            <a href="/dashboard" class="app-brand-link">
-              <span class="app-brand-logo demo">
-                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
-              </span>
-              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
-            </a>
-          </div>
-          <div class="menu-divider mt-0"></div>
-          <div class="menu-inner-shadow"></div>
-          <ul class="menu-inner py-1">
-            <li class="menu-item">
-              <a href="/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-home-smile"></i>
-                <div class="text-truncate">Dashboard</div>
-              </a>
-            </li>
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Layanan</span>
-            </li>
-            <li class="menu-item">
-              <a href="/test" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-clipboard"></i>
-                <div class="text-truncate">Tes Psikologi</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-chat"></i>
-                <div class="text-truncate">Konseling</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-history"></i>
-                <div class="text-truncate">Riwayat</div>
-              </a>
-            </li>
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Akun</span>
-            </li>
-            <li class="menu-item active">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">Profil</div>
-              </a>
-              <ul class="menu-sub">
-                <li class="menu-item"><a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a></li>
-                <li class="menu-item"><a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a></li>
-                <li class="menu-item"><a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a></li>
-                <li class="menu-item"><a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a></li>
-                <li class="menu-item active"><a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a></li>
-                <li class="menu-item"><a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a></li>
-                <li class="menu-item"><a href="/profile/papi" class="menu-link"><div class="text-truncate">Hasil PAPI</div></a></li>
-              </ul>
-            </li>
-            <li class="menu-item"><a href="/settings" class="menu-link"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengaturan</div></a></li>
-            <li class="menu-item d-none" id="menuAdminPsychotest">
-              <a href="/admin/psychotest" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
-                <div class="text-truncate">Admin Psychotest</div>
-              </a>
-            </li>
-          </ul>
-        </aside>
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+  <div class="ds-brand">
+    <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+    <div class="ds-brand-text">
+      <div class="name">PsychoWellness</div>
+      <div class="sub">AI Analytics System</div>
+    </div>
+  </div>
+  <nav class="ds-nav">
+    <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+    <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+    <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+    <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+    <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+    <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+    <details class="ds-submenu admin-only" hidden>
+      <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+      <div class="ds-subnav">
+        <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+        <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+        <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+      </div>
+    </details>    <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+  </nav>
+    <div class="ds-side-card">
+    <div class="label">Kelas</div>
+    <div class="value" id="sbKelasValue">-</div>
+  </div>
+  <div class="ds-side-card">
+    <div class="label">Jurusan</div>
+    <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+  </div>
+  <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+</aside>
 
         <div class="layout-page">
           <div class="content-wrapper">
@@ -251,6 +228,9 @@
         loadSummary();
       });
     </script>
+      <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+    <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>
 

@@ -21,7 +21,32 @@ const (
 	RoleMahasiswa Role = "mahasiswa"
 	RoleUmum      Role = "umum"
 	RoleAdmin     Role = "admin"
+	RoleSekolah   Role = "sekolah"
 )
+
+// SekolahList adalah daftar sekolah yang tersedia di sistem (dummy untuk
+// keperluan onboarding & filter data sekolah).
+var SekolahList = []string{
+	"SMKN 22 Jakarta",
+	"SMKN 46 Jakarta",
+	"SMKN 43 Jakarta",
+	"SMKN 20 Jakarta",
+	"SMKN 70 Jakarta",
+}
+
+// IsValidSekolah memeriksa apakah string sekolah yang diberikan termasuk
+// dalam daftar yang valid. String kosong dianggap valid (belum diisi).
+func IsValidSekolah(s string) bool {
+	if s == "" {
+		return true
+	}
+	for _, v := range SekolahList {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
 
 type User struct {
 	Id           int       `orm:"auto;pk" json:"id"`
@@ -46,6 +71,7 @@ type User struct {
 	Jurusan           string `orm:"column(jurusan);size(100)" json:"jurusan"`
 	TempatLahir       string `orm:"column(tempat_lahir);size(100)" json:"tempat_lahir"`
 	Kecamatan         string `orm:"column(kecamatan);size(100)" json:"kecamatan"`
+	Sekolah           string `orm:"column(sekolah);size(64)" json:"sekolah"`
 	ProfileCompleted  bool   `orm:"column(profile_completed);default(false)" json:"profile_completed"`
 
 	CreatedAt time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`

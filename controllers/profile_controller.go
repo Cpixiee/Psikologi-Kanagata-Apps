@@ -255,6 +255,7 @@ func (c *ProfileController) OnboardingStatus() {
 			"nip":           user.NIP,
 			"kelas":         user.Kelas,
 			"jurusan":       user.Jurusan,
+			"sekolah":       user.Sekolah,
 			"tempat_lahir":  user.TempatLahir,
 			"tanggal_lahir": tglStr,
 			"alamat":        user.Alamat,
@@ -308,6 +309,7 @@ func (c *ProfileController) SaveOnboarding() {
 		NIP          string `json:"nip"`
 		Kelas        string `json:"kelas"`
 		Jurusan      string `json:"jurusan"`
+		Sekolah      string `json:"sekolah"`
 		TempatLahir  string `json:"tempat_lahir"`
 		TanggalLahir string `json:"tanggal_lahir"` // YYYY-MM-DD
 		Alamat       string `json:"alamat"`
@@ -335,6 +337,7 @@ func (c *ProfileController) SaveOnboarding() {
 	user.NIP = strings.TrimSpace(p.NIP)
 	user.Kelas = strings.TrimSpace(p.Kelas)
 	user.Jurusan = strings.TrimSpace(p.Jurusan)
+	user.Sekolah = strings.TrimSpace(p.Sekolah)
 	user.TempatLahir = strings.TrimSpace(p.TempatLahir)
 	user.Alamat = strings.TrimSpace(p.Alamat)
 	user.Kecamatan = strings.TrimSpace(p.Kecamatan)
@@ -360,11 +363,17 @@ func (c *ProfileController) SaveOnboarding() {
 		c.ServeJSON()
 		return
 	}
+	if user.Sekolah == "" || !models.IsValidSekolah(user.Sekolah) {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = ProfileResponse{Success: false, Message: "Sekolah wajib dipilih dari daftar yang tersedia"}
+		c.ServeJSON()
+		return
+	}
 	user.ProfileCompleted = true
 
 	// Update field non-date via ORM.
 	if _, err := o.Update(&user,
-		"NISN", "NIP", "Kelas", "Jurusan", "TempatLahir",
+		"NISN", "NIP", "Kelas", "Jurusan", "Sekolah", "TempatLahir",
 		"Alamat", "Kecamatan", "Kota", "Provinsi", "ProfileCompleted",
 	); err != nil {
 		logs.Error("SaveOnboarding update gagal: %v", err)

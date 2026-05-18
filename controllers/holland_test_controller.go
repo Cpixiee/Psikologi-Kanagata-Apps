@@ -11,6 +11,7 @@ import (
 	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/xuri/excelize/v2"
 )
@@ -694,6 +695,7 @@ func (c *HollandTestController) SubmitPage3API() {
 		inv.Status = models.StatusInvitationUsed
 		inv.UsedAt = time.Now()
 		_, _ = o.Update(inv, "Status", "UsedAt")
+		go utils.SendTestCompletionNotification(inv.UserId, "Holland (RIASEC)")
 	}
 
 	// Optional: mark any derived summary if needed in the future.
@@ -710,6 +712,12 @@ func (c *HollandTestController) SubmitPage3API() {
 func (c *HollandTestController) ExportResultExcel() {
 	o := orm.NewOrm()
 
+	writeErr := func(status int, msg string) {
+		c.Ctx.Output.SetStatus(status)
+		c.Ctx.Output.Header("Content-Type", "text/plain; charset=utf-8")
+		_, _ = c.Ctx.ResponseWriter.Write([]byte(msg))
+	}
+
 	sessionUser := c.GetSession("user_id")
 	if sessionUser == nil {
 		c.Redirect("/login", 302)
@@ -722,27 +730,26 @@ func (c *HollandTestController) ExportResultExcel() {
 	if invIDStr != "" {
 		id, err := strconv.Atoi(invIDStr)
 		if err != nil || id <= 0 {
-			c.Redirect("/profile/holland", 302)
+			logs.Warn("Holland export: invalid invId %q", invIDStr)
+			writeErr(400, "Parameter invId tidak valid")
 			return
 		}
 		inv.Id = id
 		if err := o.Read(&inv); err != nil {
-			c.Redirect("/profile/holland", 302)
-			return
-		}
-		if inv.UserId == nil || *inv.UserId != userID {
-			c.Redirect("/profile/holland", 302)
+			logs.Warn("Holland export: invitation %d not found: %v", id, err)
+			writeErr(404, "Invitation tidak ditemukan")
 			return
 		}
 	} else {
 		sessionInv := c.GetSession("current_invitation_id")
 		if sessionInv == nil {
-			c.Redirect("/profile/holland", 302)
+			writeErr(400, "Tidak ada invitation aktif. Buka hasil Holland dari halaman profil lalu klik Download Excel.")
 			return
 		}
 		inv.Id = sessionInv.(int)
 		if err := o.Read(&inv); err != nil {
-			c.Redirect("/profile/holland", 302)
+			logs.Warn("Holland export: session invitation %d not found: %v", inv.Id, err)
+			writeErr(404, "Invitation tidak ditemukan")
 			return
 		}
 	}
@@ -750,33 +757,54 @@ func (c *HollandTestController) ExportResultExcel() {
 	var user models.User
 	user.Id = userID
 	if err := o.Read(&user); err != nil {
-		c.Redirect("/profile/holland", 302)
+		logs.Warn("Holland export: user %d not found: %v", userID, err)
+		writeErr(404, "User tidak ditemukan")
 		return
 	}
 
 	var res models.HollandResult
 	err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
 	if err != nil || res.Id == 0 {
-		c.Redirect("/profile/holland", 302)
+		logs.Warn("Holland export: result for inv %d not found: %v", inv.Id, err)
+		writeErr(404, "Hasil Holland untuk sesi ini belum tersedia. Selesaikan tes terlebih dahulu.")
+		return
+	}
+
+	// Kepemilikan: terima jika invitation.user_id cocok ATAU result.user cocok
+	// (invitation lama yang dibuat admin via email kadang user_id-nya kosong).
+	owned := inv.UserId != nil && *inv.UserId == userID
+	if !owned && res.User != nil && res.User.Id == userID {
+		owned = true
+	}
+	if !owned && inv.UserId == nil && strings.TrimSpace(inv.Email) != "" && strings.EqualFold(strings.TrimSpace(inv.Email), strings.TrimSpace(user.Email)) {
+		owned = true
+	}
+	if !owned {
+		logs.Warn("Holland export: user %d not owner of invitation %d (inv.UserId=%v, res.User=%v)", userID, inv.Id, inv.UserId, res.User)
+		writeErr(403, "Anda tidak memiliki akses ke hasil ini")
 		return
 	}
 
 	qsPage1, err := c.hollandQuestionsRange(1, 35)
 	if err != nil {
-		c.Redirect("/profile/holland", 302)
+		logs.Error("Holland export: load questions 1-35: %v", err)
+		writeErr(500, "Gagal memuat daftar aktivitas (1-35)")
 		return
 	}
 	qsPage2, err := c.hollandQuestionsRange(36, 60)
 	if err != nil {
-		c.Redirect("/profile/holland", 302)
+		logs.Error("Holland export: load questions 36-60: %v", err)
+		writeErr(500, "Gagal memuat daftar aktivitas (36-60)")
 		return
 	}
 
 	answersMap, err := c.hollandAnswersMap(inv.Id)
 	if err != nil {
-		c.Redirect("/profile/holland", 302)
+		logs.Error("Holland export: load answers for inv %d: %v", inv.Id, err)
+		writeErr(500, "Gagal memuat jawaban Holland")
 		return
 	}
+	logs.Info("Holland export: inv=%d user=%d questions=%d/%d answers=%d code=%s", inv.Id, userID, len(qsPage1), len(qsPage2), len(answersMap), res.Code)
 
 	completePage1 := true
 	for _, q := range qsPage1 {
@@ -1038,7 +1066,8 @@ func (c *HollandTestController) ExportResultExcel() {
 	// Write xlsx
 	buf, err := f.WriteToBuffer()
 	if err != nil {
-		c.Redirect("/profile/holland", 302)
+		logs.Error("Holland export: write buffer: %v", err)
+		writeErr(500, "Gagal membuat file Excel")
 		return
 	}
 

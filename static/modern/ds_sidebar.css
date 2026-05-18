@@ -1,0 +1,306 @@
+/*
+ * ds_sidebar.css — sidebar identik dengan /dashboard untuk dipakai
+ * di halaman lain (settings, profile, profile_*, notifications, dll).
+ *
+ * Strategi:
+ *   - HTML <aside> Sneat tetap dipakai (id="layout-menu" .layout-menu) supaya
+ *     layout-container Sneat tetap mem-posisikannya di kiri.
+ *   - Ditambahkan class `ds-sidebar` pada <aside> dan inner-nya diganti dengan
+ *     markup dashboard (brand + .ds-nav + .ds-footer).
+ *   - File ini meng-override semua style Sneat yang berkonflik.
+ */
+
+:root {
+  --dssb-bg: #ffffff;
+  --dssb-border: #e6eaf2;
+  --dssb-text: #1f2937;
+  --dssb-muted: #6b7280;
+  --dssb-primary: #4f46e5;
+  --dssb-primary-soft: #eef2ff;
+  --dssb-violet: #8b5cf6;
+  --dssb-hover: #f7f8fc;
+}
+
+/* ====== Override aside Sneat agar identik dengan .ds-sidebar dashboard ====== */
+/* Override CSS variable Sneat yang dipakai .bg-menu-theme — kalau pun class ini
+   masih ada, BG aside akan tetap putih. */
+html aside#layout-menu.ds-sidebar,
+aside#layout-menu.ds-sidebar,
+aside.layout-menu.ds-sidebar,
+aside.ds-sidebar {
+  --bs-menu-bg: #ffffff;
+  --bs-menu-color: #1f2937;
+  --bs-menu-border-color: #e6eaf2;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  border-right: 1px solid var(--dssb-border) !important;
+  box-shadow: none !important;
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+  padding: 18px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  overflow-y: auto;
+}
+
+/* Beberapa tema Sneat memasang ::before/::after gradient di atas menu — matikan */
+aside.ds-sidebar::before,
+aside.ds-sidebar::after { display: none !important; content: none !important; }
+
+/* Pastikan layout-page tetap mengambil sisa ruang */
+.layout-wrapper > .layout-container { background: #f4f6fb; }
+
+/* ====== Brand ====== */
+.ds-sidebar .ds-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 14px;
+  border-bottom: 1px solid var(--dssb-border);
+  margin: 0;
+}
+.ds-sidebar .ds-brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #fff;
+  flex-shrink: 0;
+}
+.ds-sidebar .ds-brand-text { line-height: 1.1; }
+.ds-sidebar .ds-brand-text .name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dssb-text);
+}
+.ds-sidebar .ds-brand-text .sub {
+  font-size: 11px;
+  color: var(--dssb-muted);
+}
+
+/* ====== Nav ====== */
+.ds-sidebar .ds-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+.ds-sidebar .ds-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--dssb-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color .15s ease, color .15s ease;
+}
+.ds-sidebar .ds-nav a:hover {
+  background: var(--dssb-hover);
+  color: var(--dssb-text);
+}
+.ds-sidebar .ds-nav a.active {
+  background: var(--dssb-primary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+}
+.ds-sidebar .ds-nav a.active .ds-icon { color: #fff; }
+
+/* ====== Submenu (Pengaturan dropdown) ====== */
+.ds-sidebar .ds-nav details.ds-submenu { width: 100%; }
+.ds-sidebar .ds-nav details.ds-submenu > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: var(--dssb-text-muted);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background-color .15s ease, color .15s ease;
+}
+.ds-sidebar .ds-nav details.ds-submenu > summary::-webkit-details-marker { display: none; }
+.ds-sidebar .ds-nav details.ds-submenu > summary::marker { content: ''; }
+.ds-sidebar .ds-nav details.ds-submenu > summary:hover {
+  background: var(--dssb-hover);
+  color: var(--dssb-text);
+}
+.ds-sidebar .ds-nav details.ds-submenu .ds-caret {
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+  transition: transform .2s ease;
+}
+.ds-sidebar .ds-nav details.ds-submenu[open] > summary {
+  background: var(--dssb-hover);
+  color: var(--dssb-text);
+}
+.ds-sidebar .ds-nav details.ds-submenu[open] .ds-caret { transform: rotate(180deg); }
+.ds-sidebar .ds-nav details.ds-submenu .ds-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 4px 36px;
+}
+.ds-sidebar .ds-nav details.ds-submenu .ds-subnav a {
+  padding: 8px 12px;
+  font-size: 13.5px;
+  border-radius: 10px;
+  color: var(--dssb-text-muted);
+}
+.ds-sidebar .ds-nav details.ds-submenu .ds-subnav a:hover {
+  background: var(--dssb-hover);
+  color: var(--dssb-text);
+}
+.ds-sidebar .ds-nav details.ds-submenu .ds-subnav a.active {
+  background: var(--dssb-primary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+}
+
+/* ====== Mobile: hamburger + drawer ====== */
+.ds-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.10);
+  align-items: center;
+  justify-content: center;
+  z-index: 1051;
+  cursor: pointer;
+  padding: 0;
+}
+.ds-mobile-toggle svg { width: 22px; height: 22px; }
+.ds-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1049;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+body.ds-sidebar-open .ds-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (max-width: 991.98px) {
+  /* Munculkan tombol hamburger */
+  .ds-mobile-toggle { display: inline-flex; }
+
+  /* Padding atas pada konten supaya tidak ketutup tombol */
+  .layout-page,
+  .ds-main { padding-top: 56px !important; }
+
+  /* Topbar dashboard: izinkan wrap supaya bell+avatar bisa pindah baris kalau judul panjang */
+  .ds-topbar { flex-wrap: wrap; }
+  .ds-topbar .ds-title h1 { font-size: 18px; }
+  .ds-topbar .ds-title { flex: 1 1 100%; }
+
+  /* Override kuat: paksa sidebar jadi drawer sliding (kalahkan rule
+     dashboard_integrated.css yang membuatnya flex-row di <=980px). */
+  html aside#layout-menu.ds-sidebar,
+  aside#layout-menu.ds-sidebar,
+  aside.layout-menu.ds-sidebar,
+  aside.ds-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    transform: translateX(-105%);
+    transition: transform .25s ease;
+    z-index: 1050;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18) !important;
+    overflow-y: auto;
+  }
+  body.ds-sidebar-open aside.ds-sidebar,
+  body.ds-sidebar-open aside#layout-menu.ds-sidebar {
+    transform: translateX(0) !important;
+  }
+
+  /* Pastikan main content full width di mobile */
+  .ds-shell { grid-template-columns: 1fr !important; }
+  .layout-container .layout-page { margin-left: 0 !important; }
+
+  /* Side cards balik ke kolom (override flex-row dari dashboard_integrated.css). */
+  .ds-sidebar .ds-side-card { flex: 0 0 auto !important; margin-top: 0 !important; }
+}
+
+@media (max-width: 540px) {
+  /* Padding lebih ramping di layar sangat sempit */
+  .ds-mobile-toggle { top: 10px; left: 10px; }
+}
+
+.ds-sidebar .ds-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ds-sidebar [data-lucide],
+.ds-sidebar svg.lucide {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+
+/* ====== Side cards (Kelas / Jurusan) ====== */
+.ds-sidebar .ds-side-card {
+  margin-top: auto;
+  background: #f7f8fc;
+  border: 1px solid var(--dssb-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+.ds-sidebar .ds-side-card + .ds-side-card { margin-top: 8px; }
+.ds-sidebar .ds-side-card .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--dssb-muted);
+  letter-spacing: .04em;
+  font-weight: 600;
+}
+.ds-sidebar .ds-side-card .value {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 2px;
+  color: var(--dssb-text);
+  word-break: break-word;
+}
+/* Kalau ada beberapa side-card berurutan, hanya yang pertama yang dorong ke bawah */
+.ds-sidebar .ds-side-card ~ .ds-side-card { margin-top: 8px; }
+
+/* ====== Footer ====== */
+.ds-sidebar .ds-footer {
+  font-size: 11px;
+  color: var(--dssb-muted);
+  padding: 14px 4px 0;
+  border-top: 1px solid var(--dssb-border);
+  margin-top: auto;
+  line-height: 1.4;
+}

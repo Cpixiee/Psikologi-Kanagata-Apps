@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -31,11 +31,11 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Tujuan Pemeriksaan</label>
-                  <input type="text" class="form-control" value="{{.Batch.PurposeCategory}} — {{.Batch.PurposeDetail}}" readonly />
+                  <input type="text" class="form-control" value="{{.Batch.PurposeCategory}} â€” {{.Batch.PurposeDetail}}" readonly />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Usia</label>
-                  <input type="text" class="form-control" id="usiaDisplay" value="—" readonly />
+                  <input type="text" class="form-control" id="usiaDisplay" value="â€”" readonly />
                   <small class="text-muted">Dihitung otomatis berdasarkan tanggal lahir</small>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Mulai Test IST</button>
@@ -50,13 +50,13 @@
         const inp = document.getElementById('tanggal_lahir');
         const out = document.getElementById('usiaDisplay');
         function calc() {
-          if (!inp || !inp.value) { out.value = '—'; return; }
+          if (!inp || !inp.value) { out.value = 'â€”'; return; }
           const d = new Date(inp.value);
           const today = new Date();
           let age = today.getFullYear() - d.getFullYear();
           const m = today.getMonth() - d.getMonth();
           if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
-          out.value = age >= 0 ? age + ' tahun' : '—';
+          out.value = age >= 0 ? age + ' tahun' : 'â€”';
         }
         if (inp) inp.addEventListener('change', calc);
         calc();

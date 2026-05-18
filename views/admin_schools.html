@@ -1,0 +1,255 @@
+﻿<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akun Sekolah - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  </head>
+  <body>
+    <div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
+          </div>
+        </div>
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" open hidden>
+            <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+              <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              <a href="/admin/schools" class="strict-admin-only active"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+            </div>
+          </details>
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+
+      <main class="ds-main">
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Akun Sekolah</h1>
+            <p>Kelola akun sekolah beserta daftar guru yang terdaftar di tiap sekolah.</p>
+          </div>
+          <div class="ds-search">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" id="schoolSearch" placeholder="Cari nama / email&hellip;" />
+          </div>
+          <a href="/notifications" class="ds-bell"><i data-lucide="bell"></i><span class="badge">0</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta"><div class="name" id="topUserName">Admin</div><div class="role" id="topUserRole">Admin</div></div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+        <div class="container-xxl flex-grow-1 container-p-y" style="padding: 0;">
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+              <h4 class="fw-bold mb-1">Daftar Akun Sekolah</h4>
+              <p class="mb-0 text-muted">Tiap akun mewakili satu sekolah dan dapat memiliki banyak guru.</p>
+            </div>
+            <a href="/admin/schools/add" class="btn btn-primary btn-sm">
+              <i class="bx bx-plus me-1"></i> Tambah Akun Sekolah
+            </a>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table table-striped mb-0 align-middle">
+                <thead>
+                  <tr>
+                    <th>Nama Akun</th>
+                    <th>Email Login</th>
+                    <th>Sekolah (Filter Siswa)</th>
+                    <th class="text-center">Jumlah Guru</th>
+                    <th class="text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="schoolTableBody">
+                  <tr><td colspan="5" class="text-center text-muted py-4">Memuat data&hellip;</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/admin_menu.js"></script>
+    <script>
+      let allSchools = [];
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
+          return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+        });
+      }
+
+      function renderSchools(list) {
+        const tbody = document.getElementById('schoolTableBody');
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Belum ada akun sekolah.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(function (s) {
+          return '<tr>' +
+            '<td><strong>' + escapeHtml(s.nama_lengkap) + '</strong></td>' +
+            '<td>' + escapeHtml(s.email) + '</td>' +
+            '<td><span class="badge bg-label-primary">' + escapeHtml(s.sekolah || '-') + '</span></td>' +
+            '<td class="text-center">' + (s.teacher_count || 0) + '</td>' +
+            '<td class="text-center">' +
+              '<button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSchool(' + s.id + ', \'' + (s.nama_lengkap || '').replace(/'/g, "\\'") + '\')">' +
+                '<i class="bx bx-trash"></i> Hapus' +
+              '</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      async function loadSchools() {
+        try {
+          const res = await fetch('/api/admin/schools');
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || 'Gagal memuat');
+          allSchools = (data.data && data.data.schools) || [];
+          renderSchools(allSchools);
+        } catch (err) {
+          document.getElementById('schoolTableBody').innerHTML =
+            '<tr><td colspan="5" class="text-center text-danger py-4">Gagal memuat: ' + escapeHtml(err.message) + '</td></tr>';
+        }
+      }
+
+      async function deleteSchool(id, nama) {
+        const ok = await Swal.fire({
+          icon: 'warning',
+          title: 'Hapus akun sekolah?',
+          text: 'Akun "' + nama + '" beserta seluruh data guru akan dihapus.',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          confirmButtonText: 'Hapus',
+          cancelButtonText: 'Batal'
+        });
+        if (!ok.isConfirmed) return;
+        try {
+          const res = await fetch('/api/admin/schools/' + id, { method: 'DELETE' });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || 'Gagal menghapus');
+          Swal.fire({ icon: 'success', title: 'Berhasil', timer: 1200, showConfirmButton: false });
+          loadSchools();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+        }
+      }
+
+      (function () {
+        function setupUserpill() {
+          var btn = document.getElementById('ds-userpill-btn');
+          var menu = document.getElementById('ds-userpill-menu');
+          if (!btn || !menu) return;
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = !menu.hasAttribute('hidden');
+            if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', String(!open));
+          });
+          document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+              menu.setAttribute('hidden', '');
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+        async function loadUserProfile() {
+          try {
+            var res = await fetch('/api/profile');
+            if (!res.ok) { if (res.status === 401) window.location.href = '/login'; return; }
+            var data = await res.json();
+            if (!data.success || !data.data) return;
+            var u = data.data;
+            var name = u.nama_lengkap || 'Admin';
+            document.getElementById('topUserName').textContent = name;
+            document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            var av = document.getElementById('topUserAvatar');
+            if (av) av.src = u.foto_profil ? '/static/uploads/profiles/' + u.foto_profil : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+          } catch (e) { console.error(e); }
+        }
+        async function handleLogout(e) {
+          if (e) e.preventDefault();
+          try { var r = await (await fetch('/api/auth/logout', { method: 'POST' })).json(); if (r.success) window.location.href = '/login'; }
+          catch (_) { window.location.href = '/login'; }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+          setupUserpill();
+          loadUserProfile();
+          var lo = document.getElementById('ds-logout-btn');
+          var lo2 = document.getElementById('ds-logout-btn-2');
+          if (lo) lo.addEventListener('click', handleLogout);
+          if (lo2) lo2.addEventListener('click', handleLogout);
+
+          loadSchools();
+
+          var search = document.getElementById('schoolSearch');
+          if (search) {
+            search.addEventListener('input', function () {
+              var q = search.value.trim().toLowerCase();
+              if (!q) { renderSchools(allSchools); return; }
+              renderSchools(allSchools.filter(function (s) {
+                return (s.nama_lengkap || '').toLowerCase().includes(q) ||
+                       (s.email || '').toLowerCase().includes(q) ||
+                       (s.sekolah || '').toLowerCase().includes(q);
+              }));
+            });
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

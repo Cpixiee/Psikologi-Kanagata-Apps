@@ -11,17 +11,49 @@ import (
 )
 
 func init() {
-	// Simple role-based access filter (example: only admin can access /admin/*)
+	// Admin/Sekolah access filter:
+	//   - role 'admin'  : full access ke semua route /admin/*
+	//   - role 'sekolah': read-only ke /admin/*; method tulis (POST/PUT/DELETE)
+	//                     dan route create batch/invitation diblokir.
 	beego.InsertFilter("/admin/*", beego.BeforeRouter, func(ctx *context.Context) {
 		roleVal := ctx.Input.Session("user_role")
 		roleStr, _ := roleVal.(string)
-		if roleStr != "admin" {
-			ctx.Output.SetStatus(403)
-			ctx.Output.JSON(map[string]interface{}{
-				"success": false,
-				"message": "Akses ditolak, hanya admin yang boleh mengakses",
-			}, false, false)
+		if roleStr == "admin" {
+			return
 		}
+		if roleStr == "sekolah" {
+			method := strings.ToUpper(ctx.Request.Method)
+			path := ctx.Request.URL.Path
+			// Sekolah TIDAK boleh:
+			//   - membuat/ubah/hapus batch
+			//   - membuat/ubah/hapus undangan (termasuk send-code & bulk)
+			//   - mengelola data sekolah/guru (CRUD)
+			writeBlocked := method != "GET" && method != "HEAD"
+			adminOnlyPath := strings.HasPrefix(path, "/admin/schools") ||
+				strings.HasPrefix(path, "/api/admin/schools")
+			if adminOnlyPath {
+				ctx.Output.SetStatus(403)
+				ctx.Output.JSON(map[string]interface{}{
+					"success": false,
+					"message": "Akses ditolak, hanya admin yang boleh mengakses",
+				}, false, false)
+				return
+			}
+			if writeBlocked {
+				ctx.Output.SetStatus(403)
+				ctx.Output.JSON(map[string]interface{}{
+					"success": false,
+					"message": "Akun sekolah tidak diizinkan mengubah data (read-only).",
+				}, false, false)
+				return
+			}
+			return
+		}
+		ctx.Output.SetStatus(403)
+		ctx.Output.JSON(map[string]interface{}{
+			"success": false,
+			"message": "Akses ditolak, hanya admin yang boleh mengakses",
+		}, false, false)
 	})
 
 	// Auth filter: protect private pages & APIs (e.g. /dashboard) so user must login first
@@ -96,6 +128,8 @@ func init() {
 	beego.Router("/terms", &controllers.PageController{}, "get:TermsPage")
 	beego.Router("/dashboard", &controllers.PageController{}, "get:DashboardPage")
 	beego.Router("/profile", &controllers.PageController{}, "get:ProfilePage")
+	beego.Router("/profile/edit", &controllers.PageController{}, "get:ProfileEditPage")
+	beego.Router("/hasil-tes", &controllers.PageController{}, "get:HasilTesPage")
 	beego.Router("/profile/ist", &controllers.PageController{}, "get:ProfileISTPage")
 	beego.Router("/profile/holland", &controllers.PageController{}, "get:ProfileHollandPage")
 	beego.Router("/profile/learning-style", &controllers.PageController{}, "get:ProfileLearningStylePage")
@@ -107,10 +141,14 @@ func init() {
 	beego.Router("/profile/rmib/start", &controllers.PageController{}, "get:ProfileRMIBStartPage")
 	beego.Router("/profile/papi", &controllers.PageController{}, "get:ProfilePAPIPage")
 	beego.Router("/settings", &controllers.PageController{}, "get:SettingsPage")
+	beego.Router("/settings/notifications", &controllers.PageController{}, "get:NotificationSettingsPage")
 	// Admin psychotest dashboard (only for admin via filter)
 	beego.Router("/admin/psychotest", &controllers.PageController{}, "get:PsychotestAdminPage")
 	beego.Router("/admin/psychotest/batches", &controllers.PageController{}, "get:PsychotestAdminBatchesPage")
 	beego.Router("/admin/psychotest/batches/add", &controllers.PageController{}, "get:PsychotestAdminAddBatchPage")
+	// Admin: kelola akun sekolah
+	beego.Router("/admin/schools", &controllers.PageController{}, "get:AdminSchoolsPage")
+	beego.Router("/admin/schools/add", &controllers.PageController{}, "get:AdminSchoolsAddPage")
 
 	// Psychotest client routes (peserta)
 	beego.Router("/test", &controllers.PsychotestClientController{}, "get:TokenPage")
@@ -229,6 +267,9 @@ func init() {
 	beego.Router("/api/admin/test-invitations/bulk", &controllers.PsychotestAdminController{}, "post:BulkInvitations")
 	// Admin user search (suggestion email)
 	beego.Router("/api/admin/users/search", &controllers.AdminUserController{}, "get:Search")
+	// Admin: CRUD akun sekolah & daftar guru
+	beego.Router("/api/admin/schools", &controllers.AdminSchoolController{}, "get:List;post:Create")
+	beego.Router("/api/admin/schools/:id", &controllers.AdminSchoolController{}, "get:Detail;delete:Delete")
 	
 	// Notification routes
 	beego.Router("/api/notifications", &controllers.NotificationController{}, "get:GetNotifications")

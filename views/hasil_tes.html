@@ -1,0 +1,544 @@
+﻿<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hasil Tes - Psychee Wellness</title>
+
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+
+    <style>
+      body, html { font-family: 'Inter', 'Poppins', sans-serif; }
+      body { background: #f5f7ff !important; }
+      .layout-wrapper > .layout-container, .layout-page { background: #f5f7ff !important; }
+      .ht-page { padding: 20px 24px 28px; }
+
+      .gradient-text {
+        background: linear-gradient(to right, #7c5cff, #5b8cff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .soft-shadow { box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
+      .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 36px rgba(120, 119, 198, 0.18);
+      }
+
+      /* Hero gradient sesuai referensi */
+      .ht-hero {
+        background: linear-gradient(135deg, #f3efff 0%, #ffffff 55%, #eef2ff 100%);
+        border: 1px solid #eceaff;
+      }
+
+      /* Pola titik dekoratif di sisi kanan hero */
+      .ht-hero-decor {
+        position: relative;
+        background:
+          radial-gradient(circle at 18% 28%, rgba(124, 92, 255, 0.18) 0, transparent 26%),
+          radial-gradient(circle at 78% 72%, rgba(91, 140, 255, 0.16) 0, transparent 30%);
+        border-radius: 28px;
+        min-height: 220px;
+        overflow: hidden;
+      }
+
+      /* Image area kartu (decorative SVG, no JPEG) */
+      .ht-img-area {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        border-radius: 18px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ht-img-area .ht-decor {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .ht-img-area .ht-icon-main {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        border-radius: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.10);
+      }
+      .ht-img-area .ht-icon-main svg { width: 44px; height: 44px; }
+
+      /* Tinggi deskripsi konsisten supaya tombol sejajar antar kartu */
+      .ht-desc { min-height: 42px; }
+      .ht-card-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 46px;
+        line-height: 1;
+        padding: 0;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: 0.01em;
+        color: #ffffff !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Trust strip */
+      .ht-trust {
+        background: #ffffff;
+        border-radius: 24px;
+      }
+
+      /* Locked state untuk tombol Lihat Hasil */
+      .ht-card-btn.locked {
+        background: #e5e7eb !important;
+        color: #6b7280 !important;
+        text-shadow: none !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+        gap: 8px;
+      }
+      .ht-card-btn.locked:hover { background: #e5e7eb !important; }
+      .ht-locked-note {
+        display: none;
+        margin: 8px 2px 0;
+        font-size: 11.5px;
+        color: #b45309;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        padding: 8px 10px;
+        line-height: 1.35;
+      }
+      .ht-locked-note.show { display: flex; gap: 6px; align-items: flex-start; }
+      .ht-locked-note .ic { flex-shrink: 0; color: #d97706; margin-top: 1px; }
+    </style>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- SIDEBAR identik dashboard -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+          <div class="ds-brand">
+            <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+            <div class="ds-brand-text">
+              <div class="name">PsychoWellness</div>
+              <div class="sub">AI Analytics System</div>
+            </div>
+          </div>
+          <nav class="ds-nav">
+            <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+            <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+            <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+            <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+            <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+            <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+          </nav>
+          <div class="ds-side-card">
+            <div class="label">Kelas</div>
+            <div class="value" id="sbKelasValue">-</div>
+          </div>
+          <div class="ds-side-card">
+            <div class="label">Jurusan</div>
+            <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+          </div>
+          <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+        </aside>
+
+        <div class="layout-page">
+          <div class="ht-page">
+            <div class="max-w-7xl mx-auto">
+              <!-- HERO -->
+              <section class="ht-hero rounded-[32px] overflow-hidden soft-shadow mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] items-stretch">
+                  <div class="p-8 lg:p-10 flex flex-col justify-center">
+                    <div class="inline-flex w-max items-center gap-2 bg-purple-200/60 text-purple-700 px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider mb-5">
+                      <i data-lucide="bar-chart-3" style="width:14px;height:14px;"></i> RIWAYAT HASIL TES
+                    </div>
+                    <h1 class="text-3xl lg:text-[38px] xl:text-[42px] font-extrabold leading-[1.18] text-slate-800 mb-4">
+                      <span class="gradient-text">Hasil Tes</span> Psikologi <br />
+                      yang Sudah Kamu Kerjakan
+                    </h1>
+                    <p class="text-slate-500 text-sm lg:text-[14.5px] leading-relaxed max-w-xl">
+                      Pilih salah satu alat tes di bawah untuk melihat detail hasil yang sudah
+                      kamu kerjakan â€” lengkap dengan analisis skor, rekomendasi, dan
+                      interpretasi profesional.
+                    </p>
+                  </div>
+
+                  <!-- Stat panel pengganti banner buram -->
+                  <div class="p-6 lg:p-8 hidden lg:flex items-center">
+                    <div class="ht-hero-decor w-full p-6 grid grid-cols-2 gap-3">
+                      <div class="bg-white/70 backdrop-blur rounded-2xl p-4 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+                          <i data-lucide="layout-grid" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                          <div class="text-2xl font-extrabold text-slate-800 leading-none">6</div>
+                          <div class="text-[11px] text-slate-500 mt-1">Alat Tes</div>
+                        </div>
+                      </div>
+                      <div class="bg-white/70 backdrop-blur rounded-2xl p-4 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                          <i data-lucide="briefcase" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-slate-800 leading-tight">Karir</div>
+                          <div class="text-[11px] text-slate-500 mt-1">Minat &amp; bakat</div>
+                        </div>
+                      </div>
+                      <div class="bg-white/70 backdrop-blur rounded-2xl p-4 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                          <i data-lucide="brain" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-slate-800 leading-tight">Kognitif</div>
+                          <div class="text-[11px] text-slate-500 mt-1">IQ &amp; konsentrasi</div>
+                        </div>
+                      </div>
+                      <div class="bg-white/70 backdrop-blur rounded-2xl p-4 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center">
+                          <i data-lucide="user" style="width:18px;height:18px;"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-slate-800 leading-tight">Kepribadian</div>
+                          <div class="text-[11px] text-slate-500 mt-1">Gaya &amp; kerja</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- TEST GRID -->
+              <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <!-- IST -->
+                <article class="bg-white rounded-[24px] p-4 soft-shadow card-hover flex flex-col">
+                  <div class="ht-img-area mb-4" style="background: linear-gradient(135deg,#ede9fe 0%,#f5f3ff 50%,#ddd6fe 100%);">
+                    <svg class="ht-decor" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <circle cx="22" cy="24" r="10" fill="#a78bfa" opacity=".35" />
+                      <circle cx="178" cy="30" r="6" fill="#7c3aed" opacity=".30" />
+                      <circle cx="170" cy="125" r="14" fill="#8b5cf6" opacity=".22" />
+                      <circle cx="34" cy="118" r="5" fill="#7c3aed" opacity=".30" />
+                      <path d="M0 110 Q60 90 120 105 T200 95" stroke="#c4b5fd" stroke-width="1.5" fill="none" opacity=".5"/>
+                    </svg>
+                    <div class="ht-icon-main" style="background:#fff;color:#7c3aed;"><i data-lucide="brain"></i></div>
+                  </div>
+                  <div class="flex items-start justify-between gap-3 mb-2 px-1">
+                    <div class="min-w-0">
+                      <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">IST (IQ)</h2>
+                      <p class="text-slate-500 text-sm mt-1 ht-desc">Tes inteligensi untuk mengukur kemampuan kognitif umum dan potensi akademik.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-base shrink-0">ðŸ§ </div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
+                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 60â€“90 Menit</span>
+                    <span>â€¢</span>
+                    <span class="inline-flex items-center gap-1"><i data-lucide="bar-chart-3" style="width:12px;height:12px;"></i> Kognitif</span>
+                  </div>
+                  <a href="/profile/ist" data-test="ist" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
+                  <div class="ht-locked-note" data-note="ist"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes IST terlebih dahulu sebelum dapat melihat hasil.</span></div>
+                </article>
+
+                <!-- Holland -->
+                <article class="bg-white rounded-[24px] p-4 soft-shadow card-hover flex flex-col">
+                  <div class="ht-img-area mb-4" style="background: linear-gradient(135deg,#dbeafe 0%,#eff6ff 50%,#bfdbfe 100%);">
+                    <svg class="ht-decor" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <circle cx="24" cy="30" r="9" fill="#60a5fa" opacity=".30" />
+                      <circle cx="180" cy="118" r="12" fill="#3b82f6" opacity=".25" />
+                      <circle cx="160" cy="28" r="5" fill="#2563eb" opacity=".30" />
+                      <circle cx="36" cy="120" r="6" fill="#60a5fa" opacity=".30" />
+                      <path d="M0 100 Q60 80 120 95 T200 88" stroke="#93c5fd" stroke-width="1.5" fill="none" opacity=".55"/>
+                    </svg>
+                    <div class="ht-icon-main" style="background:#fff;color:#2563eb;"><i data-lucide="compass"></i></div>
+                  </div>
+                  <div class="flex items-start justify-between gap-3 mb-2 px-1">
+                    <div class="min-w-0">
+                      <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">Holland (RIASEC)</h2>
+                      <p class="text-slate-500 text-sm mt-1 ht-desc">Tes minat karir berdasarkan teori RIASEC untuk menemukan kecocokan bidang pekerjaan.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-base shrink-0">ðŸŽ¯</div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
+                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 30â€“45 Menit</span>
+                    <span>â€¢</span>
+                    <span class="inline-flex items-center gap-1"><i data-lucide="briefcase" style="width:12px;height:12px;"></i> Karir</span>
+                  </div>
+                  <a href="/profile/holland" data-test="holland" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
+                  <div class="ht-locked-note" data-note="holland"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes Holland terlebih dahulu sebelum dapat melihat hasil.</span></div>
+                </article>
+
+                <!-- VAK -->
+                <article class="bg-white rounded-[24px] p-4 soft-shadow card-hover flex flex-col">
+                  <div class="ht-img-area mb-4" style="background: linear-gradient(135deg,#dcfce7 0%,#f0fdf4 50%,#bbf7d0 100%);">
+                    <svg class="ht-decor" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <circle cx="22" cy="28" r="9" fill="#34d399" opacity=".32" />
+                      <circle cx="178" cy="122" r="13" fill="#10b981" opacity=".24" />
+                      <circle cx="170" cy="32" r="5" fill="#059669" opacity=".30" />
+                      <circle cx="34" cy="118" r="6" fill="#34d399" opacity=".30" />
+                      <path d="M0 105 Q60 85 120 100 T200 90" stroke="#86efac" stroke-width="1.5" fill="none" opacity=".55"/>
+                    </svg>
+                    <div class="ht-icon-main" style="background:#fff;color:#059669;"><i data-lucide="book-open"></i></div>
+                  </div>
+                  <div class="flex items-start justify-between gap-3 mb-2 px-1">
+                    <div class="min-w-0">
+                      <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">Gaya Belajar (VAK)</h2>
+                      <p class="text-slate-500 text-sm mt-1 ht-desc">Mengidentifikasi gaya belajar visual, auditorial, atau kinestetik yang paling cocok untukmu.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-base shrink-0">ðŸ“š</div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
+                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 15â€“20 Menit</span>
+                    <span>â€¢</span>
+                    <span class="inline-flex items-center gap-1"><i data-lucide="book-open" style="width:12px;height:12px;"></i> Akademik</span>
+                  </div>
+                  <a href="/profile/learning-style" data-test="vak" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
+                  <div class="ht-locked-note" data-note="vak"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes Gaya Belajar (VAK) terlebih dahulu sebelum dapat melihat hasil.</span></div>
+                </article>
+
+                <!-- Kraepelin -->
+                <article class="bg-white rounded-[24px] p-4 soft-shadow card-hover flex flex-col">
+                  <div class="ht-img-area mb-4" style="background: linear-gradient(135deg,#ffedd5 0%,#fff7ed 50%,#fed7aa 100%);">
+                    <svg class="ht-decor" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <circle cx="24" cy="30" r="9" fill="#fb923c" opacity=".34" />
+                      <circle cx="180" cy="118" r="13" fill="#f97316" opacity=".26" />
+                      <circle cx="168" cy="30" r="5" fill="#ea580c" opacity=".30" />
+                      <circle cx="34" cy="120" r="6" fill="#fb923c" opacity=".32" />
+                      <path d="M0 100 Q60 80 120 95 T200 88" stroke="#fdba74" stroke-width="1.5" fill="none" opacity=".55"/>
+                    </svg>
+                    <div class="ht-icon-main" style="background:#fff;color:#ea580c;"><i data-lucide="timer"></i></div>
+                  </div>
+                  <div class="flex items-start justify-between gap-3 mb-2 px-1">
+                    <div class="min-w-0">
+                      <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">Kraepelin</h2>
+                      <p class="text-slate-500 text-sm mt-1 ht-desc">Tes kecepatan kerja, ketelitian, dan konsentrasi melalui metode perhitungan angka.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-base shrink-0">â±</div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
+                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 30 Menit</span>
+                    <span>â€¢</span>
+                    <span class="inline-flex items-center gap-1"><i data-lucide="zap" style="width:12px;height:12px;"></i> Konsentrasi</span>
+                  </div>
+                  <a href="/profile/kraepelin" data-test="kraepelin" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
+                  <div class="ht-locked-note" data-note="kraepelin"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes Kraepelin terlebih dahulu sebelum dapat melihat hasil.</span></div>
+                </article>
+
+                <!-- RMIB -->
+                <article class="bg-white rounded-[24px] p-4 soft-shadow card-hover flex flex-col">
+                  <div class="ht-img-area mb-4" style="background: linear-gradient(135deg,#fce7f3 0%,#fdf2f8 50%,#fbcfe8 100%);">
+                    <svg class="ht-decor" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <circle cx="22" cy="30" r="9" fill="#f472b6" opacity=".32" />
+                      <circle cx="178" cy="120" r="13" fill="#ec4899" opacity=".24" />
+                      <circle cx="168" cy="30" r="5" fill="#db2777" opacity=".30" />
+                      <circle cx="32" cy="118" r="6" fill="#f472b6" opacity=".30" />
+                      <path d="M0 105 Q60 85 120 100 T200 92" stroke="#f9a8d4" stroke-width="1.5" fill="none" opacity=".55"/>
+                    </svg>
+                    <div class="ht-icon-main" style="background:#fff;color:#db2777;"><i data-lucide="users"></i></div>
+                  </div>
+                  <div class="flex items-start justify-between gap-3 mb-2 px-1">
+                    <div class="min-w-0">
+                      <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">RMIB</h2>
+                      <p class="text-slate-500 text-sm mt-1 ht-desc">Tes minat bakat yang disesuaikan otomatis berdasarkan jenis kelamin.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center text-base shrink-0">ðŸ‘¥</div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
+                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 25â€“35 Menit</span>
+                    <span>â€¢</span>
+                    <span class="inline-flex items-center gap-1"><i data-lucide="target" style="width:12px;height:12px;"></i> Minat &amp; Bakat</span>
+                  </div>
+                  <a href="/profile/rmib" data-test="rmib" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-pink-500 text-white font-semibold text-sm hover:bg-pink-600 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
+                  <div class="ht-locked-note" data-note="rmib"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes RMIB terlebih dahulu sebelum dapat melihat hasil.</span></div>
+                </article>
+
+                <!-- PAPI -->
+                <article class="bg-white rounded-[24px] p-4 soft-shadow card-hover flex flex-col">
+                  <div class="ht-img-area mb-4" style="background: linear-gradient(135deg,#cffafe 0%,#ecfeff 50%,#a5f3fc 100%);">
+                    <svg class="ht-decor" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <circle cx="24" cy="28" r="9" fill="#22d3ee" opacity=".34" />
+                      <circle cx="180" cy="122" r="13" fill="#06b6d4" opacity=".26" />
+                      <circle cx="168" cy="30" r="5" fill="#0891b2" opacity=".30" />
+                      <circle cx="36" cy="118" r="6" fill="#22d3ee" opacity=".32" />
+                      <path d="M0 100 Q60 80 120 95 T200 88" stroke="#67e8f9" stroke-width="1.5" fill="none" opacity=".55"/>
+                    </svg>
+                    <div class="ht-icon-main" style="background:#fff;color:#0e7490;"><i data-lucide="clipboard-list"></i></div>
+                  </div>
+                  <div class="flex items-start justify-between gap-3 mb-2 px-1">
+                    <div class="min-w-0">
+                      <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">PAPI</h2>
+                      <p class="text-slate-500 text-sm mt-1 ht-desc">Mengukur persepsi dan preferensi kerja untuk mengetahui kecocokan lingkungan kerja.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-base shrink-0">ðŸ“‹</div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
+                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 20â€“30 Menit</span>
+                    <span>â€¢</span>
+                    <span class="inline-flex items-center gap-1"><i data-lucide="user" style="width:12px;height:12px;"></i> Kepribadian</span>
+                  </div>
+                  <a href="/profile/papi" data-test="papi" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-cyan-500 text-white font-semibold text-sm hover:bg-cyan-600 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
+                  <div class="ht-locked-note" data-note="papi"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes PAPI terlebih dahulu sebelum dapat melihat hasil.</span></div>
+                </article>
+              </section>
+
+              <!-- TRUST STRIP -->
+              <section class="ht-trust soft-shadow mt-6 px-6 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
+                    <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-bold text-slate-800">Akurat â€¢ Ilmiah â€¢ Terpercaya</div>
+                    <div class="text-[11px] text-slate-500 leading-snug">Semua alat tes telah terstandardisasi dan dikembangkan oleh psikolog profesional.</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <i data-lucide="lock" style="width:20px;height:20px;"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-bold text-slate-800">Data Aman</div>
+                    <div class="text-[11px] text-slate-500 leading-snug">Privasi terjamin</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center">
+                    <i data-lucide="users" style="width:20px;height:20px;"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-bold text-slate-800">Dikembangkan Psikolog</div>
+                    <div class="text-[11px] text-slate-500 leading-snug">Metode ilmiah</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i data-lucide="bar-chart-3" style="width:20px;height:20px;"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-bold text-slate-800">Hasil Akurat</div>
+                    <div class="text-[11px] text-slate-500 leading-snug">Valid &amp; reliabel</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+
+    <!-- Validasi: kunci tombol "Lihat Hasil" untuk tes yang belum dikerjakan -->
+    <script>
+      (function () {
+        function jget(url) {
+          return fetch(url, { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .catch(function () { return null; });
+        }
+
+        function lock(testKey) {
+          var btn = document.querySelector('a.ht-card-btn[data-test="' + testKey + '"]');
+          if (!btn) return;
+          btn.classList.add('locked');
+          btn.removeAttribute('href');
+          btn.setAttribute('aria-disabled', 'true');
+          var label = btn.querySelector('.ht-btn-label');
+          if (label) {
+            label.innerHTML = '<i data-lucide="lock" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:6px;"></i> Belum tersedia';
+          }
+          var note = document.querySelector('.ht-locked-note[data-note="' + testKey + '"]');
+          if (note) note.classList.add('show');
+        }
+
+        function isTaken(v) {
+          if (v === null || v === undefined) return false;
+          if (Array.isArray(v)) return v.length > 0;
+          if (typeof v === 'object') return Object.keys(v).length > 0;
+          return Boolean(v);
+        }
+
+        function unwrap(res) {
+          if (!res) return null;
+          if (res.data !== undefined) return res.data;
+          return res;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          Promise.all([
+            jget('/api/profile/test-summary'),
+            jget('/api/profile/rmib'),
+            jget('/api/profile/papi-results'),
+          ]).then(function (results) {
+            var summary = unwrap(results[0]) || {};
+            var rmib = unwrap(results[1]);
+            var papi = unwrap(results[2]);
+
+            var taken = {
+              ist: isTaken(summary.last_ist_result),
+              holland: isTaken(summary.last_holland_result),
+              vak: isTaken(summary.last_learning_style_result),
+              kraepelin: isTaken(summary.last_kraepelin_attempt),
+              rmib: isTaken(rmib),
+              papi: isTaken(papi),
+            };
+
+            ['ist', 'holland', 'vak', 'kraepelin', 'rmib', 'papi'].forEach(function (k) {
+              if (!taken[k]) lock(k);
+            });
+
+            // Render ulang ikon Lucide untuk lock icon yang baru di-inject
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              window.lucide.createIcons();
+            }
+          });
+        });
+      })();
+    </script>
+    <script src="/static/js/admin_menu.js"></script>
+  </body>
+</html>

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"psikologi_apps/models"
+	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
@@ -478,6 +479,7 @@ func (c *KraepelinTestController) SubmitAnswersAPI() {
 			inv.Status = models.StatusInvitationUsed
 			inv.UsedAt = time.Now()
 			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "Kraepelin")
 		}
 	}
 

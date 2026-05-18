@@ -1,173 +1,524 @@
-<!doctype html>
-<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+﻿<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>Profil Saya - Psychee Wellness</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Profil - Psychee Wellness</title>
+
     <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+
     <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      body, html { font-family: 'Inter', 'Poppins', sans-serif; }
+      body { background: #f5f7ff !important; }
+      .layout-wrapper > .layout-container, .layout-page { background: #f5f7ff !important; }
+      .dp-page { padding: 20px 24px 28px; }
+
+      .soft-shadow { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); }
+
+      .gradient-bg {
+        background: linear-gradient(135deg, #ffffff 0%, #f3f0ff 100%);
+      }
+
+      .input-style {
+        height: 54px;
+        border-radius: 16px;
+        border: 1px solid #ececff;
+        background: #fafaff;
+        padding-left: 52px;
+        padding-right: 16px;
+        width: 100%;
+        outline: none;
+        transition: .25s;
+        font-size: 14.5px;
+        color: #1f2937;
+      }
+      .input-style:focus {
+        border-color: #8b5cf6;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.10);
+      }
+      .input-style[readonly], .input-style[disabled] {
+        background: #f4f4ff;
+        color: #475569;
+        cursor: default;
+      }
+      .input-textarea {
+        height: 110px;
+        padding-top: 16px;
+        padding-left: 52px;
+        resize: none;
+        line-height: 1.5;
+      }
+
+      .field-wrap { position: relative; }
+      .field-icon {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        background: #ede9fe;
+        color: #7c3aed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .field-icon.tall { top: 14px; }
+      .field-icon svg { width: 14px; height: 14px; }
+
+      .field-label {
+        display: block;
+        font-size: 12.5px;
+        color: #64748b;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .btn-edit {
+        height: 48px;
+        padding: 0 22px;
+        border-radius: 14px;
+        border: 1.5px solid #c4b5fd;
+        color: #7c3aed;
+        background: #ffffff;
+        font-weight: 700;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: .25s;
+      }
+      .btn-edit:hover { background: #7c3aed; color: #fff; }
+      .btn-save {
+        height: 48px;
+        padding: 0 22px;
+        border-radius: 14px;
+        color: #fff;
+        background: #7c3aed;
+        font-weight: 700;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+      }
+      .btn-save:hover { background: #6d28d9; }
+      .btn-cancel {
+        height: 48px;
+        padding: 0 18px;
+        border-radius: 14px;
+        color: #475569;
+        background: #f1f5f9;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+      }
+      .btn-cancel:hover { background: #e2e8f0; }
+
+      /* Hero decor */
+      .hero-decor {
+        position: absolute;
+        bottom: -120px;
+        right: -100px;
+        width: 380px;
+        height: 380px;
+        background: #ddd6fe;
+        opacity: 0.35;
+        border-radius: 999px;
+      }
+      .hero-img-wrap {
+        width: 180px;
+        height: 180px;
+        border-radius: 999px;
+        background: #ffffff;
+        box-shadow: 0 12px 30px rgba(124, 92, 255, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+      /* Toast */
+      .dp-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        min-width: 260px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #16a34a;
+        color: #fff;
+        font-weight: 600;
+        font-size: 13.5px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+        transform: translateY(20px);
+        opacity: 0;
+        pointer-events: none;
+        transition: .25s;
+        z-index: 1080;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dp-toast.show { transform: translateY(0); opacity: 1; }
+      .dp-toast.error { background: #dc2626; }
+    </style>
   </head>
+
   <body>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <div class="app-brand demo">
-            <a href="/dashboard" class="app-brand-link">
-              <span class="app-brand-logo demo">
-                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
-              </span>
-              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
-            </a>
+        <!-- SIDEBAR -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+          <div class="ds-brand">
+            <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+            <div class="ds-brand-text">
+              <div class="name">PsychoWellness</div>
+              <div class="sub">AI Analytics System</div>
+            </div>
           </div>
-          <div class="menu-divider mt-0"></div>
-          <div class="menu-inner-shadow"></div>
-          <ul class="menu-inner py-1">
-            <li class="menu-item"><a href="/dashboard" class="menu-link"><i class="menu-icon tf-icons bx bx-home-smile"></i><div class="text-truncate">Dashboard</div></a></li>
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Layanan</span></li>
-            <li class="menu-item"><a href="/test" class="menu-link"><i class="menu-icon tf-icons bx bx-clipboard"></i><div class="text-truncate">Tes Psikologi</div></a></li>
-            <li class="menu-item"><a href="javascript:void(0);" class="menu-link"><i class="menu-icon tf-icons bx bx-chat"></i><div class="text-truncate">Konseling</div></a></li>
-            <li class="menu-item"><a href="javascript:void(0);" class="menu-link"><i class="menu-icon tf-icons bx bx-history"></i><div class="text-truncate">Riwayat</div></a></li>
-            <li class="menu-header small text-uppercase"><span class="menu-header-text">Akun</span></li>
-            <li class="menu-item active">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">Profil</div>
-              </a>
-              <ul class="menu-sub">
-                <li class="menu-item active"><a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a></li>
-                <li class="menu-item"><a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a></li>
-                <li class="menu-item"><a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a></li>
-                <li class="menu-item"><a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a></li>
-                <li class="menu-item"><a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a></li>
-                <li class="menu-item"><a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a></li>
-              </ul>
-            </li>
-            <li class="menu-item"><a href="/settings" class="menu-link"><i class="menu-icon tf-icons bx bx-cog"></i><div class="text-truncate">Pengaturan</div></a></li>
-            <li class="menu-item d-none" id="menuAdminPsychotest">
-              <a href="/admin/psychotest" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
-                <div class="text-truncate">Admin Psychotest</div>
-              </a>
-            </li>
-          </ul>
+          <nav class="ds-nav">
+            <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+            <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+            <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/profile" class="active"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+            <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+            <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+            <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+          </nav>
+          <div class="ds-side-card">
+            <div class="label">Kelas</div>
+            <div class="value" id="sbKelasValue">-</div>
+          </div>
+          <div class="ds-side-card">
+            <div class="label">Jurusan</div>
+            <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+          </div>
+          <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
         </aside>
+
         <div class="layout-page">
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="mb-4">Data Profil</h5>
-                  <div class="text-center mb-4">
-                    <img id="profilePhoto" src="/static/icons/icon_psikologi_kanagata.png" class="rounded-circle" style="width: 140px; height: 140px; object-fit: cover; border: 4px solid #e7e7e7;" />
+          <div class="dp-page">
+            <div class="max-w-7xl mx-auto">
+              <!-- HERO -->
+              <section class="gradient-bg rounded-[32px] p-8 lg:p-10 soft-shadow mb-6 overflow-hidden relative">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                  <div>
+                    <h1 class="text-3xl lg:text-[40px] font-extrabold text-slate-800 leading-tight mb-3">
+                      Data Profil
+                    </h1>
+                    <p class="text-slate-500 text-sm lg:text-[15px] leading-relaxed mb-6 max-w-xl">
+                      Kelola informasi pribadi Anda dan pastikan data selalu akurat dan terbaru.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3">
+                      <a href="/profile/edit" class="btn-edit">
+                        <i data-lucide="pen-line" style="width:16px;height:16px;"></i>
+                        <span>Edit Profil</span>
+                      </a>
+                    </div>
                   </div>
-                  <div class="row">
-                    <div class="col-md-6 mb-3"><label class="form-label">Nama Lengkap</label><div class="form-control bg-light"><span id="profileName">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">No. Handphone</label><div class="form-control bg-light"><span id="profilePhone">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Asal Instansi</label><div class="form-control bg-light"><span id="profileSchool">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Email</label><div class="form-control bg-light"><span id="profileEmail">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">NISN / NIP</label><div class="form-control bg-light"><span id="profileNisnNip">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Kelas</label><div class="form-control bg-light"><span id="profileKelas">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Jurusan</label><div class="form-control bg-light"><span id="profileJurusan">-</span></div></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Tempat, Tanggal Lahir</label><div class="form-control bg-light"><span id="profileTTL">-</span></div></div>
-                    <div class="col-12 mb-3"><label class="form-label">Alamat</label><div class="form-control bg-light"><span id="profileFullAddress">-</span></div></div>
+                  <div class="relative flex justify-center">
+                    <span class="hero-decor"></span>
+                    <div class="hero-img-wrap relative z-10">
+                      <img id="heroAvatar" src="/static/icons/icon_psikologi_kanagata.png" alt="Profil" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </section>
+
+              <!-- FORM -->
+              <section class="bg-white rounded-[32px] p-6 lg:p-10 soft-shadow">
+                <form id="profileForm" autocomplete="off" novalidate>
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-5">
+                    <!-- KIRI -->
+                    <div class="space-y-5">
+                      <div>
+                        <label class="field-label">Nama Lengkap</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="user"></i></span>
+                          <input type="text" name="nama_lengkap" id="fNama" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Asal Instansi</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="building-2"></i></span>
+                          <input type="text" name="asal_instansi" id="fInstansi" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">NISN / NIP</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="id-card"></i></span>
+                          <input type="text" name="nisn" id="fNISN" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Jurusan</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="bookmark"></i></span>
+                          <input type="text" name="jurusan" id="fJurusan" class="input-style" readonly />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- KANAN -->
+                    <div class="space-y-5">
+                      <div>
+                        <label class="field-label">No. Handphone</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="phone"></i></span>
+                          <input type="text" name="no_handphone" id="fHp" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Email</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="mail"></i></span>
+                          <input type="email" name="email" id="fEmail" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Kelas</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="users"></i></span>
+                          <input type="text" name="kelas" id="fKelas" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Tempat, Tanggal Lahir</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="calendar"></i></span>
+                          <input type="text" id="fTtl" class="input-style" readonly placeholder="Amlapura, 27 Mei 2008" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ALAMAT -->
+                  <div class="mt-6">
+                    <label class="field-label">Alamat</label>
+                    <div class="field-wrap">
+                      <span class="field-icon tall"><i data-lucide="map-pin"></i></span>
+                      <textarea name="alamat" id="fAlamat" class="input-style input-textarea" readonly></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Hidden helpers -->
+                  <input type="hidden" id="fTempatLahir" />
+                  <input type="hidden" id="fTanggalLahir" />
+                </form>
+              </section>
             </div>
-            <div class="content-backdrop fade"></div>
           </div>
         </div>
       </div>
     </div>
-    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
-    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
-    <script src="/static/sneat/assets/js/main.js"></script>
+
+    <div class="dp-toast" id="dpToast"><i data-lucide="check-circle" style="width:16px;height:16px;"></i><span id="dpToastMsg">Berhasil</span></div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+
     <script>
-      async function loadProfile() {
-        const response = await fetch('/api/profile');
-        if (!response.ok) return;
-        const data = await response.json();
-        if (!data.success || !data.data) return;
-        const user = data.data;
-        document.getElementById('profileName').textContent = user.nama_lengkap || '-';
-        document.getElementById('profilePhone').textContent = user.no_handphone || '-';
-        document.getElementById('profileEmail').textContent = user.email || '-';
-        const schoolEl = document.getElementById('profileSchool');
-        if (schoolEl) schoolEl.textContent = user.asal_instansi || '-';
-        const nisnNipEl = document.getElementById('profileNisnNip');
-        if (nisnNipEl) {
-          if (user.nisn) nisnNipEl.textContent = 'NISN: ' + user.nisn;
-          else if (user.nip) nisnNipEl.textContent = 'NIP: ' + user.nip;
-          else nisnNipEl.textContent = '-';
+      (function () {
+        var BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+        function $(s) { return document.querySelector(s); }
+        function fmtTanggalID(iso) {
+          if (!iso) return '';
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return '';
+          return d.getDate() + ' ' + BULAN_ID[d.getMonth()] + ' ' + d.getFullYear();
         }
-        const kelasEl = document.getElementById('profileKelas');
-        if (kelasEl) kelasEl.textContent = user.kelas || '-';
-        const jurEl = document.getElementById('profileJurusan');
-        if (jurEl) jurEl.textContent = user.jurusan || '-';
-        const ttlEl = document.getElementById('profileTTL');
-        if (ttlEl) {
-          let ttl = user.tempat_lahir || '';
-          if (user.tanggal_lahir) {
-            try {
-              const d = new Date(user.tanggal_lahir);
-              if (!isNaN(d)) {
-                const fmt = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-                ttl = ttl ? (ttl + ', ' + fmt) : fmt;
-              }
-            } catch (_) {}
+        function toast(msg, isErr) {
+          var t = $('#dpToast');
+          $('#dpToastMsg').textContent = msg;
+          t.classList.toggle('error', !!isErr);
+          t.classList.add('show');
+          setTimeout(function () { t.classList.remove('show'); }, 2400);
+        }
+        function setReadonly(ro) {
+          ['#fNama','#fInstansi','#fNISN','#fJurusan','#fHp','#fEmail','#fKelas','#fTtl','#fAlamat'].forEach(function (sel) {
+            var el = $(sel);
+            if (!el) return;
+            if (ro) el.setAttribute('readonly','readonly');
+            else el.removeAttribute('readonly');
+          });
+          $('#btnEdit').classList.toggle('hidden', !ro);
+          $('#btnSave').classList.toggle('hidden', ro);
+          $('#btnCancel').classList.toggle('hidden', ro);
+        }
+
+        var snapshot = {};
+
+        function takeSnapshot() {
+          snapshot = {
+            nama: $('#fNama').value,
+            instansi: $('#fInstansi').value,
+            nisn: $('#fNISN').value,
+            jurusan: $('#fJurusan').value,
+            hp: $('#fHp').value,
+            email: $('#fEmail').value,
+            kelas: $('#fKelas').value,
+            ttl: $('#fTtl').value,
+            alamat: $('#fAlamat').value,
+            tempatLahir: $('#fTempatLahir').value,
+            tanggalLahir: $('#fTanggalLahir').value,
+          };
+        }
+        function restoreSnapshot() {
+          $('#fNama').value = snapshot.nama || '';
+          $('#fInstansi').value = snapshot.instansi || '';
+          $('#fNISN').value = snapshot.nisn || '';
+          $('#fJurusan').value = snapshot.jurusan || '';
+          $('#fHp').value = snapshot.hp || '';
+          $('#fEmail').value = snapshot.email || '';
+          $('#fKelas').value = snapshot.kelas || '';
+          $('#fTtl').value = snapshot.ttl || '';
+          $('#fAlamat').value = snapshot.alamat || '';
+          $('#fTempatLahir').value = snapshot.tempatLahir || '';
+          $('#fTanggalLahir').value = snapshot.tanggalLahir || '';
+        }
+
+        function populate(u) {
+          if (!u) return;
+          $('#fNama').value = u.nama_lengkap || '';
+          $('#fInstansi').value = u.asal_instansi || '';
+          $('#fNISN').value = u.nisn || u.nip || '';
+          $('#fJurusan').value = u.jurusan || '';
+          $('#fHp').value = u.no_handphone || '';
+          $('#fEmail').value = u.email || '';
+          $('#fKelas').value = u.kelas || '';
+          $('#fAlamat').value = u.alamat || '';
+          $('#fTempatLahir').value = u.tempat_lahir || '';
+          $('#fTanggalLahir').value = u.tanggal_lahir || '';
+
+          var tgl = fmtTanggalID(u.tanggal_lahir);
+          var ttl = '';
+          if (u.tempat_lahir && tgl) ttl = u.tempat_lahir + ', ' + tgl;
+          else if (u.tempat_lahir) ttl = u.tempat_lahir;
+          else if (tgl) ttl = tgl;
+          $('#fTtl').value = ttl;
+
+          if (u.foto_profil) {
+            var fp = u.foto_profil;
+            $('#heroAvatar').src = /^(https?:|data:|\/)/i.test(fp) ? fp : ('/static/uploads/profiles/' + fp);
           }
-          ttlEl.textContent = ttl || '-';
+
+          takeSnapshot();
         }
-        const fullAddrEl = document.getElementById('profileFullAddress');
-        if (fullAddrEl) {
-          // Format header tes: "Jl. ..., Kec. ..., Kota ..., Provinsi ..."
-          const parts = [];
-          if (user.alamat) parts.push(user.alamat);
-          if (user.kecamatan) parts.push('Kec. ' + user.kecamatan);
-          if (user.kota) parts.push(user.kota);
-          if (user.provinsi) parts.push(user.provinsi);
-          fullAddrEl.textContent = parts.length ? parts.join(', ') : '-';
+
+        function parseTtl(value) {
+          // "Tempat, dd Bulan yyyy" â€” pisahkan koma terakhir
+          if (!value) return { tempat: '', tanggal: '' };
+          var idx = value.lastIndexOf(',');
+          if (idx === -1) return { tempat: value.trim(), tanggal: '' };
+          var tempat = value.substring(0, idx).trim();
+          var tglStr = value.substring(idx + 1).trim();
+          var parts = tglStr.split(/\s+/);
+          if (parts.length !== 3) return { tempat: tempat, tanggal: '' };
+          var d = parseInt(parts[0], 10);
+          var m = BULAN_ID.indexOf(parts[1]);
+          var y = parseInt(parts[2], 10);
+          if (isNaN(d) || m === -1 || isNaN(y)) return { tempat: tempat, tanggal: '' };
+          var iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          return { tempat: tempat, tanggal: iso };
         }
-        if (user.foto_profil) {
-          document.getElementById('profilePhoto').src = '/static/uploads/profiles/' + user.foto_profil;
-        }
-        const summaryResp = await fetch('/api/profile/test-summary');
-        if (summaryResp.ok) {
-          const summaryData = await summaryResp.json();
-          if (summaryData.success && summaryData.data && summaryData.data.last_institution) {
-            document.getElementById('profileSchool').textContent = summaryData.data.last_institution;
+
+        async function save() {
+          var ttl = parseTtl($('#fTtl').value);
+          var payload = {
+            nama_lengkap: $('#fNama').value.trim(),
+            asal_instansi: $('#fInstansi').value.trim(),
+            nisn: $('#fNISN').value.trim(),
+            jurusan: $('#fJurusan').value.trim(),
+            no_handphone: $('#fHp').value.trim(),
+            email: $('#fEmail').value.trim(),
+            kelas: $('#fKelas').value.trim(),
+            alamat: $('#fAlamat').value.trim(),
+            tempat_lahir: ttl.tempat || $('#fTempatLahir').value,
+            tanggal_lahir: ttl.tanggal || $('#fTanggalLahir').value,
+          };
+          try {
+            var res = await fetch('/api/profile', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'same-origin',
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var j = await res.json().catch(function () { return null; });
+            var data = j && j.data ? j.data : payload;
+            populate(data);
+            setReadonly(true);
+            toast('Profil berhasil disimpan');
+          } catch (e) {
+            toast('Gagal menyimpan profil', true);
           }
         }
-      }
-      async function loadRoleMenu() {
-        try {
-          const response = await fetch('/api/profile');
-          if (!response.ok) return;
-          const data = await response.json();
-          if (data.success && data.data && data.data.role === 'admin') {
-            const adminMenu = document.getElementById('menuAdminPsychotest');
-            if (adminMenu) adminMenu.classList.remove('d-none');
+
+        async function load() {
+          try {
+            var res = await fetch('/api/profile', { credentials: 'same-origin' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var j = await res.json();
+            var u = (j && j.data) ? j.data : (j && j.success ? j.data : j);
+            populate(u);
+          } catch (e) {
+            toast('Gagal memuat profil', true);
           }
-        } catch (_) {}
-      }
-      document.addEventListener('DOMContentLoaded', function () {
-        loadProfile();
-        loadRoleMenu();
-      });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          var be = $('#btnEdit'); if (be) be.addEventListener('click', function () { takeSnapshot(); setReadonly(false); $('#fNama').focus(); });
+          var bc = $('#btnCancel'); if (bc) bc.addEventListener('click', function () { restoreSnapshot(); setReadonly(true); });
+          var bs = $('#btnSave'); if (bs) bs.addEventListener('click', save);
+          load();
+        });
+      })();
     </script>
+    <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>
-

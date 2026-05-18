@@ -1,0 +1,144 @@
+/*
+ * Sneat sidebar -> Dashboard-style skin.
+ * Loaded SETELAH sidebar-modern.css agar override-nya menang.
+ * Tujuannya: tampilan sidebar di halaman lain (settings, profile, notifications,
+ * profile_*, admin_*) terlihat sama dengan sidebar di /dashboard
+ * (.ds-sidebar) tanpa perlu mengubah struktur HTML Sneat.
+ */
+
+:root {
+  --dssb-bg: #ffffff;
+  --dssb-border: #e6eaf2;
+  --dssb-text: #1f2937;
+  --dssb-muted: #6b7280;
+  --dssb-primary: #4f46e5;
+  --dssb-primary-soft: #eef2ff;
+  --dssb-hover: #f7f8fc;
+}
+
+/* ===== SHELL / BRAND ===== */
+html.layout-menu-fixed .layout-menu,
+.layout-wrapper .layout-menu {
+  background: var(--dssb-bg) !important;
+  border-right: 1px solid var(--dssb-border) !important;
+  box-shadow: none !important;
+  width: 240px !important;
+  font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.layout-menu .app-brand {
+  padding: 14px 14px 14px !important;
+  margin-bottom: 0 !important;
+  border-bottom: 1px solid var(--dssb-border);
+}
+.layout-menu .app-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.layout-menu .app-brand-logo img {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  object-fit: cover;
+  background: #fff;
+}
+.layout-menu .app-brand-text {
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  color: var(--dssb-text) !important;
+  margin-left: 0 !important;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.layout-menu .menu-divider { display: none !important; }
+.layout-menu .menu-inner-shadow { display: none !important; }
+
+/* ===== MENU ITEMS ===== */
+.layout-menu .menu-inner {
+  padding: 8px 10px !important;
+}
+
+.layout-menu .menu-item {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.layout-menu .menu-item + .menu-item { margin-top: 2px !important; }
+
+.layout-menu .menu-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  color: var(--dssb-muted) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  background: transparent !important;
+  transition: background-color .15s ease, color .15s ease;
+}
+.layout-menu .menu-link:hover {
+  background: var(--dssb-hover) !important;
+  color: var(--dssb-text) !important;
+}
+
+.layout-menu .menu-icon {
+  width: 18px !important;
+  height: 18px !important;
+  margin-right: 0 !important;
+  font-size: 18px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  color: inherit !important;
+}
+
+/* Active state */
+.layout-menu .menu-item.active > .menu-link {
+  background: var(--dssb-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25) !important;
+}
+.layout-menu .menu-item.active > .menu-link .menu-icon { color: #fff !important; }
+
+/* Section header */
+.layout-menu .menu-header {
+  padding: 14px 12px 6px !important;
+  margin: 0 !important;
+}
+.layout-menu .menu-header .menu-header-text {
+  font-size: 10.5px !important;
+  text-transform: uppercase;
+  color: var(--dssb-muted) !important;
+  letter-spacing: .08em;
+  font-weight: 700;
+  opacity: .85;
+}
+
+/* Submenu (Profil -> Hasil tes) */
+.layout-menu .menu-sub {
+  padding: 2px 0 4px 8px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border-left: 1px dashed var(--dssb-border);
+  margin-left: 18px !important;
+}
+.layout-menu .menu-sub .menu-link {
+  padding: 8px 10px !important;
+  font-size: 12.5px !important;
+}
+.layout-menu .menu-sub .menu-link::before { display: none !important; }
+.layout-menu .menu-item.active > .menu-sub .menu-item.active > .menu-link {
+  background: var(--dssb-primary-soft) !important;
+  color: var(--dssb-primary) !important;
+  box-shadow: none !important;
+}
+
+/* Toggle arrow */
+.layout-menu .menu-toggle::after {
+  color: var(--dssb-muted) !important;
+}
+
+/* ===== Pastikan main content tetap rapi ===== */
+.layout-page { background: #f4f6fb; }

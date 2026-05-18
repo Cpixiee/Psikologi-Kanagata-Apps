@@ -121,6 +121,42 @@ func SendActivityNotification(userID int, title, message string) error {
 	return SendNotification(userID, NotifTypeActivity, title, message)
 }
 
+// SendTestCompletionNotification mengirim notifikasi saat peserta selesai
+// mengerjakan sebuah tes. Aman dipanggil dengan userID nil (no-op).
+func SendTestCompletionNotification(userID *int, testName string) {
+	if userID == nil || *userID <= 0 {
+		return
+	}
+	title := fmt.Sprintf("Tes %s Selesai", testName)
+	message := fmt.Sprintf("Anda telah menyelesaikan tes %s. Hasil dapat dilihat pada halaman Hasil Tes.", testName)
+	if err := SendNotification(*userID, NotifTypeActivity, title, message); err != nil {
+		fmt.Printf("Error sending test completion notification: %v\n", err)
+	}
+}
+
+// SendProfileUpdatedNotification mengirim notifikasi setelah user
+// memperbarui data profilnya.
+func SendProfileUpdatedNotification(userID int) {
+	title := "Profil Diperbarui"
+	message := "Data profil Anda berhasil diperbarui."
+	if err := SendNotification(userID, NotifTypeActivity, title, message); err != nil {
+		fmt.Printf("Error sending profile updated notification: %v\n", err)
+	}
+}
+
+// SendInvitationCodeSentNotification mengirim notifikasi ketika operator
+// mengirim KODE/token tes ke peserta (peserta sudah ter-link ke akun user).
+func SendInvitationCodeSentNotification(userID *int, batchName string) {
+	if userID == nil || *userID <= 0 {
+		return
+	}
+	title := "Kode Undangan Tes Dikirim"
+	message := fmt.Sprintf("Kode undangan untuk batch \"%s\" telah dikirim ke email/WhatsApp Anda.", batchName)
+	if err := SendNotification(*userID, NotifTypeNewForYou, title, message); err != nil {
+		fmt.Printf("Error sending invitation code notification: %v\n", err)
+	}
+}
+
 // SendBrowserLoginNotification sends "Browser login" notification
 func SendBrowserLoginNotification(userID int, browserInfo string) error {
 	title := "Browser Baru Digunakan untuk Masuk"

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -12,9 +12,13 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
       .page-card {
         border-radius: 14px;
@@ -22,9 +26,45 @@
     </style>
   </head>
   <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+    <div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
+          </div>
+        </div>
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" open hidden>
+            <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+              <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only active"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+            </div>
+          </details>
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+        <div class="ds-side-card"><div class="label">Kelas</div><div class="value" id="sbKelasValue">-</div></div>
+        <div class="ds-side-card" style="margin-top: 0;"><div class="label">Jurusan</div><div class="value" id="sbJurusanValue" style="font-size:14px;">-</div></div>
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme" hidden>
           <div class="app-brand demo">
             <a href="/dashboard" class="app-brand-link">
               <span class="app-brand-logo demo">
@@ -51,7 +91,7 @@
               </a>
             </li>
             <li class="menu-item active">
-              <a href="/admin/psychotest/batches/add" class="menu-link">
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only menu-link">
                 <i class="menu-icon tf-icons bx bx-plus-medical"></i>
                 <div class="text-truncate">Tambah Batch</div>
               </a>
@@ -94,9 +134,34 @@
           </ul>
         </aside>
 
-        <div class="layout-page">
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
+      <main class="ds-main">
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Tambah Batch Tes Psikologi</h1>
+            <p>Buat sesi tes baru dan konfigurasi jenis serta pengirimannya.</p>
+          </div>
+          <div class="ds-search">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" placeholder="Search anything&hellip;" />
+            <span class="kbd">&#x2318;K</span>
+          </div>
+          <a href="/notifications" class="ds-bell"><i data-lucide="bell"></i><span class="badge">0</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta"><div class="name" id="topUserName">Admin</div><div class="role" id="topUserRole">Admin</div></div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+            <div class="container-xxl flex-grow-1 container-p-y" style="padding: 0;">
               <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div>
                   <h4 class="fw-bold mb-1">Tambah Batch Tes Psikologi</h4>
@@ -216,10 +281,7 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="content-backdrop fade"></div>
-        </div>
-      </div>
+      </main>
     </div>
 
     <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
@@ -286,9 +348,58 @@
         }
       }
     </script>
-  </body>
-</html>
 
+    <script src="/static/js/admin_menu.js"></script>
+    <script>
+      (function () {
+        function setupUserpill() {
+          var btn = document.getElementById('ds-userpill-btn');
+          var menu = document.getElementById('ds-userpill-menu');
+          if (!btn || !menu) return;
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = !menu.hasAttribute('hidden');
+            if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', String(!open));
+          });
+          document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+              menu.setAttribute('hidden', '');
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+        async function loadUserProfile() {
+          try {
+            var res = await fetch('/api/profile');
+            if (!res.ok) { if (res.status === 401) window.location.href = '/login'; return; }
+            var data = await res.json();
+            if (!data.success || !data.data) return;
+            var u = data.data;
+            var name = u.nama_lengkap || 'Admin';
+            document.getElementById('topUserName').textContent = name;
+            document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            var av = document.getElementById('topUserAvatar');
+            if (av) av.src = u.foto_profil ? '/static/uploads/profiles/' + u.foto_profil : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+            var k = document.getElementById('sbKelasValue'); if (k) k.textContent = u.kelas || '-';
+            var j = document.getElementById('sbJurusanValue'); if (j) j.textContent = u.jurusan || '-';
+          } catch (e) { console.error(e); }
+        }
+        async function handleLogout(e) {
+          if (e) e.preventDefault();
+          try { var r = await (await fetch('/api/auth/logout', { method: 'POST' })).json(); if (r.success) window.location.href = '/login'; }
+          catch (_) { window.location.href = '/login'; }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+          setupUserpill();
+          loadUserProfile();
+          var lo = document.getElementById('ds-logout-btn');
+          var lo2 = document.getElementById('ds-logout-btn-2');
+          if (lo) lo.addEventListener('click', handleLogout);
+          if (lo2) lo2.addEventListener('click', handleLogout);
+        });
+      })();
     </script>
   </body>
 </html>

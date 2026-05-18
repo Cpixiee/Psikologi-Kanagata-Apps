@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -170,7 +170,7 @@
         function toTitleCaseWords(text) {
           const cleaned = String(text || '')
             .trim()
-            .replace(/[–—]/g, '-')
+            .replace(/[â€“â€”]/g, '-')
             .replace(/\s+/g, ' ')
             .toLowerCase();
           if (!cleaned) return '';

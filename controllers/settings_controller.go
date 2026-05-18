@@ -40,12 +40,16 @@ func (c *SettingsController) GetSettings() {
 		settings.UserId = userID.(int)
 		settings.NotifNewForYouEmail = true
 		settings.NotifNewForYouBrowser = true
+		settings.NotifNewForYouApp = true
 		settings.NotifActivityEmail = true
 		settings.NotifActivityBrowser = true
+		settings.NotifActivityApp = true
 		settings.NotifBrowserLoginEmail = true
 		settings.NotifBrowserLoginBrowser = true
+		settings.NotifBrowserLoginApp = false
 		settings.NotifDeviceLinkEmail = true
 		settings.NotifDeviceLinkBrowser = false
+		settings.NotifDeviceLinkApp = false
 		settings.NotificationTiming = "online"
 		
 		_, err = o.Insert(&settings)
@@ -83,12 +87,16 @@ func (c *SettingsController) UpdateSettings() {
 	var updateData struct {
 		NotifNewForYouEmail      bool   `json:"notif_new_for_you_email"`
 		NotifNewForYouBrowser    bool   `json:"notif_new_for_you_browser"`
+		NotifNewForYouApp        bool   `json:"notif_new_for_you_app"`
 		NotifActivityEmail       bool   `json:"notif_activity_email"`
 		NotifActivityBrowser     bool   `json:"notif_activity_browser"`
+		NotifActivityApp         bool   `json:"notif_activity_app"`
 		NotifBrowserLoginEmail   bool   `json:"notif_browser_login_email"`
 		NotifBrowserLoginBrowser bool   `json:"notif_browser_login_browser"`
+		NotifBrowserLoginApp     bool   `json:"notif_browser_login_app"`
 		NotifDeviceLinkEmail     bool   `json:"notif_device_link_email"`
 		NotifDeviceLinkBrowser   bool   `json:"notif_device_link_browser"`
+		NotifDeviceLinkApp       bool   `json:"notif_device_link_app"`
 		NotificationTiming       string `json:"notification_timing"`
 	}
 
@@ -110,12 +118,16 @@ func (c *SettingsController) UpdateSettings() {
 		settings.UserId = userID.(int)
 		settings.NotifNewForYouEmail = updateData.NotifNewForYouEmail
 		settings.NotifNewForYouBrowser = updateData.NotifNewForYouBrowser
+		settings.NotifNewForYouApp = updateData.NotifNewForYouApp
 		settings.NotifActivityEmail = updateData.NotifActivityEmail
 		settings.NotifActivityBrowser = updateData.NotifActivityBrowser
+		settings.NotifActivityApp = updateData.NotifActivityApp
 		settings.NotifBrowserLoginEmail = updateData.NotifBrowserLoginEmail
 		settings.NotifBrowserLoginBrowser = updateData.NotifBrowserLoginBrowser
+		settings.NotifBrowserLoginApp = updateData.NotifBrowserLoginApp
 		settings.NotifDeviceLinkEmail = updateData.NotifDeviceLinkEmail
 		settings.NotifDeviceLinkBrowser = updateData.NotifDeviceLinkBrowser
+		settings.NotifDeviceLinkApp = updateData.NotifDeviceLinkApp
 		settings.NotificationTiming = updateData.NotificationTiming
 		
 		_, err = o.Insert(&settings)
@@ -132,12 +144,16 @@ func (c *SettingsController) UpdateSettings() {
 		// Update existing settings
 		settings.NotifNewForYouEmail = updateData.NotifNewForYouEmail
 		settings.NotifNewForYouBrowser = updateData.NotifNewForYouBrowser
+		settings.NotifNewForYouApp = updateData.NotifNewForYouApp
 		settings.NotifActivityEmail = updateData.NotifActivityEmail
 		settings.NotifActivityBrowser = updateData.NotifActivityBrowser
+		settings.NotifActivityApp = updateData.NotifActivityApp
 		settings.NotifBrowserLoginEmail = updateData.NotifBrowserLoginEmail
 		settings.NotifBrowserLoginBrowser = updateData.NotifBrowserLoginBrowser
+		settings.NotifBrowserLoginApp = updateData.NotifBrowserLoginApp
 		settings.NotifDeviceLinkEmail = updateData.NotifDeviceLinkEmail
 		settings.NotifDeviceLinkBrowser = updateData.NotifDeviceLinkBrowser
+		settings.NotifDeviceLinkApp = updateData.NotifDeviceLinkApp
 		settings.NotificationTiming = updateData.NotificationTiming
 		
 		_, err = o.Update(&settings)

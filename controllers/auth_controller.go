@@ -197,14 +197,28 @@ func (c *AuthController) Login() {
 	// Find user by email
 	o := orm.NewOrm()
 	user := models.User{Email: req.Email}
+	teacherId := 0
 	err := o.Read(&user, "Email")
 	if err != nil {
-		c.Data["json"] = Response{
-			Success: false,
-			Message: "Email atau password salah",
+		// Fallback: email mungkin milik guru yang ter-link ke akun sekolah.
+		// Guru login dengan email-nya sendiri tapi password yang diverifikasi
+		// adalah password akun sekolah induknya.
+		teacher := models.SchoolTeacher{Email: req.Email}
+		if tErr := o.Read(&teacher, "Email"); tErr == nil {
+			school := models.User{Id: teacher.SchoolId}
+			if sErr := o.Read(&school); sErr == nil && school.Role == models.RoleSekolah {
+				user = school
+				teacherId = teacher.Id
+			} else {
+				c.Data["json"] = Response{Success: false, Message: "Email atau password salah"}
+				c.ServeJSON()
+				return
+			}
+		} else {
+			c.Data["json"] = Response{Success: false, Message: "Email atau password salah"}
+			c.ServeJSON()
+			return
 		}
-		c.ServeJSON()
-		return
 	}
 
 	// Verify password
@@ -218,6 +232,11 @@ func (c *AuthController) Login() {
 	}
 
 	isNewDevice, blocked := c.establishLoginSession(&user)
+	if teacherId > 0 {
+		// Simpan id guru yang mengakses akun sekolah untuk keperluan audit.
+		c.SetSession("teacher_id", teacherId)
+		c.SetSession("teacher_email", req.Email)
+	}
 	if blocked {
 		c.Data["json"] = Response{
 			Success: false,

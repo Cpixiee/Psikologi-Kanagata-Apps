@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -12,9 +12,13 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
       .token-box-container {
         text-align: center;
@@ -81,89 +85,95 @@
     </style>
   </head>
   <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        <!-- Sidebar bisa di-reuse dari settings.html, disederhanakan di sini -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <div class="app-brand demo">
-            <a href="/dashboard" class="app-brand-link">
-              <span class="app-brand-logo demo">
-                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
-              </span>
-              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
-            </a>
+    <div class="ds-shell">
+      <!-- ============== SIDEBAR ============== -->
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
           </div>
-          <div class="menu-inner-shadow"></div>
-          <ul class="menu-inner py-1">
-            <li class="menu-item">
-              <a href="/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-home-smile"></i>
-                <div class="text-truncate">Dashboard</div>
-              </a>
-            </li>
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Admin</span>
-            </li>
-            <li class="menu-item active">
-              <a href="/admin/psychotest/batches" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-clipboard"></i>
-                <div class="text-truncate">Daftar Batch</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="/admin/psychotest/batches/add" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-plus-medical"></i>
-                <div class="text-truncate">Tambah Batch</div>
-              </a>
-            </li>
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Akun</span>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">Profil</div>
-              </a>
-              <ul class="menu-sub">
-                <li class="menu-item">
-                  <a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a>
-                </li>
-              </ul>
-            </li>
-            <li class="menu-item">
-              <a href="/settings" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-cog"></i>
-                <div class="text-truncate">Pengaturan</div>
-              </a>
-            </li>
-          </ul>
-        </aside>
+        </div>
 
-        <div class="layout-page">
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" open hidden>
+            <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/admin/psychotest" class="active"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+              <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+            </div>
+          </details>
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+
+        <div class="ds-side-card">
+          <div class="label">Kelas</div>
+          <div class="value" id="sbKelasValue">-</div>
+        </div>
+        <div class="ds-side-card" style="margin-top: 0;">
+          <div class="label">Jurusan</div>
+          <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+        </div>
+
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+
+      <!-- ============== MAIN ============== -->
+      <main class="ds-main">
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Pengelolaan Tes Psikologi</h1>
+            <p>Buat sesi tes, undang peserta, dan pantau hasil.</p>
+          </div>
+          <div class="ds-search">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" placeholder="Search anything&hellip;" />
+            <span class="kbd">&#x2318;K</span>
+          </div>
+          <a href="/notifications" class="ds-bell"><i data-lucide="bell"></i><span class="badge">0</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta">
+                <div class="name" id="topUserName">Admin</div>
+                <div class="role" id="topUserRole">Admin</div>
+              </div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+            <div class="container-xxl flex-grow-1 container-p-y" style="padding: 0;">
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                   <h4 class="fw-bold mb-1">Pengelolaan Tes Psikologi</h4>
                   <p class="mb-0 text-muted">Buat sesi tes, undang peserta, dan pantau hasil IST & Holland.</p>
                 </div>
                 <div class="d-flex align-items-center">
-                  <a href="/admin/psychotest/batches/add" class="btn btn-primary btn-sm">
+                  <a href="/admin/psychotest/batches/add" class="strict-admin-only btn btn-primary btn-sm">
                     <i class="bx bx-plus me-1"></i>Tambah Batch
                   </a>
                 </div>
@@ -252,7 +262,7 @@
                         </ul>
                       </div>
                       <div class="d-flex align-items-center">
-                        <div id="batchSettingsControls">
+                        <div id="batchSettingsControls" class="strict-admin-only">
                           <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleBatchSettingsMode()">
                             Settings
                           </button>
@@ -346,7 +356,7 @@
                             Email yang belum terdaftar tetap akan dibuatkan undangan; peserta diminta registrasi saat klik link.
                             <br/>Tombol <strong>Buat Undangan</strong> hanya mengirim pengumuman tanpa kode. Untuk mengirim kode tes, klik <strong>Kirim Code</strong> per peserta atau gunakan aksi massal.
                           </small>
-                          <button type="button" class="btn btn-sm btn-primary" onclick="handleCreateInvitations()">
+                          <button type="button" class="btn btn-sm btn-primary strict-admin-only" onclick="handleCreateInvitations()">
                             <i class="bx bx-envelope me-1"></i>Buat Undangan
                           </button>
                         </div>
@@ -357,7 +367,7 @@
                           <span class="text-muted small" id="resultsSelectionInfo">Pilih peserta untuk aksi massal</span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                          <button type="button" class="btn btn-sm btn-warning" id="btnBulkSendCode" onclick="handleBulkSendCode()" disabled>
+                          <button type="button" class="btn btn-sm btn-warning strict-admin-only" id="btnBulkSendCode" onclick="handleBulkSendCode()" disabled>
                             <i class="bx bx-paper-plane me-1"></i>Kirim Code Massal
                           </button>
                         </div>
@@ -393,9 +403,7 @@
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
 
     <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
@@ -413,7 +421,7 @@
       let batchViewMode = 'active'; // active | archived
       const batchCache = {}; // id -> batch object (lengkap dengan flag enable_*)
 
-      // Daftar metadata alat tes — dipakai untuk render tombol "Download Result Hasil"
+      // Daftar metadata alat tes &mdash; dipakai untuk render tombol "Download Result Hasil"
       // sesuai tes yang diaktifkan di batch.
       const TEST_META = [
         { key: 'ist',            flag: 'enable_ist',             label: 'IST' },
@@ -1535,6 +1543,60 @@
         </div>
       </div>
     </div>
+
+    <script src="/static/js/admin_menu.js"></script>
+    <script>
+      // Initialize Lucide icons + topbar user info
+      (function () {
+        function setupUserpill() {
+          var btn = document.getElementById('ds-userpill-btn');
+          var menu = document.getElementById('ds-userpill-menu');
+          if (!btn || !menu) return;
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = !menu.hasAttribute('hidden');
+            if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', String(!open));
+          });
+          document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+              menu.setAttribute('hidden', '');
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+        async function loadUserProfile() {
+          try {
+            var res = await fetch('/api/profile');
+            if (!res.ok) { if (res.status === 401) window.location.href = '/login'; return; }
+            var data = await res.json();
+            if (!data.success || !data.data) return;
+            var u = data.data;
+            var name = u.nama_lengkap || 'Admin';
+            document.getElementById('topUserName').textContent = name;
+            document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            var av = document.getElementById('topUserAvatar');
+            if (av) av.src = u.foto_profil ? '/static/uploads/profiles/' + u.foto_profil : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+            var k = document.getElementById('sbKelasValue'); if (k) k.textContent = u.kelas || '-';
+            var j = document.getElementById('sbJurusanValue'); if (j) j.textContent = u.jurusan || '-';
+          } catch (e) { console.error(e); }
+        }
+        async function handleLogout(e) {
+          if (e) e.preventDefault();
+          try { var r = await (await fetch('/api/auth/logout', { method: 'POST' })).json(); if (r.success) window.location.href = '/login'; }
+          catch (_) { window.location.href = '/login'; }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+          setupUserpill();
+          loadUserProfile();
+          var lo = document.getElementById('ds-logout-btn');
+          var lo2 = document.getElementById('ds-logout-btn-2');
+          if (lo) lo.addEventListener('click', handleLogout);
+          if (lo2) lo2.addEventListener('click', handleLogout);
+        });
+      })();
+    </script>
   </body>
 </html>
 

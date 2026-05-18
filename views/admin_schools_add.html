@@ -1,0 +1,323 @@
+﻿<!doctype html>
+<html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tambah Akun Sekolah - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/static/sneat/assets/js/config.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+      .teacher-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; background: #fafbff; position: relative; }
+      .teacher-card .tc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+      .teacher-card .tc-title { font-weight:600; color:#4b5563; }
+    </style>
+  </head>
+  <body>
+    <div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
+          </div>
+        </div>
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" open hidden>
+            <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+              <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              <a href="/admin/schools" class="strict-admin-only active"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+            </div>
+          </details>
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+
+      <main class="ds-main">
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Tambah Akun Sekolah</h1>
+            <p>Buat akun sekolah & daftarkan guru-guru yang akan login menggunakan email mereka sendiri.</p>
+          </div>
+          <a href="/notifications" class="ds-bell"><i data-lucide="bell"></i><span class="badge">0</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta"><div class="name" id="topUserName">Admin</div><div class="role" id="topUserRole">Admin</div></div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+        <div class="container-xxl flex-grow-1 container-p-y" style="padding:0;">
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <a href="/admin/schools" class="strict-admin-only btn btn-outline-secondary btn-sm">
+              <i class="bx bx-arrow-back me-1"></i> Kembali
+            </a>
+          </div>
+
+          <form id="schoolForm" onsubmit="submitSchool(event)">
+            <div class="card mb-4">
+              <div class="card-header"><h5 class="mb-0">Detail Akun Sekolah</h5></div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="namaLengkap">Nama Akun Sekolah</label>
+                    <input id="namaLengkap" type="text" class="form-control" placeholder="Contoh: SMKN 22 Jakarta - Operator BK" required />
+                    <small class="text-muted">Nama ini akan tampil sebagai identitas profil saat akun sekolah login.</small>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="email">Email Login Sekolah</label>
+                    <input id="email" type="email" class="form-control" placeholder="operator.smkn22@example.com" required />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="sekolah">Asal Sekolah (Filter Siswa)</label>
+                    <select id="sekolah" class="form-select" required>
+                      <option value="">Pilih sekolah&hellip;</option>
+                    </select>
+                    <small class="text-muted">Akun ini hanya bisa melihat siswa dari sekolah yang dipilih.</small>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="password">Password</label>
+                    <input id="password" type="text" class="form-control" minlength="6" placeholder="Minimal 6 karakter" required />
+                    <small class="text-muted">Password ini juga dipakai oleh semua guru sekolah ini.</small>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="jenisKelamin">Jenis Kelamin</label>
+                    <select id="jenisKelamin" class="form-select" required>
+                      <option value="">Pilih&hellip;</option>
+                      <option value="laki_laki">Laki-laki</option>
+                      <option value="perempuan">Perempuan</option>
+                    </select>
+                    <small class="text-muted">Jenis kelamin penanggung jawab akun sekolah.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="mb-1">Daftar Guru</h5>
+                  <small class="text-muted">Tiap guru login pakai email-nya sendiri, password mengikuti password sekolah di atas.</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTeacher()">
+                  <i class="bx bx-plus me-1"></i> Tambah Guru
+                </button>
+              </div>
+              <div class="card-body">
+                <div id="teachersWrap"></div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="/admin/schools" class="strict-admin-only btn btn-outline-secondary">Batal</a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bx bx-save me-1"></i> Simpan Akun Sekolah
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/admin_menu.js"></script>
+    <script>
+      const KELAS_OPTIONS = ['X', 'XI', 'XII'];
+      let teacherCounter = 0;
+
+      function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+      function teacherRowHtml(idx) {
+        const kelasOpts = ['<option value="">Pilih kelas&hellip;</option>']
+          .concat(KELAS_OPTIONS.map(function (k) { return '<option value="' + escapeAttr(k) + '">' + k + '</option>'; }))
+          .join('');
+        return (
+          '<div class="teacher-card" data-idx="' + idx + '">' +
+            '<div class="tc-head">' +
+              '<div class="tc-title">Guru #' + idx + '</div>' +
+              '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeTeacher(' + idx + ')">' +
+                '<i class="bx bx-trash"></i>' +
+              '</button>' +
+            '</div>' +
+            '<div class="row">' +
+              '<div class="col-md-4 mb-2">' +
+                '<label class="form-label">Nama Guru</label>' +
+                '<input type="text" class="form-control t-nama" placeholder="Nama lengkap" />' +
+              '</div>' +
+              '<div class="col-md-4 mb-2">' +
+                '<label class="form-label">Kelas</label>' +
+                '<select class="form-select t-kelas">' + kelasOpts + '</select>' +
+              '</div>' +
+              '<div class="col-md-4 mb-2">' +
+                '<label class="form-label">Email Guru</label>' +
+                '<input type="email" class="form-control t-email" placeholder="guru@example.com" />' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+
+      function addTeacher() {
+        teacherCounter += 1;
+        const wrap = document.getElementById('teachersWrap');
+        wrap.insertAdjacentHTML('beforeend', teacherRowHtml(teacherCounter));
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+
+      function removeTeacher(idx) {
+        const el = document.querySelector('.teacher-card[data-idx="' + idx + '"]');
+        if (el) el.remove();
+      }
+
+      function collectTeachers() {
+        const cards = document.querySelectorAll('.teacher-card');
+        const out = [];
+        cards.forEach(function (card) {
+          out.push({
+            nama: (card.querySelector('.t-nama').value || '').trim(),
+            kelas: (card.querySelector('.t-kelas').value || '').trim(),
+            email: (card.querySelector('.t-email').value || '').trim()
+          });
+        });
+        return out;
+      }
+
+      async function submitSchool(ev) {
+        ev.preventDefault();
+        const payload = {
+          nama_lengkap: document.getElementById('namaLengkap').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          sekolah: document.getElementById('sekolah').value,
+          password: document.getElementById('password').value,
+          jenis_kelamin: document.getElementById('jenisKelamin').value,
+          teachers: collectTeachers()
+        };
+        try {
+          const res = await fetch('/api/admin/schools', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || 'Gagal menyimpan');
+          await Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Akun sekolah berhasil dibuat', timer: 1500, showConfirmButton: false });
+          window.location.href = '/admin/schools';
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+        }
+      }
+
+      async function loadSekolahOptions() {
+        try {
+          const res = await fetch('/api/admin/schools');
+          const data = await res.json();
+          if (!data.success) return;
+          const list = (data.data && data.data.sekolah_list) || [];
+          const sel = document.getElementById('sekolah');
+          list.forEach(function (s) {
+            const opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            sel.appendChild(opt);
+          });
+        } catch (e) {}
+      }
+
+      (function () {
+        function setupUserpill() {
+          var btn = document.getElementById('ds-userpill-btn');
+          var menu = document.getElementById('ds-userpill-menu');
+          if (!btn || !menu) return;
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = !menu.hasAttribute('hidden');
+            if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', String(!open));
+          });
+          document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+              menu.setAttribute('hidden', '');
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+        async function loadUserProfile() {
+          try {
+            var res = await fetch('/api/profile');
+            if (!res.ok) { if (res.status === 401) window.location.href = '/login'; return; }
+            var data = await res.json();
+            if (!data.success || !data.data) return;
+            var u = data.data;
+            var name = u.nama_lengkap || 'Admin';
+            document.getElementById('topUserName').textContent = name;
+            document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            var av = document.getElementById('topUserAvatar');
+            if (av) av.src = u.foto_profil ? '/static/uploads/profiles/' + u.foto_profil : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+          } catch (e) { console.error(e); }
+        }
+        async function handleLogout(e) {
+          if (e) e.preventDefault();
+          try { var r = await (await fetch('/api/auth/logout', { method: 'POST' })).json(); if (r.success) window.location.href = '/login'; }
+          catch (_) { window.location.href = '/login'; }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+          setupUserpill();
+          loadUserProfile();
+          var lo = document.getElementById('ds-logout-btn');
+          var lo2 = document.getElementById('ds-logout-btn-2');
+          if (lo) lo.addEventListener('click', handleLogout);
+          if (lo2) lo2.addEventListener('click', handleLogout);
+
+          loadSekolahOptions();
+          addTeacher(); // baris guru default 1 baris
+        });
+      })();
+    </script>
+  </body>
+</html>

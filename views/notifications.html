@@ -1,488 +1,534 @@
-<!doctype html>
-
-<html
-  lang="id"
-  class="layout-menu-fixed layout-compact"
-  data-assets-path="/static/sneat/assets/"
-  data-template="vertical-menu-template-free">
+﻿<!doctype html>
+<html lang="id">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Notifikasi - Psychee Wellness</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-    <meta name="description" content="" />
-
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
-      rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
-
-    <!-- Core CSS -->
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
-    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
 
-    <!-- Vendors CSS -->
-    <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-    <!-- Helpers -->
-    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
-    <script src="/static/sneat/assets/js/config.js"></script>
+    <style>
+      .nf-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: flex-start; }
+      .nf-wrap + .nf-wrap { margin-top: 4px; }
+      @media (max-width: 1100px) {
+        .nf-wrap { grid-template-columns: 1fr; }
+        .nf-wrap-header > div:last-child { display: none; }
+      }
 
+      .nf-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+      .nf-tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 9px 18px; background: #fff; border: 1px solid #ececf2;
+        border-radius: 999px; font-size: 13px; font-weight: 500; color: #4b5563;
+        cursor: pointer; transition: .15s;
+      }
+      .nf-tab .count {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px;
+        background: #f3f4f6; color: #6b7280; font-size: 11px; font-weight: 700;
+      }
+      .nf-tab.active { background: #f3efff; color: #7c4dff; border-color: #e5dbff; }
+      .nf-tab.active .count { background: #7c4dff; color: #fff; }
 
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      .nf-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom: 0; flex-wrap: wrap; gap: 12px; }
+      .nf-mark {
+        background: none; border: 0; color: #7c4dff; font-weight: 600; font-size: 13px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .nf-mark:hover { text-decoration: underline; }
+
+      /* Daftar notifikasi: dibungkus card scrollable */
+      .nf-listbox {
+        background: #fff; border: 1px solid #efeff5; border-radius: 22px;
+        padding: 14px; box-shadow: 0 1px 2px rgba(17,24,39,.03);
+      }
+      .nf-list {
+        display: flex; flex-direction: column; gap: 12px;
+        max-height: 620px; overflow-y: auto;
+        padding-right: 6px;
+      }
+      .nf-list::-webkit-scrollbar { width: 8px; }
+      .nf-list::-webkit-scrollbar-track { background: transparent; }
+      .nf-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 999px; }
+      .nf-list::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+      .nf-list .nf-card { border-radius: 14px; padding: 14px 16px; }
+      .nf-card {
+        background: #fff; border: 1px solid #efeff5; border-radius: 18px;
+        padding: 18px 20px; display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; transition: .15s;
+      }
+      .nf-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.05); }
+      .nf-card.read { opacity: .8; }
+      .nf-left { display: flex; gap: 14px; align-items: flex-start; min-width: 0; flex: 1; }
+      .nf-icon {
+        width: 44px; height: 44px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; flex-shrink: 0;
+      }
+      .nf-icon i { width: 20px; height: 20px; }
+      .nf-icon.green { background: #22c55e; }
+      .nf-icon.blue { background: #3b82f6; }
+      .nf-icon.orange { background: #f59e0b; }
+      .nf-icon.purple { background: #8b5cf6; }
+      .nf-icon.pink { background: #ec4899; }
+      .nf-icon.cyan { background: #06b6d4; }
+      .nf-icon.red { background: #ef4444; }
+      .nf-icon.gray { background: #6b7280; }
+
+      .nf-info h4 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #111827; }
+      .nf-info p { margin: 0; color: #8b8b95; font-size: 13px; line-height: 1.4; }
+      .nf-right { display: flex; align-items: center; gap: 12px; color: #8b8b95; font-size: 13px; flex-shrink: 0; }
+      .nf-dot { width: 9px; height: 9px; background: #7c4dff; border-radius: 50%; }
+      .nf-card.read .nf-dot { background: #d1d5db; }
+
+      .nf-empty {
+        background: #fff; border: 1px dashed #e5e7eb; border-radius: 18px;
+        padding: 40px 20px; text-align: center; color: #8b8b95;
+      }
+      .nf-empty i { width: 36px; height: 36px; color: #c4b5fd; margin-bottom: 8px; }
+
+      /* Right sidebar panel */
+      .nf-panel { background: #fff; border: 1px solid #efeff5; border-radius: 22px; padding: 24px; }
+      .nf-panel + .nf-panel { margin-top: 18px; }
+      .nf-panel h3 { font-size: 16px; font-weight: 700; color: #111827; margin: 0 0 16px; }
+      .nf-filters { display: flex; flex-direction: column; gap: 14px; }
+      .nf-filter {
+        display: flex; align-items: center; justify-content: space-between;
+        color: #6b7280; font-size: 14px; cursor: pointer;
+        padding: 8px 10px; margin: -8px -10px; border-radius: 10px; transition: .15s;
+      }
+      .nf-filter:hover { background: #f9fafb; }
+      .nf-filter.active { color: #7c4dff; background: #f3efff; font-weight: 600; }
+      .nf-filter .label { display: inline-flex; align-items: center; gap: 10px; }
+      .nf-filter .label i { width: 16px; height: 16px; }
+    </style>
   </head>
 
   <body>
-    <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        <!-- Menu -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <div class="app-brand demo">
-            <a href="/dashboard" class="app-brand-link">
-              <span class="app-brand-logo demo">
-                <img src="/static/icons/icon_psikologi_kanagata.png" alt="Psychee Wellness" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
-              </span>
-              <span class="app-brand-text demo menu-text fw-bold ms-2">Psychee Wellness</span>
-            </a>
-
-            <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-              <i class="bx bx-chevron-left d-block d-xl-none align-middle"></i>
-            </a>
+    <div class="ds-shell">
+      <!-- ============== SIDEBAR ============== -->
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
           </div>
-
-          <div class="menu-divider mt-0"></div>
-          <div class="menu-inner-shadow"></div>
-
-          <ul class="menu-inner py-1">
-            <!-- Dashboard -->
-            <li class="menu-item">
-              <a href="/dashboard" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-home-smile"></i>
-                <div class="text-truncate">Dashboard</div>
-              </a>
-            </li>
-
-            <!-- Layanan -->
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Layanan</span>
-            </li>
-            <li class="menu-item">
-              <a href="/test" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-clipboard"></i>
-                <div class="text-truncate">Tes Psikologi</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-chat"></i>
-                <div class="text-truncate">Konseling</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-history"></i>
-                <div class="text-truncate">Riwayat</div>
-              </a>
-            </li>
-            
-            <!-- Akun -->
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text">Akun</span>
-            </li>
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">Profil</div>
-              </a>
-              <ul class="menu-sub">
-                <li class="menu-item">
-                  <a href="/profile" class="menu-link"><div class="text-truncate">Data Profil</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/ist" class="menu-link"><div class="text-truncate">Hasil IST</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/holland" class="menu-link"><div class="text-truncate">Hasil Holland</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/learning-style" class="menu-link"><div class="text-truncate">Hasil Gaya Belajar (VAK)</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/kraepelin" class="menu-link"><div class="text-truncate">Hasil Kraepelin</div></a>
-                </li>
-                <li class="menu-item">
-                  <a href="/profile/rmib" class="menu-link"><div class="text-truncate">Hasil RMIB</div></a>
-                </li>
-              </ul>
-            </li>
-            <li class="menu-item">
-              <a href="/settings" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-cog"></i>
-                <div class="text-truncate">Pengaturan</div>
-              </a>
-            </li>
-            <li class="menu-item active">
-              <a href="/notifications" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-bell"></i>
-                <div class="text-truncate">Notifikasi</div>
-              </a>
-            </li>
-            <li class="menu-item d-none" id="menuAdminPsychotest">
-              <a href="/admin/psychotest" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-spreadsheet"></i>
-                <div class="text-truncate">Admin Psychotest</div>
-              </a>
-            </li>
-          </ul>
-        </aside>
-        <!-- / Menu -->
-
-        <!-- Layout container -->
-        <div class="layout-page">
-          <!-- Navbar -->
-          <nav
-            class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
-            id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
-                <i class="icon-base bx bx-menu icon-md"></i>
-              </a>
-            </div>
-
-            <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
-              <!-- Search -->
-              <div class="navbar-nav align-items-center me-auto">
-                <div class="nav-item d-flex align-items-center">
-                  <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span>
-                  <input
-                    type="text"
-                    class="form-control border-0 shadow-none ps-1 ps-sm-2 d-md-block d-none"
-                    placeholder="Cari..."
-                    aria-label="Cari..." />
-                </div>
-              </div>
-              <!-- /Search -->
-
-              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-                <!-- User -->
-                <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                  <a
-                    class="nav-link dropdown-toggle hide-arrow p-0"
-                    href="javascript:void(0);"
-                    data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="navbarAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
-                    </div>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="/static/icons/icon_psikologi_kanagata.png" alt class="rounded-circle" id="dropdownAvatar" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <h6 class="mb-0" id="dropdownName">Pengguna</h6>
-                            <small class="text-body-secondary" id="dropdownEmail">Member</small>
-                          </div>
-                        </div>
-                      </a>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="/profile">
-                        <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil Saya</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="/settings">
-                        <i class="icon-base bx bx-cog icon-md me-3"></i><span>Pengaturan</span>
-                      </a>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="javascript:void(0);" onclick="handleLogout()">
-                        <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-                <!--/ User -->
-              </ul>
-            </div>
-          </nav>
-          <!-- / Navbar -->
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <!-- Content -->
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <div class="row">
-                <div class="col-12">
-                  <!-- Since you've been gone -->
-                  <div class="card mb-4">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center mb-3">
-                        <i class="icon-base bx bx-megaphone icon-md me-2"></i>
-                        <h4 class="mb-0 fw-bold">Sejak Anda Terakhir Masuk</h4>
-                      </div>
-                      <p class="text-muted mb-0">Fitur baru, perbaikan bug, dan konten yang mungkin Anda lewatkan.</p>
-                    </div>
-                  </div>
-
-                  <!-- Notifications List -->
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0">Notifikasi</h5>
-                        <button class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">
-                          Tandai Semua Sudah Dibaca
-                        </button>
-                      </div>
-                      <div id="notificationsList" style="max-height: 600px; overflow-y: auto;">
-                        <!-- Notifications will be loaded here -->
-                        <div class="text-center py-5">
-                          <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Memuat...</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- / Content -->
-            <div class="content-backdrop fade"></div>
-          </div>
-          <!-- Content wrapper -->
         </div>
-        <!-- / Layout page -->
-      </div>
 
-      <!-- Overlay -->
-      <div class="layout-overlay layout-menu-toggle"></div>
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/notifications" class="active"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+
+        <div class="ds-side-card">
+          <div class="label">Kelas</div>
+          <div class="value" id="sbKelasValue">-</div>
+        </div>
+        <div class="ds-side-card" style="margin-top: 0;">
+          <div class="label">Jurusan</div>
+          <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+        </div>
+
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+
+      <!-- ============== MAIN ============== -->
+      <main class="ds-main">
+        <!-- Topbar (sama dengan dashboard) -->
+        <header class="ds-topbar">
+          <div class="ds-title">
+            <h1>Notifikasi</h1>
+            <p>Tetap update dengan hal-hal yang terjadi pada akun Anda.</p>
+          </div>
+          <div class="ds-search">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" id="nfSearch" placeholder="Cari notifikasi&hellip;" />
+            <span class="kbd">&#x2318;K</span>
+          </div>
+          <a href="/notifications" class="ds-bell"><i data-lucide="bell"></i><span class="badge" id="nfBellBadge">0</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Siswa&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta">
+                <div class="name" id="topUserName">Siswa</div>
+                <div class="role" id="topUserRole">Siswa</div>
+              </div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+        <!-- Header row (tabs + toolbar) -->
+        <section class="nf-wrap nf-wrap-header">
+          <div>
+            <div class="nf-tabs" id="nfTabs">
+              <button class="nf-tab active" data-filter="all">All <span class="count" id="cntAll">0</span></button>
+              <button class="nf-tab" data-filter="unread">Belum Dibaca <span class="count" id="cntUnread">0</span></button>
+              <button class="nf-tab" data-filter="activity">Aktivitas <span class="count" id="cntActivity">0</span></button>
+              <button class="nf-tab" data-filter="system">Sistem <span class="count" id="cntSystem">0</span></button>
+            </div>
+
+            <div class="nf-toolbar">
+              <div style="font-size: 13px; color: #6b7280;" id="nfMeta">Memuat notifikasi&hellip;</div>
+              <button type="button" class="nf-mark" id="nfMarkAll">
+                <i data-lucide="check-check" style="width:14px;height:14px;"></i> Tandai semua sebagai dibaca
+              </button>
+            </div>
+          </div>
+          <div aria-hidden="true"></div>
+        </section>
+
+        <!-- Konten utama (kiri: list, kanan: ringkasan + pengaturan cepat) -->
+        <section class="nf-wrap">
+          <div class="nf-listbox">
+            <div class="nf-list" id="nfList"></div>
+          </div>
+
+          <aside>
+            <div class="nf-panel">
+              <h3>Ringkasan Notifikasi</h3>
+              <div class="nf-filters" id="nfFilters">
+                <div class="nf-filter active" data-filter="all">
+                  <span class="label"><i data-lucide="bell"></i> Semua Notifikasi</span>
+                  <span class="val" id="sumAll">0</span>
+                </div>
+                <div class="nf-filter" data-filter="unread">
+                  <span class="label"><i data-lucide="mail"></i> Belum Dibaca</span>
+                  <span class="val" id="sumUnread">0</span>
+                </div>
+                <div class="nf-filter" data-filter="activity">
+                  <span class="label"><i data-lucide="activity"></i> Aktivitas</span>
+                  <span class="val" id="sumActivity">0</span>
+                </div>
+                <div class="nf-filter" data-filter="system">
+                  <span class="label"><i data-lucide="settings-2"></i> Sistem</span>
+                  <span class="val" id="sumSystem">0</span>
+                </div>
+                <div class="nf-filter" data-filter="new_for_you">
+                  <span class="label"><i data-lucide="sparkles"></i> Baru untuk Anda</span>
+                  <span class="val" id="sumNew">0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-panel">
+              <h3>Pengaturan Cepat</h3>
+              <div style="font-size: 13px; color: #6b7280; margin-bottom: 14px;">
+                Atur kanal email, browser, dan WhatsApp yang Anda gunakan.
+              </div>
+              <a href="/settings/notifications" class="nf-mark" style="text-decoration:none;">
+                <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i> Buka Pengaturan Notifikasi
+              </a>
+            </div>
+          </aside>
+        </section>
+      </main>
     </div>
-    <!-- / Layout wrapper -->
 
-    <!-- Core JS -->
-    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
-    <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/static/sneat/assets/vendor/js/menu.js"></script>
-    <script src="/static/sneat/assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Page JS -->
     <script>
-      // Load user profile data
+      // ===== Profile (avatar / nama) =====
       async function loadUserProfile() {
         try {
-          const response = await fetch('/api/profile');
-          if (!response.ok) {
-            if (response.status === 401) {
-              window.location.href = '/login';
-              return;
-            }
+          const res = await fetch('/api/profile');
+          if (!res.ok) {
+            if (res.status === 401) { window.location.href = '/login'; return; }
             return;
           }
-          const data = await response.json();
-          if (data.success && data.data) {
-            const user = data.data;
-            
-            // Tampilkan menu admin psychotest bila role admin
-            if (user.role === 'admin') {
-              const adminMenu = document.getElementById('menuAdminPsychotest');
-              if (adminMenu) adminMenu.classList.remove('d-none');
-            }
+          const data = await res.json();
+          if (!data.success || !data.data) return;
+          const u = data.data;
+          const name = u.nama_lengkap || 'Siswa';
+          document.getElementById('topUserName').textContent = name;
+          document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+          const av = document.getElementById('topUserAvatar');
+          av.src = u.foto_profil
+            ? '/static/uploads/profiles/' + u.foto_profil
+            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+          const k = document.getElementById('sbKelasValue'); if (k) k.textContent = u.kelas || '-';
+          const j = document.getElementById('sbJurusanValue'); if (j) j.textContent = u.jurusan || '-';
+        } catch (e) { console.error(e); }
+      }
 
-            // Update avatar
-            if (user.foto_profil) {
-              const avatarUrl = '/static/uploads/profiles/' + user.foto_profil;
-              document.getElementById('navbarAvatar').src = avatarUrl;
-              document.getElementById('dropdownAvatar').src = avatarUrl;
-            }
-            
-            // Update dropdown info
-            document.getElementById('dropdownName').textContent = user.nama_lengkap || 'Pengguna';
-            document.getElementById('dropdownEmail').textContent = user.email || 'Member';
-          }
-        } catch (error) {
-          console.error('Error loading profile:', error);
+      // ===== Notifications =====
+      let allNotifs = [];
+      let currentFilter = 'all';
+
+      const TYPE_META = {
+        new_for_you:    { cls: 'purple', icon: 'sparkles' },
+        activity:       { cls: 'blue',   icon: 'activity' },
+        browser_login:  { cls: 'orange', icon: 'log-in' },
+        device_link:    { cls: 'cyan',   icon: 'smartphone' },
+        success:        { cls: 'green',  icon: 'check' },
+        warning:        { cls: 'orange', icon: 'alert-triangle' },
+        error:          { cls: 'red',    icon: 'alert-octagon' },
+        system:         { cls: 'gray',   icon: 'settings-2' },
+      };
+
+      // Pemetaan ikon berbasis judul untuk event yang lebih spesifik
+      // (mis. "Tes ... Selesai", "Profil Diperbarui", "Kode Undangan").
+      function metaForNotif(n) {
+        const title = (n.title || '').toLowerCase();
+        if (/(tes|test).*(selesai|completed|finished)/.test(title) || /selesai mengerjakan/.test(title)) {
+          return { cls: 'green', icon: 'badge-check' };
         }
+        if (/profil.*(diperbarui|updated|berhasil)/.test(title) || /edit profil/.test(title)) {
+          return { cls: 'blue', icon: 'user-pen' };
+        }
+        if (/(kode|token|undangan).*(dikirim|sent|baru)/.test(title) || /undangan tes/.test(title)) {
+          return { cls: 'pink', icon: 'mail' };
+        }
+        if (/login.*berhasil|login successful/.test(title)) {
+          return { cls: 'purple', icon: 'log-in' };
+        }
+        if (/browser baru|new browser/.test(title)) {
+          return { cls: 'orange', icon: 'globe' };
+        }
+        if (/perangkat baru|new device/.test(title)) {
+          return { cls: 'cyan', icon: 'smartphone' };
+        }
+        return TYPE_META[n.type] || TYPE_META.system;
+      }
+      const SYSTEM_TYPES = new Set(['browser_login', 'device_link', 'system', 'warning', 'error']);
+      const ACTIVITY_TYPES = new Set(['activity', 'success']);
+
+      function timeAgo(iso) {
+        const t = new Date(iso).getTime();
+        if (!t) return '';
+        const diff = Math.max(0, Date.now() - t) / 1000;
+        if (diff < 60) return Math.floor(diff) + ' detik lalu';
+        if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
+        if (diff < 604800) return Math.floor(diff / 86400) + ' hari lalu';
+        return new Date(iso).toLocaleDateString('id-ID');
       }
 
-      // Get notification type label
-      function getNotificationTypeLabel(type) {
-        const labels = {
-          'new_for_you': 'Baru untuk Anda',
-          'activity': 'Aktivitas Akun',
-          'browser_login': 'Browser Login',
-          'device_link': 'Perangkat Baru'
-        };
-        return labels[type] || type;
+      function applyFilter(list, filter) {
+        if (filter === 'all') return list;
+        if (filter === 'unread') return list.filter(n => !n.is_read);
+        if (filter === 'activity') return list.filter(n => ACTIVITY_TYPES.has(n.type));
+        if (filter === 'system') return list.filter(n => SYSTEM_TYPES.has(n.type));
+        return list.filter(n => n.type === filter);
       }
 
-      // Get notification type badge color
-      function getNotificationTypeBadge(type) {
-        const badges = {
-          'new_for_you': 'bg-success',
-          'activity': 'bg-info',
-          'browser_login': 'bg-warning',
-          'device_link': 'bg-danger'
-        };
-        return badges[type] || 'bg-secondary';
-      }
-
-      // Format date
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
-      }
-
-      // Load notifications
-      async function loadNotifications() {
-        try {
-          const response = await fetch('/api/notifications');
-          if (!response.ok) {
-            if (response.status === 401) {
-              window.location.href = '/login';
-              return;
-            }
-            throw new Error('Gagal memuat notifikasi');
-          }
-          const data = await response.json();
-          const notificationsList = document.getElementById('notificationsList');
-          
-          if (data.success && data.data && data.data.length > 0) {
-            notificationsList.innerHTML = '';
-            data.data.forEach(notif => {
-              const card = document.createElement('div');
-              card.className = `card mb-3 ${notif.is_read ? '' : 'border-primary'}`;
-              card.style.cursor = 'pointer';
-              card.onclick = () => markAsRead(notif.id);
-              
-              card.innerHTML = `
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                      <div class="d-flex align-items-center mb-2">
-                        <h6 class="mb-0 me-2">${notif.title}</h6>
-                        <span class="badge ${getNotificationTypeBadge(notif.type)} text-white">${getNotificationTypeLabel(notif.type)}</span>
-                      </div>
-                      <p class="text-muted mb-2">${notif.message}</p>
-                      <small class="text-muted">${formatDate(notif.created_at)}</small>
-                    </div>
-                    ${!notif.is_read ? '<span class="badge bg-primary rounded-pill">Baru</span>' : ''}
+      function renderList() {
+        const list = applyFilter(allNotifs, currentFilter);
+        const target = document.getElementById('nfList');
+        const meta = document.getElementById('nfMeta');
+        if (!list.length) {
+          target.innerHTML = '<div class="nf-empty"><i data-lucide="bell-off"></i><div>Belum ada notifikasi pada kategori ini.</div></div>';
+          meta.textContent = '0 notifikasi';
+        } else {
+          target.innerHTML = list.map(n => {
+            const m = metaForNotif(n);
+            return `
+              <article class="nf-card ${n.is_read ? 'read' : ''}" data-id="${n.id}">
+                <div class="nf-left">
+                  <div class="nf-icon ${m.cls}"><i data-lucide="${m.icon}"></i></div>
+                  <div class="nf-info">
+                    <h4>${escapeHtml(n.title || '(tanpa judul)')}</h4>
+                    <p>${escapeHtml(n.message || '')}</p>
                   </div>
                 </div>
-              `;
-              notificationsList.appendChild(card);
-            });
-          } else {
-            notificationsList.innerHTML = `
-              <div class="text-center py-5">
-                <i class="icon-base bx bx-bell-off icon-xl text-muted mb-3"></i>
-                <p class="text-muted">Tidak ada notifikasi</p>
-              </div>
-            `;
-          }
-        } catch (error) {
-          console.error('Error loading notifications:', error);
-          document.getElementById('notificationsList').innerHTML = `
-            <div class="alert alert-danger">
-              <i class="icon-base bx bx-error-circle me-2"></i>
-              Gagal memuat notifikasi. Silakan refresh halaman.
-            </div>
-          `;
+                <div class="nf-right">
+                  <span>${timeAgo(n.created_at)}</span>
+                  <div class="nf-dot"></div>
+                </div>
+              </article>`;
+          }).join('');
+          meta.textContent = list.length + ' notifikasi';
         }
+        if (window.lucide) lucide.createIcons();
+        // bind click to mark as read
+        target.querySelectorAll('.nf-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = parseInt(card.getAttribute('data-id'), 10);
+            const it = allNotifs.find(x => x.id === id);
+            if (it && !it.is_read) markRead(id);
+          });
+        });
       }
 
-      // Mark notification as read
-      async function markAsRead(notificationId) {
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      function updateCounts() {
+        const total = allNotifs.length;
+        const unread = allNotifs.filter(n => !n.is_read).length;
+        const activity = allNotifs.filter(n => ACTIVITY_TYPES.has(n.type)).length;
+        const system = allNotifs.filter(n => SYSTEM_TYPES.has(n.type)).length;
+        const newFor = allNotifs.filter(n => n.type === 'new_for_you').length;
+        const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        setText('cntAll', total); setText('cntUnread', unread);
+        setText('cntActivity', activity); setText('cntSystem', system);
+        setText('sumAll', total); setText('sumUnread', unread);
+        setText('sumActivity', activity); setText('sumSystem', system); setText('sumNew', newFor);
+        const bell = document.getElementById('nfBellBadge');
+        if (bell) bell.textContent = unread;
+      }
+
+      function setActiveFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('#nfTabs .nf-tab').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+        document.querySelectorAll('#nfFilters .nf-filter').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+        renderList();
+      }
+
+      async function loadNotifications() {
         try {
-          const response = await fetch(`/api/notifications/${notificationId}/read`, {
-            method: 'PUT'
-          });
-          if (response.ok) {
-            loadNotifications();
+          const res = await fetch('/api/notifications');
+          if (!res.ok) {
+            if (res.status === 401) { window.location.href = '/login'; return; }
+            throw new Error('Gagal memuat notifikasi');
           }
-        } catch (error) {
-          console.error('Error marking notification as read:', error);
+          const data = await res.json();
+          allNotifs = (data && data.success && Array.isArray(data.data)) ? data.data : [];
+          updateCounts();
+          renderList();
+        } catch (e) {
+          console.error(e);
+          document.getElementById('nfList').innerHTML =
+            '<div class="nf-empty"><i data-lucide="bell-off"></i><div>Gagal memuat notifikasi.</div></div>';
+          if (window.lucide) lucide.createIcons();
         }
       }
 
-      // Mark all as read
-      async function markAllAsRead() {
+      async function markRead(id) {
         try {
-          const response = await fetch('/api/notifications/read-all', {
-            method: 'PUT'
-          });
-          if (response.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Berhasil',
-              text: 'Semua notifikasi ditandai sebagai sudah dibaca',
-              timer: 2000,
-              showConfirmButton: false
-            });
-            loadNotifications();
+          const res = await fetch('/api/notifications/' + id + '/read', { method: 'PUT' });
+          const r = await res.json();
+          if (r.success) {
+            const it = allNotifs.find(x => x.id === id);
+            if (it) it.is_read = true;
+            updateCounts(); renderList();
           }
-        } catch (error) {
-          console.error('Error marking all as read:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Gagal memperbarui notifikasi'
-          });
-        }
+        } catch (e) { console.error(e); }
       }
 
-      // Handle logout
-      async function handleLogout() {
+      async function markAll() {
         try {
-          const response = await fetch('/api/auth/logout', {
-            method: 'POST'
-          });
-          const result = await response.json();
-          if (result.success) {
-            window.location.href = '/login';
+          const res = await fetch('/api/notifications/read-all', { method: 'PUT' });
+          const r = await res.json();
+          if (r.success) {
+            allNotifs.forEach(n => n.is_read = true);
+            updateCounts(); renderList();
+            Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Semua notifikasi ditandai dibaca', timer: 1400, showConfirmButton: false });
           }
-        } catch (error) {
-          console.error('Error logging out:', error);
-          window.location.href = '/login';
-        }
+        } catch (e) { console.error(e); }
       }
 
-      // Load data on page load
-      document.addEventListener('DOMContentLoaded', function() {
+      // ===== Userpill dropdown =====
+      function setupUserpill() {
+        const btn = document.getElementById('ds-userpill-btn');
+        const menu = document.getElementById('ds-userpill-menu');
+        if (!btn || !menu) return;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const open = !menu.hasAttribute('hidden');
+          if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+          btn.setAttribute('aria-expanded', String(!open));
+        });
+        document.addEventListener('click', e => {
+          if (!menu.contains(e.target) && e.target !== btn) {
+            menu.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      async function handleLogout(e) {
+        if (e) e.preventDefault();
+        try {
+          const res = await fetch('/api/auth/logout', { method: 'POST' });
+          const r = await res.json();
+          if (r.success) window.location.href = '/login';
+        } catch (_) { window.location.href = '/login'; }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
         loadUserProfile();
         loadNotifications();
-        
-        // Auto-refresh notifications every 30 seconds
-        setInterval(loadNotifications, 30000);
+        setupUserpill();
+        document.querySelectorAll('#nfTabs .nf-tab').forEach(b => b.addEventListener('click', () => setActiveFilter(b.dataset.filter)));
+        document.querySelectorAll('#nfFilters .nf-filter').forEach(b => b.addEventListener('click', () => setActiveFilter(b.dataset.filter)));
+        document.getElementById('nfMarkAll').addEventListener('click', markAll);
+        const lo = document.getElementById('ds-logout-btn');
+        const lo2 = document.getElementById('ds-logout-btn-2');
+        if (lo) lo.addEventListener('click', handleLogout);
+        if (lo2) lo2.addEventListener('click', handleLogout);
+
+        // Filter realtime by search input
+        const search = document.getElementById('nfSearch');
+        if (search) {
+          search.addEventListener('input', () => {
+            const q = search.value.trim().toLowerCase();
+            if (!q) { renderList(); return; }
+            const list = applyFilter(allNotifs, currentFilter)
+              .filter(n => (n.title || '').toLowerCase().includes(q) || (n.message || '').toLowerCase().includes(q));
+            const target = document.getElementById('nfList');
+            if (!list.length) {
+              target.innerHTML = '<div class="nf-empty"><i data-lucide="search-x"></i><div>Tidak ada notifikasi cocok dengan pencarian.</div></div>';
+            } else {
+              target.innerHTML = list.map(n => {
+                const m = metaForNotif(n);
+                return `<article class="nf-card ${n.is_read ? 'read' : ''}" data-id="${n.id}">
+                  <div class="nf-left">
+                    <div class="nf-icon ${m.cls}"><i data-lucide="${m.icon}"></i></div>
+                    <div class="nf-info"><h4>${escapeHtml(n.title || '')}</h4><p>${escapeHtml(n.message || '')}</p></div>
+                  </div>
+                  <div class="nf-right"><span>${timeAgo(n.created_at)}</span><div class="nf-dot"></div></div>
+                </article>`;
+              }).join('');
+            }
+            if (window.lucide) lucide.createIcons();
+          });
+        }
       });
     </script>
+    <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>

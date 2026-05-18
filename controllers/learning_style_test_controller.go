@@ -9,6 +9,7 @@ import (
 
 	"psikologi_apps/models"
 	"psikologi_apps/seeds"
+	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
@@ -434,15 +435,21 @@ func (c *LearningStyleTestController) SubmitAnswersAPI() {
 	)
 
 	// Mark invitation used
+	justCompleted := false
 	if inv.Status != models.StatusInvitationUsed {
 		inv.Status = models.StatusInvitationUsed
 		inv.UsedAt = time.Now()
 		_, _ = tx.Update(inv, "Status", "UsedAt")
+		justCompleted = true
 	}
 
 	if err := tx.Commit(); err != nil {
 		rollback(500, "Gagal menyimpan jawaban")
 		return
+	}
+
+	if justCompleted {
+		go utils.SendTestCompletionNotification(inv.UserId, "Gaya Belajar")
 	}
 
 	c.Data["json"] = map[string]interface{}{

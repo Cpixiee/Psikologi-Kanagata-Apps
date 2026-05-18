@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"psikologi_apps/models"
+	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
@@ -729,6 +730,7 @@ func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *mode
 		inv.Status = models.StatusInvitationUsed
 		inv.UsedAt = time.Now()
 		_, _ = o.Update(inv, "Status", "UsedAt")
+		go utils.SendTestCompletionNotification(inv.UserId, "RMIB")
 	}
 
 	return nil

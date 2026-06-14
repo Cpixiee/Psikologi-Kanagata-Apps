@@ -134,43 +134,10 @@ func (c *PsychotestClientController) StartTest() {
 		return
 	}
 
-	// Jika undangan sudah dipakai (status used) dan hasil IST sudah ada,
-	// gunakan token sebagai "kartu akses" untuk melihat kembali hasil.
+	// Jika undangan sudah dipakai (status used), redirect to hasil-tes page.
 	if inv.Status == models.StatusInvitationUsed {
-		var istRes models.ISTResult
-		if err := o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&istRes); err == nil && istRes.Id != 0 {
-			c.SetSession("current_invitation_id", inv.Id)
-			c.SetSession("current_batch_id", inv.BatchId)
-			c.Redirect("/test/ist/result", 302)
-			return
-		}
-
-		// Learning style fallback: jika hasil VAK ada, arahkan ke finish.
-		var vakRes models.LearningStyleResult
-		if err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&vakRes); err == nil && vakRes.Id != 0 {
-			c.SetSession("current_invitation_id", inv.Id)
-			c.SetSession("current_batch_id", inv.BatchId)
-			c.Redirect("/profile/learning-style", 302)
-			return
-		}
-
-		// Holland fallback: jika hasil Holland ada, arahkan ke profile.
-		var holRes models.HollandResult
-		if err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&holRes); err == nil && holRes.Id != 0 {
-			c.SetSession("current_invitation_id", inv.Id)
-			c.SetSession("current_batch_id", inv.BatchId)
-			c.Redirect("/profile/holland", 302)
-			return
-		}
-
-		// PAPI fallback: jika hasil PAPI ada, arahkan ke profile.
-		var papiRes models.PAPIResult
-		if err := o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&papiRes); err == nil && papiRes.Id != 0 {
-			c.SetSession("current_invitation_id", inv.Id)
-			c.SetSession("current_batch_id", inv.BatchId)
-			c.Redirect("/profile/papi", 302)
-			return
-		}
+		c.Redirect("/hasil-tes", 302)
+		return
 	}
 
 	// Hanya status pending yang boleh memulai tes baru
@@ -185,7 +152,6 @@ func (c *PsychotestClientController) StartTest() {
 	c.SetSession("current_batch_id", inv.BatchId)
 
 	// Setelah token valid, arahkan ke alur test sesuai konfigurasi batch.
-	// Batch harus memilih SATU jenis tes (tidak ada prioritas/default).
 	var batch models.TestBatch
 	if inv.BatchId != nil {
 		batch.Id = *inv.BatchId
@@ -195,31 +161,90 @@ func (c *PsychotestClientController) StartTest() {
 			return
 		}
 	}
-	if batch.EnableIST {
-		c.Redirect("/test/ist/start", 302)
+
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		c.Redirect(nextURL, 302)
 		return
 	}
-	if batch.EnableHolland {
-		c.Redirect("/test/holland/start", 302)
-		return
+
+	// If all are completed, mark invitation status as used
+	if inv.Status != models.StatusInvitationUsed {
+		inv.Status = models.StatusInvitationUsed
+		inv.UsedAt = time.Now()
+		_, _ = o.Update(&inv, "Status", "UsedAt")
 	}
-	if batch.EnableLearningStyle {
-		c.Redirect("/test/learning-style/start", 302)
-		return
+	c.Redirect("/hasil-tes", 302)
+}
+
+// GetNextTestRedirect determines which test is incomplete and returns its start URL
+func GetNextTestRedirect(invID int, batch *models.TestBatch) string {
+	if batch == nil {
+		return ""
 	}
-	if batch.EnableKraepelin {
-		c.Redirect("/test/kraepelin/start", 302)
-		return
+
+	var order []string
+	if strings.TrimSpace(batch.TestOrder) != "" {
+		order = strings.Split(batch.TestOrder, ",")
+	} else {
+		// Fallback: build default order from active boolean flags
+		if batch.EnableIST {
+			order = append(order, "ist")
+		}
+		if batch.EnableHolland {
+			order = append(order, "holland")
+		}
+		if batch.EnableLearningStyle {
+			order = append(order, "learning_style")
+		}
+		if batch.EnableKraepelin {
+			order = append(order, "kraepelin")
+		}
+		if batch.EnableRMIB {
+			order = append(order, "rmib")
+		}
+		if batch.EnablePAPI {
+			order = append(order, "papi")
+		}
 	}
-	if batch.EnableRMIB {
-		c.Redirect("/test/rmib/start", 302)
-		return
+
+	o := orm.NewOrm()
+	for _, test := range order {
+		test = strings.TrimSpace(strings.ToLower(test))
+		switch test {
+		case "ist":
+			var r models.ISTResult
+			if err := o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
+				return "/test/ist/start"
+			}
+		case "holland":
+			var r models.HollandResult
+			if err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
+				return "/test/holland/start"
+			}
+		case "learning_style", "learningstyle", "vak":
+			var r models.LearningStyleResult
+			if err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
+				return "/test/learning-style/start"
+			}
+		case "kraepelin":
+			var r models.KraepelinAttempt
+			if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", invID).Filter("Status", "finished").One(&r); err != nil || r.Id == 0 {
+				return "/test/kraepelin/start"
+			}
+		case "rmib":
+			var r models.RMIBResult
+			if err := o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
+				return "/test/rmib/start"
+			}
+		case "papi":
+			var r models.PAPIResult
+			if err := o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
+				return "/test/papi/start"
+			}
+		}
 	}
-	if batch.EnablePAPI {
-		c.Redirect("/test/papi/start", 302)
-		return
-	}
-	c.Data["Error"] = "Batch tes belum dikonfigurasi (pilih jenis tes). Silakan hubungi admin."
-	c.TplName = "test_token.html"
+
+	return ""
 }
 

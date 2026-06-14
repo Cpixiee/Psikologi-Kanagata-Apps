@@ -61,7 +61,7 @@ func init() {
 		path := ctx.Request.URL.Path
 
 		// Allow static assets without auth
-		if strings.HasPrefix(path, "/static/") {
+		if strings.HasPrefix(path, "/static/") || strings.HasPrefix(path, "/.well-known/") {
 			return
 		}
 
@@ -114,6 +114,8 @@ func init() {
 		}
 	})
 
+	beego.SetStaticPath("/.well-known", "static/.well-known")
+
 	// Page routes
 	beego.Router("/", &controllers.PageController{}, "get:HomePage")
 	beego.Router("/home", &controllers.PageController{}, "get:HomePage")
@@ -127,6 +129,9 @@ func init() {
 	beego.Router("/privacy", &controllers.PageController{}, "get:PrivacyPage")
 	beego.Router("/terms", &controllers.PageController{}, "get:TermsPage")
 	beego.Router("/dashboard", &controllers.PageController{}, "get:DashboardPage")
+	beego.Router("/dashboard/students", &controllers.PageController{}, "get:SchoolStudentsPage")
+	beego.Router("/dashboard/batch/:id", &controllers.PageController{}, "get:DashboardBatchDetailPage")
+	beego.Router("/dashboard/batch/result/:id", &controllers.PageController{}, "get:StudentBatchResultPage")
 	beego.Router("/profile", &controllers.PageController{}, "get:ProfilePage")
 	beego.Router("/profile/edit", &controllers.PageController{}, "get:ProfileEditPage")
 	beego.Router("/hasil-tes", &controllers.PageController{}, "get:HasilTesPage")
@@ -142,6 +147,7 @@ func init() {
 	beego.Router("/profile/papi", &controllers.PageController{}, "get:ProfilePAPIPage")
 	beego.Router("/settings", &controllers.PageController{}, "get:SettingsPage")
 	beego.Router("/settings/notifications", &controllers.PageController{}, "get:NotificationSettingsPage")
+	beego.Router("/ai", &controllers.PageController{}, "get:AIPage")
 	// Admin psychotest dashboard (only for admin via filter)
 	beego.Router("/admin/psychotest", &controllers.PageController{}, "get:PsychotestAdminPage")
 	beego.Router("/admin/psychotest/batches", &controllers.PageController{}, "get:PsychotestAdminBatchesPage")
@@ -165,6 +171,7 @@ func init() {
 	beego.Router("/test/ist/result/excel", &controllers.ISTTestController{}, "get:ExportResultExcel")
 	beego.Router("/api/test/ist/subtest/:code", &controllers.ISTTestController{}, "post:SubmitSubtestAPI")
 	beego.Router("/api/test/ist/violation", &controllers.ISTTestController{}, "post:ReportViolationAPI")
+	beego.Router("/test/ist/dev-autofill", &controllers.ISTTestController{}, "post:DevAutoFill")
 
 	// Holland test flow (peserta)
 	beego.Router("/test/holland/start", &controllers.HollandTestController{}, "get:StartHollandPage")
@@ -222,6 +229,7 @@ func init() {
 	beego.Router("/api/auth/register", &controllers.AuthController{}, "post:Register")
 	beego.Router("/api/auth/login", &controllers.AuthController{}, "post:Login")
 	beego.Router("/api/auth/logout", &controllers.AuthController{}, "post:Logout")
+	beego.Router("/api/auth/exit-impersonate", &controllers.AuthController{}, "post:ExitImpersonate")
 	beego.Router("/api/auth/change-password", &controllers.AuthController{}, "post:ChangePassword")
 	beego.Router("/api/auth/captcha", &controllers.AuthController{}, "get:GetCaptcha")
 	beego.Router("/api/auth/captcha/:id", &controllers.AuthController{}, "get:CaptchaImage")
@@ -251,9 +259,15 @@ func init() {
 	// Settings routes
 	beego.Router("/api/settings", &controllers.SettingsController{}, "get:GetSettings;put:UpdateSettings")
 
+	// AI (Gemini) routes
+	beego.Router("/api/ai/test-summary", &controllers.AIController{}, "post:TestSummary")
+	beego.Router("/api/ai/batch-summary", &controllers.AIController{}, "post:BatchSummary")
+	beego.Router("/api/ai/student-combined-summary", &controllers.AIController{}, "post:StudentCombinedSummary")
+	beego.Router("/api/ai/chat", &controllers.AIController{}, "post:Chat")
+
 	// Psychotest admin APIs (manage batches, invitations & export)
 	beego.Router("/api/admin/test-batches", &controllers.PsychotestAdminController{}, "get:ListBatches;post:CreateBatch")
-	beego.Router("/api/admin/test-batches/:id", &controllers.PsychotestAdminController{}, "put:UpdateBatch;delete:DeleteBatch")
+	beego.Router("/api/admin/test-batches/:id", &controllers.PsychotestAdminController{}, "get:GetBatchDetail;put:UpdateBatch;delete:DeleteBatch")
 	beego.Router("/api/admin/test-batches/bulk", &controllers.PsychotestAdminController{}, "post:BulkBatches")
 	beego.Router("/api/admin/test-batches/:id/invitations", &controllers.PsychotestAdminController{}, "get:ListInvitations;post:CreateInvitations")
 	beego.Router("/api/admin/test-batches/:id/results", &controllers.PsychotestAdminController{}, "get:ListBatchResults")
@@ -261,8 +275,10 @@ func init() {
 	beego.Router("/api/admin/test-batches/:id/ranking/:test", &controllers.RankingController{}, "get:ExportRanking")
 	// Export jawaban untuk satu anak (berdasarkan invitation)
 	beego.Router("/api/admin/test-batches/:batchId/invitations/:invId/export", &controllers.PsychotestAdminController{}, "get:ExportInvitationAnswers")
+	beego.Router("/api/results/export-zip", &controllers.PsychotestAdminController{}, "get:ExportSingleResultZIP")
 	// Invitation CRUD & bulk actions
 	beego.Router("/api/admin/test-invitations/:id", &controllers.PsychotestAdminController{}, "put:UpdateInvitation;delete:DeleteInvitation")
+	beego.Router("/api/admin/test-invitations/:id/result", &controllers.PsychotestAdminController{}, "get:GetInvitationResult")
 	beego.Router("/api/admin/test-invitations/:id/send-code", &controllers.PsychotestAdminController{}, "post:SendCode")
 	beego.Router("/api/admin/test-invitations/bulk", &controllers.PsychotestAdminController{}, "post:BulkInvitations")
 	// Admin user search (suggestion email)
@@ -270,6 +286,10 @@ func init() {
 	// Admin: CRUD akun sekolah & daftar guru
 	beego.Router("/api/admin/schools", &controllers.AdminSchoolController{}, "get:List;post:Create")
 	beego.Router("/api/admin/schools/:id", &controllers.AdminSchoolController{}, "get:Detail;delete:Delete")
+	// Endpoint khusus akun sekolah: melihat daftar guru mereka sendiri
+	beego.Router("/api/schools/my-teachers", &controllers.AdminSchoolController{}, "get:MyTeachers")
+	beego.Router("/api/schools/students", &controllers.AdminSchoolController{}, "get:ListStudents")
+	beego.Router("/api/schools/access-student/:id", &controllers.AdminSchoolController{}, "post:AccessStudent")
 	
 	// Notification routes
 	beego.Router("/api/notifications", &controllers.NotificationController{}, "get:GetNotifications")

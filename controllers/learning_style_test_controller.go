@@ -434,13 +434,25 @@ func (c *LearningStyleTestController) SubmitAnswersAPI() {
 		"InterpretationVisual", "InterpretationAuditory", "InterpretationKinesthetic",
 	)
 
+	var finishRedirect = "/hasil-tes"
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = tx.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+
 	// Mark invitation used
 	justCompleted := false
-	if inv.Status != models.StatusInvitationUsed {
-		inv.Status = models.StatusInvitationUsed
-		inv.UsedAt = time.Now()
-		_, _ = tx.Update(inv, "Status", "UsedAt")
-		justCompleted = true
+	if nextURL != "" {
+		finishRedirect = nextURL
+	} else {
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = tx.Update(inv, "Status", "UsedAt")
+			justCompleted = true
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -454,7 +466,7 @@ func (c *LearningStyleTestController) SubmitAnswersAPI() {
 
 	c.Data["json"] = map[string]interface{}{
 		"success":         true,
-		"finish_redirect": "/profile/learning-style",
+		"finish_redirect": finishRedirect,
 	}
 	c.ServeJSON()
 }

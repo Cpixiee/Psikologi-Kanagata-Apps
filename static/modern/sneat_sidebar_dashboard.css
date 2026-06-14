@@ -98,7 +98,7 @@ html.layout-menu-fixed .layout-menu,
 .layout-menu .menu-item.active > .menu-link {
   background: var(--dssb-primary) !important;
   color: #fff !important;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25) !important;
+  box-shadow: none !important;
 }
 .layout-menu .menu-item.active > .menu-link .menu-icon { color: #fff !important; }
 
@@ -141,4 +141,4 @@ html.layout-menu-fixed .layout-menu,
 }
 
 /* ===== Pastikan main content tetap rapi ===== */
-.layout-page { background: #f4f6fb; }
+.layout-page { background: #ffffff; }

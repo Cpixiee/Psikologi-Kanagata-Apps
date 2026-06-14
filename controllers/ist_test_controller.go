@@ -697,6 +697,7 @@ func (c *ISTTestController) SubtestPage() {
 	c.Data["Invitation"] = inv
 	c.Data["User"] = user
 	c.Data["TimerMinutes"] = 20 // 20 menit per subtest (final)
+	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_ist_subtest.html"
 }
 
@@ -1092,11 +1093,24 @@ func (c *ISTTestController) SubmitSubtestAPI() {
 		logs.Info("Successfully updated IST result for invitation %d: IQ=%d, TotalSS=%d", inv.Id, res.IQ, res.TotalStandardScore)
 	}
 
-	if inv.Status != models.StatusInvitationUsed {
-		inv.Status = models.StatusInvitationUsed
-		inv.UsedAt = time.Now()
-		_, _ = o.Update(inv, "Status", "UsedAt")
-		go utils.SendTestCompletionNotification(inv.UserId, "IST")
+	var finishRedirect = "/hasil-tes"
+	if nextCode == "" {
+		var batch models.TestBatch
+		if inv.BatchId != nil {
+			batch.Id = *inv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(inv.Id, &batch)
+		if nextURL != "" {
+			finishRedirect = nextURL
+		} else {
+			if inv.Status != models.StatusInvitationUsed {
+				inv.Status = models.StatusInvitationUsed
+				inv.UsedAt = time.Now()
+				_, _ = o.Update(inv, "Status", "UsedAt")
+				go utils.SendTestCompletionNotification(inv.UserId, "IST")
+			}
+		}
 	}
 
 	c.Data["json"] = map[string]interface{}{
@@ -1105,7 +1119,257 @@ func (c *ISTTestController) SubmitSubtestAPI() {
 		"next_subtest":    nextCode,
 		"is_complete":     nextCode == "",
 		// Setelah selesai, arahkan peserta ke halaman profile untuk cek IQ.
-		"finish_redirect": "/profile",
+		"finish_redirect": finishRedirect,
+	}
+	c.ServeJSON()
+}
+
+// DEV ONLY: POST /test/ist/dev-autofill
+// Mengisi semua subtest IST secara acak lalu langsung finalize.
+// Hanya aktif jika RunMode = "dev".
+func (c *ISTTestController) DevAutoFill() {
+	if !strings.EqualFold(beego.BConfig.RunMode, "dev") {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Endpoint hanya tersedia di mode development"}
+		c.ServeJSON()
+		return
+	}
+
+	inv, user, ok := c.mustGetSessionInvitation()
+	if !ok {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Sesi tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+
+	// Pastikan user punya TanggalLahir, default 17 tahun lalu jika kosong
+	if user.TanggalLahir == nil {
+		dob := time.Now().AddDate(-17, 0, 0)
+		user.TanggalLahir = &dob
+		_, _ = o.Update(user, "TanggalLahir")
+	}
+
+	// Cari atau buat ISTResult
+	var res models.ISTResult
+	err := o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res)
+	if err != nil || res.Id == 0 {
+		res = models.ISTResult{
+			Invitation: inv,
+			User:       user,
+		}
+		_, ierr := o.Insert(&res)
+		if ierr != nil {
+			// Fallback raw insert
+			_ = o.Raw("INSERT INTO ist_results (invitation_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP) ON CONFLICT (invitation_id) DO NOTHING RETURNING id", inv.Id, user.Id).QueryRow(&res.Id)
+			_ = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res)
+		}
+	}
+
+	// Hapus jawaban lama
+	_, _ = o.QueryTable(new(models.ISTAnswer)).Filter("Invitation__Id", inv.Id).Delete()
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	options := []string{"A", "B", "C", "D", "E"}
+	
+	// GE correct answer keys map untuk simulasi skor
+	geKeys := map[int]struct {
+		s2 []string
+		s1 []string
+	}{
+		61: {s2: []string{"bunga", "kembang", "perdu"}, s1: []string{"tumbuh-tumbuhan", "tangkai", "harum"}},
+		62: {s2: []string{"alat indera", "indera", "panca indera"}, s1: []string{"organ", "alat tubuh"}},
+		63: {s2: []string{"hablur", "kristal", "zat arang"}, s1: []string{"berkilauan", "mengkilat", "bening"}},
+		64: {s2: []string{"musim"}, s1: []string{"cuaca"}},
+		65: {s2: []string{"pembawa berita", "alat perhubungan"}, s1: []string{"telekomunikasi", "perhubungan", "komunikasi"}},
+		66: {s2: []string{"alat optik", "optik"}, s1: []string{"lensa"}},
+		67: {s2: []string{"alat pencernaan"}, s1: []string{"jalan makanan", "perut", "isi perut", "pencernaan makanan"}},
+		68: {s2: []string{"jumlah/kuantitas", "jumlah", "kuantitas", "penyebut jumlah", "penyertaan jumlah"}, s1: []string{"mengukur", "ukuran"}},
+		69: {s2: []string{"bibit/bakal/embrio", "bibit", "bakal", "embrio", "alat pembiak", "permulaan penghidupan"}, s1: []string{"sel", "pembiakan"}},
+		70: {s2: []string{"simbol", "lambang", "tanda"}, s1: []string{"nama", "tanda pengenal"}},
+		71: {s2: []string{"makhluk", "organism", "organisme", "makhluk hidup"}, s1: []string{"tumbuh", "ilmu hayat", "biologi"}},
+		72: {s2: []string{"wadah", "tempat pengisi", "tempat penyimpan"}, s1: []string{"alat", "tempat sesuatu", "tempat", "benda"}},
+		73: {s2: []string{"pengertian waktu", "batas"}, s1: []string{"waktu", "lamanya", "masa/saat", "masa", "saat"}},
+		74: {s2: []string{"kata sifat", "watak", "sifat karakter"}, s1: []string{"sifat"}},
+		75: {s2: []string{"regulator harga", "pengertian ekonomi"}, s1: []string{"dagang", "pembelian", "penjualan", "niaga", "jual beli"}},
+		76: {s2: []string{"pengertian ruang", "penyebut ruang"}, s1: []string{"arah", "tempat/ruang", "tempat", "ruang", "letak", "penunjuk tempat", "penentuan daerah"}},
+	}
+
+	subtests := istAllowedOrder()
+	for _, code := range subtests {
+		sub, err := findISTSubtestByCode(o, code)
+		if err != nil {
+			continue
+		}
+
+		var questions []models.ISTQuestion
+		start, end := istQuestionRangeByCode(code)
+		qQuery := o.QueryTable(new(models.ISTQuestion)).Filter("Subtest__Id", sub.Id)
+		if start > 0 && end > 0 {
+			qQuery = qQuery.Filter("Number__gte", start).Filter("Number__lte", end)
+		}
+		_, _ = qQuery.OrderBy("Number").All(&questions)
+		questions = filterISTDummyQuestions(questions)
+
+		rawScore := 0
+		gePoints := 0
+
+		for i := range questions {
+			q := &questions[i]
+			storedAnswer := ""
+			score := 0
+			correct := false
+
+			if code == "GE" {
+				// Pilih acak antara jawaban 2 poin (70% peluang), 1 poin (20%), atau salah (10%)
+				rVal := rng.Intn(100)
+				keyData, exists := geKeys[q.Number]
+				if exists && rVal < 70 && len(keyData.s2) > 0 {
+					storedAnswer = keyData.s2[rng.Intn(len(keyData.s2))]
+					score = 2
+					correct = true
+				} else if exists && rVal < 90 && len(keyData.s1) > 0 {
+					storedAnswer = keyData.s1[rng.Intn(len(keyData.s1))]
+					score = 1
+					correct = true
+				} else {
+					storedAnswer = "Jawaban Acak"
+					score = 0
+					correct = false
+				}
+				gePoints += score
+			} else {
+				// Pilih acak opsi A-E
+				// 60% peluang menjawab benar untuk hasil tes yang realistis
+				if rng.Intn(100) < 60 && strings.TrimSpace(q.Correct) != "" {
+					storedAnswer = strings.ToUpper(strings.TrimSpace(q.Correct))
+				} else {
+					storedAnswer = options[rng.Intn(len(options))]
+				}
+				correct = strings.EqualFold(storedAnswer, strings.TrimSpace(q.Correct))
+				if correct {
+					score = 1
+					rawScore++
+				}
+			}
+
+			// Simpan ke database
+			istAns := models.ISTAnswer{
+				Invitation: inv,
+				User:       user,
+				Subtest:    sub,
+				Question:   q,
+				Answer:     storedAnswer,
+				Score:      score,
+				IsCorrect:  correct,
+			}
+			_, _ = o.Insert(&istAns)
+		}
+
+		if code == "GE" {
+			raw := int(math.Round(float64(gePoints) / 1.6))
+			if raw < 0 {
+				raw = 0
+			}
+			if raw > 20 {
+				raw = 20
+			}
+			rawScore = raw
+		}
+
+		// Update raw score di result
+		switch code {
+		case "SE":
+			res.RawSE = rawScore
+		case "WA":
+			res.RawWA = rawScore
+		case "AN":
+			res.RawAN = rawScore
+		case "ME":
+			res.RawME = rawScore
+		case "RA":
+			res.RawRA = rawScore
+		case "ZR":
+			res.RawZA = rawScore
+		case "FA":
+			res.RawFA = rawScore
+		case "WU":
+			res.RawWU = rawScore
+		case "GE":
+			res.RawGE = rawScore
+		}
+
+		// Progress
+		normalizedCode := normalizeISTCode(code)
+		var progress models.ISTProgress
+		err = o.QueryTable(new(models.ISTProgress)).
+			Filter("Invitation__Id", inv.Id).
+			Filter("SubtestCode", normalizedCode).
+			One(&progress)
+		if err != nil {
+			progress = models.ISTProgress{
+				Invitation:  inv,
+				SubtestCode: normalizedCode,
+				Status:      "completed",
+			}
+			_, _ = o.Insert(&progress)
+		} else {
+			progress.Status = "completed"
+			progress.CompletedAt = time.Now()
+			_, _ = o.Update(&progress, "Status", "CompletedAt")
+		}
+	}
+
+	// Hitung Standard Scores & IQ
+	age := 17
+	if user.TanggalLahir != nil {
+		age = utils.AgeYears(*user.TanggalLahir, time.Now())
+	}
+	if age <= 0 {
+		age = 17
+	}
+
+	updatedRes, err := utils.EnsureISTStandardAndIQScores(o, &res, age)
+	if err == nil {
+		res = *updatedRes
+	}
+
+	// Update result
+	_, _ = o.Update(&res,
+		"RawSE", "RawWA", "RawAN", "RawGE", "RawRA", "RawZA", "RawFA", "RawWU", "RawME",
+		"StdSE", "StdWA", "StdAN", "StdGE", "StdRA", "StdZA", "StdFA", "StdWU", "StdME",
+		"TotalStandardScore", "IQ", "IQCategory",
+	)
+
+	var redirectURL = "/hasil-tes"
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		redirectURL = nextURL
+	} else {
+		// Tandai undangan Used
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "IST")
+		}
+	}
+
+	// Hapus sesi / clear
+	c.DelSession("ist_violation_count")
+	c.DelSession("ist_started_at")
+
+	c.Data["json"] = map[string]interface{}{
+		"success": true,
+		"message": "Auto-fill berhasil diselesaikan",
+		"next":    redirectURL,
 	}
 	c.ServeJSON()
 }
@@ -1998,17 +2262,28 @@ func (c *ISTTestController) AutoCompleteAllSubtestsAPI() {
 		"TotalStandardScore", "IQ", "IQCategory",
 	)
 
-	if inv.Status != models.StatusInvitationUsed {
-		inv.Status = models.StatusInvitationUsed
-		inv.UsedAt = time.Now()
-		_, _ = o.Update(inv, "Status", "UsedAt")
-		go utils.SendTestCompletionNotification(inv.UserId, "IST")
+	var redirectURL = "/hasil-tes"
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		redirectURL = nextURL
+	} else {
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "IST")
+		}
 	}
 
 	c.Data["json"] = map[string]interface{}{
 		"success":         true,
 		"message":         "Semua subtest IST telah diisi dengan jawaban random",
-		"finish_redirect": "/test/ist/finish",
+		"finish_redirect": redirectURL,
 	}
 	c.ServeJSON()
 }

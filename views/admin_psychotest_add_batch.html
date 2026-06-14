@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
-    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
@@ -37,6 +37,8 @@
         </div>
         <nav class="ds-nav">
           <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+          <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
           <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
           <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
           <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -138,7 +140,6 @@
         <header class="ds-topbar">
           <div class="ds-title">
             <h1>Tambah Batch Tes Psikologi</h1>
-            <p>Buat sesi tes baru dan konfigurasi jenis serta pengirimannya.</p>
           </div>
           <div class="ds-search">
             <i data-lucide="search" class="ds-icon"></i>
@@ -162,18 +163,6 @@
           </div>
         </header>
             <div class="container-xxl flex-grow-1 container-p-y" style="padding: 0;">
-              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                <div>
-                  <h4 class="fw-bold mb-1">Tambah Batch Tes Psikologi</h4>
-                  <p class="mb-0 text-muted">Buat sesi tes baru dan konfigurasi jenis serta pengirimannya.</p>
-                </div>
-                <div class="d-flex align-items-center">
-                  <a href="/admin/psychotest/batches" class="btn btn-outline-secondary btn-sm">
-                    <i class="bx bx-arrow-back me-1"></i>Kembali
-                  </a>
-                </div>
-              </div>
-
               <div class="row">
                 <div class="col-lg-12">
                   <div class="card page-card mb-4">
@@ -191,8 +180,16 @@
                           </div>
                           <div class="col-md-6">
                             <div class="mb-3">
-                              <label class="form-label" for="batchInstitution">Institusi / Sekolah</label>
-                              <input type="text" id="batchInstitution" class="form-control" placeholder="Sekolah A" required />
+                              <label class="form-label" for="batchTahunAjaran">Tahun Ajaran</label>
+                              <select id="batchTahunAjaran" class="form-select" required>
+                                <option value="" disabled selected>Pilih Tahun Ajaran</option>
+                                <option value="TA 2025/2026">TA 2025/2026</option>
+                                <option value="TA 2026/2027">TA 2026/2027</option>
+                                <option value="TA 2027/2028">TA 2027/2028</option>
+                                <option value="TA 2028/2029">TA 2028/2029</option>
+                                <option value="TA 2029/2030">TA 2029/2030</option>
+                                <option value="TA 2030/2031">TA 2030/2031</option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -200,31 +197,10 @@
                         <div class="row">
                           <div class="col-md-6">
                             <div class="mb-3">
-                              <label class="form-label">Jenis Tes</label>
-                              <div class="form-check">
-                                <input class="form-check-input" type="radio" name="testType" id="testTypeIST" value="ist" required />
-                                <label class="form-check-label" for="testTypeIST">IST (IQ)</label>
-                              </div>
-                              <div class="form-check">
-                                <input class="form-check-input" type="radio" name="testType" id="testTypeHolland" value="holland" />
-                                <label class="form-check-label" for="testTypeHolland">Holland (RIASEC)</label>
-                              </div>
-                              <div class="form-check">
-                                <input class="form-check-input" type="radio" name="testType" id="testTypeLearningStyle" value="learning_style" />
-                                <label class="form-check-label" for="testTypeLearningStyle">Gaya Belajar (VAK)</label>
-                              </div>
-                              <div class="form-check">
-                                <input class="form-check-input" type="radio" name="testType" id="testTypeKraepelin" value="kraepelin" />
-                                <label class="form-check-label" for="testTypeKraepelin">Kraepelin</label>
-                              </div>
-                              <div class="form-check">
-                                <input class="form-check-input" type="radio" name="testType" id="testTypeRMIB" value="rmib" />
-                                <label class="form-check-label" for="testTypeRMIB">RMIB (Minat - versi pria/wanita otomatis)</label>
-                              </div>
-                              <div class="form-check">
-                                <input class="form-check-input" type="radio" name="testType" id="testTypePAPI" value="papi" />
-                                <label class="form-check-label" for="testTypePAPI">PAPI (Perception and Preference Inventory)</label>
-                              </div>
+                              <label class="form-label" for="batchSekolah">Sekolah Pilihan (Untuk Filter BK)</label>
+                              <select id="batchSekolah" class="form-select" required>
+                                <option value="" disabled selected>Memuat sekolah...</option>
+                              </select>
                             </div>
                           </div>
                           <div class="col-md-6">
@@ -243,6 +219,131 @@
                                 <option value="penempatan_kerja">Penempatan Kerja</option>
                                 <option value="lainnya">Lainnya</option>
                               </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label" for="batchKelas">Kelas</label>
+                              <select id="batchKelas" class="form-select" required>
+                                <option value="" disabled selected>Pilih Kelas</option>
+                                <option value="X">Kelas X</option>
+                                <option value="XI">Kelas XI</option>
+                                <option value="XII">Kelas XII</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label" for="batchJurusan">Jurusan</label>
+                              <select id="batchJurusan" class="form-select" required>
+                                <option value="" disabled selected>Pilih Jurusan</option>
+                                <option value="RPL">Rekayasa Perangkat Lunak (RPL)</option>
+                                <option value="TKJ">Teknik Komputer dan Jaringan (TKJ)</option>
+                                <option value="MM">Multimedia (MM)</option>
+                                <option value="AK">Akuntansi (AK)</option>
+                                <option value="PM">Pemasaran (PM)</option>
+                                <option value="AP">Administrasi Perkantoran (AP)</option>
+                                <option value="TKR">Teknik Kendaraan Ringan (TKR)</option>
+                                <option value="TSM">Teknik Sepeda Motor (TSM)</option>
+                                <option value="TP">Teknik Pemesinan (TP)</option>
+                                <option value="TAV">Teknik Audio Video (TAV)</option>
+                                <option value="TITL">Teknik Instalasi Tenaga Listrik (TITL)</option>
+                                <option value="KP">Kimia Industri / Analis Kimia (KP)</option>
+                                <option value="Farmasi">Farmasi Klinis dan Komunitas</option>
+                                <option value="Keperawatan">Asisten Keperawatan</option>
+                                <option value="TBSM">Teknik Bisnis Sepeda Motor (TBSM)</option>
+                                <option value="Lainnya">Lainnya</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="mb-3">
+                              <label class="form-label d-block mb-2">Jenis Tes & Urutan Pengerjaan</label>
+                              <div class="table-responsive">
+                                <table class="table table-bordered table-hover align-middle" id="testOrderTable">
+                                  <thead class="table-light">
+                                    <tr>
+                                      <th style="width: 80px;" class="text-center">Pilih</th>
+                                      <th>Alat Tes</th>
+                                      <th style="width: 180px;">Urutan Pengerjaan</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td class="text-center">
+                                        <input class="form-check-input test-checkbox" type="checkbox" id="testIST" value="ist" />
+                                      </td>
+                                      <td>
+                                        <label class="form-check-label fw-medium mb-0" for="testIST">IST (IQ)</label>
+                                      </td>
+                                      <td>
+                                        <input type="number" class="form-control test-order-input" id="orderIST" min="1" max="6" disabled />
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td class="text-center">
+                                        <input class="form-check-input test-checkbox" type="checkbox" id="testHolland" value="holland" />
+                                      </td>
+                                      <td>
+                                        <label class="form-check-label fw-medium mb-0" for="testHolland">Holland (RIASEC)</label>
+                                      </td>
+                                      <td>
+                                        <input type="number" class="form-control test-order-input" id="orderHolland" min="1" max="6" disabled />
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td class="text-center">
+                                        <input class="form-check-input test-checkbox" type="checkbox" id="testLearningStyle" value="learning_style" />
+                                      </td>
+                                      <td>
+                                        <label class="form-check-label fw-medium mb-0" for="testLearningStyle">Gaya Belajar (VAK)</label>
+                                      </td>
+                                      <td>
+                                        <input type="number" class="form-control test-order-input" id="orderLearningStyle" min="1" max="6" disabled />
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td class="text-center">
+                                        <input class="form-check-input test-checkbox" type="checkbox" id="testKraepelin" value="kraepelin" />
+                                      </td>
+                                      <td>
+                                        <label class="form-check-label fw-medium mb-0" for="testKraepelin">Kraepelin</label>
+                                      </td>
+                                      <td>
+                                        <input type="number" class="form-control test-order-input" id="orderKraepelin" min="1" max="6" disabled />
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td class="text-center">
+                                        <input class="form-check-input test-checkbox" type="checkbox" id="testRMIB" value="rmib" />
+                                      </td>
+                                      <td>
+                                        <label class="form-check-label fw-medium mb-0" for="testRMIB">RMIB (Minat)</label>
+                                      </td>
+                                      <td>
+                                        <input type="number" class="form-control test-order-input" id="orderRMIB" min="1" max="6" disabled />
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td class="text-center">
+                                        <input class="form-check-input test-checkbox" type="checkbox" id="testPAPI" value="papi" />
+                                      </td>
+                                      <td>
+                                        <label class="form-check-label fw-medium mb-0" for="testPAPI">PAPI (Perception and Preference Inventory)</label>
+                                      </td>
+                                      <td>
+                                        <input type="number" class="form-control test-order-input" id="orderPAPI" min="1" max="6" disabled />
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -293,29 +394,110 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+      async function loadSchools() {
+        try {
+          const res = await fetch('/api/admin/schools');
+          if (!res.ok) throw new Error('Gagal memuat daftar sekolah');
+          const data = await res.json();
+          if (data.success && data.data && data.data.sekolah_list) {
+            const select = document.getElementById('batchSekolah');
+            select.innerHTML = '<option value="" disabled selected>Pilih Sekolah</option>';
+            data.data.sekolah_list.forEach(sch => {
+              const opt = document.createElement('option');
+              opt.value = sch;
+              opt.textContent = sch;
+              select.appendChild(opt);
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          const select = document.getElementById('batchSekolah');
+          select.innerHTML = '<option value="" disabled>Gagal memuat sekolah</option>';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        loadSchools();
+        
+        // Handle checkbox toggles and input state
+        const table = document.getElementById('testOrderTable');
+        table.addEventListener('change', (e) => {
+          if (e.target.classList.contains('test-checkbox')) {
+            const checkbox = e.target;
+            const row = checkbox.closest('tr');
+            const orderInput = row.querySelector('.test-order-input');
+            if (checkbox.checked) {
+              orderInput.disabled = false;
+              // Set default order number based on currently checked tests
+              const activeCount = Array.from(table.querySelectorAll('.test-checkbox:checked')).length;
+              orderInput.value = activeCount;
+            } else {
+              orderInput.disabled = true;
+              orderInput.value = '';
+            }
+          }
+        });
+      });
+
       async function handleCreateBatch(event) {
         event.preventDefault();
 
-        const selected = document.querySelector('input[name="testType"]:checked');
-        if (!selected) {
-          Swal.fire({ icon: 'warning', title: 'Pilih jenis tes', text: 'Batch harus memilih tepat satu jenis tes.' });
+        const checkboxes = Array.from(document.querySelectorAll('.test-checkbox:checked'));
+        if (checkboxes.length === 0) {
+          Swal.fire({ icon: 'warning', title: 'Pilih jenis tes', text: 'Batch harus memilih minimal satu jenis tes.' });
           return;
         }
-        const testType = selected.value;
+
+        // Validate and read orders
+        const testOrders = [];
+        let valid = true;
+        checkboxes.forEach(cb => {
+          const row = cb.closest('tr');
+          const orderInput = row.querySelector('.test-order-input');
+          const val = parseInt(orderInput.value, 10);
+          if (isNaN(val) || val < 1 || val > 6) {
+            valid = false;
+          } else {
+            testOrders.push({ key: cb.value, order: val });
+          }
+        });
+
+        if (!valid) {
+          Swal.fire({ icon: 'warning', title: 'Urutan tidak valid', text: 'Semua alat tes yang dipilih harus memiliki nomor urutan pengerjaan antara 1 - 6.' });
+          return;
+        }
+
+        // Check for duplicates in order
+        const orders = testOrders.map(t => t.order);
+        if (new Set(orders).size !== orders.length) {
+          Swal.fire({ icon: 'warning', title: 'Urutan duplikat', text: 'Urutan pengerjaan tidak boleh ada yang sama.' });
+          return;
+        }
+
+        // Sort by order and join keys
+        testOrders.sort((a, b) => a.order - b.order);
+        const testOrderStr = testOrders.map(t => t.key).join(',');
+
+        const sekolahValue = document.getElementById('batchSekolah').value;
         const payload = {
           name: document.getElementById('batchName').value,
-          institution: document.getElementById('batchInstitution').value,
-          enable_ist: testType === 'ist',
-          enable_holland: testType === 'holland',
-          enable_learning_style: testType === 'learning_style',
-          enable_kraepelin: testType === 'kraepelin',
-          enable_rmib: testType === 'rmib',
-          enable_papi: testType === 'papi',
+          institution: sekolahValue,
+          tahun_ajaran: document.getElementById('batchTahunAjaran').value,
+          sekolah: sekolahValue,
+          kelas: document.getElementById('batchKelas').value,
+          jurusan: document.getElementById('batchJurusan').value,
+          enable_ist: testOrders.some(t => t.key === 'ist'),
+          enable_holland: testOrders.some(t => t.key === 'holland'),
+          enable_learning_style: testOrders.some(t => t.key === 'learning_style'),
+          enable_kraepelin: testOrders.some(t => t.key === 'kraepelin'),
+          enable_rmib: testOrders.some(t => t.key === 'rmib'),
+          enable_papi: testOrders.some(t => t.key === 'papi'),
+          test_order: testOrderStr,
           purpose_category: document.getElementById('purposeCategory').value,
           purpose_detail: document.getElementById('purposeDetail').value,
           send_via_email: document.getElementById('sendViaEmail').checked,
           send_via_browser: document.getElementById('sendViaBrowser').checked,
-          send_via_whatsapp: document.getElementById('sendViaWhatsapp') ? document.getElementById('sendViaWhatsapp').checked : false
+          send_via_whatsapp: document.getElementById('sendViaWhatsApp') ? document.getElementById('sendViaWhatsApp').checked : false
         };
 
         try {

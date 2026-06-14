@@ -579,3 +579,37 @@ func (c *AuthController) establishLoginSession(user *models.User) (bool, bool) {
 
 	return isNewDevice, false
 }
+
+// @router /api/auth/exit-impersonate [post]
+func (c *AuthController) ExitImpersonate() {
+	impersonatorID := c.GetSession("impersonator_user_id")
+	if impersonatorID == nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = Response{
+			Success: false,
+			Message: "Anda tidak sedang dalam mode impersonasi",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	role := c.GetSession("impersonator_role")
+	email := c.GetSession("impersonator_email")
+
+	// Restore session keys
+	c.SetSession("user_id", impersonatorID)
+	c.SetSession("user_role", role)
+	c.SetSession("user_email", email)
+
+	// Delete backup session keys
+	c.DelSession("impersonator_user_id")
+	c.DelSession("impersonator_role")
+	c.DelSession("impersonator_email")
+
+	c.Data["json"] = Response{
+		Success: true,
+		Message: "Kembali ke akun sekolah berhasil",
+	}
+	c.ServeJSON()
+}
+

@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Asisten — Bimbingan Konseling</title>
+<link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f6f8;
+    --bg-tertiary: #eef0f3;
+    --text-primary: #111318;
+    --text-secondary: #5a5f6e;
+    --text-tertiary: #9ba0af;
+    --border: rgba(0,0,0,0.08);
+    --border-md: rgba(0,0,0,0.13);
+    --navy: #1a1f2e;
+    --navy-hover: #252c3f;
+    --accent: #7ac5ff;
+    --bubble-user-bg: #1a1f2e;
+    --bubble-user-text: #e8edf7;
+    --tag-green-bg: #eaf3de;
+    --tag-green-text: #3b6d11;
+    --tag-green-border: #b6d98a;
+    --tag-amber-bg: #faeeda;
+    --tag-amber-text: #854f0b;
+    --tag-amber-border: #f5c478;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --sidebar-width: 260px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #16181f;
+      --bg-secondary: #1e2130;
+      --bg-tertiary: #13151c;
+      --text-primary: #e8edf7;
+      --text-secondary: #8b91a6;
+      --text-tertiary: #555c72;
+      --border: rgba(255,255,255,0.07);
+      --border-md: rgba(255,255,255,0.12);
+      --navy: #2a3250;
+      --navy-hover: #333d60;
+      --accent: #7ac5ff;
+      --bubble-user-bg: #2a3250;
+      --bubble-user-text: #d8e4f5;
+      --tag-green-bg: #1a2e10;
+      --tag-green-text: #90cc5a;
+      --tag-green-border: #3a5c1f;
+      --tag-amber-bg: #2e1f08;
+      --tag-amber-text: #f5a940;
+      --tag-amber-border: #6b3d0e;
+    }
+  }
+
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-tertiary); overflow: hidden; }
+
+  /* ── APP SHELL ── */
+  .app {
+    display: flex;
+    height: 100vh;
+    background: var(--bg-tertiary);
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background: var(--bg-primary);
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .new-chat-btn {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+
+  .new-chat-btn:hover { background: var(--navy-hover); }
+  .new-chat-btn i { font-size: 16px; }
+
+  .sidebar-section-label {
+    padding: 14px 16px 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-md) transparent;
+  }
+
+  .chat-item {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+    transition: background 0.12s;
+  }
+
+  .chat-item:hover { background: var(--bg-secondary); }
+  .chat-item.active { background: var(--bg-secondary); }
+  .chat-item i { font-size: 14px; color: var(--text-tertiary); flex-shrink: 0; }
+
+  .chat-item-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-item.active .chat-item-label {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .sidebar-footer {
+    padding: 10px 8px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .footer-item {
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    transition: background 0.12s;
+    text-decoration: none;
+  }
+
+  .footer-item:hover { background: var(--bg-secondary); }
+  .footer-item i { font-size: 17px; color: var(--text-secondary); }
+  .footer-item span { font-size: 13px; color: var(--text-secondary); }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    padding: 13px 20px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+  .mobile-menu-btn {
+    display: none;
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+  }
+
+  .mobile-menu-btn i { font-size: 18px; }
+
+  .topbar-info { min-width: 0; }
+
+  .topbar-info .chat-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-info .chat-subtitle {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-actions { display: flex; gap: 6px; }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: background 0.12s;
+  }
+
+  .icon-btn:hover { background: var(--bg-secondary); }
+  .icon-btn i { font-size: 16px; }
+
+  /* MESSAGES CONTAINER */
+  .messages-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* MESSAGES */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-md) transparent;
+  }
+
+  .msg {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    animation: fadeUp 0.2s ease;
+    max-width: 85%;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user {
+    flex-direction: row-reverse;
+    align-self: flex-end;
+  }
+
+  .msg.ai {
+    align-self: flex-start;
+  }
+
+  .msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .msg-avatar i { font-size: 15px; color: var(--accent); }
+
+  .msg.user .msg-avatar {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+  }
+
+  .msg.user .msg-avatar i { color: var(--text-secondary); }
+
+  .msg-content { display: flex; flex-direction: column; min-width: 0; }
+  .msg.user .msg-content { align-items: flex-end; }
+
+  .bubble {
+    padding: 11px 15px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text-primary);
+    word-break: break-word;
+  }
+
+  .msg.ai .bubble {
+    background: var(--bg-secondary);
+    border-radius: 4px 14px 14px 14px;
+    border: 0.5px solid var(--border);
+  }
+
+  .msg.user .bubble {
+    background: var(--bubble-user-bg);
+    color: var(--bubble-user-text);
+    border-radius: 14px 4px 14px 14px;
+  }
+
+  .bubble-section { margin-bottom: 10px; }
+  .bubble-section:last-child { margin-bottom: 0; }
+
+  .bubble-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .tag {
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 3px 9px;
+    border: 0.5px solid;
+    font-weight: 500;
+  }
+
+  .tag.green {
+    background: var(--tag-green-bg);
+    color: var(--tag-green-text);
+    border-color: var(--tag-green-border);
+  }
+
+  .tag.amber {
+    background: var(--tag-amber-bg);
+    color: var(--tag-amber-text);
+    border-color: var(--tag-amber-border);
+  }
+
+  .bubble-tip { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  .msg-time {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 5px;
+    padding: 0 2px;
+  }
+
+  /* Simple Markdown rendering styling */
+  .bubble ul {
+    margin: 8px 0;
+    padding-left: 0;
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bubble li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+  }
+  .bubble li::before {
+    content: "•";
+    color: var(--accent);
+    font-weight: bold;
+    position: absolute;
+    left: 5px;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .msg.user .bubble li {
+    color: var(--bubble-user-text);
+  }
+  .msg.user .bubble li::before {
+    color: var(--accent);
+  }
+
+  /* TYPING INDICATOR */
+  .typing { display: flex; align-items: center; gap: 5px; padding: 11px 15px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); animation: pulse 1.2s ease-in-out infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
+
+  /* INPUT AREA */
+  .input-area {
+    padding: 14px 24px 20px;
+    border-top: 0.5px solid var(--border);
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    padding: 8px 10px 8px 14px;
+    transition: border-color 0.15s;
+  }
+
+  .input-row:focus-within { border-color: var(--accent); }
+
+  #chat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+    resize: none;
+    min-height: 22px;
+    max-height: 120px;
+    line-height: 1.55;
+    overflow-y: hidden;
+  }
+
+  #chat-input::placeholder { color: var(--text-tertiary); }
+
+  .send-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--navy);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, opacity 0.15s;
+  }
+
+  .send-btn:hover { background: var(--navy-hover); }
+  .send-btn:disabled { opacity: 0.4; cursor: default; }
+  .send-btn i { font-size: 16px; color: var(--accent); }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* WELCOME STATE */
+  .welcome {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px;
+    text-align: center;
+    z-index: 5;
+    background: var(--bg-primary);
+  }
+
+  .welcome-icon {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 6px;
+  }
+
+  .welcome-icon i { font-size: 26px; color: var(--accent); }
+  .welcome h2 { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+  .welcome p { font-size: 13.5px; color: var(--text-secondary); max-width: 480px; line-height: 1.6; }
+
+  .welcome-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-md);
+    background: var(--bg-secondary);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+
+  .chip:hover { background: var(--bg-tertiary); border-color: var(--accent); color: var(--text-primary); }
+
+  /* ── COLLAPSIBLE ACCORDION ── */
+  .chat-accordion {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin: 12px 0;
+    overflow: hidden;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+
+  .chat-accordion:hover {
+    border-color: var(--accent);
+  }
+
+  .chat-accordion[open] {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  }
+
+  .chat-accordion-summary {
+    list-style: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .chat-accordion-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .chat-accordion-summary:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .chat-accordion-summary span {
+    flex: 1;
+    padding-right: 12px;
+    line-height: 1.4;
+  }
+
+  .chat-accordion-summary .caret {
+    font-size: 18px;
+    color: var(--text-secondary);
+    transition: transform 0.25s ease;
+  }
+
+  .chat-accordion[open] .chat-accordion-summary .caret {
+    transform: rotate(180deg);
+  }
+
+  .chat-accordion-content {
+    padding: 16px 20px;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border);
+  }
+
+  .accordion-list {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .accordion-list li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .accordion-list li::before {
+    content: "•";
+    color: var(--accent);
+    font-weight: bold;
+    position: absolute;
+    left: 6px;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .accordion-text {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .accordion-text:last-child {
+    margin-bottom: 0;
+  }
+
+  .normal-text {
+    font-size: 13.5px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 8px 0;
+  }
+
+  .normal-list {
+    margin: 8px 0;
+    padding-left: 20px;
+    list-style-type: disc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .normal-list li {
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  /* User bubble text inherits parent (white/light) color, preventing it from turning dark/unreadable */
+  .msg.user .normal-text,
+  .msg.user .normal-list,
+  .msg.user li {
+    color: inherit !important;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    .sidebar { position: fixed; top: 0; left: 0; height: 100%; z-index: 100; transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,0.15); }
+    .sidebar.open { transform: translateX(0); }
+    .mobile-menu-btn { display: flex; }
+    .messages { padding: 18px 16px; }
+    .input-area { padding: 10px 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="new-chat-btn" id="btnNewChat">
+          <i class="ti ti-plus"></i> Percakapan baru
+        </button>
+      </div>
+
+      <div class="sidebar-section-label">Riwayat</div>
+
+      <div class="chat-list" id="chat-list">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="/dashboard" class="footer-item" title="Kembali ke Dashboard">
+          <i class="ti ti-arrow-left"></i>
+          <span>Kembali</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- OVERLAY (mobile) -->
+    <div id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.4)"></div>
+
+    <!-- MAIN CHAT AREA -->
+    <div class="main">
+
+      <!-- TOPBAR FOR ACTIVE CHAT -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <a href="/dashboard" class="icon-btn" title="Kembali ke Dashboard" style="text-decoration: none; margin-right: 4px;">
+            <i class="ti ti-arrow-left"></i>
+          </a>
+          <button class="mobile-menu-btn" onclick="openSidebar()" aria-label="Buka sidebar">
+            <i class="ti ti-menu-2"></i>
+          </button>
+          <div class="topbar-info">
+            <div class="chat-title" id="topbar-title">Percakapan Baru</div>
+            <div class="chat-subtitle" id="topbar-subtitle">Bimbingan konseling berbasis AI</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" title="Ekspor percakapan" id="btnExportChat"><i class="ti ti-download"></i></button>
+        </div>
+      </header>
+
+      <!-- MESSAGES CONTAINER -->
+      <div class="messages-container">
+
+        <!-- Welcome state -->
+        <div class="welcome" id="welcome-state" style="display: flex;">
+          <div class="welcome-icon"><i class="ti ti-sparkles"></i></div>
+          <h2>Halo! Ada yang bisa saya bantu?</h2>
+          <p>Konsultasi bimbingan konseling dan analisis siswa berbasis AI. Mulai percakapan baru atau pilih dari riwayat di sebelah kiri.</p>
+          <div class="welcome-chips">
+            <div class="chip" onclick="sendChip('Saya ingin konsultasi mengenai hasil asesmen kepribadian saya.')">Asesmen kepribadian</div>
+            <div class="chip" onclick="sendChip('Bantu saya menentukan pilihan karir yang sesuai.')">Pilihan karir</div>
+            <div class="chip" onclick="sendChip('Saya kesulitan belajar, ada tips?')">Tips belajar</div>
+            <div class="chip" onclick="sendChip('Saya ingin mengetahui kekuatan dan kelemahan saya.')">Kekuatan &amp; kelemahan</div>
+          </div>
+        </div>
+
+        <!-- Messages List -->
+        <div class="messages" id="messages" style="display: none;">
+          <!-- Rendered via JS -->
+        </div>
+
+      </div>
+
+      <!-- INPUT -->
+      <div class="input-area">
+        <div class="input-row">
+          <textarea
+            id="chat-input"
+            rows="1"
+            placeholder="Tulis pertanyaan Anda di sini... (Shift+Enter untuk baris baru)"
+          ></textarea>
+          <button class="send-btn" id="send-btn" disabled title="Kirim">
+            <i class="ti ti-send"></i>
+          </button>
+        </div>
+        <div class="input-hint">Tekan Enter untuk kirim · Shift+Enter untuk baris baru</div>
+      </div>
+
+    </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SESSIONS_KEY = "psychee_ai_chats";
+  var sessions = [];
+  var activeSessionId = null;
+  var isLoading = false;
+  var schoolInfoString = "Bimbingan konseling berbasis AI";
+
+  /* ===== Dom Helpers ===== */
+  function q(sel) { return document.querySelector(sel); }
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function getTime() {
+    var d = new Date();
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
+
+  // Simple Markdown parser for bold, headers, list points, and paragraphs.
+  // Generates premium collapsible accordion cards for numbered headers or sections only for AI messages.
+  function formatMarkdown(text, role) {
+    if (!text) return '';
+    var s = esc(text);
+    var lines = s.split('\n');
+    var html = [];
+
+    // Only use collapsible accordion details/summary dropdowns for AI/assistant messages
+    var useAccordion = (role === 'ai' || role === 'assistant');
+
+    var currentSection = null;
+    var inList = false;
+
+    function closeActiveTags() {
+      var out = '';
+      if (inList) {
+        out += '</ul>';
+        inList = false;
+      }
+      if (currentSection && useAccordion) {
+        out += '</div></details>';
+        currentSection = null;
+      }
+      return out;
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) {
+        if (inList) {
+          html.push('</ul>');
+          inList = false;
+        }
+        continue;
+      }
+
+      // Match heading patterns like: "1. Heading", "1. * Heading", "### Heading", "## Heading", etc.
+      // Clean up markdown bold/italic tags inside the header.
+      var headingMatch = line.match(/^(?:\d+\.\s*[\*\-\_]*|###\s+|##\s+|#\s+)(.*?)$/);
+      if (headingMatch && useAccordion) {
+        var title = headingMatch[1].replace(/[\*\-\_]+/g, '').trim();
+        if (title) {
+          html.push(closeActiveTags());
+          currentSection = title;
+          html.push('<details class="chat-accordion" open>');
+          html.push('  <summary class="chat-accordion-summary">');
+          html.push('    <span>' + title + '</span>');
+          html.push('    <i class="ti ti-chevron-down caret"></i>');
+          html.push('  </summary>');
+          html.push('  <div class="chat-accordion-content">');
+          continue;
+        }
+      }
+
+      // Match bullet list item patterns like: "- item", "* item", "• item"
+      var itemMatch = line.match(/^[\-\*\u2022]\s+(.*)$/);
+      if (itemMatch) {
+        var content = itemMatch[1].trim();
+        content = parseInlineStyles(content);
+
+        if (!inList) {
+          html.push('<ul class="' + (useAccordion ? 'accordion-list' : 'normal-list') + '">');
+          inList = true;
+        }
+        html.push('<li>' + content + '</li>');
+        continue;
+      }
+
+      // Plain text line
+      if (inList) {
+        html.push('</ul>');
+        inList = false;
+      }
+
+      var formattedLine = parseInlineStyles(line);
+      if (currentSection && useAccordion) {
+        html.push('<p class="accordion-text">' + formattedLine + '</p>');
+      } else {
+        // If it's a simple numbered line on user side (e.g. "1. Bagaimana...") render it cleanly
+        var numMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        if (numMatch && !useAccordion) {
+          var numText = numMatch[1] + '. ' + parseInlineStyles(numMatch[2]);
+          html.push('<p class="normal-text">' + numText + '</p>');
+        } else {
+          html.push('<p class="normal-text">' + formattedLine + '</p>');
+        }
+      }
+    }
+
+    html.push(closeActiveTags());
+    return html.join('\n');
+  }
+
+  function parseInlineStyles(str) {
+    if (!str) return '';
+    var t = str;
+    // Bold: **text** or __text__
+    t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/__(.*?)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_
+    t = t.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    t = t.replace(/_(.*?)_/g, '<em>$1</em>');
+    return t;
+  }
+
+  /* ===== Storage Helpers ===== */
+  function loadSessions() {
+    try {
+      var stored = localStorage.getItem(SESSIONS_KEY);
+      if (stored) {
+        sessions = JSON.parse(stored);
+        if (!Array.isArray(sessions)) sessions = [];
+      }
+    } catch (e) {
+      console.error("Gagal memuat sesi chat dari localStorage", e);
+      sessions = [];
+    }
+  }
+
+  function saveSessions() {
+    try {
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+    } catch (e) {
+      console.error("Gagal menyimpan sesi chat ke localStorage", e);
+    }
+  }
+
+  /* ===== UI Rendering ===== */
+  function renderSessionsList() {
+    var listEl = q('#chat-list');
+    listEl.innerHTML = '';
+
+    if (sessions.length === 0) {
+      listEl.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); font-size: 12.5px; padding: 20px 10px;">Belum ada percakapan.</div>';
+      return;
+    }
+
+    sessions.forEach(function (sess) {
+      var item = document.createElement('div');
+      item.className = 'chat-item' + (sess.id === activeSessionId ? ' active' : '');
+      item.setAttribute('data-id', sess.id);
+
+      var icon = document.createElement('i');
+      icon.className = 'ti ti-message-circle';
+
+      var label = document.createElement('span');
+      label.className = 'chat-item-label';
+      label.textContent = sess.title;
+
+      var btnDel = document.createElement('button');
+      btnDel.type = 'button';
+      btnDel.className = 'btn-delete-session';
+      btnDel.title = 'Hapus Percakapan';
+      btnDel.innerHTML = '<i class="ti ti-trash" style="font-size: 13px;"></i>';
+      btnDel.style.background = 'transparent';
+      btnDel.style.border = 'none';
+      btnDel.style.cursor = 'pointer';
+      btnDel.style.padding = '2px';
+      btnDel.style.display = 'none';
+      btnDel.style.color = 'var(--text-tertiary)';
+      btnDel.style.marginLeft = 'auto';
+
+      item.appendChild(icon);
+      item.appendChild(label);
+      item.appendChild(btnDel);
+
+      // Show delete button on hover
+      item.addEventListener('mouseenter', function() {
+        btnDel.style.display = 'block';
+      });
+      item.addEventListener('mouseleave', function() {
+        btnDel.style.display = 'none';
+      });
+
+      btnDel.addEventListener('click', function (e) {
+        e.stopPropagation();
+        deleteSession(sess.id);
+      });
+
+      item.addEventListener('click', function () {
+        selectSession(sess.id);
+      });
+
+      listEl.appendChild(item);
+    });
+  }
+
+  function renderActiveSessionChat() {
+    var msgsEl = q('#messages');
+    var welcomeEl = q('#welcome-state');
+    msgsEl.innerHTML = '';
+
+    var activeSess = sessions.find(function (s) { return s.id === activeSessionId; });
+    if (!activeSess || !activeSess.messages || activeSess.messages.length === 0) {
+      welcomeEl.style.display = 'flex';
+      msgsEl.style.display = 'none';
+      q('#topbar-title').textContent = activeSess ? activeSess.title : 'Percakapan Baru';
+      q('#topbar-subtitle').textContent = schoolInfoString;
+      return;
+    }
+
+    welcomeEl.style.display = 'none';
+    msgsEl.style.display = 'flex';
+    q('#topbar-title').textContent = activeSess.title;
+    q('#topbar-subtitle').textContent = schoolInfoString;
+
+    // Render each message
+    activeSess.messages.forEach(function (msg) {
+      if (msg.role === 'system') return; // Skip showing system instructions
+
+      var msgDiv = document.createElement('div');
+      msgDiv.className = 'msg ' + (msg.role === 'user' ? 'user' : 'ai');
+
+      var avatar = document.createElement('div');
+      avatar.className = 'msg-avatar';
+      avatar.innerHTML = msg.role === 'user' ? '<i class="ti ti-user"></i>' : '<i class="ti ti-sparkles"></i>';
+
+      var content = document.createElement('div');
+      content.className = 'msg-content';
+
+      var bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.innerHTML = formatMarkdown(msg.content, msg.role);
+
+      var timeEl = document.createElement('div');
+      timeEl.className = 'msg-time';
+      if (msg.role === 'user') {
+        timeEl.style.textAlign = 'right';
+      }
+      timeEl.textContent = msg.timestamp || getTime();
+
+      content.appendChild(bubble);
+      content.appendChild(timeEl);
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(content);
+      msgsEl.appendChild(msgDiv);
+    });
+
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    var msgsEl = q('#messages');
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  /* ===== Session Actions ===== */
+  function createNewSession(title) {
+    var id = "sess_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    var newSess = {
+      id: id,
+      title: title || "Percakapan Baru",
+      messages: []
+    };
+    sessions.unshift(newSess);
+    saveSessions();
+    activeSessionId = id;
+    renderSessionsList();
+    renderActiveSessionChat();
+    return newSess;
+  }
+
+  function selectSession(id) {
+    activeSessionId = id;
+    renderSessionsList();
+    renderActiveSessionChat();
+    closeSidebar();
+  }
+
+  function deleteSession(id) {
+    if (!confirm("Apakah Anda yakin ingin menghapus percakapan ini?")) return;
+
+    sessions = sessions.filter(function (s) { return s.id !== id; });
+    saveSessions();
+
+    if (activeSessionId === id) {
+      activeSessionId = sessions.length > 0 ? sessions[0].id : null;
+    }
+
+    renderSessionsList();
+    renderActiveSessionChat();
+  }
+
+  /* ===== API Communication ===== */
+  async function sendChatMessage(text) {
+    if (!text.trim() || isLoading) return;
+
+    var activeSess = sessions.find(function (s) { return s.id === activeSessionId; });
+    if (!activeSess) {
+      activeSess = createNewSession();
+    }
+
+    // Add user message
+    activeSess.messages.push({
+      role: "user",
+      content: text,
+      timestamp: getTime()
+    });
+
+    // If title is "Percakapan Baru", rename it based on first input
+    if (activeSess.title === "Percakapan Baru") {
+      var snippet = text.trim();
+      if (snippet.length > 28) {
+        snippet = snippet.substring(0, 25) + "...";
+      }
+      activeSess.title = snippet;
+    }
+
+    saveSessions();
+    renderSessionsList();
+    renderActiveSessionChat();
+
+    // Clear input field
+    var inputEl = q('#chat-input');
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    q('#send-btn').disabled = true;
+
+    // Add typing indicator
+    showTypingIndicator();
+
+    isLoading = true;
+
+    try {
+      var payload = {
+        messages: activeSess.messages.map(function (m) {
+          return { role: m.role, content: m.content };
+        })
+      };
+
+      var response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      removeTypingIndicator();
+
+      if (!response.ok) {
+        throw new Error("Gagal mendapatkan respon dari server.");
+      }
+
+      var json = await response.json();
+      if (json.success && json.data && json.data.reply) {
+        activeSess.messages.push({
+          role: "assistant",
+          content: json.data.reply,
+          timestamp: getTime()
+        });
+      } else {
+        activeSess.messages.push({
+          role: "assistant",
+          content: "Maaf, sistem sedang sibuk. Silakan coba kirim ulang pesan Anda.",
+          timestamp: getTime()
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      removeTypingIndicator();
+      activeSess.messages.push({
+        role: "assistant",
+        content: "Terjadi kesalahan koneksi. Pastikan server aktif dan silakan coba lagi.",
+        timestamp: getTime()
+      });
+    } finally {
+      isLoading = false;
+      saveSessions();
+      renderActiveSessionChat();
+      q('#chat-input').focus();
+    }
+  }
+
+  function showTypingIndicator() {
+    var msgsEl = q('#messages');
+    var ind = document.createElement('div');
+    ind.className = 'msg ai';
+    ind.id = 'typing';
+    ind.innerHTML = '<div class="msg-avatar"><i class="ti ti-sparkles"></i></div>' +
+      '<div class="msg-content">' +
+      '<div class="bubble"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>' +
+      '</div>';
+    msgsEl.appendChild(ind);
+    scrollToBottom();
+  }
+
+  function removeTypingIndicator() {
+    var ind = q('#typing');
+    if (ind) ind.remove();
+  }
+
+  /* ===== Context Injection Handler ===== */
+  async function handleInjectedContext() {
+    try {
+      var ctxStr = sessionStorage.getItem('ai_injected_context');
+      if (!ctxStr) return;
+
+      // Clear context immediately
+      sessionStorage.removeItem('ai_injected_context');
+
+      var ctx = JSON.parse(ctxStr);
+      if (ctx && ctx.studentName && ctx.contextPrompt) {
+        // Create specific consultation session
+        var title = "Konsultasi: " + ctx.studentName;
+        var sess = createNewSession(title);
+        
+        // Automatically send the context prompt
+        await sendChatMessage(ctx.contextPrompt);
+      }
+    } catch (e) {
+      console.error("Gagal memproses context injection", e);
+    }
+  }
+
+  /* ===== Init Page ===== */
+  async function init() {
+    // Fetch Logged In Profile for Topbar Subtitle
+    try {
+      var pRes = await fetch('/api/profile');
+      var pData = await pRes.json();
+      if (pData.success && pData.data) {
+        var u = pData.data;
+        var school = u.nama_sekolah || 'SMKN 22 Jakarta';
+        var role = u.role === 'sekolah' ? 'Guru BK' : 'Admin';
+        schoolInfoString = school + ' · ' + role;
+        q('#topbar-subtitle').textContent = schoolInfoString;
+      }
+    } catch (e) {}
+
+    // Load sessions and render
+    loadSessions();
+    if (sessions.length > 0) {
+      activeSessionId = sessions[0].id;
+    }
+    renderSessionsList();
+    renderActiveSessionChat();
+
+    // Handle context injection
+    await handleInjectedContext();
+  }
+
+  /* ===== Event Listeners ===== */
+  document.addEventListener('DOMContentLoaded', function () {
+    init();
+
+    // New Chat Button
+    q('#btnNewChat').addEventListener('click', function () {
+      createNewSession();
+    });
+
+    // Input send behaviors
+    var inputEl = q('#chat-input');
+    var sendBtn = q('#send-btn');
+
+    inputEl.addEventListener('input', function () {
+      sendBtn.disabled = !inputEl.value.trim() || isLoading;
+      // Auto resize height
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    });
+
+    inputEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage(inputEl.value);
+      }
+    });
+
+    sendBtn.addEventListener('click', function () {
+      sendChatMessage(inputEl.value);
+    });
+
+    // Chip button click helper
+    window.sendChip = function(text) {
+      inputEl.value = text;
+      sendBtn.disabled = false;
+      sendChatMessage(text);
+    };
+
+    // Export chat
+    q('#btnExportChat').addEventListener('click', function () {
+      var activeSess = sessions.find(function (s) { return s.id === activeSessionId; });
+      if (!activeSess || activeSess.messages.length === 0) {
+        alert('Percakapan kosong');
+        return;
+      }
+      var txt = "Riwayat Percakapan AI Asisten\nSesi: " + activeSess.title + "\n\n";
+      activeSess.messages.forEach(function (m) {
+        if (m.role === 'system') return;
+        var roleName = m.role === 'user' ? 'BK (Guru)' : 'Asisten AI';
+        txt += "[" + (m.timestamp || '') + "] " + roleName + ": " + m.content + "\n\n";
+      });
+      var blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = activeSess.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".txt";
+      a.click();
+    });
+  });
+
+  // Mobile sidebar operations
+  window.openSidebar = function() {
+    q('#sidebar').classList.add('open');
+    q('#overlay').style.display = 'block';
+  };
+
+  window.closeSidebar = function() {
+    q('#sidebar').classList.remove('open');
+    q('#overlay').style.display = 'none';
+  };
+
+})();
+</script>
+</body>
+</html>

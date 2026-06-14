@@ -389,17 +389,22 @@ func (c *PAPITestController) SubmitFinal() {
 		}
 	}
 
-	if err := c.finalizePAPI(inv, user, session); err != nil {
+	nextURL, err := c.finalizePAPI(inv, user, session)
+	if err != nil {
 		logs.Error("PAPI SubmitFinal finalize error: %v", err)
 		c.Redirect("/test/papi/questions", 302)
 		return
 	}
 
-	c.Redirect("/profile/papi", 302)
+	if nextURL != "" {
+		c.Redirect(nextURL, 302)
+	} else {
+		c.Redirect("/hasil-tes", 302)
+	}
 }
 
 // finalizePAPI menghitung skor + UPSERT PAPIResult + tandai session/invitation selesai
-func (c *PAPITestController) finalizePAPI(inv *models.TestInvitation, user *models.User, session *models.PAPISession) error {
+func (c *PAPITestController) finalizePAPI(inv *models.TestInvitation, user *models.User, session *models.PAPISession) (string, error) {
 	o := orm.NewOrm()
 
 	type answerRow struct {
@@ -414,7 +419,7 @@ func (c *PAPITestController) finalizePAPI(inv *models.TestInvitation, user *mode
 		JOIN papi_questions q ON q.id = a.question_id
 		WHERE a.session_id = ?
 	`, session.Id).QueryRows(&rows); err != nil {
-		return err
+		return "", err
 	}
 
 	// Hitung skor per kategori
@@ -520,7 +525,7 @@ func (c *PAPITestController) finalizePAPI(inv *models.TestInvitation, user *mode
 			TimeTakenMinutes: timeTaken,
 		}
 		if _, err := o.Insert(&newRes); err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		existing.ResultJSON = string(resJSON)
@@ -533,7 +538,7 @@ func (c *PAPITestController) finalizePAPI(inv *models.TestInvitation, user *mode
 			"ResultJSON", "DominantCategory", "TopCategories",
 			"Interpretation", "CompletedAt", "TimeTakenMinutes",
 		); err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -541,14 +546,25 @@ func (c *PAPITestController) finalizePAPI(inv *models.TestInvitation, user *mode
 	session.CompletedAt = time.Now()
 	_, _ = o.Update(session, "Status", "CompletedAt")
 
-	if inv.Status != models.StatusInvitationUsed {
-		inv.Status = models.StatusInvitationUsed
-		inv.UsedAt = time.Now()
-		_, _ = o.Update(inv, "Status", "UsedAt")
-		go utils.SendTestCompletionNotification(inv.UserId, "PAPI Kostick")
+	var redirectURL = ""
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		redirectURL = nextURL
+	} else {
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "PAPI Kostick")
+		}
 	}
 
-	return nil
+	return redirectURL, nil
 }
 
 // =========================
@@ -653,7 +669,9 @@ func (c *PAPITestController) DevAutoFill() {
 		}
 	}
 
-	if err := c.finalizePAPI(inv, user, session); err != nil {
+	// Jalankan finalisasi (perhitungan + simpan PAPIResult).
+	nextURL, err := c.finalizePAPI(inv, user, session)
+	if err != nil {
 		logs.Error("PAPI DevAutoFill finalize error: %v", err)
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal finalisasi"}
@@ -661,7 +679,11 @@ func (c *PAPITestController) DevAutoFill() {
 		return
 	}
 
-	c.Data["json"] = map[string]interface{}{"success": true, "next": "/profile/papi"}
+	if nextURL == "" {
+		nextURL = "/profile/papi"
+	}
+
+	c.Data["json"] = map[string]interface{}{"success": true, "next": nextURL}
 	c.ServeJSON()
 }
 

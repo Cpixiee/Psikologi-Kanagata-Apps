@@ -63,6 +63,12 @@ func main() {
 		logs.Warning("Learning style schema ensure warning: %v", err)
 	}
 
+	// Ensure batch extended fields exist (tahun_ajaran, sekolah).
+	if err := models.EnsureBatchExtendedFields(); err != nil {
+		log.Printf("Batch extended fields ensure warning: %v", err)
+		logs.Warning("Batch extended fields ensure warning: %v", err)
+	}
+
 	// Ensure Kraepelin schema exists.
 	if err := models.EnsureKraepelinTables(); err != nil {
 		log.Printf("Kraepelin schema ensure warning: %v", err)

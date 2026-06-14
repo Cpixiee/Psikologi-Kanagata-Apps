@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -57,7 +57,7 @@
           {{if .Error}}
           <div class="alert alert-danger">{{.Error}}</div>
           {{else}}
-          <form id="formSubtest" data-code="{{.Subtest.Code}}">
+          <form id="formSubtest" data-code="{{.Subtest.Code}}" data-timer-minutes="{{.TimerMinutes}}">
             {{range $i, $q := .Questions}}
             <div class="mb-4 p-3 border rounded question-block" id="qnum_{{$q.Number}}" data-qid="{{$q.Id}}" data-number="{{$q.Number}}">
               <strong>{{$q.Number}}.</strong>
@@ -111,6 +111,16 @@
         </div>
       </div>
     </div>
+
+    {{if .IsDev}}
+    <button id="devAutoFillBtn" type="button"
+            style="position:fixed; bottom:24px; left:24px; z-index:1060;
+                   background:#ff5e7e; color:#fff; border:0; padding:10px 16px;
+                   border-radius:10px; font-weight:700; font-size:.85rem;
+                   box-shadow:0 6px 18px rgba(255,94,126,.4); cursor:pointer;">
+      &#9881; DEV: Auto-Fill &amp; Submit
+    </button>
+    {{end}}
     <!-- Toast / Snackbar -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
       <div id="istToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -127,7 +137,7 @@
         const form = document.getElementById('formSubtest');
         if (!form) return;
         const code = form.dataset.code;
-        const timerMinutes = {{.TimerMinutes}} || 20;
+        const timerMinutes = parseInt(form.dataset.timerMinutes, 10) || 20;
         let secondsLeft = timerMinutes * 60;
         const el = document.getElementById('timerDisplay');
 
@@ -170,7 +180,7 @@
         function toTitleCaseWords(text) {
           const cleaned = String(text || '')
             .trim()
-            .replace(/[â€“â€”]/g, '-')
+            .replace(/[-â€"]/g, '-')
             .replace(/\s+/g, ' ')
             .toLowerCase();
           if (!cleaned) return '';
@@ -301,6 +311,32 @@
             input.addEventListener('blur', function () {
               input.value = toTitleCaseWords(input.value);
             });
+          });
+        }
+
+        var devBtn = document.getElementById('devAutoFillBtn');
+        if (devBtn) {
+          devBtn.addEventListener('click', function () {
+            if (!confirm('Apakah Anda yakin ingin mengisi semua subtest IST secara acak dan langsung menyelesaikannya?')) return;
+            window.removeEventListener('beforeunload', function () {});
+            devBtn.disabled = true;
+            devBtn.textContent = 'Memproses...';
+            fetch('/test/ist/dev-autofill', { method: 'POST' })
+              .then(function (r) { return r.json(); })
+              .then(function (d) {
+                if (d && d.success) {
+                  window.location.href = d.next || '/profile';
+                } else {
+                  alert((d && d.message) || 'Auto-fill gagal');
+                  devBtn.disabled = false;
+                  devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                }
+              })
+              .catch(function (err) {
+                alert('Error: ' + err);
+                devBtn.disabled = false;
+                devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+              });
           });
         }
       })();

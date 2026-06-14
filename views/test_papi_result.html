@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -304,8 +304,8 @@
                     <a href="/dashboard" class="btn btn-back">
                         <i class="fas fa-arrow-left me-2"></i>Kembali ke Dashboard
                     </a>
-                    <a href="/test/papi/result/excel?invId={{.InvitationID}}" class="btn btn-excel">
-                        <i class="fas fa-file-excel me-2"></i>Download Excel
+                    <a href="/api/results/export-zip?invId={{.InvitationID}}&test=papi" class="btn btn-back text-white" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); margin-left: 0.5rem;">
+                        <i class="fas fa-download me-2"></i>Unduh Laporan Lengkap (ZIP)
                     </a>
                 </div>
             </div>

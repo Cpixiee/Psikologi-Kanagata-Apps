@@ -71,9 +71,36 @@ func (c *ProfileController) GetProfile() {
 		return
 	}
 
+	teacherName := ""
+	if teacherIDVal := c.GetSession("teacher_id"); teacherIDVal != nil {
+		if tid, ok := teacherIDVal.(int); ok && tid > 0 {
+			var t models.SchoolTeacher
+			if o.QueryTable(new(models.SchoolTeacher)).Filter("Id", tid).One(&t) == nil {
+				teacherName = t.Nama
+			}
+		}
+	}
+
+	if user.Role == models.RoleSekolah {
+		user.Kelas = user.Sekolah
+		user.Jurusan = "BK"
+	}
+
+	isImpersonated := c.GetSession("impersonator_user_id") != nil
+
+	type ProfileData struct {
+		models.User
+		TeacherName    string `json:"teacher_name,omitempty"`
+		IsImpersonated bool   `json:"is_impersonated"`
+	}
+
 	c.Data["json"] = ProfileResponse{
 		Success: true,
-		Data:    user,
+		Data: ProfileData{
+			User:           user,
+			TeacherName:    teacherName,
+			IsImpersonated: isImpersonated,
+		},
 	}
 	c.ServeJSON()
 }
@@ -202,6 +229,11 @@ func (c *ProfileController) UpdateProfile() {
 		utils.SendActivityNotification(userID.(int), "Profil Diperbarui", "Data profil Anda telah berhasil diperbarui.")
 	}()
 
+	if user.Role == models.RoleSekolah {
+		user.Kelas = user.Sekolah
+		user.Jurusan = "BK"
+	}
+
 	c.Data["json"] = ProfileResponse{
 		Success: true,
 		Message: "Profil berhasil diperbarui",
@@ -231,11 +263,12 @@ func (c *ProfileController) OnboardingStatus() {
 		return
 	}
 
-	// Admin tidak diharuskan mengisi onboarding peserta (NISN/Kelas/Jurusan,
-	// dsb). Selalu anggap profil admin "lengkap" supaya modal onboarding tidak
-	// muncul untuk akun admin.
+	// Admin dan Sekolah tidak diharuskan mengisi onboarding peserta (NISN/Kelas/Jurusan,
+	// dsb). Selalu anggap profil mereka "lengkap" supaya modal onboarding tidak
+	// muncul untuk akun admin / sekolah.
 	isAdmin := user.Role == models.RoleAdmin
-	completed := isAdmin || isOnboardingComplete(&user)
+	isSekolah := user.Role == models.RoleSekolah
+	completed := isAdmin || isSekolah || isOnboardingComplete(&user)
 	if user.ProfileCompleted != completed {
 		user.ProfileCompleted = completed
 		_, _ = o.Update(&user, "ProfileCompleted")

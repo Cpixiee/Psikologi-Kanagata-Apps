@@ -469,17 +469,31 @@ func (c *KraepelinTestController) SubmitAnswersAPI() {
 	att.TotalErrors = totalErrors
 	att.TotalSkipped = totalSkipped
 
-	// Finish if requested or last column
-	finishNow := p.ForceFinish || p.ColumnIndex == 39
+	// Finish only if explicitly requested (e.g. time ran out on last column or force finish)
+	finishNow := p.ForceFinish
+	next := "/test/kraepelin/questions"
+
 	if finishNow {
 		att.Status = "finished"
 		att.FinishedAt = time.Now()
-		// Mark invitation used
-		if inv.Status != models.StatusInvitationUsed {
-			inv.Status = models.StatusInvitationUsed
-			inv.UsedAt = time.Now()
-			_, _ = o.Update(inv, "Status", "UsedAt")
-			go utils.SendTestCompletionNotification(inv.UserId, "Kraepelin")
+
+		var batch models.TestBatch
+		if inv.BatchId != nil {
+			batch.Id = *inv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(inv.Id, &batch)
+		if nextURL != "" {
+			next = nextURL
+		} else {
+			next = "/test/kraepelin/finish"
+			// Mark invitation used
+			if inv.Status != models.StatusInvitationUsed {
+				inv.Status = models.StatusInvitationUsed
+				inv.UsedAt = time.Now()
+				_, _ = o.Update(inv, "Status", "UsedAt")
+				go utils.SendTestCompletionNotification(inv.UserId, "Kraepelin")
+			}
 		}
 	}
 
@@ -494,10 +508,6 @@ func (c *KraepelinTestController) SubmitAnswersAPI() {
 		return
 	}
 
-	next := "/test/kraepelin/questions"
-	if finishNow {
-		next = "/test/kraepelin/finish"
-	}
 	c.Data["json"] = map[string]interface{}{
 		"success": true,
 		"column_correct": correct,

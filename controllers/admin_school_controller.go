@@ -18,10 +18,11 @@ type AdminSchoolController struct {
 }
 
 type schoolTeacherInput struct {
-	Id    int    `json:"id"`
-	Nama  string `json:"nama"`
-	Kelas string `json:"kelas"`
-	Email string `json:"email"`
+	Id           int    `json:"id"`
+	Nama         string `json:"nama"`
+	Kelas        string `json:"kelas"`
+	Email        string `json:"email"`
+	JenisKelamin string `json:"jenis_kelamin"`
 }
 
 type schoolUpsertRequest struct {
@@ -161,12 +162,6 @@ func (c *AdminSchoolController) Create() {
 		c.ServeJSON()
 		return
 	}
-	if req.JenisKelamin != string(models.GenderLakiLaki) && req.JenisKelamin != string(models.GenderPerempuan) {
-		c.Ctx.Output.SetStatus(400)
-		c.Data["json"] = schoolResponse{Success: false, Message: "Jenis kelamin wajib dipilih (laki-laki / perempuan)"}
-		c.ServeJSON()
-		return
-	}
 	if !models.IsValidSekolah(req.Sekolah) {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = schoolResponse{Success: false, Message: "Sekolah tidak valid"}
@@ -231,9 +226,10 @@ func (c *AdminSchoolController) Create() {
 			return
 		}
 		cleanTeachers = append(cleanTeachers, models.SchoolTeacher{
-			Nama:  nama,
-			Kelas: kelas,
-			Email: email,
+			Nama:         nama,
+			Kelas:        kelas,
+			Email:        email,
+			JenisKelamin: strings.TrimSpace(t.JenisKelamin),
 		})
 	}
 
@@ -252,7 +248,9 @@ func (c *AdminSchoolController) Create() {
 		Password:         req.Password,
 		Role:             models.RoleSekolah,
 		ProfileCompleted: true,
-		JenisKelamin:     models.Gender(req.JenisKelamin),
+		// JenisKelamin diisi default agar tidak melanggar constraint DB.
+		// Akun sekolah tidak menggunakan gender; field ini tidak ditampilkan di UI.
+		JenisKelamin: models.GenderLakiLaki,
 	}
 	if err := school.HashPassword(); err != nil {
 		_ = tx.Rollback()
@@ -261,13 +259,15 @@ func (c *AdminSchoolController) Create() {
 		c.ServeJSON()
 		return
 	}
-	if _, err := tx.Insert(&school); err != nil {
+	createdId, err := tx.Insert(&school)
+	if err != nil {
 		_ = tx.Rollback()
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = schoolResponse{Success: false, Message: "Gagal membuat akun sekolah: " + err.Error()}
 		c.ServeJSON()
 		return
 	}
+	school.Id = int(createdId)
 
 	for i := range cleanTeachers {
 		cleanTeachers[i].SchoolId = school.Id
@@ -323,5 +323,202 @@ func (c *AdminSchoolController) Delete() {
 		return
 	}
 	c.Data["json"] = schoolResponse{Success: true, Message: "Akun sekolah dihapus"}
+	c.ServeJSON()
+}
+
+// @router /api/schools/my-teachers [get]
+// Daftar guru milik akun sekolah yang sedang login (untuk akun sekolah sendiri).
+func (c *AdminSchoolController) MyTeachers() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+	roleVal := c.GetSession("user_role")
+	roleStr, _ := roleVal.(string)
+	if roleStr != string(models.RoleSekolah) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Hanya akun sekolah yang dapat mengakses endpoint ini"}
+		c.ServeJSON()
+		return
+	}
+	o := orm.NewOrm()
+	
+	// Convert session user_id safely to prevent any type-assertion panic
+	var schoolID int
+	if idInt, ok := userID.(int); ok {
+		schoolID = idInt
+	} else if idInt64, ok := userID.(int64); ok {
+		schoolID = int(idInt64)
+	} else if idFloat, ok := userID.(float64); ok {
+		schoolID = int(idFloat)
+	}
+	
+	var teachers []models.SchoolTeacher
+	_, _ = o.QueryTable(new(models.SchoolTeacher)).Filter("SchoolId", schoolID).OrderBy("id").All(&teachers)
+	c.Data["json"] = schoolResponse{Success: true, Data: teachers}
+	c.ServeJSON()
+}
+
+// @router /api/schools/students [get]
+func (c *AdminSchoolController) ListStudents() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+	roleVal := c.GetSession("user_role")
+	roleStr, _ := roleVal.(string)
+	if roleStr != string(models.RoleSekolah) && roleStr != string(models.RoleAdmin) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Akses ditolak"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	sekolahName := ""
+
+	if roleStr == string(models.RoleSekolah) {
+		var schoolID int
+		if idInt, ok := userID.(int); ok {
+			schoolID = idInt
+		} else if idInt64, ok := userID.(int64); ok {
+			schoolID = int(idInt64)
+		} else if idFloat, ok := userID.(float64); ok {
+			schoolID = int(idFloat)
+		}
+		var schoolUser models.User
+		schoolUser.Id = schoolID
+		if err := o.Read(&schoolUser); err == nil {
+			sekolahName = schoolUser.Sekolah
+		}
+	} else {
+		// Admin can pass a school name filter
+		sekolahName = c.GetString("sekolah")
+	}
+
+	if sekolahName == "" && roleStr == string(models.RoleSekolah) {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Sekolah tidak terkonfigurasi untuk akun Anda"}
+		c.ServeJSON()
+		return
+	}
+
+	// Query students for the school
+	var students []models.User
+	qs := o.QueryTable(new(models.User)).Filter("Role", string(models.RoleSiswa))
+	if sekolahName != "" {
+		qs = qs.Filter("Sekolah", sekolahName)
+	}
+	_, err := qs.OrderBy("NamaLengkap").All(&students)
+	if err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Gagal mengambil data siswa"}
+		c.ServeJSON()
+		return
+	}
+
+	// Count unique non-empty Jurusan and Kelas
+	classesMap := make(map[string]bool)
+	majorsMap := make(map[string]bool)
+	for _, s := range students {
+		cls := strings.TrimSpace(s.Kelas)
+		if cls != "" {
+			classesMap[cls] = true
+		}
+		mjr := strings.TrimSpace(s.Jurusan)
+		if mjr != "" {
+			majorsMap[mjr] = true
+		}
+	}
+
+	c.Data["json"] = schoolResponse{
+		Success: true,
+		Data: map[string]interface{}{
+			"students":      students,
+			"total_students": len(students),
+			"total_classes":  len(classesMap),
+			"total_majors":   len(majorsMap),
+			"sekolah":       sekolahName,
+		},
+	}
+	c.ServeJSON()
+}
+
+// @router /api/schools/access-student/:id [post]
+func (c *AdminSchoolController) AccessStudent() {
+	userID := c.GetSession("user_id")
+	if userID == nil {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Silakan login terlebih dahulu"}
+		c.ServeJSON()
+		return
+	}
+	roleVal := c.GetSession("user_role")
+	roleStr, _ := roleVal.(string)
+	if roleStr != string(models.RoleSekolah) && roleStr != string(models.RoleAdmin) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Hanya akun sekolah atau admin yang dapat menggunakan fitur ini"}
+		c.ServeJSON()
+		return
+	}
+
+	studentID, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil || studentID <= 0 {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = schoolResponse{Success: false, Message: "ID siswa tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	var student models.User
+	student.Id = studentID
+	if err := o.Read(&student); err != nil || student.Role != models.RoleSiswa {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Siswa tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	// Verify school matching
+	if roleStr == string(models.RoleSekolah) {
+		var schoolID int
+		if idInt, ok := userID.(int); ok {
+			schoolID = idInt
+		} else if idInt64, ok := userID.(int64); ok {
+			schoolID = int(idInt64)
+		} else if idFloat, ok := userID.(float64); ok {
+			schoolID = int(idFloat)
+		}
+		var schoolUser models.User
+		schoolUser.Id = schoolID
+		if err := o.Read(&schoolUser); err != nil || !strings.EqualFold(student.Sekolah, schoolUser.Sekolah) {
+			c.Ctx.Output.SetStatus(403)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Anda tidak diizinkan mengakses siswa dari sekolah lain"}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	// Store original session details as backup for reverting
+	c.SetSession("impersonator_user_id", userID)
+	c.SetSession("impersonator_role", roleStr)
+	c.SetSession("impersonator_email", c.GetSession("user_email"))
+
+	// Switch session details to student
+	c.SetSession("user_id", student.Id)
+	c.SetSession("user_role", string(student.Role))
+	c.SetSession("user_email", student.Email)
+
+	c.Data["json"] = schoolResponse{
+		Success: true,
+		Message: "Akses akun siswa berhasil",
+	}
 	c.ServeJSON()
 }

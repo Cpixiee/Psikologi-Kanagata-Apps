@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/rand"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/jung-kurt/gofpdf"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -80,6 +82,9 @@ func (c *PsychotestAdminController) verifyAdminOrSchool() (bool, string, string)
 // filterInvitationsBySchool memfilter slice TestInvitation hanya menyisakan
 // yang user-nya (berdasarkan UserId atau email) berasal dari sekolah yang
 // diberikan. Jika sekolah kosong (admin), slice dikembalikan apa adanya.
+// Logika: INCLUDE jika: (1) tidak bisa resolve user, (2) sekolah user kosong,
+// atau (3) sekolah user cocok. EXCLUDE hanya jika sekolah user eksplisit
+// berbeda dari sekolah filter — ini mencegah cross-school data leak.
 func filterInvitationsBySchool(invs []models.TestInvitation, sekolah string) []models.TestInvitation {
 	if sekolah == "" {
 		return invs
@@ -99,18 +104,29 @@ func filterInvitationsBySchool(invs []models.TestInvitation, sekolah string) []m
 			u = models.User{Email: strings.TrimSpace(inv.Email)}
 			err = o.Read(&u, "Email")
 		} else {
+			// Tidak ada user info — tetap include (batch sudah terfilter)
+			out = append(out, inv)
 			continue
 		}
-		if err == nil && strings.EqualFold(u.Sekolah, sekolah) {
+		if err != nil {
+			// User tidak ditemukan — tetap include (batch sudah terfilter)
+			out = append(out, inv)
+			continue
+		}
+		// User ditemukan: include jika sekolah user kosong (belum diisi) atau cocok
+		if u.Sekolah == "" || strings.EqualFold(u.Sekolah, sekolah) {
 			out = append(out, inv)
 		}
+		// Jika sekolah user eksplisit berbeda → skip (cross-school protection)
 	}
 	return out
 }
 
+
 // @router /api/admin/test-batches [get]
 func (c *PsychotestAdminController) ListBatches() {
-	if ok, _, _ := c.verifyAdminOrSchool(); !ok {
+	ok, roleStr, sekolahStr := c.verifyAdminOrSchool()
+	if !ok {
 		return
 	}
 
@@ -122,6 +138,10 @@ func (c *PsychotestAdminController) ListBatches() {
 		qs = qs.Filter("Status", models.StatusBatchActive)
 	} else if status == models.StatusBatchArchived {
 		qs = qs.Filter("Status", models.StatusBatchArchived)
+	}
+
+	if roleStr == string(models.RoleSekolah) {
+		qs = qs.Filter("Sekolah", sekolahStr)
 	}
 
 	var batches []models.TestBatch
@@ -137,9 +157,112 @@ func (c *PsychotestAdminController) ListBatches() {
 		return
 	}
 
+	// Fetch all school teachers to map teacher_id to teacher_name
+	var teachers []models.SchoolTeacher
+	_, _ = o.QueryTable(new(models.SchoolTeacher)).All(&teachers)
+	teacherMap := make(map[int]string)
+	for _, t := range teachers {
+		teacherMap[t.Id] = t.Nama
+	}
+
+	type BatchResponseItem struct {
+		models.TestBatch
+		TeacherName      string `json:"teacher_name,omitempty"`
+		ParticipantCount int    `json:"participant_count"`
+		CompletedCount   int    `json:"completed_count"`
+	}
+
+	resData := make([]BatchResponseItem, len(batches))
+	for i, b := range batches {
+		var teacherName string
+		if b.TeacherId != nil {
+			teacherName = teacherMap[*b.TeacherId]
+		}
+		
+		var partCount, compCount int
+		// PostgreSQL uses $1, but SQLite/MySQL uses ?. We can use Beego Raw or just direct query.
+		// Wait, let's see which database driver is active. Beego ORM uses standard placeholder.
+		// Since other Raw queries in this codebase use $1 (PostgreSQL placeholder), let's use $1.
+		// Wait! Let's check how other o.Raw queries are written in this file:
+		// Line 967: SELECT * FROM ist_results WHERE invitation_id = $1
+		// Yes, the driver is Postgres, so it uses $1 placeholder!
+		o.Raw("SELECT COUNT(*) FROM test_invitations WHERE batch_id = $1", b.Id).QueryRow(&partCount)
+		
+		if partCount > 0 {
+			if b.EnableIST {
+				o.Raw("SELECT COUNT(*) FROM ist_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
+			} else if b.EnableHolland {
+				o.Raw("SELECT COUNT(*) FROM holland_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
+			} else if b.EnableRMIB {
+				o.Raw("SELECT COUNT(*) FROM rmib_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
+			} else if b.EnableLearningStyle {
+				o.Raw("SELECT COUNT(*) FROM learning_style_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
+			} else if b.EnableKraepelin {
+				o.Raw("SELECT COUNT(*) FROM kraepelin_attempts WHERE status = 'finished' AND invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
+			} else if b.EnablePAPI {
+				o.Raw("SELECT COUNT(*) FROM papi_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
+			}
+		}
+
+		resData[i] = BatchResponseItem{
+			TestBatch:        b,
+			TeacherName:      teacherName,
+			ParticipantCount: partCount,
+			CompletedCount:   compCount,
+		}
+	}
+
 	c.Data["json"] = PsychotestAdminResponse{
 		Success: true,
-		Data:    batches,
+		Data:    resData,
+	}
+	c.ServeJSON()
+}
+
+// @router /api/admin/test-batches/:id [get]
+func (c *PsychotestAdminController) GetBatchDetail() {
+	ok, _, sekolah := c.verifyAdminOrSchool()
+	if !ok {
+		return
+	}
+
+	batchID, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "ID batch tidak valid",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	var batch models.TestBatch
+	batch.Id = batchID
+	if err := o.Read(&batch); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Batch tidak ditemukan",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	if sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolah) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Akses ditolak: Anda tidak memiliki akses ke batch ini",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	c.Data["json"] = PsychotestAdminResponse{
+		Success: true,
+		Data:    batch,
 	}
 	c.ServeJSON()
 }
@@ -153,12 +276,17 @@ func (c *PsychotestAdminController) CreateBatch() {
 	var payload struct {
 		Name            string `json:"name"`
 		Institution     string `json:"institution"`
+		TahunAjaran     string `json:"tahun_ajaran"`
+		Sekolah         string `json:"sekolah"`
+		Kelas           string `json:"kelas"`
+		Jurusan         string `json:"jurusan"`
 		EnableIST       bool   `json:"enable_ist"`
 		EnableHolland   bool   `json:"enable_holland"`
 		EnableLearningStyle bool `json:"enable_learning_style"`
 		EnableKraepelin bool `json:"enable_kraepelin"`
 		EnableRMIB      bool   `json:"enable_rmib"`
 		EnablePAPI      bool   `json:"enable_papi"`
+		TestOrder       string `json:"test_order"`
 		PurposeCategory string `json:"purpose_category"`
 		PurposeDetail   string `json:"purpose_detail"`
 		SendViaEmail    bool   `json:"send_via_email"`
@@ -196,11 +324,11 @@ func (c *PsychotestAdminController) CreateBatch() {
 	if payload.EnablePAPI {
 		enabledCount++
 	}
-	if enabledCount != 1 {
+	if enabledCount < 1 {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
-			Message: "Pilih tepat satu jenis tes untuk batch ini (IST / Holland / Gaya Belajar / Kraepelin / RMIB / PAPI).",
+			Message: "Pilih minimal satu jenis tes untuk batch ini.",
 		}
 		c.ServeJSON()
 		return
@@ -217,15 +345,27 @@ func (c *PsychotestAdminController) CreateBatch() {
 		return
 	}
 
+	var teacherId *int
+	if tID := c.GetSession("teacher_id"); tID != nil {
+		if idVal, ok := tID.(int); ok {
+			teacherId = &idVal
+		}
+	}
+
 	batch := models.TestBatch{
 		Name:            payload.Name,
 		Institution:     payload.Institution,
+		TahunAjaran:     payload.TahunAjaran,
+		Sekolah:         payload.Sekolah,
+		Kelas:           payload.Kelas,
+		Jurusan:         payload.Jurusan,
 		EnableIST:       payload.EnableIST,
 		EnableHolland:   payload.EnableHolland,
 		EnableLearningStyle: payload.EnableLearningStyle,
 		EnableKraepelin: payload.EnableKraepelin,
 		EnableRMIB:      payload.EnableRMIB,
 		EnablePAPI:      payload.EnablePAPI,
+		TestOrder:       payload.TestOrder,
 		PurposeCategory: payload.PurposeCategory,
 		PurposeDetail:   payload.PurposeDetail,
 		SendViaEmail:    payload.SendViaEmail,
@@ -233,6 +373,7 @@ func (c *PsychotestAdminController) CreateBatch() {
 		SendViaWhatsApp: payload.SendViaWhatsApp,
 		Status:          models.StatusBatchActive,
 		CreatedBy:       userID.(int),
+		TeacherId:       teacherId,
 	}
 
 	o := orm.NewOrm()
@@ -390,6 +531,13 @@ func (c *PsychotestAdminController) CreateInvitations() {
 			phone = phoneFromUser
 		}
 
+		var teacherId *int
+		if tID := c.GetSession("teacher_id"); tID != nil {
+			if idVal, ok := tID.(int); ok {
+				teacherId = &idVal
+			}
+		}
+
 		batchIDPtr := &batchID
 		inv := models.TestInvitation{
 			BatchId:   batchIDPtr,
@@ -399,6 +547,7 @@ func (c *PsychotestAdminController) CreateInvitations() {
 			Token:     generateToken(8),
 			ExpiresAt: exp,
 			Status:    models.StatusInvitationPending,
+			TeacherId: teacherId,
 		}
 		if _, err := o.Insert(&inv); err != nil {
 			log.Printf("CreateInvitations insert error for %s: %v", email, err)
@@ -491,6 +640,26 @@ func (c *PsychotestAdminController) ListInvitations() {
 	}
 
 	o := orm.NewOrm()
+	batch := models.TestBatch{Id: batchID}
+	if err := o.Read(&batch); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Batch tes tidak ditemukan",
+		}
+		c.ServeJSON()
+		return
+	}
+	if sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolah) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Akses ditolak: Anda tidak memiliki akses ke batch ini",
+		}
+		c.ServeJSON()
+		return
+	}
+
 	var invitations []models.TestInvitation
 	_, err = o.QueryTable(new(models.TestInvitation)).
 		Filter("BatchId", batchID).
@@ -816,6 +985,25 @@ func (c *PsychotestAdminController) ListBatchResults() {
 	}
 
 	o := orm.NewOrm()
+	batch := models.TestBatch{Id: batchID}
+	if err := o.Read(&batch); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Batch tes tidak ditemukan",
+		}
+		c.ServeJSON()
+		return
+	}
+	if sekolahFilter != "" && !strings.EqualFold(batch.Sekolah, sekolahFilter) {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Akses ditolak: Anda tidak memiliki akses ke batch ini",
+		}
+		c.ServeJSON()
+		return
+	}
 
 	// Ambil undangan beserta hasil IST & Holland jika ada
 	var invitations []models.TestInvitation
@@ -834,17 +1022,58 @@ func (c *PsychotestAdminController) ListBatchResults() {
 
 	invitations = filterInvitationsBySchool(invitations, sekolahFilter)
 
+	// Fetch all school teachers to map teacher_id to teacher_name
+	var teachers []models.SchoolTeacher
+	_, _ = o.QueryTable(new(models.SchoolTeacher)).All(&teachers)
+	teacherMap := make(map[int]string)
+	for _, t := range teachers {
+		teacherMap[t.Id] = t.Nama
+	}
+
 	type InvitationSummary struct {
-		Invitation models.TestInvitation `json:"invitation"`
-		IST        *models.ISTResult     `json:"ist_result,omitempty"`
-		Holland    *models.HollandResult `json:"holland_result,omitempty"`
-		RMIB       *models.RMIBResult    `json:"rmib_result,omitempty"`
+		Invitation    models.TestInvitation       `json:"invitation"`
+		TeacherName   string                      `json:"teacher_name,omitempty"`
+		StudentName   string                      `json:"student_name,omitempty"`
+		StudentEmail  string                      `json:"student_email,omitempty"`
+		StudentAvatar string                      `json:"student_avatar,omitempty"`
+		IST           *models.ISTResult           `json:"ist_result,omitempty"`
+		Holland       *models.HollandResult       `json:"holland_result,omitempty"`
+		RMIB          *models.RMIBResult          `json:"rmib_result,omitempty"`
+		LearningStyle *models.LearningStyleResult `json:"learning_style_result,omitempty"`
+		Kraepelin     *models.KraepelinAttempt    `json:"kraepelin_attempt,omitempty"`
+		PAPI          *models.PAPIResult          `json:"papi_result,omitempty"`
 	}
 
 	var result []InvitationSummary
 
 	for _, inv := range invitations {
-		summary := InvitationSummary{Invitation: inv}
+		var teacherName string
+		if inv.TeacherId != nil {
+			teacherName = teacherMap[*inv.TeacherId]
+		}
+		summary := InvitationSummary{
+			Invitation:   inv,
+			TeacherName:  teacherName,
+			StudentEmail: inv.Email,
+		}
+
+		// Resolve student real name from User table
+		if inv.UserId != nil {
+			var u models.User
+			u.Id = *inv.UserId
+			if o.Read(&u) == nil {
+				if u.NamaLengkap != "" {
+					summary.StudentName = u.NamaLengkap
+				}
+				if u.FotoProfil != "" {
+					summary.StudentAvatar = u.FotoProfil
+				}
+			}
+		}
+		if summary.StudentName == "" {
+			// Fallback: derive name from email prefix
+			summary.StudentName = strings.Split(inv.Email, "@")[0]
+		}
 
 		var ist models.ISTResult
 		// Gunakan raw query untuk memastikan relasi benar
@@ -1057,6 +1286,9 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		err = o.QueryTable(new(models.HollandResult)).
 			Filter("Invitation__Id", inv.Id).
 			One(&hol)
+		if err != nil || hol.Id == 0 {
+			err = o.Raw("SELECT * FROM holland_results WHERE invitation_id = $1", inv.Id).QueryRow(&hol)
+		}
 		if err == nil && hol.Id != 0 {
 			summary.Holland = &hol
 		} else {
@@ -1067,10 +1299,52 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		err = o.QueryTable(new(models.RMIBResult)).
 			Filter("Invitation__Id", inv.Id).
 			One(&rmib)
+		if err != nil || rmib.Id == 0 {
+			err = o.Raw("SELECT * FROM rmib_results WHERE invitation_id = $1", inv.Id).QueryRow(&rmib)
+		}
 		if err == nil && rmib.Id != 0 {
 			summary.RMIB = &rmib
 		} else {
 			summary.RMIB = nil
+		}
+
+		var vak models.LearningStyleResult
+		err = o.QueryTable(new(models.LearningStyleResult)).
+			Filter("Invitation__Id", inv.Id).
+			One(&vak)
+		if err != nil || vak.Id == 0 {
+			err = o.Raw("SELECT * FROM learning_style_results WHERE invitation_id = $1", inv.Id).QueryRow(&vak)
+		}
+		if err == nil && vak.Id != 0 {
+			summary.LearningStyle = &vak
+		} else {
+			summary.LearningStyle = nil
+		}
+
+		var krp models.KraepelinAttempt
+		err = o.QueryTable(new(models.KraepelinAttempt)).
+			Filter("Invitation__Id", inv.Id).
+			One(&krp)
+		if err != nil || krp.Id == 0 {
+			err = o.Raw("SELECT * FROM kraepelin_attempts WHERE invitation_id = $1", inv.Id).QueryRow(&krp)
+		}
+		if err == nil && krp.Id != 0 {
+			summary.Kraepelin = &krp
+		} else {
+			summary.Kraepelin = nil
+		}
+
+		var papi models.PAPIResult
+		err = o.QueryTable(new(models.PAPIResult)).
+			Filter("Invitation__Id", inv.Id).
+			One(&papi)
+		if err != nil || papi.Id == 0 {
+			err = o.Raw("SELECT * FROM papi_results WHERE invitation_id = $1", inv.Id).QueryRow(&papi)
+		}
+		if err == nil && papi.Id != 0 {
+			summary.PAPI = &papi
+		} else {
+			summary.PAPI = nil
 		}
 
 		result = append(result, summary)
@@ -1079,6 +1353,197 @@ func (c *PsychotestAdminController) ListBatchResults() {
 	c.Data["json"] = PsychotestAdminResponse{
 		Success: true,
 		Data:    result,
+	}
+	c.ServeJSON()
+}
+
+// GetInvitationResult mengambil detail hasil seluruh alat tes untuk satu undangan (peserta).
+func (c *PsychotestAdminController) GetInvitationResult() {
+	ok, _, sekolahFilter := c.verifyAdminOrSchool()
+	if !ok {
+		return
+	}
+
+	invID, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "ID undangan tidak valid",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	var inv models.TestInvitation
+	inv.Id = invID
+	if err := o.Read(&inv); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Undangan tidak ditemukan",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	// Filter berdasarkan sekolah jika login sebagai sekolah
+	if inv.BatchId != nil {
+		var batch models.TestBatch
+		batch.Id = *inv.BatchId
+		if o.Read(&batch) == nil {
+			if sekolahFilter != "" && !strings.EqualFold(batch.Sekolah, sekolahFilter) {
+				c.Ctx.Output.SetStatus(403)
+				c.Data["json"] = PsychotestAdminResponse{
+					Success: false,
+					Message: "Akses ditolak: Anda tidak memiliki akses ke data undangan ini",
+				}
+				c.ServeJSON()
+				return
+			}
+		}
+	}
+
+	type InvitationSummary struct {
+		Invitation    models.TestInvitation       `json:"invitation"`
+		StudentName   string                      `json:"student_name"`
+		StudentEmail  string                      `json:"student_email"`
+		StudentAvatar string                      `json:"student_avatar"`
+		StudentGender string                      `json:"student_gender"`
+		StudentDob    string                      `json:"student_dob"`
+		StudentPob    string                      `json:"student_pob"`
+		StudentSchool string                      `json:"student_school"`
+		StudentClass  string                      `json:"student_class"`
+		StudentMajor  string                      `json:"student_major"`
+		Batch         *models.TestBatch           `json:"batch,omitempty"`
+		IST           *models.ISTResult           `json:"ist_result,omitempty"`
+		Holland       *models.HollandResult       `json:"holland_result,omitempty"`
+		RMIB          *models.RMIBResult          `json:"rmib_result,omitempty"`
+		LearningStyle *models.LearningStyleResult `json:"learning_style_result,omitempty"`
+		Kraepelin     *models.KraepelinAttempt    `json:"kraepelin_attempt,omitempty"`
+		PAPI          *models.PAPIResult          `json:"papi_result,omitempty"`
+	}
+
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+
+	summary := InvitationSummary{
+		Invitation:   inv,
+		StudentEmail: inv.Email,
+	}
+	if inv.BatchId != nil && batch.Id != 0 {
+		summary.Batch = &batch
+	}
+
+	// Resolve student real name and avatar from User table
+	if inv.UserId != nil {
+		var u models.User
+		u.Id = *inv.UserId
+		if o.Read(&u) == nil {
+			if u.NamaLengkap != "" {
+				summary.StudentName = u.NamaLengkap
+			}
+			if u.FotoProfil != "" {
+				summary.StudentAvatar = u.FotoProfil
+			}
+			if u.JenisKelamin == models.GenderLakiLaki {
+				summary.StudentGender = "Laki-laki"
+			} else if u.JenisKelamin == models.GenderPerempuan {
+				summary.StudentGender = "Perempuan"
+			}
+			if u.TanggalLahir != nil {
+				summary.StudentDob = u.TanggalLahir.Format("02 January 2006")
+			}
+			summary.StudentPob = u.TempatLahir
+			summary.StudentSchool = u.Sekolah
+			summary.StudentClass = u.Kelas
+			summary.StudentMajor = u.Jurusan
+		}
+	}
+	if summary.StudentName == "" {
+		summary.StudentName = strings.Split(inv.Email, "@")[0]
+	}
+	if summary.StudentSchool == "" {
+		if batch.Sekolah != "" {
+			summary.StudentSchool = batch.Sekolah
+		} else {
+			summary.StudentSchool = batch.Institution
+		}
+	}
+	if summary.StudentClass == "" {
+		summary.StudentClass = batch.Kelas
+	}
+	if summary.StudentMajor == "" {
+		summary.StudentMajor = batch.Jurusan
+	}
+
+	// Get IST
+	var ist models.ISTResult
+	err = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&ist)
+	if err != nil || ist.Id == 0 {
+		_ = o.Raw("SELECT * FROM ist_results WHERE invitation_id = $1", inv.Id).QueryRow(&ist)
+	}
+	if ist.Id != 0 {
+		summary.IST = &ist
+	}
+
+	// Get Holland
+	var hol models.HollandResult
+	err = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&hol)
+	if err != nil || hol.Id == 0 {
+		_ = o.Raw("SELECT * FROM holland_results WHERE invitation_id = $1", inv.Id).QueryRow(&hol)
+	}
+	if hol.Id != 0 {
+		summary.Holland = &hol
+	}
+
+	// Get RMIB
+	var rmib models.RMIBResult
+	err = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&rmib)
+	if err != nil || rmib.Id == 0 {
+		_ = o.Raw("SELECT * FROM rmib_results WHERE invitation_id = $1", inv.Id).QueryRow(&rmib)
+	}
+	if rmib.Id != 0 {
+		summary.RMIB = &rmib
+	}
+
+	// Get Learning Style
+	var vak models.LearningStyleResult
+	err = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&vak)
+	if err != nil || vak.Id == 0 {
+		_ = o.Raw("SELECT * FROM learning_style_results WHERE invitation_id = $1", inv.Id).QueryRow(&vak)
+	}
+	if vak.Id != 0 {
+		summary.LearningStyle = &vak
+	}
+
+	// Get Kraepelin
+	var krp models.KraepelinAttempt
+	err = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&krp)
+	if err != nil || krp.Id == 0 {
+		_ = o.Raw("SELECT * FROM kraepelin_attempts WHERE invitation_id = $1", inv.Id).QueryRow(&krp)
+	}
+	if krp.Id != 0 {
+		summary.Kraepelin = &krp
+	}
+
+	// Get PAPI
+	var papi models.PAPIResult
+	err = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&papi)
+	if err != nil || papi.Id == 0 {
+		_ = o.Raw("SELECT * FROM papi_results WHERE invitation_id = $1", inv.Id).QueryRow(&papi)
+	}
+	if papi.Id != 0 {
+		summary.PAPI = &papi
+	}
+
+	c.Data["json"] = PsychotestAdminResponse{
+		Success: true,
+		Data:    summary,
 	}
 	c.ServeJSON()
 }
@@ -2420,6 +2885,8 @@ func (c *PsychotestAdminController) UpdateBatch() {
 	var payload struct {
 		Name                string `json:"name"`
 		Institution         string `json:"institution"`
+		TahunAjaran         string `json:"tahun_ajaran"`
+		Sekolah             string `json:"sekolah"`
 		Status              string `json:"status"` // active, archived
 		PurposeDetail       string `json:"purpose_detail"`
 		EnableIST           *bool  `json:"enable_ist"`
@@ -2428,6 +2895,7 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		EnableKraepelin     *bool  `json:"enable_kraepelin"`
 		EnableRMIB          *bool  `json:"enable_rmib"`
 		EnablePAPI          *bool  `json:"enable_papi"`
+		TestOrder           *string `json:"test_order"`
 		SendViaEmail        *bool  `json:"send_via_email"`
 		SendViaBrowser      *bool  `json:"send_via_browser"`
 		SendViaWhatsApp     *bool  `json:"send_via_whatsapp"`
@@ -2463,6 +2931,14 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		batch.Institution = payload.Institution
 		fields = append(fields, "Institution")
 	}
+	if payload.TahunAjaran != "" && payload.TahunAjaran != batch.TahunAjaran {
+		batch.TahunAjaran = payload.TahunAjaran
+		fields = append(fields, "TahunAjaran")
+	}
+	if payload.Sekolah != "" && payload.Sekolah != batch.Sekolah {
+		batch.Sekolah = payload.Sekolah
+		fields = append(fields, "Sekolah")
+	}
 	if payload.PurposeDetail != "" && payload.PurposeDetail != batch.PurposeDetail {
 		batch.PurposeDetail = payload.PurposeDetail
 		fields = append(fields, "PurposeDetail")
@@ -2491,6 +2967,10 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		batch.EnablePAPI = *payload.EnablePAPI
 		fields = append(fields, "EnablePAPI")
 	}
+	if payload.TestOrder != nil && batch.TestOrder != *payload.TestOrder {
+		batch.TestOrder = *payload.TestOrder
+		fields = append(fields, "TestOrder")
+	}
 	if payload.SendViaEmail != nil && batch.SendViaEmail != *payload.SendViaEmail {
 		batch.SendViaEmail = *payload.SendViaEmail
 		fields = append(fields, "SendViaEmail")
@@ -2504,7 +2984,7 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		fields = append(fields, "SendViaWhatsApp")
 	}
 
-	// Enforce exactly one test enabled when toggles are provided.
+	// Enforce at least one test enabled when toggles are provided.
 	if payload.EnableIST != nil || payload.EnableHolland != nil || payload.EnableLearningStyle != nil || payload.EnableKraepelin != nil || payload.EnableRMIB != nil || payload.EnablePAPI != nil {
 		enabledCount := 0
 		if batch.EnableIST {
@@ -2525,11 +3005,11 @@ func (c *PsychotestAdminController) UpdateBatch() {
 		if batch.EnablePAPI {
 			enabledCount++
 		}
-		if enabledCount != 1 {
+		if enabledCount < 1 {
 			c.Ctx.Output.SetStatus(400)
 			c.Data["json"] = PsychotestAdminResponse{
 				Success: false,
-				Message: "Batch harus mengaktifkan tepat satu jenis tes (IST / Holland / Gaya Belajar / Kraepelin / RMIB / PAPI).",
+				Message: "Batch harus mengaktifkan minimal satu jenis tes.",
 			}
 			c.ServeJSON()
 			return
@@ -2713,4 +3193,717 @@ func generateToken(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+// ExportSingleResultZIP exports a single result (PDF Page 1 and Excel Page 2) into a single ZIP.
+// @router /api/results/export-zip [get]
+func (c *PsychotestAdminController) ExportSingleResultZIP() {
+	o := orm.NewOrm()
+
+	writeErr := func(status int, msg string) {
+		c.Ctx.Output.SetStatus(status)
+		c.Ctx.Output.Header("Content-Type", "text/plain; charset=utf-8")
+		_, _ = c.Ctx.ResponseWriter.Write([]byte(msg))
+	}
+
+	// 1. Authenticate user and check invitation access
+	invIDStr := strings.TrimSpace(c.GetString("invId"))
+	if invIDStr == "" {
+		writeErr(400, "Parameter invId wajib diisi")
+		return
+	}
+	invID, err := strconv.Atoi(invIDStr)
+	if err != nil || invID <= 0 {
+		writeErr(400, "Parameter invId tidak valid")
+		return
+	}
+
+	var inv models.TestInvitation
+	inv.Id = invID
+	if err := o.Read(&inv); err != nil {
+		writeErr(404, "Undangan tidak ditemukan")
+		return
+	}
+
+	// Check access permissions
+	allowed, err := c.checkResultAccessInternal(o, &inv)
+	if !allowed || err != nil {
+		msg := "Akses ditolak"
+		if err != nil {
+			msg = err.Error()
+		}
+		writeErr(403, msg)
+		return
+	}
+
+	// Resolve target test type
+	testType := strings.ToLower(strings.TrimSpace(c.GetString("test")))
+	if testType == "" {
+		writeErr(400, "Parameter test (ist, holland, learning_style, kraepelin, rmib, papi) wajib diisi")
+		return
+	}
+
+	// 2. Fetch User & Batch data
+	var user models.User
+	if inv.UserId != nil {
+		user.Id = *inv.UserId
+		_ = o.Read(&user)
+	}
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+
+	// 3. Retrieve specific result & Excel bytes
+	var excelBytes []byte
+	var resultData interface{}
+	var friendlyTestName string
+
+	switch testType {
+	case "ist":
+		friendlyTestName = "IST"
+		var res models.ISTResult
+		err = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res)
+		if err != nil || res.Id == 0 {
+			writeErr(404, "Hasil IST belum tersedia")
+			return
+		}
+		// Recalculate/ensure standard scores if needed
+		age := 0
+		if user.TanggalLahir != nil {
+			age = utils.AgeYears(*user.TanggalLahir, time.Now())
+		}
+		if age > 0 {
+			if updatedRes, err := utils.EnsureISTStandardAndIQScores(o, &res, age); err == nil && updatedRes != nil {
+				res = *updatedRes
+			}
+		}
+		resultData = res
+		excelBytes, err = buildISTResultXLSX(o, &batch, &inv, &user)
+	case "holland":
+		friendlyTestName = "Holland"
+		var res models.HollandResult
+		err = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
+		if err != nil || res.Id == 0 {
+			writeErr(404, "Hasil Holland belum tersedia")
+			return
+		}
+		resultData = res
+		excelBytes, err = buildHollandResultXLSX(o, &batch, &inv, &user)
+	case "learning_style", "vak":
+		friendlyTestName = "Gaya_Belajar"
+		var res models.LearningStyleResult
+		err = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
+		if err != nil || res.Id == 0 {
+			writeErr(404, "Hasil Gaya Belajar belum tersedia")
+			return
+		}
+		resultData = res
+		excelBytes, err = buildLearningStyleResultXLSX(o, &batch, &inv, &user)
+	case "kraepelin":
+		friendlyTestName = "Kraepelin"
+		var res models.KraepelinAttempt
+		err = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&res)
+		if err != nil || res.Id == 0 {
+			writeErr(404, "Hasil Kraepelin belum tersedia")
+			return
+		}
+		resultData = res
+		excelBytes, err = buildKraepelinResultXLSX(o, &batch, &inv, &user)
+	case "rmib":
+		friendlyTestName = "RMIB"
+		var res models.RMIBResult
+		err = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&res)
+		if err != nil || res.Id == 0 {
+			writeErr(404, "Hasil RMIB belum tersedia")
+			return
+		}
+		resultData = res
+		excelBytes, err = buildRMIBResultXLSX(o, &batch, &inv, &user)
+	case "papi":
+		friendlyTestName = "PAPI"
+		var res models.PAPIResult
+		err = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&res)
+		if err != nil || res.Id == 0 {
+			writeErr(404, "Hasil PAPI belum tersedia")
+			return
+		}
+		resultData = res
+		excelBytes, err = buildPAPIResultXLSX(o, &batch, &inv, &user)
+	default:
+		writeErr(400, "Tipe alat tes tidak dikenali")
+		return
+	}
+
+	if err != nil || len(excelBytes) == 0 {
+		writeErr(500, fmt.Sprintf("Gagal menyusun laporan excel: %v", err))
+		return
+	}
+
+	// 4. Retrieve or generate AI Summary
+	studentRealName := user.NamaLengkap
+	if studentRealName == "" {
+		studentRealName = strings.Split(inv.Email, "@")[0]
+	}
+	summaryData, err := GetOrGenerateTestSummaryInternal(o, friendlyTestName, resultData, studentRealName)
+	if err != nil {
+		logs.Error("Single export: failed to fetch AI summary: %v", err)
+		summaryData = map[string]interface{}{
+			"summary":           "Laporan hasil evaluasi psikologis.",
+			"kekuatan":          []interface{}{"Mandiri", "Disiplin"},
+			"area_pengembangan": []interface{}{"Perlu mengoptimalkan komunikasi interpersonal"},
+			"rekomendasi_siswa": []interface{}{"Pertahankan motivasi belajar"},
+			"rekomendasi_ortu":  []interface{}{"Dukung minat karir anak"},
+			"rekomendasi_bk":    []interface{}{"Bimbing pilihan studi karir anak"},
+		}
+	}
+
+	// 5. Generate Professional PDF
+	pdfBytes, err := c.generateProfessionalPDFReport(o, &inv, &user, &batch, friendlyTestName, summaryData, resultData)
+	if err != nil {
+		writeErr(500, fmt.Sprintf("Gagal menyusun laporan PDF: %v", err))
+		return
+	}
+
+	// 6. Build ZIP archive containing both files
+	zipBuf := new(bytes.Buffer)
+	zw := zip.NewWriter(zipBuf)
+
+	studentSafe := sanitizeFilename(studentRealName)
+	if studentSafe == "" {
+		studentSafe = fmt.Sprintf("Siswa_%d", inv.Id)
+	}
+
+	pdfName := fmt.Sprintf("Laporan_Hasil_%s_%s.pdf", friendlyTestName, studentSafe)
+	wPdf, err := zw.Create(pdfName)
+	if err != nil {
+		writeErr(500, "Gagal membuat file PDF dalam ZIP")
+		return
+	}
+	_, _ = wPdf.Write(pdfBytes)
+
+	xlsxName := fmt.Sprintf("Psikogram_Hasil_%s_%s.xlsx", friendlyTestName, studentSafe)
+	wXlsx, err := zw.Create(xlsxName)
+	if err != nil {
+		writeErr(500, "Gagal membuat file Excel dalam ZIP")
+		return
+	}
+	_, _ = wXlsx.Write(excelBytes)
+
+	_ = zw.Close()
+
+	// 7. Write ZIP response
+	zipName := fmt.Sprintf("%s_%s_Lengkap.zip", studentSafe, friendlyTestName)
+	c.Ctx.Output.Header("Content-Type", "application/zip")
+	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+zipName+"\"")
+	_, _ = c.Ctx.ResponseWriter.Write(zipBuf.Bytes())
+}
+
+// checkResultAccessInternal determines if the session user has right to download
+func (c *PsychotestAdminController) checkResultAccessInternal(o orm.Ormer, inv *models.TestInvitation) (bool, error) {
+	sessionUser := c.GetSession("user_id")
+	if sessionUser == nil {
+		return false, fmt.Errorf("Silakan login terlebih dahulu")
+	}
+	userID := sessionUser.(int)
+
+	userRole := c.GetSession("user_role")
+	roleStr, _ := userRole.(string)
+
+	// Admin is always allowed
+	if roleStr == string(models.RoleAdmin) {
+		return true, nil
+	}
+
+	// Counselor is allowed if batch school matches counselor's school
+	if roleStr == string(models.RoleSekolah) {
+		var sekolah string
+		u := models.User{Id: userID}
+		if err := o.Read(&u); err == nil {
+			sekolah = u.Sekolah
+		}
+		if inv.BatchId != nil {
+			var batch models.TestBatch
+			batch.Id = *inv.BatchId
+			if err := o.Read(&batch); err == nil {
+				if strings.EqualFold(batch.Sekolah, sekolah) {
+					return true, nil
+				}
+			}
+		}
+		return false, fmt.Errorf("Akses ditolak: Anda tidak memiliki akses ke data undangan ini")
+	}
+
+	// Student is allowed if they own the invitation
+	if inv.UserId != nil && *inv.UserId == userID {
+		return true, nil
+	}
+	var loggedInUser models.User
+	loggedInUser.Id = userID
+	if err := o.Read(&loggedInUser); err == nil {
+		if strings.TrimSpace(inv.Email) != "" && strings.EqualFold(strings.TrimSpace(inv.Email), strings.TrimSpace(loggedInUser.Email)) {
+			return true, nil
+		}
+	}
+
+	return false, fmt.Errorf("Anda tidak memiliki akses ke hasil ini")
+}
+
+// generateProfessionalPDFReport renders the 1st page narrative report professionally using gofpdf
+func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, inv *models.TestInvitation, user *models.User, batch *models.TestBatch, testType string, summaryData map[string]interface{}, resultData interface{}) ([]byte, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetTitle("Laporan Hasil Tes "+testType, false)
+	pdf.SetMargins(15, 15, 15)
+	pdf.AddPage()
+
+	// Font Setup
+	pdf.SetFont("Arial", "B", 15)
+	pdf.CellFormat(0, 8, "LAPORAN HASIL EVALUASI PSIKOLOGIS", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 11)
+	pdf.CellFormat(0, 5, "ALAT TES: "+strings.ToUpper(testType), "", 1, "C", false, 0, "")
+	pdf.Ln(6)
+
+	// --- 1. IDENTITAS PESERTA ---
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.CellFormat(0, 5, "IDENTITAS PESERTA", "", 1, "L", false, 0, "")
+	pdf.SetLineWidth(0.3)
+	pdf.Line(15, pdf.GetY(), 195, pdf.GetY())
+	pdf.Ln(2)
+
+	pdf.SetFont("Arial", "", 9.5)
+	nama := user.NamaLengkap
+	if nama == "" {
+		nama = inv.Email
+	}
+	gender := "-"
+	if user.JenisKelamin == models.GenderLakiLaki {
+		gender = "Laki-laki"
+	} else if user.JenisKelamin == models.GenderPerempuan {
+		gender = "Perempuan"
+	}
+	
+	dob := "-"
+	if user.TanggalLahir != nil {
+		dob = user.TanggalLahir.Format("02 January 2006")
+	}
+	pob := user.TempatLahir
+	if pob == "" {
+		pob = "-"
+	}
+	pobDob := pob + ", " + dob
+	if pob == "-" && dob == "-" {
+		pobDob = "-"
+	}
+
+	sekolah := batch.Sekolah
+	if sekolah == "" {
+		sekolah = user.Sekolah
+	}
+	if sekolah == "" {
+		sekolah = batch.Institution
+	}
+	if sekolah == "" {
+		sekolah = "-"
+	}
+
+	kelasJurusan := "-"
+	if user.Kelas != "" || user.Jurusan != "" {
+		kelasJurusan = user.Kelas + " / " + user.Jurusan
+	} else if batch.Kelas != "" || batch.Jurusan != "" {
+		kelasJurusan = batch.Kelas + " / " + batch.Jurusan
+	}
+
+	tglPeriksa := inv.UsedAt.Format("02 January 2006")
+	if inv.UsedAt.IsZero() {
+		tglPeriksa = inv.CreatedAt.Format("02 January 2006")
+	}
+
+	drawRow := func(label, val string) {
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(45, 5, label, "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(5, 5, ":", "", 0, "L", false, 0, "")
+		pdf.CellFormat(0, 5, val, "", 1, "L", false, 0, "")
+	}
+
+	drawRow("Nama", nama)
+	drawRow("Jenis Kelamin", gender)
+	drawRow("Tempat/Tanggal Lahir", pobDob)
+	drawRow("Sekolah", sekolah)
+	drawRow("Kelas / Jurusan", kelasJurusan)
+	drawRow("Tanggal Pemeriksaan", tglPeriksa)
+	pdf.Ln(4)
+
+	// --- 2. TUJUAN PEMERIKSAAN ---
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.CellFormat(0, 5, "TUJUAN PEMERIKSAAN", "", 1, "L", false, 0, "")
+	pdf.Line(15, pdf.GetY(), 195, pdf.GetY())
+	pdf.Ln(2)
+
+	pdf.SetFont("Arial", "", 9)
+	pdf.MultiCell(0, 4.5, "Pemeriksaan psikologis untuk memperoleh gambaran mengenai potensi intelektual, minat, serta karakteristik kepribadian peserta didik sebagai bahan pertimbangan dalam pengembangan diri dan perencanaan karier.", "", "L", false)
+	pdf.Ln(4)
+
+	// --- 3. HASIL PEMERIKSAAN ---
+	pdf.SetFillColor(0, 0, 0)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.CellFormat(0, 7, "  HASIL PEMERIKSAAN", "0", 1, "L", true, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(3)
+
+	// 1. KEMAMPUAN INTELEKTUAL
+	pdf.SetFont("Arial", "B", 9.5)
+	pdf.CellFormat(0, 4.5, "1. KEMAMPUAN INTELEKTUAL", "", 1, "L", false, 0, "")
+	pdf.Ln(1)
+
+	pdf.SetFont("Arial", "", 9)
+	if testType == "IST" {
+		if ist, ok := resultData.(models.ISTResult); ok {
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(30, 4.5, "Skor IQ", "", 0, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("%d", ist.IQ), "", 1, "L", false, 0, "")
+
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(30, 4.5, "Kategori", "", 0, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, ist.IQCategory, "", 1, "L", false, 0, "")
+			pdf.Ln(2.5)
+
+			pdf.SetFont("Arial", "I", 9)
+			pdf.CellFormat(0, 4.5, "Interpretasi:", "", 1, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			summaryText, _ := summaryData["summary"].(string)
+			if summaryText == "" {
+				summaryText = fmt.Sprintf("Peserta didik memiliki potensi kognitif di kategori %s. Potensi ini menggambarkan kapasitas umum peserta didik dalam memahami masalah, melakukan penalaran terstruktur, serta memproses informasi akademis secara memadai.", ist.IQCategory)
+			}
+			pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+		}
+	} else if testType == "Kraepelin" {
+		if krp, ok := resultData.(models.KraepelinAttempt); ok {
+			tot := krp.TotalCorrect + krp.TotalErrors + krp.TotalSkipped
+			acc := 0.0
+			if tot > 0 {
+				acc = float64(krp.TotalCorrect) / float64(tot) * 100.0
+			}
+
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(45, 4.5, "Total Jawaban Benar", "", 0, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("%d", krp.TotalCorrect), "", 1, "L", false, 0, "")
+
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(45, 4.5, "Total Jawaban Salah", "", 0, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("%d", krp.TotalErrors), "", 1, "L", false, 0, "")
+
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(45, 4.5, "Total Baris Dilewati", "", 0, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("%d", krp.TotalSkipped), "", 1, "L", false, 0, "")
+
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(45, 4.5, "Tingkat Akurasi Kerja", "", 0, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("%.1f%%", acc), "", 1, "L", false, 0, "")
+			pdf.Ln(2.5)
+
+			pdf.SetFont("Arial", "I", 9)
+			pdf.CellFormat(0, 4.5, "Interpretasi:", "", 1, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
+			summaryText, _ := summaryData["summary"].(string)
+			pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+		}
+	} else {
+		pdf.CellFormat(0, 4.5, "Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.", "", 1, "L", false, 0, "")
+	}
+	pdf.Ln(3)
+
+	// 2. SPESIFIK HASIL TES (minat/kepribadian/gaya belajar)
+	if testType == "Holland" {
+		if hol, ok := resultData.(models.HollandResult); ok {
+			pdf.SetFont("Arial", "B", 9.5)
+			pdf.CellFormat(0, 4.5, "2. MINAT KARIER DOMINAN (RIASEC)", "", 1, "L", false, 0, "")
+			pdf.Ln(1)
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("Kode RIASEC Dominan (Top 3): %s", hol.Code), "", 1, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("Detail Skor: Realistic=%d, Investigative=%d, Artistic=%d, Social=%d, Enterprising=%d, Conventional=%d", hol.ScoreR, hol.ScoreI, hol.ScoreA, hol.ScoreS, hol.ScoreE, hol.ScoreC), "", 1, "L", false, 0, "")
+			pdf.Ln(2)
+			
+			summaryText, _ := summaryData["summary"].(string)
+			if summaryText != "" {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(0, 4.5, "Interpretasi Minat Karir:", "", 1, "L", false, 0, "")
+				pdf.SetFont("Arial", "", 9)
+				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+			}
+		}
+	} else if testType == "RMIB" {
+		if rmib, ok := resultData.(models.RMIBResult); ok {
+			pdf.SetFont("Arial", "B", 9.5)
+			pdf.CellFormat(0, 4.5, "2. MINAT KARIER DOMINAN (RMIB)", "", 1, "L", false, 0, "")
+			pdf.Ln(1)
+			pdf.SetFont("Arial", "", 9)
+			
+			type entry struct {
+				Label string `json:"label"`
+				Score int    `json:"score"`
+				Rank  int    `json:"rank"`
+			}
+			parsed := map[string]entry{}
+			_ = json.Unmarshal([]byte(rmib.ResultJSON), &parsed)
+			var sorted []entry
+			for _, e := range parsed {
+				sorted = append(sorted, e)
+			}
+			sort.Slice(sorted, func(i, j int) bool {
+				return sorted[i].Rank < sorted[j].Rank
+			})
+			
+			var top3 []string
+			for idx, s := range sorted {
+				if idx >= 3 {
+					break
+				}
+				top3 = append(top3, fmt.Sprintf("%s (Peringkat %d)", s.Label, s.Rank))
+			}
+			pdf.CellFormat(0, 4.5, "Minat Teratas (Top 3): "+strings.Join(top3, ", "), "", 1, "L", false, 0, "")
+			pdf.Ln(2)
+			
+			summaryText, _ := summaryData["summary"].(string)
+			if summaryText != "" {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(0, 4.5, "Interpretasi RMIB:", "", 1, "L", false, 0, "")
+				pdf.SetFont("Arial", "", 9)
+				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+			}
+		}
+	} else if testType == "Gaya_Belajar" {
+		if vak, ok := resultData.(models.LearningStyleResult); ok {
+			pdf.SetFont("Arial", "B", 9.5)
+			pdf.CellFormat(0, 4.5, "2. PROFIL GAYA BELAJAR (VAK)", "", 1, "L", false, 0, "")
+			pdf.Ln(1)
+			pdf.SetFont("Arial", "", 9)
+			tot := vak.ScoreVisual + vak.ScoreAuditory + vak.ScoreKinesthetic
+			vPct, aPct, kPct := 0.0, 0.0, 0.0
+			if tot > 0 {
+				vPct = float64(vak.ScoreVisual) / float64(tot) * 100.0
+				aPct = float64(vak.ScoreAuditory) / float64(tot) * 100.0
+				kPct = float64(vak.ScoreKinesthetic) / float64(tot) * 100.0
+			}
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("Skor / Persentase: Visual=%d (%.1f%%), Auditori=%d (%.1f%%), Kinestetik=%d (%.1f%%)", vak.ScoreVisual, vPct, vak.ScoreAuditory, aPct, vak.ScoreKinesthetic, kPct), "", 1, "L", false, 0, "")
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("Gaya Belajar Dominan: %s", vak.DominantType), "", 1, "L", false, 0, "")
+			pdf.Ln(2)
+
+			summaryText, _ := summaryData["summary"].(string)
+			if summaryText != "" {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(0, 4.5, "Interpretasi Gaya Belajar:", "", 1, "L", false, 0, "")
+				pdf.SetFont("Arial", "", 9)
+				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+			}
+		}
+	} else if testType == "PAPI" {
+		if papi, ok := resultData.(models.PAPIResult); ok {
+			pdf.SetFont("Arial", "B", 9.5)
+			pdf.CellFormat(0, 4.5, "2. ASPEK KEPRIBADIAN (PAPI-Kostick)", "", 1, "L", false, 0, "")
+			pdf.Ln(1)
+			pdf.SetFont("Arial", "", 9)
+			pdf.CellFormat(0, 4.5, fmt.Sprintf("Kategori Perilaku Dominan: %s", papi.DominantCategory), "", 1, "L", false, 0, "")
+			if papi.TopCategories != "" {
+				pdf.CellFormat(0, 4.5, fmt.Sprintf("Aspek Menonjol: %s", papi.TopCategories), "", 1, "L", false, 0, "")
+			}
+			pdf.Ln(2)
+
+			summaryText, _ := summaryData["summary"].(string)
+			if summaryText != "" {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(0, 4.5, "Interpretasi Kepribadian Kerja:", "", 1, "L", false, 0, "")
+				pdf.SetFont("Arial", "", 9)
+				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+			}
+		}
+	}
+	pdf.Ln(3)
+
+	// 3. KARAKTERISTIK PRIBADI
+	pdf.SetFont("Arial", "B", 9.5)
+	pdf.CellFormat(0, 4.5, "3. KARAKTERISTIK PRIBADI", "", 1, "L", false, 0, "")
+	pdf.Ln(1)
+
+	kekuatan := parseArrayOrString(summaryData["kekuatan"])
+	areaDev := parseArrayOrString(summaryData["area_pengembangan"])
+
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(0, 4.5, "Kekuatan Utama:", "", 1, "L", false, 0, "")
+	pdf.SetFont("Arial", "", 9)
+	if len(kekuatan) > 0 {
+		for _, k := range kekuatan {
+			pdf.MultiCell(0, 4.5, "- "+k, "", "L", false)
+		}
+	} else {
+		pdf.CellFormat(0, 4.5, "- Menunjukkan motivasi dan kapasitas belajar yang adaptif.", "", 1, "L", false, 0, "")
+	}
+	pdf.Ln(1.5)
+
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(0, 4.5, "Area Pengembangan:", "", 1, "L", false, 0, "")
+	pdf.SetFont("Arial", "", 9)
+	if len(areaDev) > 0 {
+		for _, ad := range areaDev {
+			pdf.MultiCell(0, 4.5, "- "+ad, "", "L", false)
+		}
+	} else {
+		pdf.CellFormat(0, 4.5, "- Mengoptimalkan pengelolaan waktu dan konsentrasi saat tugas rumit.", "", 1, "L", false, 0, "")
+	}
+	pdf.Ln(4)
+
+	// --- 4. KESIMPULAN ---
+	pdf.SetFillColor(0, 0, 0)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.CellFormat(0, 7, "  KESIMPULAN", "0", 1, "L", true, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(2.5)
+
+	pdf.SetFont("Arial", "", 9)
+	catatanPenting, _ := summaryData["catatan_penting"].(string)
+	summaryText, _ := summaryData["summary"].(string)
+	kesimpulanParagraf := summaryText
+	if catatanPenting != "" {
+		kesimpulanParagraf = kesimpulanParagraf + " " + catatanPenting
+	}
+	if kesimpulanParagraf == "" {
+		kesimpulanParagraf = "Peserta didik secara umum menunjukkan potensi yang baik dan relevan dengan pilihan jurusan akademisnya. Disarankan untuk terus dibimbing agar pencapaian karirnya optimal."
+	}
+	pdf.MultiCell(0, 4.5, kesimpulanParagraf, "", "L", false)
+	pdf.Ln(4)
+
+	if pdf.GetY() > 210 {
+		pdf.AddPage()
+	}
+
+	// --- 5. REKOMENDASI ---
+	pdf.SetFillColor(0, 0, 0)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.CellFormat(0, 7, "  REKOMENDASI", "0", 1, "L", true, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(3.5)
+
+	rekomendasiSiswa := parseArrayOrString(summaryData["rekomendasi_siswa"])
+	rekomendasiOrtu := parseArrayOrString(summaryData["rekomendasi_ortu"])
+	rekomendasiBK := parseArrayOrString(summaryData["rekomendasi_bk"])
+
+	xStart := 15.0
+	yStart := pdf.GetY()
+	colW := 54.0
+	gap := 9.0
+
+	// Col 1: Untuk Peserta Didik
+	pdf.SetXY(xStart, yStart)
+	pdf.SetFont("Arial", "B", 9)
+	pdf.MultiCell(colW, 5, "Untuk Peserta Didik:", "", "L", false)
+	pdf.SetFont("Arial", "", 8)
+	y1 := pdf.GetY() + 1.0
+	if len(rekomendasiSiswa) > 0 {
+		for _, item := range rekomendasiSiswa {
+			pdf.SetXY(xStart, y1)
+			pdf.CellFormat(3, 4, "-", "", 0, "L", false, 0, "")
+			pdf.SetXY(xStart+3, y1)
+			pdf.MultiCell(colW-3, 4, item, "", "L", false)
+			y1 = pdf.GetY() + 1.0
+		}
+	} else {
+		pdf.SetXY(xStart, y1)
+		pdf.MultiCell(colW, 4, "- Melatih keterampilan secara rutin dan terencana.", "", "L", false)
+		y1 = pdf.GetY() + 1.0
+	}
+
+	// Col 2: Untuk Orang Tua
+	x2 := xStart + colW + gap
+	pdf.SetXY(x2, yStart)
+	pdf.SetFont("Arial", "B", 9)
+	pdf.MultiCell(colW, 5, "Untuk Orang Tua:", "", "L", false)
+	pdf.SetFont("Arial", "", 8)
+	y2 := pdf.GetY() + 1.0
+	if len(rekomendasiOrtu) > 0 {
+		for _, item := range rekomendasiOrtu {
+			pdf.SetXY(x2, y2)
+			pdf.CellFormat(3, 4, "-", "", 0, "L", false, 0, "")
+			pdf.SetXY(x2+3, y2)
+			pdf.MultiCell(colW-3, 4, item, "", "L", false)
+			y2 = pdf.GetY() + 1.0
+		}
+	} else {
+		pdf.SetXY(x2, y2)
+		pdf.MultiCell(colW, 4, "- Memberikan dukungan moral dan fasilitas belajar.", "", "L", false)
+		y2 = pdf.GetY() + 1.0
+	}
+
+	// Col 3: Untuk Sekolah/Guru BK
+	x3 := xStart + 2*(colW+gap)
+	pdf.SetXY(x3, yStart)
+	pdf.SetFont("Arial", "B", 9)
+	pdf.MultiCell(colW, 5, "Untuk Sekolah/Guru BK:", "", "L", false)
+	pdf.SetFont("Arial", "", 8)
+	y3 := pdf.GetY() + 1.0
+	if len(rekomendasiBK) > 0 {
+		for _, item := range rekomendasiBK {
+			pdf.SetXY(x3, y3)
+			pdf.CellFormat(3, 4, "-", "", 0, "L", false, 0, "")
+			pdf.SetXY(x3+3, y3)
+			pdf.MultiCell(colW-3, 4, item, "", "L", false)
+			y3 = pdf.GetY() + 1.0
+		}
+	} else {
+		pdf.SetXY(x3, y3)
+		pdf.MultiCell(colW, 4, "- Memberikan layanan BK yang sesuai potensi dan minat anak.", "", "L", false)
+		y3 = pdf.GetY() + 1.0
+	}
+
+	maxY := y1
+	if y2 > maxY {
+		maxY = y2
+	}
+	if y3 > maxY {
+		maxY = y3
+	}
+	pdf.SetY(maxY + 6.0)
+
+	buf := new(bytes.Buffer)
+	err := pdf.Output(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func parseArrayOrString(val interface{}) []string {
+	if val == nil {
+		return nil
+	}
+	switch v := val.(type) {
+	case []interface{}:
+		var out []string
+		for _, x := range v {
+			if s, ok := x.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out
+	case []string:
+		return v
+	case string:
+		return []string{v}
+	}
+	return nil
 }

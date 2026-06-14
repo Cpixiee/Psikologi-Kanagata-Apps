@@ -1,0 +1,1839 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Batch Tes — Psychee Wellness</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <style>
+      /* ===== Root overrides ===== */
+      :root {
+        --accent: #0f172a;
+        --accent2: #475569;
+        --accent3: #64748b;
+        --success: #10b981;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --surface: #ffffff;
+        --surface2: #f8fafc;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --radius-sm: 8px;
+        --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.05), 0 1px 2px -1px rgba(0,0,0,0.05);
+        --shadow-hover: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+      }
+
+      /* ===== Batch Header (Clean Style) ===== */
+      .bd-badge {
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .05em;
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        display: inline-block;
+      }
+      .btn-back-clean {
+        width: 36px; height: 36px; border-radius: 10px;
+        border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text); background: var(--surface);
+        transition: all 0.2s; flex-shrink: 0;
+        text-decoration: none;
+      }
+      .btn-back-clean:hover {
+        background: var(--surface2);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* ===== AI Batch Summary Card ===== */
+      .ai-batch-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent2);
+        border-radius: var(--radius-lg);
+        padding: 24px 26px;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 24px;
+      }
+      .ai-batch-card-hd {
+        display: flex; align-items: center; gap: 10px;
+        margin-bottom: 18px;
+      }
+      .ai-batch-card-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: #f1f5f9;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .ai-batch-sk {
+        background: linear-gradient(90deg,#f1f3f9 25%,#e8eaf0 50%,#f1f3f9 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 6px; margin-bottom: 9px;
+      }
+      .ai-batch-section-title {
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em;
+        color: var(--muted); margin: 14px 0 7px;
+        display: flex; align-items: center; gap: 5px;
+      }
+      .ai-batch-ul { list-style: none; padding: 0; margin: 0; }
+      .ai-batch-ul li {
+        font-size: 13px; color: var(--text); padding: 5px 0;
+        border-bottom: 1px solid #f3f4f8;
+        display: flex; align-items: flex-start; gap: 8px;
+      }
+      .ai-batch-ul li:last-child { border-bottom: none; }
+      .ai-batch-ul li::before { content: '›'; color: var(--accent2); font-weight: 800; font-size: 15px; flex-shrink: 0; line-height: 1.35; }
+      .ai-batch-grid {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 14px; margin-top: 14px;
+      }
+      @media (max-width: 640px) { .ai-batch-grid { grid-template-columns: 1fr; } }
+      .ai-batch-subcard {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+      }
+
+      /* ===== Tabs ===== */
+
+      .bd-tabs {
+        display: flex; gap: 6px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 5px;
+        margin-bottom: 24px;
+        width: fit-content;
+      }
+      .bd-tab {
+        padding: 9px 22px;
+        border-radius: 10px;
+        border: none;
+        background: transparent;
+        font-size: 14px; font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all .2s;
+        display: flex; align-items: center; gap: 7px;
+      }
+      .bd-tab.active {
+        background: var(--surface);
+        color: var(--accent);
+        font-weight: 700;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      }
+
+
+
+      /* ===== Chart Card ===== */
+      .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px 26px;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 24px;
+      }
+      .chart-card-hd {
+        display: flex; align-items: center; gap: 14px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+      }
+      .chart-card-icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .chart-card-title {
+        font-size: 15px; font-weight: 700; color: var(--text); margin: 0;
+      }
+      .chart-card-sub { font-size: 12px; color: var(--muted); margin: 0; }
+
+      /* ===== Student Section ===== */
+      .filter-bar {
+        display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+      }
+      .filter-search {
+        position: relative; flex: 1; min-width: 220px;
+      }
+      .filter-search input {
+        width: 100%; padding: 10px 14px 10px 40px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px; color: var(--text);
+        outline: none; background: var(--surface);
+        font-family: 'Inter', sans-serif;
+        transition: all .2s;
+      }
+      .filter-search input:focus {
+        border-color: var(--accent2);
+        box-shadow: 0 0 0 3px rgba(71,85,105,.12);
+      }
+      .filter-search .fi {
+        position: absolute; left: 13px; top: 50%;
+        transform: translateY(-50%);
+        width: 16px; height: 16px; color: var(--muted);
+      }
+      .filter-select {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px; color: var(--text);
+        outline: none; background: var(--surface);
+        cursor: pointer; font-family: 'Inter', sans-serif;
+        transition: all .2s;
+      }
+      .filter-select:focus { border-color: var(--accent2); }
+
+      /* ===== Student Card Grid ===== */
+      .student-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+      }
+      .student-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 0;
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: all .25s cubic-bezier(.4,0,.2,1);
+        display: flex; flex-direction: column;
+      }
+      .student-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-3px);
+      }
+      .sc-top {
+        padding: 22px 20px 16px;
+        display: flex; align-items: center; gap: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .sc-avatar {
+        width: 52px; height: 52px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 19px; font-weight: 800; color: #fff;
+        flex-shrink: 0; letter-spacing: -.5px;
+      }
+      .sc-info { flex: 1; min-width: 0; }
+      .sc-name {
+        font-size: 14.5px; font-weight: 700;
+        color: var(--text); margin: 0 0 3px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sc-email {
+        font-size: 12px; color: var(--muted);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sc-bottom {
+        padding: 14px 20px 16px;
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .sc-status {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11.5px; font-weight: 600;
+        width: fit-content;
+      }
+      .sc-status.selesai { background: #dcfce7; color: #15803d; }
+      .sc-status.pending { background: #fef9c3; color: #92400e; }
+      .sc-status.belum   { background: #fee2e2; color: #b91c1c; }
+      .sc-status::before {
+        content: '';
+        width: 6px; height: 6px; border-radius: 50%;
+        background: currentColor; flex-shrink: 0;
+      }
+      .sc-btn {
+        width: 100%; padding: 9px 0;
+        border: 1.5px solid var(--accent);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--accent);
+        font-size: 13px; font-weight: 600;
+        cursor: pointer; font-family: 'Inter', sans-serif;
+        transition: all .18s;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+      }
+      .sc-btn:hover {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(15,23,42,.15);
+      }
+      .sc-btn:disabled, .sc-btn.disabled {
+        border-color: var(--border);
+        color: var(--muted);
+        cursor: not-allowed;
+        box-shadow: none;
+        pointer-events: none;
+      }
+      .sc-meta {
+        font-size: 11.5px; color: var(--muted);
+        display: flex; align-items: center; gap: 4px;
+      }
+
+      /* ===== Modal ===== */
+      .modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(15,14,40,.55);
+        backdrop-filter: blur(6px);
+        z-index: 9000;
+        align-items: center; justify-content: center;
+        padding: 20px;
+      }
+      .modal-overlay.open { display: flex; }
+      .modal-box {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        width: 100%; max-width: 960px;
+        max-height: 92vh; overflow-y: auto;
+        box-shadow: 0 32px 80px rgba(15,14,40,.3), 0 0 0 1px rgba(99,102,241,.08);
+        animation: modalIn .3s cubic-bezier(.4,0,.2,1);
+        position: relative;
+      }
+      @keyframes modalIn {
+        from { opacity: 0; transform: scale(.96) translateY(20px); }
+        to   { opacity: 1; transform: scale(1)  translateY(0); }
+      }
+
+      /* Modal Header */
+      .modal-hd {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        padding: 24px 28px 20px;
+        display: flex; align-items: center; gap: 16px;
+        position: sticky; top: 0; z-index: 5;
+      }
+      .modal-av {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; font-weight: 800; color: #fff;
+        flex-shrink: 0;
+        border: 2px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.2);
+      }
+      .modal-av-info { flex: 1; min-width: 0; }
+      .modal-av-name {
+        font-size: 18px; font-weight: 800; color: #fff; margin: 0 0 5px;
+      }
+      .modal-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+      .modal-tag {
+        padding: 2px 10px; border-radius: 12px;
+        font-size: 11px; font-weight: 600;
+        background: rgba(255,255,255,.2);
+        color: rgba(255,255,255,.9);
+        border: 1px solid rgba(255,255,255,.25);
+      }
+      .modal-iq {
+        background: rgba(255,255,255,.15);
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 14px;
+        padding: 10px 18px;
+        text-align: center;
+        flex-shrink: 0;
+        backdrop-filter: blur(4px);
+      }
+      .modal-iq-lbl { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.75); text-transform: uppercase; letter-spacing: .07em; }
+      .modal-iq-val { font-size: 36px; font-weight: 900; color: #fff; line-height: 1; }
+      .modal-close {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        color: #fff; flex-shrink: 0; transition: all .16s;
+      }
+      .modal-close:hover { background: rgba(255,255,255,.28); }
+
+      /* Modal Body */
+      .modal-body {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      }
+      @media (max-width: 680px) { .modal-body { grid-template-columns: 1fr; } }
+      .modal-col {
+        padding: 24px 28px;
+      }
+      .modal-col-left { border-right: 1px solid var(--border); }
+
+      .modal-sec-title {
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .09em;
+        color: var(--muted);
+        margin: 0 0 16px;
+        display: flex; align-items: center; gap: 7px;
+      }
+      .badge-ai   { padding: 2px 8px; border-radius: 6px; background: rgba(66,133,244,.1); color: #3b7dd8; font-size: 10px; font-weight: 700; }
+      .badge-sys  { padding: 2px 8px; border-radius: 6px; background: rgba(99,102,241,.1); color: #6366f1; font-size: 10px; font-weight: 700; }
+
+      /* Score rows */
+      .skor-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 8px 0; border-bottom: 1px solid #f3f4f8;
+        font-size: 13px; color: var(--text);
+      }
+      .skor-row:last-child { border-bottom: none; }
+      .skor-key { color: var(--muted); font-weight: 500; }
+      .skor-val { font-weight: 700; }
+
+      /* Progress bars */
+      .bar-row { margin: 9px 0; }
+      .bar-lbl {
+        display: flex; justify-content: space-between;
+        font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500;
+      }
+      .bar-track { height: 7px; background: #f1f3f9; border-radius: 99px; overflow: hidden; }
+      .bar-fill { height: 100%; border-radius: 99px; transition: width .9s cubic-bezier(.4,0,.2,1); }
+
+      /* AI content */
+      .ai-text { font-size: 13.5px; line-height: 1.75; color: var(--text); margin: 0 0 12px; }
+      .ai-ul { list-style: none; padding: 0; margin: 0; }
+      .ai-ul li {
+        font-size: 13px; color: var(--text); padding: 6px 0;
+        border-bottom: 1px solid #f3f4f8;
+        display: flex; align-items: flex-start; gap: 8px;
+      }
+      .ai-ul li:last-child { border-bottom: none; }
+      .ai-ul li::before { content: '›'; color: var(--accent); font-weight: 800; font-size: 15px; flex-shrink: 0; line-height: 1.4; }
+
+      /* Skeleton */
+      .sk {
+        background: linear-gradient(90deg, #f1f3f9 25%, #e8eaf0 50%, #f1f3f9 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 6px; height: 14px; margin-bottom: 9px;
+      }
+      @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+      .sk.w90 { width: 90%; } .sk.w80 { width: 80%; }
+      .sk.w60 { width: 60%; } .sk.w45 { width: 45%; }
+
+      /* System assess */
+      .sys-box {
+        background: linear-gradient(135deg, #f8f7ff 0%, #f0f4ff 100%);
+        border: 1px solid #e0e7ff;
+        border-radius: var(--radius-md);
+        padding: 16px;
+        font-size: 13px; line-height: 1.75;
+        color: var(--text); margin-bottom: 16px;
+      }
+      .jurusan-grid {
+        display: flex; flex-wrap: wrap; gap: 7px;
+        margin-top: 8px;
+      }
+      .jurusan-chip {
+        display: inline-flex; align-items: center;
+        padding: 5px 12px;
+        background: linear-gradient(135deg,#eef2ff,#ede9fe);
+        border: 1px solid #c7d2fe;
+        border-radius: 20px;
+        font-size: 12px; font-weight: 600;
+        color: var(--accent);
+      }
+
+      /* Modal Footer */
+      .modal-ft {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 16px 28px;
+        border-top: 1px solid var(--border);
+      }
+      .btn-close-ft {
+        padding: 9px 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        font-size: 13.5px; font-weight: 600;
+        color: var(--muted); cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        transition: all .16s;
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .btn-close-ft:hover { background: var(--surface2); color: var(--text); }
+
+      /* ===== Empty State ===== */
+      .empty-state {
+        grid-column: 1/-1;
+        text-align: center;
+        padding: 60px 24px;
+        color: var(--muted);
+      }
+      .empty-state-icon {
+        width: 64px; height: 64px; border-radius: 20px;
+        background: var(--surface2);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 16px; color: var(--muted);
+      }
+      .empty-state h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+      .empty-state p { font-size: 13px; margin: 0; }
+
+      /* Custom grid for side-by-side summary cards */
+      @media (max-width: 768px) {
+        #summaryCardsGrid {
+          grid-template-columns: 1fr !important;
+        }
+      }
+
+      /* ===== Stat Overview Cards ===== */
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes countUp {
+        from { opacity: 0; transform: scale(0.8); }
+        to   { opacity: 1; transform: scale(1); }
+      }
+      .stat-overview-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      @media (max-width: 900px) { .stat-overview-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 520px) { .stat-overview-grid { grid-template-columns: 1fr; } }
+      .stat-ov-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px 22px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: all .28s cubic-bezier(.4,0,.2,1);
+        animation: fadeInUp .5s cubic-bezier(.4,0,.2,1) both;
+      }
+      .stat-ov-card:nth-child(1) { animation-delay: 0s; }
+      .stat-ov-card:nth-child(2) { animation-delay: .07s; }
+      .stat-ov-card:nth-child(3) { animation-delay: .14s; }
+      .stat-ov-card:nth-child(4) { animation-delay: .21s; }
+      .stat-ov-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-hover);
+      }
+      .stat-ov-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+      .stat-ov-card.purple::before  { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+      .stat-ov-card.emerald::before { background: linear-gradient(90deg, #059669, #10b981); }
+      .stat-ov-card.blue::before    { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+      .stat-ov-card.amber::before   { background: linear-gradient(90deg, #d97706, #f59e0b); }
+      .stat-ov-hd {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .stat-ov-label {
+        font-size: 11.5px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .06em;
+        color: var(--muted);
+      }
+      .stat-ov-icon {
+        width: 38px; height: 38px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .stat-ov-icon.purple  { background: rgba(99,102,241,.1); color: #6366f1; }
+      .stat-ov-icon.emerald { background: rgba(16,185,129,.1); color: #10b981; }
+      .stat-ov-icon.blue    { background: rgba(59,130,246,.1); color: #3b82f6; }
+      .stat-ov-icon.amber   { background: rgba(245,158,11,.1); color: #f59e0b; }
+      .stat-ov-val {
+        font-size: 30px; font-weight: 900; color: var(--text);
+        line-height: 1; margin-bottom: 4px;
+        animation: countUp .6s cubic-bezier(.4,0,.2,1) both;
+      }
+      .stat-ov-sub {
+        font-size: 12px; color: var(--muted); font-weight: 500;
+      }
+      .stat-ov-bar {
+        margin-top: 10px;
+        height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden;
+      }
+      .stat-ov-bar-fill {
+        height: 100%; border-radius: 99px;
+        transition: width 1.2s cubic-bezier(.4,0,.2,1);
+      }
+
+      /* ===== Enhanced Insight Card ===== */
+      .insight-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 0;
+        box-shadow: var(--shadow-card);
+        margin-bottom: 0;
+        overflow: hidden;
+        animation: fadeInUp .5s cubic-bezier(.4,0,.2,1) .1s both;
+      }
+      .insight-card-hd {
+        display: flex; align-items: center; gap: 12px;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .insight-card-icon {
+        width: 38px; height: 38px; border-radius: 12px;
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1px solid #bbf7d0;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; color: #059669;
+      }
+      .insight-card-title {
+        font-size: 15px; font-weight: 700; color: var(--text); margin: 0;
+      }
+      .insight-card-sub { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+      .insight-body { padding: 20px 24px 24px; }
+
+      /* Category bars inside insight */
+      .cat-row {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #f3f4f8;
+      }
+      .cat-row:last-child { border-bottom: none; }
+      .cat-dot {
+        width: 42px; height: 42px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 800; color: #fff;
+        flex-shrink: 0;
+      }
+      .cat-dot.high    { background: linear-gradient(135deg, #059669, #10b981); }
+      .cat-dot.medium  { background: linear-gradient(135deg, #d97706, #f59e0b); }
+      .cat-dot.low     { background: linear-gradient(135deg, #dc2626, #ef4444); }
+      .cat-info { flex: 1; min-width: 0; }
+      .cat-info-top {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 6px;
+      }
+      .cat-label { font-size: 13.5px; font-weight: 700; color: var(--text); }
+      .cat-count {
+        font-size: 12.5px; font-weight: 700;
+        padding: 2px 10px; border-radius: 20px;
+      }
+      .cat-count.high   { background: #dcfce7; color: #15803d; }
+      .cat-count.medium { background: #fef3c7; color: #92400e; }
+      .cat-count.low    { background: #fee2e2; color: #b91c1c; }
+      .cat-bar {
+        height: 7px; background: #f1f5f9; border-radius: 99px; overflow: hidden;
+      }
+      .cat-bar-fill {
+        height: 100%; border-radius: 99px;
+        transition: width 1s cubic-bezier(.4,0,.2,1);
+      }
+      .cat-bar-fill.high   { background: linear-gradient(90deg, #059669, #34d399); }
+      .cat-bar-fill.medium { background: linear-gradient(90deg, #d97706, #fbbf24); }
+      .cat-bar-fill.low    { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+      /* Top/Bottom performer section */
+      .perf-section {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+      .perf-title {
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em;
+        color: var(--muted); margin: 0 0 10px;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .perf-list { display: flex; flex-direction: column; gap: 6px; }
+      .perf-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 12px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        transition: all .2s;
+      }
+      .perf-item:hover { border-color: #cbd5e1; }
+      .perf-item-rank {
+        width: 26px; height: 26px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 800; color: #fff;
+        flex-shrink: 0;
+      }
+      .perf-item-rank.gold   { background: linear-gradient(135deg, #d97706, #f59e0b); }
+      .perf-item-rank.silver { background: linear-gradient(135deg, #64748b, #94a3b8); }
+      .perf-item-rank.bronze { background: linear-gradient(135deg, #b45309, #d97706); }
+      .perf-item-rank.attn   { background: linear-gradient(135deg, #dc2626, #ef4444); }
+      .perf-item-name {
+        font-size: 13px; font-weight: 600; color: var(--text);
+        flex: 1; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .perf-item-score {
+        font-size: 12px; font-weight: 700;
+        padding: 2px 8px; border-radius: 6px;
+        flex-shrink: 0;
+      }
+      .perf-item-score.high { background: #dcfce7; color: #15803d; }
+      .perf-item-score.low  { background: #fee2e2; color: #b91c1c; }
+
+      /* Insight text box */
+      .insight-text-box {
+        margin-top: 16px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        font-size: 12.5px;
+        line-height: 1.65;
+        color: #0c4a6e;
+      }
+      .insight-text-box b { color: #0369a1; }
+
+      /* ===== Two-column chart grid ===== */
+      .chart-row-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+      @media (max-width: 860px) { .chart-row-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+
+  <body>
+    <div class="ds-shell">
+      <!-- SIDEBAR -->
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
+          </div>
+        </div>
+        <nav class="ds-nav">
+          <a href="/dashboard" class="active"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+          <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" hidden>
+            <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+            </div>
+          </details>
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br/>All rights reserved.</div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="ds-main">
+        <header class="ds-topbar" style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+            <a href="/dashboard" class="btn-back-clean" title="Kembali">
+              <i data-lucide="arrow-left" style="width:18px;height:18px;"></i>
+            </a>
+            <div class="ds-title" style="min-width: 0; flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <h1 id="batchHeaderName" style="font-size: 20px; font-weight: 800; color: var(--text); margin: 0;">Memuat data...</h1>
+                <span id="batchHeaderBadge" class="bd-badge"></span>
+              </div>
+              <p id="batchHeaderMeta" style="margin: 3px 0 0; font-size: 12.5px; color: var(--muted);"></p>
+            </div>
+          </div>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Sekolah&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta">
+                <div class="name" id="topUserName">Sekolah</div>
+                <div class="role" id="topUserRole">Guru/Sekolah</div>
+              </div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <div style="padding: 0 8px 40px;">
+
+          <!-- Tabs -->
+          <div class="bd-tabs">
+            <button class="bd-tab active" id="tabSummaryBtn" onclick="switchTab('summary')">
+              <i data-lucide="bar-chart-2" style="width:15px;height:15px;"></i>
+              Summary Batch
+            </button>
+            <button class="bd-tab" id="tabStudentsBtn" onclick="switchTab('students')">
+              <i data-lucide="users" style="width:15px;height:15px;"></i>
+              Profil Siswa
+            </button>
+          </div>
+
+          <!-- TAB: SUMMARY -->
+          <div id="tabSummary">
+
+            <!-- ROW 0: Stat Overview Cards -->
+            <div class="stat-overview-grid" id="statOverviewGrid" style="display:none;">
+              <div class="stat-ov-card purple">
+                <div class="stat-ov-hd">
+                  <span class="stat-ov-label">Total Peserta</span>
+                  <div class="stat-ov-icon purple"><i data-lucide="users" style="width:18px;height:18px;"></i></div>
+                </div>
+                <div class="stat-ov-val" id="statTotalPeserta">0</div>
+                <div class="stat-ov-sub" id="statTotalSub">terdaftar di batch ini</div>
+              </div>
+              <div class="stat-ov-card emerald">
+                <div class="stat-ov-hd">
+                  <span class="stat-ov-label">Sudah Selesai</span>
+                  <div class="stat-ov-icon emerald"><i data-lucide="check-circle" style="width:18px;height:18px;"></i></div>
+                </div>
+                <div class="stat-ov-val" id="statSelesai">0</div>
+                <div class="stat-ov-sub" id="statSelesaiSub">peserta telah menyelesaikan</div>
+                <div class="stat-ov-bar"><div class="stat-ov-bar-fill" id="statSelesaiBar" style="width:0%; background:linear-gradient(90deg,#059669,#34d399);"></div></div>
+              </div>
+              <div class="stat-ov-card blue">
+                <div class="stat-ov-hd">
+                  <span class="stat-ov-label">Skor Rata-rata</span>
+                  <div class="stat-ov-icon blue"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></div>
+                </div>
+                <div class="stat-ov-val" id="statAvgScore">—</div>
+                <div class="stat-ov-sub" id="statAvgSub">rata-rata keseluruhan</div>
+              </div>
+              <div class="stat-ov-card amber">
+                <div class="stat-ov-hd">
+                  <span class="stat-ov-label">Kategori Dominan</span>
+                  <div class="stat-ov-icon amber"><i data-lucide="award" style="width:18px;height:18px;"></i></div>
+                </div>
+                <div class="stat-ov-val" id="statDominant" style="font-size:22px;">—</div>
+                <div class="stat-ov-sub" id="statDominantSub">kategori paling banyak</div>
+              </div>
+            </div>
+
+            <!-- ROW 1: Charts side-by-side -->
+            <div class="chart-row-grid" id="summaryCardsGrid">
+              <!-- Card 1: Distribusi Rata-rata Skor -->
+              <div class="chart-card" id="summaryChartWrap" style="display:none; margin-bottom: 0;">
+                <div class="chart-card-hd">
+                  <div class="chart-card-icon">
+                    <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent2);"></i>
+                  </div>
+                  <div>
+                    <p class="chart-card-title" id="summaryChartLabel">Distribusi Skor</p>
+                    <p class="chart-card-sub">Rata-rata dari seluruh peserta yang telah menyelesaikan tes</p>
+                  </div>
+                </div>
+                <div style="height:280px;"><canvas id="summaryChart"></canvas></div>
+              </div>
+
+              <!-- Card 2: Enhanced Insight Kategori -->
+              <div class="insight-card" id="categoryChartWrap" style="display:none;">
+                <div class="insight-card-hd">
+                  <div class="insight-card-icon">
+                    <i data-lucide="target" style="width:18px;height:18px;"></i>
+                  </div>
+                  <div>
+                    <p class="insight-card-title" id="categoryChartLabel">Insight Kategori Kelas</p>
+                    <p class="insight-card-sub">Distribusi tingkat hasil peserta: Tinggi, Sedang, Rendah</p>
+                  </div>
+                </div>
+                <div class="insight-body">
+                  <!-- Category breakdown -->
+                  <div id="categoryBreakdown"></div>
+                  <!-- Top performers -->
+                  <div id="topPerformers" class="perf-section" style="display:none;"></div>
+                  <!-- Need attention -->
+                  <div id="needAttention" class="perf-section" style="display:none;"></div>
+                  <!-- Insight text -->
+                  <div id="insightTextBox" class="insight-text-box" style="display:none;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Batch Interpretation -->
+            <div class="ai-batch-card" id="aiBatchCard" style="display:none;">
+              <div class="ai-batch-card-hd">
+                <div class="ai-batch-card-icon">
+                  <i data-lucide="sparkles" style="width:18px;height:18px;color:var(--accent2);"></i>
+                </div>
+                <div>
+                  <p style="font-size:15px;font-weight:700;color:var(--text);margin:0;">Interpretasi AI — Level Kelas</p>
+                  <p style="font-size:12px;color:var(--muted);margin:2px 0 0;">Analisis komprehensif oleh Aivene AI untuk guru &amp; konselor BK</p>
+                </div>
+                <span style="margin-left:auto;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;">Aivene AI</span>
+              </div>
+              <div id="aiBatchContent">
+                <div class="ai-batch-sk" style="height:14px;width:90%;"></div>
+                <div class="ai-batch-sk" style="height:14px;width:75%;"></div>
+                <div class="ai-batch-sk" style="height:14px;width:60%;"></div>
+                <div class="ai-batch-sk" style="height:14px;width:80%;"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TAB: STUDENTS -->
+          <div id="tabStudents" style="display:none;">
+            <div class="filter-bar">
+              <div class="filter-search">
+                <i data-lucide="search" class="fi"></i>
+                <input type="text" id="studentSearchInput" placeholder="Cari nama atau email peserta..." />
+              </div>
+              <select class="filter-select" id="studentStatusFilter">
+                <option value="">Semua Status</option>
+                <option value="selesai">Selesai</option>
+                <option value="belum">Belum Selesai</option>
+              </select>
+            </div>
+            <div class="student-grid" id="studentGrid"></div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+
+
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/admin_menu.js"></script>
+
+    <script>
+    (function () {
+      "use strict";
+
+      var _batchId = null;
+      var _batchData = null;
+      var _allResults = [];
+      var _summaryChartsMap = {};
+      var _categoryChart = null;
+
+      /* ===== Helpers ===== */
+      function q(sel) { return document.querySelector(sel); }
+      function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+      }
+      function initials(name) {
+        if (!name) return '?';
+        return name.trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase() || '?';
+      }
+      var AVATAR_COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#f97316','#06b6d4'];
+      function avatarColor(str) {
+        var h = 0;
+        for (var i = 0; i < (str||'').length; i++) h = (h*31 + (str||'').charCodeAt(i))|0;
+        return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+      }
+      function clamp(n,lo,hi) { return Math.max(lo,Math.min(hi,n)); }
+
+      /* ===== Batch type ===== */
+      function getBatchType(b) {
+        if (!b) return '';
+        if (b.enable_ist) return 'ist';
+        if (b.enable_holland) return 'holland';
+        if (b.enable_learning_style) return 'learning_style';
+        if (b.enable_kraepelin) return 'kraepelin';
+        if (b.enable_rmib) return 'rmib';
+        if (b.enable_papi) return 'papi';
+        return '';
+      }
+      function getActiveTests(b) {
+        if (!b) return [];
+        var active = [];
+        if (b.enable_ist) active.push('ist');
+        if (b.enable_holland) active.push('holland');
+        if (b.enable_learning_style) active.push('learning_style');
+        if (b.enable_kraepelin) active.push('kraepelin');
+        if (b.enable_rmib) active.push('rmib');
+        if (b.enable_papi) active.push('papi');
+        return active;
+      }
+      var TYPE_NAMES = {
+        ist:'IST (IQ Test)',holland:'Holland RIASEC',
+        learning_style:'Gaya Belajar (VAK)',kraepelin:'Kraepelin',
+        rmib:'RMIB',papi:'PAPI-Kostick'
+      };
+      function getBatchTypeName(t) { return TYPE_NAMES[t] || t; }
+
+      /* Helper: get student display name from result row */
+      function getStudentName(r) {
+        if (r.student_name && r.student_name.trim()) return r.student_name.trim();
+        var inv = r.invitation || {};
+        // fallback from test results
+        if (r.ist_result && r.ist_result.test_name) return r.ist_result.test_name;
+        if (r.learning_style_result && r.learning_style_result.test_name) return r.learning_style_result.test_name;
+        if (r.kraepelin_attempt && r.kraepelin_attempt.test_name) return r.kraepelin_attempt.test_name;
+        // last resort: email prefix
+        var email = r.student_email || inv.email || '';
+        return email.split('@')[0] || 'Peserta';
+      }
+
+      /* Helper: has result */
+      function hasResult(r) {
+        var active = getActiveTests(_batchData);
+        if (active.length === 0) return false;
+        for (var i = 0; i < active.length; i++) {
+          var t = active[i];
+          var completed = false;
+          if (t === 'ist') completed = !!(r.ist_result && r.ist_result.id);
+          else if (t === 'holland') completed = !!(r.holland_result && r.holland_result.id);
+          else if (t === 'learning_style') completed = !!(r.learning_style_result && r.learning_style_result.id);
+          else if (t === 'kraepelin') completed = !!(r.kraepelin_attempt && r.kraepelin_attempt.id && r.kraepelin_attempt.status === 'finished');
+          else if (t === 'rmib') completed = !!(r.rmib_result && r.rmib_result.id);
+          else if (t === 'papi') completed = !!(r.papi_result && r.papi_result.id);
+          if (!completed) return false;
+        }
+        return true;
+      }
+
+      /* ===== Tab ===== */
+      window.switchTab = function(tab) {
+        q('#tabSummary').style.display = tab === 'summary' ? '' : 'none';
+        q('#tabStudents').style.display = tab === 'students' ? '' : 'none';
+        q('#tabSummaryBtn').classList.toggle('active', tab === 'summary');
+        q('#tabStudentsBtn').classList.toggle('active', tab === 'students');
+        if (window.lucide) try { lucide.createIcons(); } catch(_){}
+      };
+
+      /* ===== Load Batch Header ===== */
+      async function loadBatchHeader(batchId) {
+        try {
+          var res = await fetch('/api/admin/test-batches/' + batchId);
+          var data = await res.json();
+          if (!data.success || !data.data) return;
+          var b = data.data;
+          _batchData = b;
+          var typeKey = getBatchType(b);
+          var typeName = getBatchTypeName(typeKey);
+          var kelas = b.kelas ? 'Kelas ' + b.kelas : '';
+          var meta = [b.tahun_ajaran || b.name || '', kelas, b.jurusan || ''].filter(Boolean).join(' • ');
+          q('#batchHeaderName').textContent = b.tahun_ajaran || b.name || 'Batch Tes';
+          q('#batchHeaderBadge').textContent = typeName;
+          q('#batchHeaderMeta').textContent = meta;
+        } catch(e) { console.error(e); }
+      }
+
+      /* ===== Load Results ===== */
+      async function loadResults(batchId) {
+        try {
+          var res = await fetch('/api/admin/test-batches/' + batchId + '/results');
+          var data = await res.json();
+          if (!data.success) {
+            _allResults = [];
+          } else {
+            _allResults = data.data || [];
+          }
+          renderSummaryTab();
+          renderStudentGrid(_allResults);
+        } catch(e) { console.error(e); _allResults = []; renderStudentGrid([]); }
+      }
+
+      /* ===== Summary Tab ===== */
+      function renderSummaryTab() {
+        renderSummaryChart();
+        fetchBatchSummaryAI();
+        if (window.lucide) try { lucide.createIcons(); } catch(_){}
+      }
+
+      /* ===== Get score for ranking ===== */
+      function getStudentScore(r, typeKey) {
+        if (typeKey === 'ist' && r.ist_result) return r.ist_result.iq || 0;
+        if (typeKey === 'holland' && r.holland_result) {
+          var h = r.holland_result;
+          return Math.max(h.score_r||0, h.score_i||0, h.score_a||0, h.score_s||0, h.score_e||0, h.score_c||0);
+        }
+        if (typeKey === 'learning_style' && r.learning_style_result) {
+          var v = r.learning_style_result;
+          return Math.max(v.score_visual||0, v.score_auditory||0, v.score_kinesthetic||0);
+        }
+        if (typeKey === 'kraepelin' && r.kraepelin_attempt) return r.kraepelin_attempt.total_correct || 0;
+        if (typeKey === 'rmib' && r.rmib_result) {
+          // Use total of top 3 ranks as quality indicator
+          var ranks = r.rmib_result.ranks || [];
+          if (typeof ranks === 'string') try { ranks = JSON.parse(ranks); } catch(_) { ranks = []; }
+          if (Array.isArray(ranks) && ranks.length > 0) {
+            var sorted = ranks.slice().sort(function(a,b){return a-b;});
+            return sorted.slice(0,3).reduce(function(s,v){return s+v;},0);
+          }
+          // fallback: count how many unique categories
+          return r.rmib_result.dominant_category ? 50 : 30;
+        }
+        if (typeKey === 'papi' && r.papi_result) return r.papi_result.dominant_score || 0;
+        return 0;
+      }
+
+      /* ===== Get score label ===== */
+      function getScoreLabel(r, typeKey) {
+        if (typeKey === 'ist' && r.ist_result) return 'IQ: ' + (r.ist_result.iq || 0);
+        if (typeKey === 'holland' && r.holland_result) return 'Code: ' + (r.holland_result.code || '—');
+        if (typeKey === 'learning_style' && r.learning_style_result) return (r.learning_style_result.dominant_type || '—');
+        if (typeKey === 'kraepelin' && r.kraepelin_attempt) return 'Benar: ' + (r.kraepelin_attempt.total_correct || 0);
+        if (typeKey === 'rmib' && r.rmib_result) return (r.rmib_result.dominant_category || '—');
+        if (typeKey === 'papi' && r.papi_result) return (r.papi_result.dominant_category || '—');
+        return '—';
+      }
+
+      /* ===== Get average score for stat card ===== */
+      function getAvgScoreDisplay(done, typeKey) {
+        if (done.length === 0) return { val: '—', sub: 'belum ada data' };
+        var total = 0;
+        done.forEach(function(r) { total += getStudentScore(r, typeKey); });
+        var avg = Math.round(total / done.length);
+        if (typeKey === 'ist') return { val: avg, sub: 'rata-rata IQ kelas' };
+        if (typeKey === 'holland') return { val: avg, sub: 'skor RIASEC tertinggi' };
+        if (typeKey === 'learning_style') return { val: avg, sub: 'skor VAK dominan' };
+        if (typeKey === 'kraepelin') return { val: avg, sub: 'jawaban benar rata-rata' };
+        if (typeKey === 'rmib') return { val: avg, sub: 'skor minat dominan' };
+        if (typeKey === 'papi') return { val: avg, sub: 'skor dominan rata-rata' };
+        return { val: avg, sub: 'skor rata-rata' };
+      }
+
+      /* ===== Summary Chart ===== */
+      function renderSummaryChart() {
+        // Destroy all existing charts
+        Object.keys(_summaryChartsMap).forEach(function(k) {
+          if (_summaryChartsMap[k]) {
+            _summaryChartsMap[k].destroy();
+          }
+        });
+        _summaryChartsMap = {};
+
+        var activeKeys = getActiveTests(_batchData);
+        var grid = q('#summaryCardsGrid');
+        if (!grid || !activeKeys.length) return;
+
+        grid.innerHTML = '';
+
+        activeKeys.forEach(function(testKey) {
+          // 1. Create HTML for Chart Card and Category Insight Card
+          var chartCard = document.createElement('div');
+          chartCard.className = 'chart-card';
+          chartCard.id = 'summaryChartWrap_' + testKey;
+          chartCard.style.marginBottom = '0';
+          chartCard.innerHTML = `
+            <div class="chart-card-hd">
+              <div class="chart-card-icon">
+                <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent2);"></i>
+              </div>
+              <div>
+                <p class="chart-card-title" id="summaryChartLabel_${testKey}">Distribusi Skor - ${getBatchTypeName(testKey)}</p>
+                <p class="chart-card-sub">Rata-rata dari seluruh peserta yang telah menyelesaikan tes</p>
+              </div>
+            </div>
+            <div style="height:280px;"><canvas id="summaryChart_${testKey}"></canvas></div>
+          `;
+
+          var insightCard = document.createElement('div');
+          insightCard.className = 'insight-card';
+          insightCard.id = 'categoryChartWrap_' + testKey;
+          insightCard.innerHTML = `
+            <div class="insight-card-hd">
+              <div class="insight-card-icon">
+                <i data-lucide="target" style="width:18px;height:18px;"></i>
+              </div>
+              <div>
+                <p class="insight-card-title" id="categoryChartLabel_${testKey}">Insight Kategori Kelas - ${getBatchTypeName(testKey)}</p>
+                <p class="insight-card-sub">Distribusi tingkat hasil peserta: Tinggi, Sedang, Rendah</p>
+              </div>
+            </div>
+            <div class="insight-body">
+              <div id="categoryBreakdown_${testKey}"></div>
+              <div id="topPerformers_${testKey}" class="perf-section" style="display:none;"></div>
+              <div id="needAttention_${testKey}" class="perf-section" style="display:none;"></div>
+              <div id="insightTextBox_${testKey}" class="insight-text-box" style="display:none;"></div>
+            </div>
+          `;
+
+          grid.appendChild(chartCard);
+          grid.appendChild(insightCard);
+
+          // 2. Render chart and category insights for this testKey
+          renderSingleTestChartAndInsight(testKey);
+        });
+
+        if (window.lucide) {
+          try { lucide.createIcons(); } catch(_) {}
+        }
+      }
+
+      function renderSingleTestChartAndInsight(testKey) {
+        var canvas = q('#summaryChart_' + testKey);
+        if (!canvas) return;
+
+        var chartCfg = null;
+        var MODERN_PALETTE = ['#475569', '#0d9488', '#3b82f6', '#059669', '#d97706', '#db2777', '#2563eb', '#0891b2', '#ea580c', '#e11d48'];
+        var BAR_OPTIONS = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: "'Inter', sans-serif", size: 11, weight: 500 }, color: '#64748b' }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' },
+              ticks: { font: { family: "'Inter', sans-serif", size: 11 }, color: '#64748b' }
+            }
+          }
+        };
+
+        // Filter results that have this test result
+        var done = _allResults.filter(function(r) {
+          if (testKey === 'ist') return r.ist_result && r.ist_result.id;
+          if (testKey === 'holland') return r.holland_result && r.holland_result.id;
+          if (testKey === 'learning_style') return r.learning_style_result && r.learning_style_result.id;
+          if (testKey === 'kraepelin') return r.kraepelin_attempt && r.kraepelin_attempt.id && r.kraepelin_attempt.status === 'finished';
+          if (testKey === 'rmib') return r.rmib_result && r.rmib_result.id;
+          if (testKey === 'papi') return r.papi_result && r.papi_result.id;
+          return false;
+        });
+
+        if (testKey === 'ist') {
+          var keys = ['SE','WA','AN','GE','RA','ZA','FA','WU','ME'];
+          var lbls = ['Common Sense','Verbal','Analogi','Konseptual','Logika Mat.','Numerikal','Figural','Spasial','Memori'];
+          var sums = keys.map(function(){return 0;}), cnt = 0;
+          done.forEach(function(r){
+            if (!r.ist_result||!r.ist_result.id) return; cnt++;
+            var ist=r.ist_result;
+            [ist.raw_se,ist.raw_wa,ist.raw_an,ist.raw_ge,ist.raw_ra,ist.raw_za,ist.raw_fa,ist.raw_wu,ist.raw_me].forEach(function(v,i){sums[i]+=(v||0);});
+          });
+          var avgs=cnt>0?sums.map(function(s){return Math.round(s/cnt);}):sums;
+          q('#summaryChartLabel_' + testKey).textContent='Rata-rata Raw Score IST (n='+cnt+')';
+          chartCfg={
+            type:'bar',
+            data:{
+              labels:lbls,
+              datasets:[{
+                label:'Avg Raw',
+                data:avgs,
+                backgroundColor:'rgba(71, 85, 105, 0.8)',
+                borderColor:'#475569',
+                borderWidth:1.5,
+                borderRadius:4
+              }]
+            },
+            options:BAR_OPTIONS
+          };
+        }
+        else if (testKey === 'holland') {
+          var codes=['R','I','A','S','E','C'],hnames=['Realistic','Investigative','Artistic','Social','Enterprising','Conventional'];
+          var hsums=codes.map(function(){return 0;}),hcnt=0;
+          done.forEach(function(r){
+            if(!r.holland_result||!r.holland_result.id)return;hcnt++;
+            var h=r.holland_result;[h.score_r,h.score_i,h.score_a,h.score_s,h.score_e,h.score_c].forEach(function(v,i){hsums[i]+=(v||0);});
+          });
+          var havgs=hcnt>0?hsums.map(function(s){return Math.round(s/hcnt);}):hsums;
+          q('#summaryChartLabel_' + testKey).textContent='Rata-rata Skor Holland RIASEC (n='+hcnt+')';
+          var hcolors = ['rgba(71,85,105,0.8)', 'rgba(13,148,136,0.8)', 'rgba(59,130,246,0.8)', 'rgba(5,150,105,0.8)', 'rgba(217,119,6,0.8)', 'rgba(219,39,119,0.8)'];
+          chartCfg={
+            type:'bar',
+            data:{
+              labels:hnames,
+              datasets:[{
+                label:'Avg',
+                data:havgs,
+                backgroundColor:hcolors,
+                borderColor:hcolors.map(function(c){return c.replace('0.8','1.0');}),
+                borderWidth:1.5,
+                borderRadius:4
+              }]
+            },
+            options:BAR_OPTIONS
+          };
+        }
+        else if (testKey === 'learning_style') {
+          var ls=[0,0,0],lcnt=0;
+          done.forEach(function(r){
+            if(!r.learning_style_result||!r.learning_style_result.id)return;lcnt++;
+            ls[0]+=(r.learning_style_result.score_visual||0);
+            ls[1]+=(r.learning_style_result.score_auditory||0);
+            ls[2]+=(r.learning_style_result.score_kinesthetic||0);
+          });
+          var lavg=lcnt>0?ls.map(function(s){return Math.round(s/lcnt);}):ls;
+          q('#summaryChartLabel_' + testKey).textContent='Rata-rata Skor Gaya Belajar (n='+lcnt+')';
+          var lcolors = ['rgba(71,85,105,0.8)', 'rgba(217,119,6,0.8)', 'rgba(5,150,105,0.8)'];
+          chartCfg={
+            type:'bar',
+            data:{
+              labels:['Visual','Auditori','Kinestetik'],
+              datasets:[{
+                label:'Avg',
+                data:lavg,
+                backgroundColor:lcolors,
+                borderColor:lcolors.map(function(c){return c.replace('0.8','1.0');}),
+                borderWidth:1.5,
+                borderRadius:4
+              }]
+            },
+            options:BAR_OPTIONS
+          };
+        }
+        else if (testKey === 'rmib') {
+          var rc={},rcnt=0;
+          done.forEach(function(r){if(!r.rmib_result||!r.rmib_result.id)return;rcnt++;var d=r.rmib_result.dominant_category||'—';rc[d]=(rc[d]||0)+1;});
+          var rL=Object.keys(rc),rD=rL.map(function(k){return rc[k];});
+          q('#summaryChartLabel_' + testKey).textContent='Distribusi Minat Dominan RMIB (n='+rcnt+')';
+          chartCfg={
+            type:'doughnut',
+            data:{
+              labels:rL,
+              datasets:[{
+                data:rD,
+                backgroundColor:MODERN_PALETTE
+              }]
+            },
+            options:{
+              responsive:true,
+              maintainAspectRatio:false,
+              cutout:'70%',
+              plugins:{
+                legend:{
+                  position:'bottom',
+                  labels:{
+                    usePointStyle:true,
+                    padding:16,
+                    font:{family:"'Inter', sans-serif",size:11,weight:600}
+                  }
+                }
+              }
+            }
+          };
+        }
+        else if (testKey === 'papi') {
+          var pc={},pcnt=0;
+          done.forEach(function(r){if(!r.papi_result||!r.papi_result.id)return;pcnt++;var d=r.papi_result.dominant_category||'—';pc[d]=(pc[d]||0)+1;});
+          var pL=Object.keys(pc),pD=pL.map(function(k){return pc[k];});
+          q('#summaryChartLabel_' + testKey).textContent='Distribusi Tipe Dominan PAPI-Kostick (n='+pcnt+')';
+          chartCfg={
+            type:'doughnut',
+            data:{
+              labels:pL,
+              datasets:[{
+                data:pD,
+                backgroundColor:MODERN_PALETTE
+              }]
+            },
+            options:{
+              responsive:true,
+              maintainAspectRatio:false,
+              cutout:'70%',
+              plugins:{
+                legend:{
+                  position:'bottom',
+                  labels:{
+                    usePointStyle:true,
+                    padding:16,
+                    font:{family:"'Inter', sans-serif",size:11,weight:600}
+                  }
+                }
+              }
+            }
+          };
+        }
+        else if (testKey === 'kraepelin') {
+          var kcnt=0,kC=0,kE=0,kS=0;
+          done.forEach(function(r){if(!r.kraepelin_attempt||!r.kraepelin_attempt.id||r.kraepelin_attempt.status!=='finished')return;kcnt++;kC+=(r.kraepelin_attempt.total_correct||0);kE+=(r.kraepelin_attempt.total_errors||0);kS+=(r.kraepelin_attempt.total_skipped||0);});
+          if(kcnt>0){kC=Math.round(kC/kcnt);kE=Math.round(kE/kcnt);kS=Math.round(kS/kcnt);}
+          q('#summaryChartLabel_' + testKey).textContent='Rata-rata Skor Performansi Kraepelin (n='+kcnt+')';
+          var krcolors = ['rgba(5,150,105,0.8)', 'rgba(239,68,68,0.8)', 'rgba(217,119,6,0.8)'];
+          chartCfg={
+            type:'bar',
+            data:{
+              labels:['Kecepatan (Benar)','Ketelitian (Salah)','Kelewatan (Skip)'],
+              datasets:[{
+                label:'Avg',
+                data:[kC,kE,kS],
+                backgroundColor:krcolors,
+                borderColor:krcolors.map(function(c){return c.replace('0.8','1.0');}),
+                borderWidth:1.5,
+                borderRadius:4
+              }]
+            },
+            options:BAR_OPTIONS
+          };
+        }
+
+        if (chartCfg) {
+          _summaryChartsMap[testKey] = new Chart(canvas.getContext('2d'), chartCfg);
+        }
+
+        // ====== ENHANCED CATEGORY INSIGHT ======
+        var highList = [], medList = [], lowList = [];
+        
+        done.forEach(function(r) {
+          var name = getStudentName(r);
+          var score = getStudentScore(r, testKey);
+          var entry = { name: name, score: score, result: r };
+
+          if (testKey === 'ist') {
+            var iq = (r.ist_result && r.ist_result.iq) || 0;
+            if (iq > 110) highList.push(entry);
+            else if (iq >= 90) medList.push(entry);
+            else lowList.push(entry);
+          } else if (testKey === 'holland') {
+            if (score >= 20) highList.push(entry);
+            else if (score >= 10) medList.push(entry);
+            else lowList.push(entry);
+          } else if (testKey === 'learning_style') {
+            if (score >= 12) highList.push(entry);
+            else if (score >= 6) medList.push(entry);
+            else lowList.push(entry);
+          } else if (testKey === 'kraepelin') {
+            var correct = (r.kraepelin_attempt && r.kraepelin_attempt.total_correct) || 0;
+            if (correct >= 200) highList.push(entry);
+            else if (correct >= 100) medList.push(entry);
+            else lowList.push(entry);
+          } else if (testKey === 'rmib') {
+            medList.push(entry);
+          } else if (testKey === 'papi') {
+            var ps = (r.papi_result && r.papi_result.dominant_score) || 0;
+            if (ps >= 7) highList.push(entry);
+            else if (ps >= 4) medList.push(entry);
+            else lowList.push(entry);
+          }
+        });
+
+        if (testKey === 'rmib' && medList.length > 0) {
+          medList.sort(function(a,b){ return b.score - a.score; });
+          var third = Math.ceil(medList.length / 3);
+          highList = medList.slice(0, third);
+          var rest = medList.slice(third);
+          var secondThird = Math.ceil(rest.length / 2);
+          medList = rest.slice(0, secondThird);
+          lowList = rest.slice(secondThird);
+        }
+
+        highList.sort(function(a,b){ return b.score - a.score; });
+        medList.sort(function(a,b){ return b.score - a.score; });
+        lowList.sort(function(a,b){ return a.score - b.score; });
+
+        var highCnt = highList.length, medCnt = medList.length, lowCnt = lowList.length;
+
+        if (done.length > 0) {
+          var total = highCnt + medCnt + lowCnt;
+          var highPct = total > 0 ? Math.round((highCnt / total) * 100) : 0;
+          var medPct = total > 0 ? Math.round((medCnt / total) * 100) : 0;
+          var lowPct = total > 0 ? Math.round((lowCnt / total) * 100) : 0;
+
+          // Category breakdown HTML
+          var breakdownHtml = '';
+          var cats = [
+            { label: 'Tinggi', cls: 'high', cnt: highCnt, pct: highPct, emoji: '🟢' },
+            { label: 'Sedang', cls: 'medium', cnt: medCnt, pct: medPct, emoji: '🟡' },
+            { label: 'Rendah', cls: 'low', cnt: lowCnt, pct: lowPct, emoji: '🔴' }
+          ];
+          cats.forEach(function(c) {
+            breakdownHtml += '<div class="cat-row">' +
+              '<div class="cat-dot ' + c.cls + '">' + c.pct + '%</div>' +
+              '<div class="cat-info">' +
+                '<div class="cat-info-top">' +
+                  '<span class="cat-label">' + c.emoji + ' ' + c.label + '</span>' +
+                  '<span class="cat-count ' + c.cls + '">' + c.cnt + ' siswa</span>' +
+                '</div>' +
+                '<div class="cat-bar"><div class="cat-bar-fill ' + c.cls + '" style="width:' + c.pct + '%;"></div></div>' +
+              '</div>' +
+            '</div>';
+          });
+          q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
+
+          // Build top performers
+          var allRanked = done.map(function(r) {
+            return { name: getStudentName(r), score: getStudentScore(r, testKey), result: r };
+          }).sort(function(a,b){ return b.score - a.score; });
+
+          var topPerf = q('#topPerformers_' + testKey);
+          if (allRanked.length > 0) {
+            topPerf.style.display = '';
+            var rankClasses = ['gold', 'silver', 'bronze'];
+            var topN = allRanked.slice(0, Math.min(3, allRanked.length));
+            var topHtml = '<div class="perf-title"><i data-lucide="trophy" style="width:13px;height:13px;color:#d97706;"></i> Top Performer — Skor Tertinggi</div><div class="perf-list">';
+            topN.forEach(function(item, idx) {
+              topHtml += '<div class="perf-item">' +
+                '<div class="perf-item-rank ' + (rankClasses[idx] || 'gold') + '">' + (idx + 1) + '</div>' +
+                '<span class="perf-item-name">' + esc(item.name) + '</span>' +
+                '<span class="perf-item-score high">' + esc(getScoreLabel(item.result, testKey)) + '</span>' +
+              '</div>';
+            });
+            topHtml += '</div>';
+            topPerf.innerHTML = topHtml;
+          }
+
+          var needAttn = q('#needAttention_' + testKey);
+          var bottomN = allRanked.length > 3 ? allRanked.slice(-Math.min(3, allRanked.length - 3)).reverse() : [];
+          if (bottomN.length > 0) {
+            needAttn.style.display = '';
+            var attnHtml = '<div class="perf-title"><i data-lucide="alert-circle" style="width:13px;height:13px;color:#ef4444;"></i> Perlu Perhatian — Skor Terendah</div><div class="perf-list">';
+            bottomN.forEach(function(item, idx) {
+              attnHtml += '<div class="perf-item">' +
+                '<div class="perf-item-rank attn"><i data-lucide="alert-triangle" style="width:12px;height:12px;"></i></div>' +
+                '<span class="perf-item-name">' + esc(item.name) + '</span>' +
+                '<span class="perf-item-score low">' + esc(getScoreLabel(item.result, testKey)) + '</span>' +
+              '</div>';
+            });
+            attnHtml += '</div>';
+            needAttn.innerHTML = attnHtml;
+          } else {
+            needAttn.style.display = 'none';
+          }
+
+          // Auto insight text
+          var insightBox = q('#insightTextBox_' + testKey);
+          if (done.length >= 2) {
+            insightBox.style.display = '';
+            var insightText = '';
+            if (highPct >= 50) {
+              insightText = '<b>💡 Insight:</b> Mayoritas siswa (<b>' + highPct + '%</b>) berada di kategori <b>Tinggi</b>. Kelas ini menunjukkan performa yang sangat baik secara keseluruhan. Pertimbangkan program pengayaan atau tantangan tambahan untuk mempertahankan motivasi.';
+            } else if (lowPct >= 50) {
+              insightText = '<b>💡 Insight:</b> Sebagian besar siswa (<b>' + lowPct + '%</b>) berada di kategori <b>Rendah</b>. Diperlukan perhatian khusus dan program remedial. Koordinasikan dengan guru BK untuk intervensi yang tepat.';
+            } else if (medPct >= 50) {
+              insightText = '<b>💡 Insight:</b> Mayoritas siswa (<b>' + medPct + '%</b>) berada di kategori <b>Sedang</b>. Kelas ini memiliki potensi pertumbuhan yang baik. Fokuskan pada strategi pembelajaran yang mendorong peningkatan ke kategori Tinggi.';
+            } else {
+              insightText = '<b>💡 Insight:</b> Distribusi kelas cukup merata — <b>' + highPct + '%</b> Tinggi, <b>' + medPct + '%</b> Sedang, dan <b>' + lowPct + '%</b> Rendah. Pertimbangkan pendekatan diferensiasi untuk mengakomodasi kebutuhan belajar yang beragam.';
+            }
+            insightBox.innerHTML = insightText;
+          }
+        }
+      }
+
+      /* ===== AI Batch Summary ===== */
+      async function fetchBatchSummaryAI() {
+        if (!_batchData || _allResults.length === 0) return;
+        var activeKeys = getActiveTests(_batchData);
+        if (activeKeys.length === 0) return;
+        
+        var b = _batchData;
+        var done = _allResults.filter(function(r) {
+          return !!(
+            (r.ist_result && r.ist_result.id) ||
+            (r.holland_result && r.holland_result.id) ||
+            (r.learning_style_result && r.learning_style_result.id) ||
+            (r.kraepelin_attempt && r.kraepelin_attempt.id && r.kraepelin_attempt.status === 'finished') ||
+            (r.rmib_result && r.rmib_result.id) ||
+            (r.papi_result && r.papi_result.id)
+          );
+        });
+        if (done.length === 0) return;
+
+        var aiBatchCard = q('#aiBatchCard');
+        if (aiBatchCard) aiBatchCard.style.display = '';
+
+        // Build aggregate data per active test
+        var agg = { jumlah_selesai: done.length, jumlah_total: _allResults.length };
+        activeKeys.forEach(function(typeKey) {
+          var doneForType = _allResults.filter(function(r) {
+            if (typeKey === 'ist') return r.ist_result && r.ist_result.id;
+            if (typeKey === 'holland') return r.holland_result && r.holland_result.id;
+            if (typeKey === 'learning_style') return r.learning_style_result && r.learning_style_result.id;
+            if (typeKey === 'kraepelin') return r.kraepelin_attempt && r.kraepelin_attempt.id && r.kraepelin_attempt.status === 'finished';
+            if (typeKey === 'rmib') return r.rmib_result && r.rmib_result.id;
+            if (typeKey === 'papi') return r.papi_result && r.papi_result.id;
+            return false;
+          });
+
+          var typeAgg = {};
+          if (typeKey === 'ist') {
+            var keys = ['raw_se','raw_wa','raw_an','raw_ge','raw_ra','raw_za','raw_fa','raw_wu','raw_me'];
+            var sums = {}; keys.forEach(function(k){ sums[k]=0; });
+            var iqSum = 0, iqCats = {};
+            doneForType.forEach(function(r){
+              if(!r.ist_result) return;
+              keys.forEach(function(k){ sums[k]+=(r.ist_result[k]||0); });
+              iqSum += (r.ist_result.iq||0);
+              var cat = r.ist_result.iq_category||'Tidak Diketahui';
+              iqCats[cat]=(iqCats[cat]||0)+1;
+            });
+            var avgs = {}; keys.forEach(function(k){ avgs[k]=doneForType.length>0?Math.round(sums[k]/doneForType.length):0; });
+            typeAgg.rata_rata_raw_scores = avgs;
+            typeAgg.rata_rata_iq = doneForType.length>0?Math.round(iqSum/doneForType.length):0;
+            typeAgg.distribusi_kategori_iq = iqCats;
+          } else if (typeKey === 'holland') {
+            var hSums = {R:0,I:0,A:0,S:0,E:0,C:0}, codes = {};
+            doneForType.forEach(function(r){
+              if(!r.holland_result) return;
+              hSums.R+=(r.holland_result.score_r||0); hSums.I+=(r.holland_result.score_i||0);
+              hSums.A+=(r.holland_result.score_a||0); hSums.S+=(r.holland_result.score_s||0);
+              hSums.E+=(r.holland_result.score_e||0); hSums.C+=(r.holland_result.score_c||0);
+              var code = r.holland_result.code||'?'; codes[code]=(codes[code]||0)+1;
+            });
+            Object.keys(hSums).forEach(function(k){ hSums[k]=doneForType.length>0?Math.round(hSums[k]/doneForType.length):0; });
+            typeAgg.rata_rata_skor_riasec = hSums;
+            typeAgg.distribusi_kode = codes;
+          } else if (typeKey === 'learning_style') {
+            var lSums = {visual:0,auditory:0,kinesthetic:0}, doms = {};
+            doneForType.forEach(function(r){
+              if(!r.learning_style_result) return;
+              lSums.visual+=(r.learning_style_result.score_visual||0);
+              lSums.auditory+=(r.learning_style_result.score_auditory||0);
+              lSums.kinesthetic+=(r.learning_style_result.score_kinesthetic||0);
+              var dom = r.learning_style_result.dominant_type||'?'; doms[dom]=(doms[dom]||0)+1;
+            });
+            Object.keys(lSums).forEach(function(k){ lSums[k]=doneForType.length>0?Math.round(lSums[k]/doneForType.length):0; });
+            typeAgg.rata_rata_skor_vak = lSums;
+            typeAgg.distribusi_dominan = doms;
+          } else if (typeKey === 'kraepelin') {
+            var kSums = {total_correct:0,total_errors:0,total_skipped:0};
+            doneForType.forEach(function(r){
+              if(!r.kraepelin_attempt) return;
+              kSums.total_correct+=(r.kraepelin_attempt.total_correct||0);
+              kSums.total_errors+=(r.kraepelin_attempt.total_errors||0);
+              kSums.total_skipped+=(r.kraepelin_attempt.total_skipped||0);
+            });
+            Object.keys(kSums).forEach(function(k){ kSums[k]=doneForType.length>0?Math.round(kSums[k]/doneForType.length):0; });
+            typeAgg.rata_rata_performansi = kSums;
+          } else if (typeKey === 'rmib') {
+            var rDoms = {};
+            doneForType.forEach(function(r){ if(!r.rmib_result) return; var d=r.rmib_result.dominant_category||'?'; rDoms[d]=(rDoms[d]||0)+1; });
+            typeAgg.distribusi_minat_dominan = rDoms;
+          } else if (typeKey === 'papi') {
+            var pDoms = {};
+            doneForType.forEach(function(r){ if(!r.papi_result) return; var d=r.papi_result.dominant_category||'?'; pDoms[d]=(pDoms[d]||0)+1; });
+            typeAgg.distribusi_tipe_dominan = pDoms;
+          }
+          agg[typeKey] = typeAgg;
+        });
+
+        try {
+          var payload = {
+            test_type: activeKeys.join(','),
+            batch_name: b.tahun_ajaran || b.name || 'Batch Tes',
+            kelas: b.kelas || '',
+            jurusan: b.jurusan || '',
+            total_peserta: _allResults.length,
+            total_selesai: done.length,
+            aggregate_data: agg
+          };
+          var res = await fetch('/api/ai/batch-summary', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+          var json = await res.json();
+          if (!json.success || !json.data) {
+            q('#aiBatchContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal mendapatkan analisis AI.</p>';
+            return;
+          }
+          var d = json.data;
+          var html = '';
+          if (d.ringkasan_kelas) html += '<p style="font-size:13.5px;line-height:1.75;color:var(--text);margin:0 0 12px;">' + esc(d.ringkasan_kelas) + '</p>';
+          if (d.pola_dominan) html += '<div style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;font-size:13px;color:#4f46e5;font-weight:600;margin-bottom:14px;"><i style="font-style:normal;">🎯 Pola Dominan: </i>' + esc(d.pola_dominan) + '</div>';
+          var sec4 = [
+            {key:'kekuatan_kelas', label:'💪 Kekuatan Kelas'},
+            {key:'area_perhatian', label:'⚠️ Area Perhatian'},
+            {key:'rekomendasi_pembelajaran', label:'📚 Rekomendasi Pembelajaran'},
+            {key:'rekomendasi_bk', label:'🧭 Rekomendasi Bimbingan & Konseling'}
+          ];
+          html += '<div class="ai-batch-grid">';
+          sec4.forEach(function(s){
+            if (d[s.key] && d[s.key].length) {
+              html += '<div class="ai-batch-subcard">';
+              html += '<div class="ai-batch-section-title">' + s.label + '</div>';
+              html += '<ul class="ai-batch-ul">';
+              d[s.key].slice(0,5).forEach(function(item){ html += '<li>' + esc(item) + '</li>'; });
+              html += '</ul></div>';
+            }
+          });
+          html += '</div>';
+          if (d.catatan_guru) html += '<div style="margin-top:14px;padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:12.5px;color:#92400e;"><b>📝 Catatan untuk Guru:</b> ' + esc(d.catatan_guru) + '</div>';
+          
+          // Render kesimpulan_detail (separate test conclusions) if present
+          if (d.kesimpulan_detail && Object.keys(d.kesimpulan_detail).length > 0) {
+            html += '<div style="margin-top:24px;">';
+            html += '  <div style="font-size:14.5px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">';
+            html += '    <i data-lucide="clipboard-list" style="width:18px;height:18px;color:var(--ds-primary);"></i> Kesimpulan Tiap Alat Tes';
+            html += '  </div>';
+            html += '  <div style="display:grid;grid-template-columns:1fr;gap:14px;">';
+            Object.keys(d.kesimpulan_detail).forEach(function(testKey) {
+              var concl = d.kesimpulan_detail[testKey];
+              if (concl && concl.trim()) {
+                html += '    <div style="background:#ffffff;border:1px solid var(--ds-border);border-radius:12px;padding:16px;box-shadow:0 2px 4px rgba(0,0,0,0.02);">';
+                html += '      <div style="font-weight:700;font-size:13px;color:var(--ds-primary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">' + getBatchTypeName(testKey) + '</div>';
+                html += '      <p style="font-size:12.5px;line-height:1.6;color:var(--ds-text);margin:0;">' + esc(concl) + '</p>';
+                html += '    </div>';
+              }
+            });
+            html += '  </div>';
+            html += '</div>';
+          }
+
+          // Render kesimpulan_gabungan if present
+          if (d.kesimpulan_gabungan && d.kesimpulan_gabungan.trim()) {
+            html += '<div style="margin-top:20px;padding:16px;background:linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);border:1px solid #c7d2fe;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">';
+            html += '  <div style="font-weight:700;color:#4338ca;font-size:13.5px;display:flex;align-items:center;gap:6px;margin-bottom:8px;">';
+            html += '    <i data-lucide="sparkles" style="width:16px;height:16px;"></i> Kesimpulan Gabungan &amp; Rekomendasi Integratif';
+            html += '  </div>';
+            html += '  <p style="font-size:12.5px;line-height:1.7;color:#1e1b4b;margin:0;">' + esc(d.kesimpulan_gabungan) + '</p>';
+            html += '</div>';
+          }
+
+          q('#aiBatchContent').innerHTML = html || '<p style="color:var(--muted);font-size:13px;">Tidak ada data yang dapat ditampilkan.</p>';
+          if (window.lucide) try { lucide.createIcons(); } catch(_){}
+        } catch(e) {
+          if(q('#aiBatchContent')) q('#aiBatchContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal menghubungi Aivene AI.</p>';
+        }
+      }
+
+      /* ===== Student Grid ===== */
+      function renderStudentGrid(results) {
+        var grid = q('#studentGrid');
+        grid.innerHTML = '';
+
+        if (!results || results.length === 0) {
+          grid.innerHTML = '<div class="empty-state">' +
+            '<div class="empty-state-icon"><i data-lucide="users" style="width:28px;height:28px;"></i></div>' +
+            '<h3>Tidak ada peserta ditemukan</h3>' +
+            '<p>Coba ubah filter pencarian Anda</p>' +
+            '</div>';
+          if (window.lucide) try { lucide.createIcons(); } catch(_){}
+          return;
+        }
+
+        results.forEach(function(r, idx) {
+          var inv = r.invitation || {};
+          var name = getStudentName(r);
+          var email = r.student_email || inv.email || '-';
+          var done = hasResult(r);
+          var statusCls = done ? 'selesai' : (inv.status==='used'||inv.used_at ? 'pending' : 'belum');
+          var statusLbl = done ? 'Selesai' : (statusCls==='pending' ? 'Sedang Dikerjakan' : 'Belum Selesai');
+          var color = avatarColor(email || name);
+          var ini = initials(name);
+
+          var usedAt = inv.used_at ? new Date(inv.used_at) : null;
+          var usedAtStr = usedAt && !isNaN(usedAt) ? usedAt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '';
+
+          var avatarHtml = '';
+          if (r.student_avatar) {
+            avatarHtml = '<img class="sc-avatar" src="/static/uploads/profiles/' + esc(r.student_avatar) + '" style="object-fit:cover;" />';
+          } else {
+            avatarHtml = '<div class="sc-avatar" style="background:'+color+'">'+esc(ini)+'</div>';
+          }
+
+          var card = document.createElement('div');
+          card.className = 'student-card';
+          card.innerHTML =
+            '<div class="sc-top">' +
+              avatarHtml +
+              '<div class="sc-info">' +
+                '<p class="sc-name"></p>' +
+                '<p class="sc-email"></p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="sc-bottom">' +
+              '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+                '<span class="sc-status '+statusCls+'">'+esc(statusLbl)+'</span>' +
+                (usedAtStr?'<span class="sc-meta"><i data-lucide="calendar" style="width:11px;height:11px;"></i>'+esc(usedAtStr)+'</span>':'') +
+              '</div>' +
+              '<a href="/dashboard/batch/result/' + inv.id + '" class="sc-btn '+(done?'':'disabled')+'" style="text-decoration:none;">' +
+                '<i data-lucide="eye" style="width:14px;height:14px;"></i>' +
+                'Lihat Hasil' +
+              '</a>' +
+            '</div>';
+
+          card.querySelector('.sc-name').textContent = name;
+          card.querySelector('.sc-email').textContent = email;
+
+          grid.appendChild(card);
+        });
+
+        if (window.lucide) try { lucide.createIcons(); } catch(_){}
+
+        /* Filters */
+        var searchInput = q('#studentSearchInput');
+        var statusFilter = q('#studentStatusFilter');
+        function applyFilter() {
+          var search = (searchInput.value||'').toLowerCase().trim();
+          var status = (statusFilter.value||'');
+          var filtered = _allResults.filter(function(r2) {
+            var name2 = getStudentName(r2).toLowerCase();
+            var email2 = ((r2.student_email||(r2.invitation||{}).email)||'').toLowerCase();
+            var nameMatch = !search || name2.includes(search) || email2.includes(search);
+            var done2 = hasResult(r2);
+            var inv2 = r2.invitation||{};
+            var statusCls2 = done2?'selesai':(inv2.status==='used'||inv2.used_at?'pending':'belum');
+            var statusMatch = !status || status===statusCls2 || (status==='belum'&&statusCls2==='pending');
+            return nameMatch && statusMatch;
+          });
+          renderStudentGrid(filtered);
+        }
+        if (searchInput) searchInput.addEventListener('input', applyFilter);
+        if (statusFilter) statusFilter.addEventListener('change', applyFilter);
+      }
+
+
+
+      /* ===== Init ===== */
+      async function init() {
+        var parts=window.location.pathname.split('/');
+        _batchId=parts[parts.length-1];
+
+        try {
+          var pRes=await fetch('/api/profile');
+          var pData=await pRes.json();
+          if(pData.success&&pData.data){
+            var u=pData.data;
+            var dn=u.nama_lengkap||u.email||'Sekolah';
+            if(u.teacher_name) dn=u.teacher_name+' ('+dn+')';
+            var role=u.role?(u.role.charAt(0).toUpperCase()+u.role.slice(1)):'Sekolah';
+            if(u.teacher_name) role='Guru '+role;
+            q('#topUserName').textContent=dn;
+            q('#topUserRole').textContent=role;
+            if(u.foto_profil) q('#topUserAvatar').src='/static/uploads/profiles/'+u.foto_profil;
+            else q('#topUserAvatar').src='https://ui-avatars.com/api/?name='+encodeURIComponent(dn)+'&background=6366f1&color=fff&bold=true';
+          }
+        } catch(e){}
+
+        await loadBatchHeader(_batchId);
+        await loadResults(_batchId);
+        if (window.lucide) try { lucide.createIcons(); } catch(_){}
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        init();
+
+
+
+        function doLogout(e){if(e)e.preventDefault();fetch('/api/auth/logout',{method:'POST'}).then(function(){window.location.href='/login';}).catch(function(){window.location.href='/login';});}
+        var lo=document.getElementById('ds-logout-btn'),lo2=document.getElementById('ds-logout-btn-2');
+        if(lo)lo.addEventListener('click',doLogout);
+        if(lo2)lo2.addEventListener('click',doLogout);
+
+        var pillBtn=document.getElementById('ds-userpill-btn'),pillMenu=document.getElementById('ds-userpill-menu');
+        if(pillBtn&&pillMenu){
+          pillBtn.addEventListener('click',function(e){e.stopPropagation();var o=!pillMenu.hidden;pillMenu.hidden=o;pillBtn.setAttribute('aria-expanded',String(!o));});
+          document.addEventListener('click',function(e){if(!pillMenu.contains(e.target)&&e.target!==pillBtn){pillMenu.hidden=true;pillBtn.setAttribute('aria-expanded','false');}});
+        }
+      });
+    })();
+    </script>
+  </body>
+</html>

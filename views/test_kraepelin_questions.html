@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -184,7 +184,7 @@
       }
 
       async function submitColumn(colIndex, forceFinish=false) {
-        if (isSubmitting) return;
+        if (isSubmitting) return null;
         isSubmitting = true;
         try {
           const answers = saved[colIndex].map(v => (v === null ? null : v));
@@ -203,15 +203,17 @@
           if (!res.ok || !data.success) {
             throw new Error(data.message || 'Gagal menyimpan jawaban');
           }
+          return data;
         } finally {
           isSubmitting = false;
         }
       }
 
       async function goNextAfterSubmit(forceFinish) {
-        await submitColumn(currentColIndex, forceFinish);
+        const data = await submitColumn(currentColIndex, forceFinish);
         if (forceFinish || currentRaw >= attempt.column_count) {
-          window.location.href = '/test/kraepelin/finish';
+          const nextUrl = (data && data.next_redirect) ? data.next_redirect : '/test/kraepelin/finish';
+          window.location.href = nextUrl;
           return;
         }
         window.location.href = `/test/kraepelin/questions?raw=${currentRaw + 1}`;

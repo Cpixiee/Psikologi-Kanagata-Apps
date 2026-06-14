@@ -16,6 +16,17 @@
         el.setAttribute("hidden", "");
       }
     });
+    document.querySelectorAll(".sekolah-or-admin-only").forEach(function (el) {
+      if (canSeeAdmin) {
+        el.hidden = false;
+        el.removeAttribute("hidden");
+        el.style.setProperty("display", "", "important");
+      } else {
+        el.hidden = true;
+        el.setAttribute("hidden", "");
+        el.style.setProperty("display", "none", "important");
+      }
+    });
     document.querySelectorAll(".strict-admin-only").forEach(function (el) {
       if (isStrictAdmin) {
         el.hidden = false;

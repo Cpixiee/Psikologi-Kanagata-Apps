@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 
 <html
   lang="id"
@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
@@ -92,7 +92,7 @@
       <div class="layout-container">
         <!-- Menu -->
 
-        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
   <div class="ds-brand">
     <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
     <div class="ds-brand-text">
@@ -102,6 +102,7 @@
   </div>
   <nav class="ds-nav">
     <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+    <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
     <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
     <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
     <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -398,6 +399,7 @@
           const data = await response.json();
           if (data.success && data.data) {
             const user = data.data;
+            window.currentUser = user;
             
             // Tampilkan menu admin psychotest bila role admin
             if (user.role === 'admin') {
@@ -647,25 +649,38 @@
 
           // Update profile info
           if (summary.last_institution) {
-            document.getElementById('profileSchool').textContent = summary.last_institution;
+            const profileSchoolEl = document.getElementById('profileSchool');
+            if (profileSchoolEl) profileSchoolEl.textContent = summary.last_institution;
           }
 
           // Load IST results
+          const istNotFoundEl = document.getElementById('istNotFound');
+          const istResultEl = document.getElementById('istResult');
+          const istViewBtnEl = document.getElementById('istViewBtn');
           if (summary.last_ist_result) {
-            displayISTResult(summary.last_ist_result, summary.average_iq, summary.total_ist_tests);
+            if (typeof displayISTResult === 'function') {
+              displayISTResult(summary.last_ist_result, summary.average_iq, summary.total_ist_tests);
+            }
           } else {
-            document.getElementById('istNotFound').style.display = 'block';
-            document.getElementById('istResult').style.display = 'none';
-            document.getElementById('istViewBtn').style.display = 'none';
+            if (istNotFoundEl) istNotFoundEl.style.display = 'block';
+            if (istResultEl) istResultEl.style.display = 'none';
+            if (istViewBtnEl) istViewBtnEl.style.display = 'none';
           }
 
           // Load Holland results
-          if (summary.last_holland_result) {
-            displayHollandResult(summary.last_holland_result, summary.total_holland_tests);
-          } else {
-            document.getElementById('hollandNotFound').style.display = 'block';
-            document.getElementById('hollandResult').style.display = 'none';
-            document.getElementById('hollandViewBtn').style.display = 'none';
+          const hollandNotFoundEl = document.getElementById('hollandNotFound');
+          const hollandResultEl = document.getElementById('hollandResult');
+          const hollandViewBtnEl = document.getElementById('hollandViewBtn');
+          if (hollandNotFoundEl) {
+            if (summary.last_holland_result) {
+              if (typeof displayHollandResult === 'function') {
+                displayHollandResult(summary.last_holland_result, summary.total_holland_tests);
+              }
+            } else {
+              hollandNotFoundEl.style.display = 'block';
+              if (hollandResultEl) hollandResultEl.style.display = 'none';
+              if (hollandViewBtnEl) hollandViewBtnEl.style.display = 'none';
+            }
           }
         } catch (err) {
           console.error('Error loading test summary', err);
@@ -708,7 +723,11 @@
       function displayISTResult(istData, avgIQ, totalTests) {
         document.getElementById('istNotFound').style.display = 'none';
         document.getElementById('istResult').style.display = 'block';
-        document.getElementById('istViewBtn').style.display = 'inline-block';
+        if (window.currentUser && window.currentUser.role === 'siswa' && !window.currentUser.is_impersonated) {
+          document.getElementById('istViewBtn').style.display = 'none';
+        } else {
+          document.getElementById('istViewBtn').style.display = 'inline-block';
+        }
 
         // Update IQ info
         const iqValueEl = document.getElementById('istLastIQ');
@@ -866,7 +885,11 @@
       function displayHollandResult(hollandData, totalTests) {
         document.getElementById('hollandNotFound').style.display = 'none';
         document.getElementById('hollandResult').style.display = 'block';
-        document.getElementById('hollandViewBtn').style.display = 'inline-block';
+        if (window.currentUser && window.currentUser.role === 'siswa' && !window.currentUser.is_impersonated) {
+          document.getElementById('hollandViewBtn').style.display = 'none';
+        } else {
+          document.getElementById('hollandViewBtn').style.display = 'inline-block';
+        }
 
         // Update code info
         document.getElementById('hollandCode').textContent = hollandData.code || '-';
@@ -940,6 +963,13 @@
         if (!window.lastISTData) return;
         const data = window.lastISTData;
         
+        function esc(s) {
+          if (s == null) return '';
+          return String(s).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+          });
+        }
+
         // Tentukan deskripsi IQ dinamis berdasarkan rentang IQ
         function getIQDescription(iq) {
           if (iq == null) return '-';
@@ -1005,7 +1035,7 @@
           const descriptions = [
             'Kemampuan berpikir praktis, sesuai kenyataan dan mengambil keputusan secara mandiri berdasarkan data maupun situasi serta kondisi yang ada.',
             'Kemampuan berpikir logis dalam penggunaan bahasa terkait informasi, instruksi maupun literasi.',
-            'Kemampuan melakukan pengkajian suatu peristiwa, objek, informasi maupun hubungan serta sebab akibat dalam penyelesaian persoalan atau masalah.',
+            'Kemampuan melakukan pengkajian suatu peristiwa, objek, informasi maupun hubungan sebab akibat dalam penyelesaian persoalan atau masalah.',
             'Kemampuan memahami dan membayangkan suatu objek yang tidak nyata/abstrak.',
             'Kemampuan mengingat/menghafal suatu informasi maupun objek.',
             'Kemampuan memahami konsep dasar berhitung dan mengolah angka secara praktis.',
@@ -1039,89 +1069,117 @@
           <div class="modal fade" id="istDetailModal" tabindex="-1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" style="max-width: 95vw;">
               <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">Psikogram Tes IST</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header border-bottom-0 pb-0 d-block">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="modal-title fw-bold">Detail Hasil Tes IST</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
+                  </div>
+                  <ul class="nav nav-tabs" id="istModalTabs" role="tablist" style="border-bottom: 2px solid #e2e8f0; margin-bottom: 0;">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active fw-bold" id="ist-laporan-tab" data-bs-toggle="tab" data-bs-target="#ist-laporan-panel" type="button" role="tab" style="padding: 10px 20px;">
+                        Halaman 1: Laporan Naratif
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link fw-bold" id="ist-psikogram-tab" data-bs-toggle="tab" data-bs-target="#ist-psikogram-panel" type="button" role="tab" style="padding: 10px 20px;">
+                        Halaman 2: Psikogram
+                      </button>
+                    </li>
+                  </ul>
                 </div>
-                <div class="modal-body">
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <p class="mb-1"><strong>Nama Tes:</strong></p>
-                      <p>${data.batch_name || '-'}</p>
+                <div class="modal-body p-0">
+                  <div class="tab-content p-0 border-0 shadow-none">
+                    <!-- Tab Pane 1: Laporan Naratif -->
+                    <div class="tab-pane fade show active p-4" id="ist-laporan-panel" role="tabpanel" aria-labelledby="ist-laporan-tab">
+                      <div id="istLaporanContent">
+                        <div class="text-center py-4">
+                          <div class="spinner-border text-primary" role="status"></div>
+                          <p class="text-muted mt-2">Menganalisis Laporan Naratif AI...</p>
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-md-6">
-                      <p class="mb-1"><strong>Institusi:</strong></p>
-                      <p>${data.institution || '-'}</p>
-                    </div>
-                    <div class="col-md-6">
-                      <p class="mb-1"><strong>Tanggal Tes:</strong></p>
-                      <p>${new Date(data.test_date).toLocaleDateString('id-ID')}</p>
-                    </div>
-                    <div class="col-md-6">
-                      <p class="mb-1"><strong>IQ:</strong></p>
-                      <p><span class="badge bg-primary">IQ = ${data.iq || '-'} - ${iqDesc}</span></p>
+
+                    <!-- Tab Pane 2: Psikogram -->
+                    <div class="tab-pane fade p-4" id="ist-psikogram-panel" role="tabpanel" aria-labelledby="ist-psikogram-tab">
+                      <div class="row mb-3">
+                        <div class="col-md-6 mb-2">
+                          <p class="mb-1"><strong>Nama Tes:</strong></p>
+                          <p>${data.batch_name || '-'}</p>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                          <p class="mb-1"><strong>Institusi:</strong></p>
+                          <p>${data.institution || '-'}</p>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                          <p class="mb-1"><strong>Tanggal Tes:</strong></p>
+                          <p>${new Date(data.test_date).toLocaleDateString('id-ID')}</p>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                          <p class="mb-1"><strong>IQ:</strong></p>
+                          <p><span class="badge bg-primary">IQ = ${data.iq || '-'} - ${iqDesc}</span></p>
+                        </div>
+                      </div>
+                      <hr/>
+                      <h6 class="mb-3 text-center text-uppercase fw-bold">II. PSIKOGRAM</h6>
+                      <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0" style="font-size: 0.875rem;">
+                          <thead>
+                            <tr>
+                              <th rowspan="4" class="text-center align-middle" style="width: 40px;">No</th>
+                              <th rowspan="4" class="text-center align-middle" style="width: 220px;">ASPEK PSIKOLOGIS</th>
+                              <th rowspan="4" class="text-center align-middle">Uraian</th>
+                              <th colspan="6" class="text-center align-middle" style="width: 260px;">KATEGORI</th>
+                            </tr>
+                            <tr>
+                              <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Kurang</th>
+                              <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Cukup</th>
+                              <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Baik</th>
+                            </tr>
+                            <tr>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">Kurang Sekali</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">Kurang</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">Cukup</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">Cukup Baik</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">Baik</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">Baik Sekali</th>
+                            </tr>
+                            <tr>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">1</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">2</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">3</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">4</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">5</th>
+                              <th class="text-center align-middle" style="background-color:#e5edf8;">6</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td></td>
+                              <td colspan="2"><strong>A. KECERDASAN UMUM (Skala IST)</strong></td>
+                              <td colspan="6"></td>
+                            </tr>
+                            <tr>
+                              <td></td>
+                              <td colspan="2">IQ = ${data.iq || '-'} - ${iqDesc}</td>
+                              <td colspan="6"></td>
+                            </tr>
+                            <tr>
+                              <td></td>
+                              <td colspan="2"><strong>B. KEMAMPUAN KHUSUS</strong></td>
+                              <td colspan="6"></td>
+                            </tr>
+                            ${renderPsikogramRows(data)}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
-                  <hr/>
-                  <h6 class="mb-3 text-center text-uppercase">II. PSIKOGRAM</h6>
-                  <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0" style="font-size: 0.875rem;">
-                      <thead>
-                        <tr>
-                          <th rowspan="4" class="text-center align-middle" style="width: 40px;">No</th>
-                          <th rowspan="4" class="text-center align-middle" style="width: 220px;">ASPEK PSIKOLOGIS</th>
-                          <th rowspan="4" class="text-center align-middle">Uraian</th>
-                          <th colspan="6" class="text-center align-middle" style="width: 260px;">KATEGORI</th>
-                        </tr>
-                        <tr>
-                          <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Kurang</th>
-                          <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Cukup</th>
-                          <th colspan="2" class="text-center align-middle" style="background-color:#e5edf8;">Baik</th>
-                        </tr>
-                        <tr>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">Kurang Sekali</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">Kurang</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">Cukup</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">Cukup Baik</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">Baik</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">Baik Sekali</th>
-                        </tr>
-                        <tr>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">1</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">2</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">3</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">4</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">5</th>
-                          <th class="text-center align-middle" style="background-color:#e5edf8;">6</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td></td>
-                          <td colspan="2"><strong>A. KECERDASAN UMUM (Skala IST)</strong></td>
-                          <td colspan="6"></td>
-                        </tr>
-                        <tr>
-                          <td></td>
-                          <td colspan="2">IQ = ${data.iq || '-'} - ${iqDesc}</td>
-                          <td colspan="6"></td>
-                        </tr>
-                        <tr>
-                          <td></td>
-                          <td colspan="2"><strong>B. KEMAMPUAN KHUSUS</strong></td>
-                          <td colspan="6"></td>
-                        </tr>
-                        ${renderPsikogramRows(data)}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="mt-3 d-flex justify-content-end">
-                    <div class="text-end">
-                      <a href="/test/ist/result/excel?invId=${data.invitation_id}" class="btn btn-outline-secondary btn-sm">
-                        Download Excel Psikogram
-                    </a>
-                    </div>
-                  </div>
+                </div>
+                <div class="modal-footer border-top justify-content-start" style="padding: 1rem 1.5rem;">
+                  <a href="/api/results/export-zip?invId=${data.invitation_id}&test=ist" class="btn btn-primary d-inline-flex align-items-center justify-content-center" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; gap: 8px;">
+                    <i class="tf-icons bx bx-download" style="font-size: 1.15rem;"></i>
+                    <span>Unduh Laporan Lengkap (ZIP)</span>
+                  </a>
                 </div>
               </div>
             </div>
@@ -1137,6 +1195,189 @@
         document.body.insertAdjacentHTML('beforeend', modalContent);
         const modal = new bootstrap.Modal(document.getElementById('istDetailModal'));
         modal.show();
+
+        // Fetch AI Summary asynchronously
+        const userName = window.currentUser ? window.currentUser.nama_lengkap : 'Peserta';
+        const rawArr = data.raw_scores || [];
+        const payload = {
+          test_type: 'IST',
+          title: userName + ' — IST',
+          result: {
+            iq: data.iq,
+            iq_category: iqDesc,
+            total_standard_score: data.total_standard_score,
+            raw_se: rawArr[0] || 0, raw_wa: rawArr[1] || 0, raw_an: rawArr[2] || 0,
+            raw_ge: rawArr[3] || 0, raw_ra: rawArr[4] || 0, raw_za: rawArr[5] || 0,
+            raw_fa: rawArr[6] || 0, raw_wu: rawArr[7] || 0, raw_me: rawArr[8] || 0,
+            std_se: sw[0] || 0, std_wa: sw[1] || 0, std_an: sw[2] || 0,
+            std_ge: sw[3] || 0, std_ra: sw[4] || 0, std_za: sw[5] || 0,
+            std_fa: sw[6] || 0, std_wu: sw[7] || 0, std_me: sw[8] || 0
+          }
+        };
+
+        fetch('/api/ai/test-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(json => {
+          if (!json.success || !json.data) {
+            document.getElementById('istLaporanContent').innerHTML = '<div class="alert alert-warning">Gagal memuat analisis naratif AI.</div>';
+            return;
+          }
+          const aiData = json.data;
+          
+          // Formulate Identitas fields using currentUser
+          const u = window.currentUser || {};
+          const studentObj = {
+            student_name: u.nama_lengkap || u.email || '-',
+            student_gender: u.jenis_kelamin === 'laki-laki' || u.jenis_kelamin === 1 ? 'Laki-laki' : (u.jenis_kelamin === 'perempuan' || u.jenis_kelamin === 2 ? 'Perempuan' : '-'),
+            student_pob: u.tempat_lahir,
+            student_dob: u.tanggal_lahir,
+            student_school: u.sekolah || data.institution,
+            student_class: u.kelas,
+            student_major: u.jurusan
+          };
+
+          // Re-use common HTML report template
+          const reportHtml = `
+            <div class="narrative-report-card p-2" style="color:#0f172a; font-family:'Inter', sans-serif;">
+              <div class="mb-4">
+                <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">IDENTITAS PESERTA</h6>
+                <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
+                  <tbody>
+                    <tr>
+                      <td style="width: 200px;" class="fw-semibold text-muted">Nama</td>
+                      <td style="width: 15px;">:</td>
+                      <td class="fw-bold">${esc(studentObj.student_name)}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Jenis Kelamin</td>
+                      <td>:</td>
+                      <td>${esc(studentObj.student_gender)}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Tempat/Tanggal Lahir</td>
+                      <td>:</td>
+                      <td>${esc(studentObj.student_pob ? studentObj.student_pob + (studentObj.student_dob ? ', ' + new Date(studentObj.student_dob).toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) : '') : '-')}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Sekolah</td>
+                      <td>:</td>
+                      <td>${esc(studentObj.student_school)}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Kelas / Jurusan</td>
+                      <td>:</td>
+                      <td>${esc((studentObj.student_class ? studentObj.student_class : '') + (studentObj.student_class && studentObj.student_major ? ' / ' : '') + (studentObj.student_major ? studentObj.student_major : '') || '-')}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Tanggal Pemeriksaan</td>
+                      <td>:</td>
+                      <td>${new Date(data.test_date).toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'})}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">TUJUAN PEMERIKSAAN</h6>
+                <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6;">
+                  Pemeriksaan psikologis untuk memperoleh gambaran mengenai potensi intelektual, minat, serta karakteristik kepribadian peserta didik sebagai bahan pertimbangan dalam pengembangan diri dan perencanaan karier.
+                </p>
+              </div>
+
+              <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">HASIL PEMERIKSAAN</h6>
+                </div>
+                
+                <div class="mb-4 ps-2">
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">1. KEMAMPUAN INTELEKTUAL</h6>
+                  <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 350px;">
+                    <tr><td style="width: 100px;" class="fw-semibold text-muted">Skor IQ</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${data.iq || '-'}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Kategori</td><td>:</td><td class="fw-bold">${iqDesc}</td></tr>
+                  </table>
+                  <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi:</em> ${esc(aiData.summary)}</p>
+                </div>
+
+                <div class="mb-4 ps-2">
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">2. HASIL PENGUKURAN SPESIFIK</h6>
+                  <p class="text-secondary mb-0">Potensi kemampuan khusus diukur melalui subtes IST, rincian skor tertera pada Halaman 2.</p>
+                </div>
+
+                <div class="mb-3 ps-2">
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">3. KARAKTERISTIK PRIBADI</h6>
+                  <div class="row" style="font-size: 13px;">
+                    <div class="col-md-6 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-success mb-2" style="font-size:11px; text-transform:uppercase;">Kekuatan Utama</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.6;">
+                          ${(aiData.kekuatan && aiData.kekuatan.length) ? aiData.kekuatan.map(k => `<li>${esc(k)}</li>`).join('') : '<li>Menunjukkan kapasitas belajar yang adaptif.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-warning mb-2" style="font-size:11px; text-transform:uppercase;">Area Pengembangan</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.6;">
+                          ${(aiData.area_pengembangan && aiData.area_pengembangan.length) ? aiData.area_pengembangan.map(a => `<li>${esc(a)}</li>`).join('') : '<li>Mengoptimalkan pengelolaan konsentrasi saat tugas rumit.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">KESIMPULAN</h6>
+                </div>
+                <p class="text-secondary" style="font-size: 13px; line-height: 1.6;">
+                  ${esc(aiData.summary || 'Peserta didik secara umum menunjukkan potensi yang baik.')} 
+                  ${esc(aiData.catatan_penting || '')}
+                </p>
+              </div>
+
+              <div>
+                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">REKOMENDASI</h6>
+                </div>
+                <div class="row" style="font-size: 13px;">
+                  <div class="col-md-4 mb-2">
+                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                      <div class="fw-bold text-primary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Peserta Didik</div>
+                      <ul class="mb-0 ps-3" style="line-height:1.5;">
+                        ${(aiData.rekomendasi_siswa && aiData.rekomendasi_siswa.length) ? aiData.rekomendasi_siswa.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Melatih keterampilan secara rutin and terencana.</li>'}
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                      <div class="fw-bold text-info mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Orang Tua</div>
+                      <ul class="mb-0 ps-3" style="line-height:1.5;">
+                        ${(aiData.rekomendasi_ortu && aiData.rekomendasi_ortu.length) ? aiData.rekomendasi_ortu.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Memberikan dukungan moral dan fasilitas belajar yang memadai.</li>'}
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                      <div class="fw-bold text-secondary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Guru BK</div>
+                      <ul class="mb-0 ps-3" style="line-height:1.5;">
+                        ${(aiData.rekomendasi_bk && aiData.rekomendasi_bk.length) ? aiData.rekomendasi_bk.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Memberikan bimbingan karir secara berkala.</li>'}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.getElementById('istLaporanContent').innerHTML = reportHtml;
+        })
+        .catch(err => {
+          document.getElementById('istLaporanContent').innerHTML = '<div class="alert alert-danger">Gagal menghubungi Aivene AI.</div>';
+        });
         
         // Create chart in modal
         setTimeout(() => {
@@ -1284,7 +1525,7 @@
       }
     </script>
       <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
     <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>

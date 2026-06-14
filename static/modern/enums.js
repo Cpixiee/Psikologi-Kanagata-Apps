@@ -80,14 +80,14 @@
     jurusanList.forEach(function (j) {
       const o = document.createElement("option");
       o.value = j.code;
-      o.textContent = j.label + " — " + j.description;
+      o.textContent = j.label + " - " + j.description;
       o.title = j.description;
       o.dataset.description = j.description;
       select.appendChild(o);
     });
     const lainnyaOpt = document.createElement("option");
     lainnyaOpt.value = LAINNYA;
-    lainnyaOpt.textContent = "Lainnya (ketik manual)…";
+    lainnyaOpt.textContent = "Lainnya (ketik manual)...";
     select.appendChild(lainnyaOpt);
 
     function applyDescription() {
@@ -120,8 +120,8 @@
       applyCustomVisibility();
     });
 
-    // Prefill: kalau currentValue ada di list → pilih. Kalau tidak ada tapi
-    // bukan kosong → anggap sebagai "Lainnya" dan isi customInput.
+    // Prefill: kalau currentValue ada di list &#8594; pilih. Kalau tidak ada tapi
+    // bukan kosong &#8594; anggap sebagai "Lainnya" dan isi customInput.
     if (currentValue) {
       const found = jurusanList.some(function (j) { return j.code === currentValue; });
       if (found) {

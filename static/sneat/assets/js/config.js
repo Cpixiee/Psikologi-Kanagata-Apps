@@ -39,3 +39,51 @@ window.config = {
   fontFamily: window.Helpers.getCssVar('font-family-base'),
 };
 
+// Global polyfill/safeguard for PerfectScrollbar null element initialization
+(function() {
+  // 1. MutationObserver to inject a dummy .menu-inner if it's missing from the sidebar
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(function(mutations) {
+      const layoutMenu = document.getElementById('layout-menu');
+      if (layoutMenu && !layoutMenu.querySelector('.menu-inner')) {
+        const dummy = document.createElement('div');
+        dummy.className = 'menu-inner d-none';
+        layoutMenu.appendChild(dummy);
+      }
+    });
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // 2. Safe wrapper fallback for PerfectScrollbar
+  let _PerfectScrollbar = null;
+  Object.defineProperty(window, 'PerfectScrollbar', {
+    get: function() {
+      return _PerfectScrollbar;
+    },
+    set: function(val) {
+      if (typeof val === 'function') {
+        _PerfectScrollbar = function(element, options) {
+          if (typeof element === 'string') {
+            element = document.querySelector(element);
+          }
+          if (!element || !element.nodeName) {
+            console.warn('PerfectScrollbar: Element is not specified, skipping initialization.');
+            this.isAlive = false;
+            this.update = function() {};
+            this.destroy = function() {};
+            return;
+          }
+          return new val(element, options);
+        };
+        _PerfectScrollbar.prototype = val.prototype;
+      } else {
+        _PerfectScrollbar = val;
+      }
+    },
+    configurable: true
+  });
+})();
+

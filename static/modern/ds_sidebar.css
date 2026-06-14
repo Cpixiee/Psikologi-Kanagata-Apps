@@ -52,8 +52,9 @@ aside.ds-sidebar {
 aside.ds-sidebar::before,
 aside.ds-sidebar::after { display: none !important; content: none !important; }
 
-/* Pastikan layout-page tetap mengambil sisa ruang */
-.layout-wrapper > .layout-container { background: #f4f6fb; }
+/* Pastikan layout-page tetap mengambil sisa ruang dan berlatar belakang putih */
+.layout-wrapper > .layout-container { background: #ffffff; }
+.layout-page { background: #ffffff !important; }
 
 /* ====== Brand ====== */
 .ds-sidebar .ds-brand {
@@ -109,7 +110,7 @@ aside.ds-sidebar::after { display: none !important; content: none !important; }
 .ds-sidebar .ds-nav a.active {
   background: var(--dssb-primary);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+  box-shadow: none;
 }
 .ds-sidebar .ds-nav a.active .ds-icon { color: #fff; }
 
@@ -165,7 +166,7 @@ aside.ds-sidebar::after { display: none !important; content: none !important; }
 .ds-sidebar .ds-nav details.ds-submenu .ds-subnav a.active {
   background: var(--dssb-primary);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+  box-shadow: none;
 }
 
 /* ====== Mobile: hamburger + drawer ====== */

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html
   lang="id"
   class="layout-menu-fixed layout-compact"
@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
@@ -90,7 +90,7 @@
   <body>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
-        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
   <div class="ds-brand">
     <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
     <div class="ds-brand-text">
@@ -100,6 +100,7 @@
   </div>
   <nav class="ds-nav">
     <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+    <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
     <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
     <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
     <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -248,7 +249,13 @@
         lastVAK = vak;
 
         const detailBtn = document.getElementById('vakDetailBtn');
-        if (detailBtn) detailBtn.style.display = 'inline-block';
+        if (detailBtn) {
+          if (window.currentUser && window.currentUser.role === 'siswa' && !window.currentUser.is_impersonated) {
+            detailBtn.style.display = 'none';
+          } else {
+            detailBtn.style.display = 'inline-block';
+          }
+        }
 
         renderVAKChart(vak);
       }
@@ -315,91 +322,322 @@
       function showVAKDetail() {
         if (!lastVAK) return;
         const v = lastVAK;
-        const downloadUrl = v.invitation_id ? ('/test/learning-style/result/excel?invId=' + encodeURIComponent(v.invitation_id)) : '#';
-        const html = `
-          <style>
-            .vak-detail-wrap { text-align: left; }
-            .vak-detail-table { width: 100%; border-collapse: collapse; }
-            .vak-detail-table th, .vak-detail-table td { border: 1px solid rgba(15,23,42,0.14); padding: 10px 12px; vertical-align: top; }
-            .vak-detail-table thead th { background: #00a65a; color: #fff; font-weight: 800; text-align: center; white-space: nowrap; }
-            .vak-type-cell {
-              width: 54px;
-              min-width: 54px;
-              background: #f7f7fb;
-              position: relative;
-              padding: 0 !important;
-              vertical-align: middle;
-            }
-            .vak-type-label {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%) rotate(-90deg);
-              transform-origin: center center;
-              white-space: nowrap;
-              font-weight: 900;
-              line-height: 1;
-            }
-            .vak-score-cell {
-              width: 120px;
-              text-align: center;
-              font-weight: 900;
-              background: #8db4e2;
-              vertical-align: middle !important;
-              padding-top: 0 !important;
-              padding-bottom: 0 !important;
-            }
-            .vak-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-            .vak-meta-card { border: 1px solid rgba(15,23,42,0.12); border-radius: 10px; background: #f8fafc; padding: 10px 12px; }
-            .vak-meta-card .k { font-size: 12px; color: #64748b; margin-bottom: 2px; }
-            .vak-meta-card .v { font-weight: 800; color: #0f172a; font-size: 18px; line-height: 1.15; }
-            .vak-th-type { width: 150px; min-width: 150px; white-space: normal !important; line-height: 1.1; }
-          </style>
-          <div class="vak-detail-wrap">
-            <div class="vak-meta">
-              <div class="vak-meta-card"><div class="k">Tipe Dominan</div><div class="v">${v.dominant_type || '-'}</div></div>
-              <div class="vak-meta-card"><div class="k">Tanggal Tes</div><div class="v">${v.test_date ? new Date(v.test_date).toLocaleDateString('id-ID') : '-'}</div></div>
-              <div class="vak-meta-card"><div class="k">Institusi</div><div class="v">${v.institution || '-'}</div></div>
-            </div>
-            <div class="table-responsive">
-              <table class="vak-detail-table">
-                <thead>
-                  <tr>
-                    <th class="vak-th-type">TIPE GAYA<br>BELAJAR</th>
-                    <th>INTERPRETASI</th>
-                    <th style="width:130px;">NILAI SKOR</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="vak-type-cell"><span class="vak-type-label">VISUAL</span></td>
-                    <td style="white-space:pre-wrap;">${v.interpretation_visual || '-'}</td>
-                    <td class="vak-score-cell">${Number(v.score_visual || 0)}</td>
-                  </tr>
-                  <tr>
-                    <td class="vak-type-cell"><span class="vak-type-label">AUDITORI</span></td>
-                    <td style="white-space:pre-wrap;">${v.interpretation_auditory || '-'}</td>
-                    <td class="vak-score-cell">${Number(v.score_auditory || 0)}</td>
-                  </tr>
-                  <tr>
-                    <td class="vak-type-cell"><span class="vak-type-label">KINESTETIK</span></td>
-                    <td style="white-space:pre-wrap;">${v.interpretation_kinesthetic || '-'}</td>
-                    <td class="vak-score-cell">${Number(v.score_kinesthetic || 0)}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="d-flex justify-content-end mt-3">
-              <a class="btn btn-outline-secondary btn-sm" href="${downloadUrl}">Download Excel</a>
+        const downloadUrl = v.invitation_id ? ('/api/results/export-zip?invId=' + encodeURIComponent(v.invitation_id) + '&test=learning_style') : '#';
+        
+        function esc(s) {
+          if (s == null) return '';
+          return String(s).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+          });
+        }
+
+        const modalContent = `
+          <div class="modal fade" id="vakDetailModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" style="max-width: 95vw;">
+              <div class="modal-content">
+                <div class="modal-header border-bottom-0 pb-0 d-block">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="modal-title fw-bold">Detail Hasil Tes Gaya Belajar (VAK)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
+                  </div>
+                  <ul class="nav nav-tabs" id="vakModalTabs" role="tablist" style="border-bottom: 2px solid #e2e8f0; margin-bottom: 0;">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active fw-bold" id="vak-laporan-tab" data-bs-toggle="tab" data-bs-target="#vak-laporan-panel" type="button" role="tab" style="padding: 10px 20px;">
+                        Halaman 1: Laporan Naratif
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link fw-bold" id="vak-skor-tab" data-bs-toggle="tab" data-bs-target="#vak-skor-panel" type="button" role="tab" style="padding: 10px 20px;">
+                        Halaman 2: Rincian Skor
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+                <div class="modal-body p-0">
+                  <style>
+                    .vak-detail-wrap { text-align: left; }
+                    .vak-detail-table { width: 100%; border-collapse: collapse; }
+                    .vak-detail-table th, .vak-detail-table td { border: 1px solid rgba(15,23,42,0.14); padding: 10px 12px; vertical-align: top; }
+                    .vak-detail-table thead th { background: #00a65a; color: #fff; font-weight: 800; text-align: center; white-space: nowrap; }
+                    .vak-type-cell {
+                      width: 54px;
+                      min-width: 54px;
+                      background: #f7f7fb;
+                      position: relative;
+                      padding: 0 !important;
+                      vertical-align: middle;
+                    }
+                    .vak-type-label {
+                      position: absolute;
+                      top: 50%;
+                      left: 50%;
+                      transform: translate(-50%, -50%) rotate(-90deg);
+                      transform-origin: center center;
+                      white-space: nowrap;
+                      font-weight: 900;
+                      line-height: 1;
+                    }
+                    .vak-score-cell {
+                      width: 120px;
+                      text-align: center;
+                      font-weight: 900;
+                      background: #8db4e2;
+                      vertical-align: middle !important;
+                      padding-top: 0 !important;
+                      padding-bottom: 0 !important;
+                    }
+                    .vak-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+                    .vak-meta-card { border: 1px solid rgba(15,23,42,0.12); border-radius: 10px; background: #f8fafc; padding: 10px 12px; }
+                    .vak-meta-card .k { font-size: 12px; color: #64748b; margin-bottom: 2px; }
+                    .vak-meta-card .v { font-weight: 800; color: #0f172a; font-size: 18px; line-height: 1.15; }
+                    .vak-th-type { width: 150px; min-width: 150px; white-space: normal !important; line-height: 1.1; }
+                  </style>
+                  <div class="tab-content p-0 border-0 shadow-none">
+                    <!-- Tab Pane 1: Laporan Naratif -->
+                    <div class="tab-pane fade show active p-4" id="vak-laporan-panel" role="tabpanel" aria-labelledby="vak-laporan-tab">
+                      <div id="vakLaporanContent">
+                        <div class="text-center py-4">
+                          <div class="spinner-border text-primary" role="status"></div>
+                          <p class="text-muted mt-2">Menganalisis Laporan Naratif AI...</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Tab Pane 2: Rincian Skor -->
+                    <div class="tab-pane fade p-4" id="vak-skor-panel" role="tabpanel" aria-labelledby="vak-skor-tab">
+                      <div class="vak-meta">
+                        <div class="vak-meta-card"><div class="k">Tipe Dominan</div><div class="v">${v.dominant_type || '-'}</div></div>
+                        <div class="vak-meta-card"><div class="k">Tanggal Tes</div><div class="v">${v.test_date ? new Date(v.test_date).toLocaleDateString('id-ID') : '-'}</div></div>
+                        <div class="vak-meta-card"><div class="k">Institusi</div><div class="v">${v.institution || '-'}</div></div>
+                      </div>
+                      <div class="table-responsive">
+                        <table class="vak-detail-table">
+                          <thead>
+                            <tr>
+                              <th class="vak-th-type">TIPE GAYA<br>BELAJAR</th>
+                              <th>INTERPRETASI</th>
+                              <th style="width:130px;">NILAI SKOR</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td class="vak-type-cell"><span class="vak-type-label">VISUAL</span></td>
+                              <td style="white-space:pre-wrap;">${v.interpretation_visual || '-'}</td>
+                              <td class="vak-score-cell">${Number(v.score_visual || 0)}</td>
+                            </tr>
+                            <tr>
+                              <td class="vak-type-cell"><span class="vak-type-label">AUDITORI</span></td>
+                              <td style="white-space:pre-wrap;">${v.interpretation_auditory || '-'}</td>
+                              <td class="vak-score-cell">${Number(v.score_auditory || 0)}</td>
+                            </tr>
+                            <tr>
+                              <td class="vak-type-cell"><span class="vak-type-label">KINESTETIK</span></td>
+                              <td style="white-space:pre-wrap;">${v.interpretation_kinesthetic || '-'}</td>
+                              <td class="vak-score-cell">${Number(v.score_kinesthetic || 0)}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer border-top justify-content-start" style="padding: 1rem 1.5rem;">
+                  <a class="btn btn-primary d-inline-flex align-items-center justify-content-center" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; gap: 8px;" href="${downloadUrl}">
+                    <i class="bx bx-download" style="font-size: 1.15rem;"></i>
+                    <span>Unduh Laporan Lengkap (ZIP)</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         `;
-        Swal.fire({
-          title: 'Detail Hasil VAK',
-          html: html,
-          width: '92vw',
-          showCloseButton: true,
-          showConfirmButton: false
+
+        const existingModal = document.getElementById('vakDetailModal');
+        if (existingModal) existingModal.remove();
+
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+        const modal = new bootstrap.Modal(document.getElementById('vakDetailModal'));
+        modal.show();
+
+        // Fetch AI summary asynchronously
+        const userName = window.currentUser ? window.currentUser.nama_lengkap : 'Peserta';
+        const payload = {
+          test_type: 'Gaya_Belajar',
+          title: userName + ' — Gaya Belajar (VAK)',
+          result: {
+            score_visual: v.score_visual,
+            score_auditory: v.score_auditory,
+            score_kinesthetic: v.score_kinesthetic,
+            dominant_type: v.dominant_type
+          }
+        };
+
+        fetch('/api/ai/test-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(json => {
+          const contentEl = document.getElementById('vakLaporanContent');
+          if (!contentEl) return;
+          if (!json.success || !json.data) {
+            contentEl.innerHTML = '<div class="alert alert-warning">Gagal memuat analisis naratif AI.</div>';
+            return;
+          }
+          const aiData = json.data;
+          
+          // Formulate Identitas fields using currentUser
+          const u = window.currentUser || {};
+          const studentObj = {
+            student_name: u.nama_lengkap || u.email || '-',
+            student_gender: u.jenis_kelamin === 'laki-laki' || u.jenis_kelamin === 1 ? 'Laki-laki' : (u.jenis_kelamin === 'perempuan' || u.jenis_kelamin === 2 ? 'Perempuan' : '-'),
+            student_pob: u.tempat_lahir,
+            student_dob: u.tanggal_lahir,
+            student_school: u.sekolah || v.institution,
+            student_class: u.kelas,
+            student_major: u.jurusan
+          };
+
+          const reportHtml = `
+            <div class="narrative-report-card p-2" style="color:#0f172a; font-family:'Inter', sans-serif;">
+              <div class="mb-4">
+                <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">IDENTITAS PESERTA</h6>
+                <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
+                  <tbody>
+                    <tr>
+                      <td style="width: 200px;" class="fw-semibold text-muted">Nama</td>
+                      <td style="width: 15px;">:</td>
+                      <td class="fw-bold">${esc(studentObj.student_name)}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Jenis Kelamin</td>
+                      <td>:</td>
+                      <td>${esc(studentObj.student_gender)}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Tempat/Tanggal Lahir</td>
+                      <td>:</td>
+                      <td>${esc(studentObj.student_pob ? studentObj.student_pob + (studentObj.student_dob ? ', ' + new Date(studentObj.student_dob).toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) : '') : '-')}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Sekolah</td>
+                      <td>:</td>
+                      <td>${esc(studentObj.student_school)}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Kelas / Jurusan</td>
+                      <td>:</td>
+                      <td>${esc((studentObj.student_class ? studentObj.student_class : '') + (studentObj.student_class && studentObj.student_major ? ' / ' : '') + (studentObj.student_major ? studentObj.student_major : '') || '-')}</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold text-muted">Tanggal Pemeriksaan</td>
+                      <td>:</td>
+                      <td>${v.test_date ? new Date(v.test_date).toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) : '-'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">TUJUAN PEMERIKSAAN</h6>
+                <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6;">
+                  Pemeriksaan psikologis untuk memperoleh gambaran mengenai potensi intelektual, minat, serta karakteristik kepribadian peserta didik sebagai bahan pertimbangan dalam pengembangan diri dan perencanaan karier.
+                </p>
+              </div>
+
+              <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">HASIL PEMERIKSAAN</h6>
+                </div>
+                
+                <div class="mb-4 ps-2">
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">1. KEMAMPUAN INTELEKTUAL</h6>
+                  <p class="text-secondary mb-0">Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.</p>
+                </div>
+
+                <div class="mb-4 ps-2">
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">2. HASIL PENGUKURAN SPESIFIK</h6>
+                  <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
+                    <tr><td style="width: 180px;" class="fw-semibold text-muted">Gaya Belajar Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${v.dominant_type || '-'}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Skor V-A-K</td><td>:</td><td>Visual: ${v.score_visual || 0}, Auditori: ${v.score_auditory || 0}, Kinestetik: ${v.score_kinesthetic || 0}</td></tr>
+                  </table>
+                  <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Gaya Belajar:</em> ${esc(aiData.summary)}</p>
+                </div>
+
+                <div class="mb-3 ps-2">
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">3. KARAKTERISTIK PRIBADI</h6>
+                  <div class="row" style="font-size: 13px;">
+                    <div class="col-md-6 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-success mb-2" style="font-size:11px; text-transform:uppercase;">Kekuatan Utama</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.6;">
+                          ${(aiData.kekuatan && aiData.kekuatan.length) ? aiData.kekuatan.map(k => `<li>${esc(k)}</li>`).join('') : '<li>Menunjukkan kapasitas belajar yang adaptif.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-warning mb-2" style="font-size:11px; text-transform:uppercase;">Area Pengembangan</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.6;">
+                          ${(aiData.area_pengembangan && aiData.area_pengembangan.length) ? aiData.area_pengembangan.map(a => `<li>${esc(a)}</li>`).join('') : '<li>Mengoptimalkan pengelolaan konsentrasi saat tugas rumit.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">KESIMPULAN</h6>
+                </div>
+                <p class="text-secondary" style="font-size: 13px; line-height: 1.6;">
+                  ${esc(aiData.summary || 'Peserta didik secara umum menunjukkan potensi yang baik.')} 
+                  ${esc(aiData.catatan_penting || '')}
+                </p>
+              </div>
+
+              <div>
+                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">REKOMENDASI</h6>
+                </div>
+                <div class="row" style="font-size: 13px;">
+                  <div class="col-md-4 mb-2">
+                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                      <div class="fw-bold text-primary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Peserta Didik</div>
+                      <ul class="mb-0 ps-3" style="line-height:1.5;">
+                        ${(aiData.rekomendasi_siswa && aiData.rekomendasi_siswa.length) ? aiData.rekomendasi_siswa.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Melatih keterampilan secara rutin and terencana.</li>'}
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                      <div class="fw-bold text-info mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Orang Tua</div>
+                      <ul class="mb-0 ps-3" style="line-height:1.5;">
+                        ${(aiData.rekomendasi_ortu && aiData.rekomendasi_ortu.length) ? aiData.rekomendasi_ortu.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Memberikan dukungan moral dan fasilitas belajar yang memadai.</li>'}
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                      <div class="fw-bold text-secondary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Guru BK</div>
+                      <ul class="mb-0 ps-3" style="line-height:1.5;">
+                        ${(aiData.rekomendasi_bk && aiData.rekomendasi_bk.length) ? aiData.rekomendasi_bk.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Memberikan bimbingan karir secara berkala.</li>'}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          contentEl.innerHTML = reportHtml;
+        })
+        .catch(err => {
+          const contentEl = document.getElementById('vakLaporanContent');
+          if (contentEl) {
+            contentEl.innerHTML = '<div class="alert alert-danger">Gagal menghubungi Aivene AI.</div>';
+          }
         });
       }
 
@@ -408,9 +646,12 @@
           const response = await fetch('/api/profile');
           if (!response.ok) return;
           const data = await response.json();
-          if (data.success && data.data && data.data.role === 'admin') {
-            const adminMenu = document.getElementById('menuAdminPsychotest');
-            if (adminMenu) adminMenu.classList.remove('d-none');
+          if (data.success && data.data) {
+            window.currentUser = data.data;
+            if (data.data.role === 'admin') {
+              const adminMenu = document.getElementById('menuAdminPsychotest');
+              if (adminMenu) adminMenu.classList.remove('d-none');
+            }
           }
         } catch (e) {}
       }
@@ -451,7 +692,7 @@
       });
     </script>
       <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
     <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>

@@ -79,8 +79,9 @@
     }
     if (!data || !data.success || !data.data) return;
     if (data.data.completed) return; // sudah lengkap, tidak perlu modal
-    // Admin tidak perlu onboarding peserta — modal disembunyikan.
+    // Admin dan Sekolah tidak perlu onboarding - modal disembunyikan.
     if (data.data.role === "admin") return;
+    if (data.data.role === "sekolah") return;
 
     const modalEl = document.getElementById("onboardingModal");
     if (!modalEl || !window.bootstrap) return;

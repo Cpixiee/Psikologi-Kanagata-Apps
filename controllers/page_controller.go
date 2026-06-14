@@ -69,6 +69,39 @@ func (c *PageController) DashboardPage() {
 	c.TplName = "dashboard.html"
 }
 
+// @router /dashboard/batch/:id [get]
+func (c *PageController) DashboardBatchDetailPage() {
+	roleVal := c.GetSession("user_role")
+	roleStr, _ := roleVal.(string)
+	if roleStr != "sekolah" && roleStr != "admin" {
+		c.Redirect("/dashboard", 302)
+		return
+	}
+	c.TplName = "dashboard_batch_detail.html"
+}
+
+// @router /dashboard/students [get]
+func (c *PageController) SchoolStudentsPage() {
+	roleVal := c.GetSession("user_role")
+	roleStr, _ := roleVal.(string)
+	if roleStr != "sekolah" && roleStr != "admin" {
+		c.Redirect("/dashboard", 302)
+		return
+	}
+	c.TplName = "school_students.html"
+}
+
+// @router /dashboard/batch/result/:id [get]
+func (c *PageController) StudentBatchResultPage() {
+	roleVal := c.GetSession("user_role")
+	roleStr, _ := roleVal.(string)
+	if roleStr != "sekolah" && roleStr != "admin" {
+		c.Redirect("/dashboard", 302)
+		return
+	}
+	c.TplName = "dashboard_student_result.html"
+}
+
 // @router /profile [get]
 func (c *PageController) ProfilePage() {
 	c.TplName = "profile_main.html"
@@ -117,6 +150,11 @@ func (c *PageController) ProfilePAPIPage() {
 // @router /settings [get]
 func (c *PageController) SettingsPage() {
 	c.TplName = "settings.html"
+}
+
+// @router /ai [get]
+func (c *PageController) AIPage() {
+	c.TplName = "ai.html"
 }
 
 // @router /settings/notifications [get]

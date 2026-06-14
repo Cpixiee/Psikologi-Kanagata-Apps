@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html
   lang="id"
   class="layout-menu-fixed layout-compact"
@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -30,8 +30,8 @@
 
     <style>
       body, html { font-family: 'Inter', 'Poppins', sans-serif; }
-      body { background: #f5f7ff !important; }
-      .layout-wrapper > .layout-container, .layout-page { background: #f5f7ff !important; }
+      body { background: #ffffff !important; }
+      .layout-wrapper > .layout-container, .layout-page { background: #ffffff !important; }
       .ht-page { padding: 20px 24px 28px; }
 
       .gradient-text {
@@ -145,7 +145,7 @@
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
         <!-- SIDEBAR identik dashboard -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
           <div class="ds-brand">
             <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
             <div class="ds-brand-text">
@@ -155,6 +155,7 @@
           </div>
           <nav class="ds-nav">
             <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+            <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
             <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
             <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
             <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -204,7 +205,7 @@
                     </h1>
                     <p class="text-slate-500 text-sm lg:text-[14.5px] leading-relaxed max-w-xl">
                       Pilih salah satu alat tes di bawah untuk melihat detail hasil yang sudah
-                      kamu kerjakan â€” lengkap dengan analisis skor, rekomendasi, dan
+                      kamu kerjakan &ndash; lengkap dengan analisis skor, rekomendasi, dan
                       interpretasi profesional.
                     </p>
                   </div>
@@ -272,12 +273,6 @@
                       <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">IST (IQ)</h2>
                       <p class="text-slate-500 text-sm mt-1 ht-desc">Tes inteligensi untuk mengukur kemampuan kognitif umum dan potensi akademik.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-base shrink-0">ðŸ§ </div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
-                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 60â€“90 Menit</span>
-                    <span>â€¢</span>
-                    <span class="inline-flex items-center gap-1"><i data-lucide="bar-chart-3" style="width:12px;height:12px;"></i> Kognitif</span>
                   </div>
                   <a href="/profile/ist" data-test="ist" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
                   <div class="ht-locked-note" data-note="ist"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes IST terlebih dahulu sebelum dapat melihat hasil.</span></div>
@@ -300,12 +295,6 @@
                       <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">Holland (RIASEC)</h2>
                       <p class="text-slate-500 text-sm mt-1 ht-desc">Tes minat karir berdasarkan teori RIASEC untuk menemukan kecocokan bidang pekerjaan.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-base shrink-0">ðŸŽ¯</div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
-                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 30â€“45 Menit</span>
-                    <span>â€¢</span>
-                    <span class="inline-flex items-center gap-1"><i data-lucide="briefcase" style="width:12px;height:12px;"></i> Karir</span>
                   </div>
                   <a href="/profile/holland" data-test="holland" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
                   <div class="ht-locked-note" data-note="holland"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes Holland terlebih dahulu sebelum dapat melihat hasil.</span></div>
@@ -328,12 +317,6 @@
                       <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">Gaya Belajar (VAK)</h2>
                       <p class="text-slate-500 text-sm mt-1 ht-desc">Mengidentifikasi gaya belajar visual, auditorial, atau kinestetik yang paling cocok untukmu.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-base shrink-0">ðŸ“š</div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
-                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 15â€“20 Menit</span>
-                    <span>â€¢</span>
-                    <span class="inline-flex items-center gap-1"><i data-lucide="book-open" style="width:12px;height:12px;"></i> Akademik</span>
                   </div>
                   <a href="/profile/learning-style" data-test="vak" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
                   <div class="ht-locked-note" data-note="vak"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes Gaya Belajar (VAK) terlebih dahulu sebelum dapat melihat hasil.</span></div>
@@ -356,12 +339,6 @@
                       <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">Kraepelin</h2>
                       <p class="text-slate-500 text-sm mt-1 ht-desc">Tes kecepatan kerja, ketelitian, dan konsentrasi melalui metode perhitungan angka.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-base shrink-0">â±</div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
-                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 30 Menit</span>
-                    <span>â€¢</span>
-                    <span class="inline-flex items-center gap-1"><i data-lucide="zap" style="width:12px;height:12px;"></i> Konsentrasi</span>
                   </div>
                   <a href="/profile/kraepelin" data-test="kraepelin" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
                   <div class="ht-locked-note" data-note="kraepelin"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes Kraepelin terlebih dahulu sebelum dapat melihat hasil.</span></div>
@@ -384,12 +361,6 @@
                       <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">RMIB</h2>
                       <p class="text-slate-500 text-sm mt-1 ht-desc">Tes minat bakat yang disesuaikan otomatis berdasarkan jenis kelamin.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center text-base shrink-0">ðŸ‘¥</div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
-                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 25â€“35 Menit</span>
-                    <span>â€¢</span>
-                    <span class="inline-flex items-center gap-1"><i data-lucide="target" style="width:12px;height:12px;"></i> Minat &amp; Bakat</span>
                   </div>
                   <a href="/profile/rmib" data-test="rmib" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-pink-500 text-white font-semibold text-sm hover:bg-pink-600 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
                   <div class="ht-locked-note" data-note="rmib"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes RMIB terlebih dahulu sebelum dapat melihat hasil.</span></div>
@@ -412,12 +383,6 @@
                       <h2 class="font-extrabold text-[22px] text-slate-800 leading-tight">PAPI</h2>
                       <p class="text-slate-500 text-sm mt-1 ht-desc">Mengukur persepsi dan preferensi kerja untuk mengetahui kecocokan lingkungan kerja.</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-base shrink-0">ðŸ“‹</div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 px-1">
-                    <span class="inline-flex items-center gap-1"><i data-lucide="clock" style="width:12px;height:12px;"></i> 20â€“30 Menit</span>
-                    <span>â€¢</span>
-                    <span class="inline-flex items-center gap-1"><i data-lucide="user" style="width:12px;height:12px;"></i> Kepribadian</span>
                   </div>
                   <a href="/profile/papi" data-test="papi" class="ht-card-btn mt-auto block text-center w-full rounded-2xl bg-cyan-500 text-white font-semibold text-sm hover:bg-cyan-600 transition"><span class="ht-btn-label">Lihat Hasil</span></a>
                   <div class="ht-locked-note" data-note="papi"><i data-lucide="alert-triangle" class="ic" style="width:14px;height:14px;"></i><span>Anda harus mengikuti tes PAPI terlebih dahulu sebelum dapat melihat hasil.</span></div>
@@ -431,7 +396,7 @@
                     <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
                   </div>
                   <div class="min-w-0">
-                    <div class="text-sm font-bold text-slate-800">Akurat â€¢ Ilmiah â€¢ Terpercaya</div>
+                    <div class="text-sm font-bold text-slate-800">Akurat &bull; Ilmiah &bull; Terpercaya</div>
                     <div class="text-[11px] text-slate-500 leading-snug">Semua alat tes telah terstandardisasi dan dikembangkan oleh psikolog profesional.</div>
                   </div>
                 </div>
@@ -470,7 +435,7 @@
     </div>
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
 
     <!-- Validasi: kunci tombol "Lihat Hasil" untuk tes yang belum dikerjakan -->
     <script>

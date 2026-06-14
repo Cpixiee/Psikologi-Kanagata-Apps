@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 
 <html
   lang="id"
@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
 
     <!-- Vendors CSS -->
 
@@ -63,7 +63,7 @@
       <div class="layout-container">
         <!-- Menu -->
 
-        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
   <div class="ds-brand">
     <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
     <div class="ds-brand-text">
@@ -73,6 +73,8 @@
   </div>
   <nav class="ds-nav">
     <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+    <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+    <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
     <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
     <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
     <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -1301,7 +1303,7 @@
       }
     </script>
       <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
     <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>

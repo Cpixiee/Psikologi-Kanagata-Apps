@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515e" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
@@ -60,7 +60,7 @@
   <body>
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
-        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar">
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
   <div class="ds-brand">
     <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
     <div class="ds-brand-text">
@@ -70,6 +70,7 @@
   </div>
   <nav class="ds-nav">
     <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+    <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
     <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
     <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
     <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -131,18 +132,49 @@
               <div class="modal fade" id="rmibDetailModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
                   <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Detail Hasil RMIB</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    <div class="modal-header border-bottom-0 pb-0 d-block">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="modal-title fw-bold">Detail Hasil RMIB</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
+                      </div>
+                      <ul class="nav nav-tabs" id="rmibModalTabs" role="tablist" style="border-bottom: 2px solid #e2e8f0; margin-bottom: 0;">
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link active fw-bold" id="rmib-laporan-tab" data-bs-toggle="tab" data-bs-target="#rmib-laporan-panel" type="button" role="tab" style="padding: 10px 20px;">
+                            Halaman 1: Laporan Naratif
+                          </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link fw-bold" id="rmib-skor-tab" data-bs-toggle="tab" data-bs-target="#rmib-skor-panel" type="button" role="tab" style="padding: 10px 20px;">
+                            Halaman 2: Rincian Skor &amp; Psikogram
+                          </button>
+                        </li>
+                      </ul>
                     </div>
-                    <div class="modal-body" id="rmibDetailModalBody">
-                      <div class="text-center text-muted py-3">Memuat detail...</div>
+                    <div class="modal-body p-0">
+                      <div class="tab-content p-0 border-0 shadow-none">
+                        <!-- Tab Pane 1: Laporan Naratif -->
+                        <div class="tab-pane fade show active p-4" id="rmib-laporan-panel" role="tabpanel" aria-labelledby="rmib-laporan-tab">
+                          <div id="rmibLaporanContent">
+                            <div class="text-center py-4">
+                              <div class="spinner-border text-primary" role="status"></div>
+                              <p class="text-muted mt-2">Menganalisis Laporan Naratif AI...</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Tab Pane 2: Rincian Skor & Psikogram -->
+                        <div class="tab-pane fade p-4" id="rmib-skor-panel" role="tabpanel" aria-labelledby="rmib-skor-tab">
+                          <div id="rmibDetailModalBody">
+                            <div class="text-center text-muted py-3">Memuat detail...</div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div class="modal-footer">
-                      <a id="rmibDetailExcel" href="#" class="btn btn-success">
-                        <i class="bx bx-download me-1"></i>Unduh Excel
+                    <div class="modal-footer border-top justify-content-start" style="padding: 1rem 1.5rem;">
+                      <a id="rmibDetailExcel" href="#" class="btn btn-primary d-inline-flex align-items-center justify-content-center" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; gap: 8px;">
+                        <i class="bx bx-download" style="font-size: 1.15rem;"></i>
+                        <span>Unduh Laporan Lengkap (ZIP)</span>
                       </a>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     </div>
                   </div>
                 </div>
@@ -314,7 +346,7 @@
             '</tr>';
           }).join('');
 
-          var excelUrl = '/test/rmib/result/excel?invId=' + (inv ? inv.id : '');
+          var excelUrl = '/api/results/export-zip?invId=' + (inv ? inv.id : '') + '&test=rmib';
           var date = res.completed_at ? new Date(res.completed_at).toLocaleString() : '-';
 
           // ===== Default body: HANYA Distribusi + Interpretasi (dua card terpisah) =====
@@ -409,18 +441,216 @@
           var excelLink = document.getElementById('rmibDetailExcel');
           if (excelLink) excelLink.href = excelUrl;
 
+          // Fetch AI summary asynchronously
+          var userName = window.currentUser ? window.currentUser.nama_lengkap : 'Peserta';
+          var payload = {
+            test_type: 'RMIB',
+            title: userName + ' — RMIB',
+            result: {
+              top1: res.top1,
+              top2: res.top2,
+              top3: res.top3,
+              gender_version: res.gender_version,
+              result_json: res.result_json
+            }
+          };
+
+          fetch('/api/ai/test-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            var contentEl = document.getElementById('rmibLaporanContent');
+            if (!contentEl) return;
+            if (!json.success || !json.data) {
+              contentEl.innerHTML = '<div class="alert alert-warning">Gagal memuat analisis naratif AI.</div>';
+              return;
+            }
+            var aiData = json.data;
+            
+            // Formulate Identitas fields using currentUser
+            var u = window.currentUser || {};
+            var studentObj = {
+              student_name: u.nama_lengkap || u.email || '-',
+              student_gender: u.jenis_kelamin === 'laki-laki' || u.jenis_kelamin === 1 ? 'Laki-laki' : (u.jenis_kelamin === 'perempuan' || u.jenis_kelamin === 2 ? 'Perempuan' : '-'),
+              student_pob: u.tempat_lahir,
+              student_dob: u.tanggal_lahir,
+              student_school: u.sekolah || (inv ? inv.institution : ''),
+              student_class: u.kelas,
+              student_major: u.jurusan
+            };
+
+            var top1Lbl = labelByCode[res.top1] || res.top1;
+            var top2Lbl = labelByCode[res.top2] || res.top2;
+            var top3Lbl = labelByCode[res.top3] || res.top3;
+            var topStr = [top1Lbl, top2Lbl, top3Lbl].filter(Boolean).join(' → ') || '-';
+
+            var reportHtml = `
+              <div class="narrative-report-card p-2" style="color:#0f172a; font-family:'Inter', sans-serif; text-align: left;">
+                <div class="mb-4">
+                  <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">IDENTITAS PESERTA</h6>
+                  <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
+                    <tbody>
+                      <tr>
+                        <td style="width: 200px;" class="fw-semibold text-muted">Nama</td>
+                        <td style="width: 15px;">:</td>
+                        <td class="fw-bold">${escapeHtml(studentObj.student_name)}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-semibold text-muted">Jenis Kelamin</td>
+                        <td>:</td>
+                        <td>${escapeHtml(studentObj.student_gender)}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-semibold text-muted">Tempat/Tanggal Lahir</td>
+                        <td>:</td>
+                        <td>${escapeHtml(studentObj.student_pob ? studentObj.student_pob + (studentObj.student_dob ? ', ' + new Date(studentObj.student_dob).toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) : '') : '-')}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-semibold text-muted">Sekolah</td>
+                        <td>:</td>
+                        <td>${escapeHtml(studentObj.student_school)}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-semibold text-muted">Kelas / Jurusan</td>
+                        <td>:</td>
+                        <td>${escapeHtml((studentObj.student_class ? studentObj.student_class : '') + (studentObj.student_class && studentObj.student_major ? ' / ' : '') + (studentObj.student_major ? studentObj.student_major : '') || '-')}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-semibold text-muted">Tanggal Pemeriksaan</td>
+                        <td>:</td>
+                        <td>${res.completed_at ? new Date(res.completed_at).toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) : '-'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="mb-4">
+                  <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">TUJUAN PEMERIKSAAN</h6>
+                  <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6;">
+                    Pemeriksaan psikologis untuk memperoleh gambaran mengenai potensi intelektual, minat, serta karakteristik kepribadian peserta didik sebagai bahan pertimbangan dalam pengembangan diri dan perencanaan karier.
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                    <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">HASIL PEMERIKSAAN</h6>
+                  </div>
+                  
+                  <div class="mb-4 ps-2">
+                    <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">1. KEMAMPUAN INTELEKTUAL</h6>
+                    <p class="text-secondary mb-0">Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.</p>
+                  </div>
+
+                  <div class="mb-4 ps-2">
+                    <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">2. HASIL PENGUKURAN SPESIFIK</h6>
+                    <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
+                      <tr><td style="width: 180px;" class="fw-semibold text-muted">Minat Terkuat (Top 3)</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${escapeHtml(topStr)}</td></tr>
+                      <tr><td class="fw-semibold text-muted">Versi Alat Tes</td><td>:</td><td>RMIB (${escapeHtml(res.gender_version || '-')})</td></tr>
+                    </table>
+                    <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Minat Pekerjaan:</em> ${escapeHtml(aiData.summary)}</p>
+                  </div>
+
+                  <div class="mb-3 ps-2">
+                    <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">3. KARAKTERISTIK PRIBADI</h6>
+                    <div class="row" style="font-size: 13px;">
+                      <div class="col-md-6 mb-2">
+                        <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                          <div class="fw-bold text-success mb-2" style="font-size:11px; text-transform:uppercase;">Kekuatan Utama</div>
+                          <ul class="mb-0 ps-3" style="line-height:1.6;">
+                            ${(aiData.kekuatan && aiData.kekuatan.length) ? aiData.kekuatan.map(function(k) { return '<li>' + escapeHtml(k) + '</li>'; }).join('') : '<li>Menunjukkan kapasitas belajar yang adaptif.</li>'}
+                          </ul>
+                        </div>
+                      </div>
+                      <div class="col-md-6 mb-2">
+                        <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                          <div class="fw-bold text-warning mb-2" style="font-size:11px; text-transform:uppercase;">Area Pengembangan</div>
+                          <ul class="mb-0 ps-3" style="line-height:1.6;">
+                            ${(aiData.area_pengembangan && aiData.area_pengembangan.length) ? aiData.area_pengembangan.map(function(a) { return '<li>' + escapeHtml(a) + '</li>'; }).join('') : '<li>Mengoptimalkan pengelolaan konsentrasi saat tugas rumit.</li>'}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                    <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">KESIMPULAN</h6>
+                  </div>
+                  <p class="text-secondary" style="font-size: 13px; line-height: 1.6;">
+                    ${escapeHtml(aiData.summary || 'Peserta didik secara umum menunjukkan potensi yang baik.')} 
+                    ${escapeHtml(aiData.catatan_penting || '')}
+                  </p>
+                </div>
+
+                <div>
+                  <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
+                    <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">REKOMENDASI</h6>
+                  </div>
+                  <div class="row" style="font-size: 13px;">
+                    <div class="col-md-4 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-primary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Peserta Didik</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.5;">
+                          ${(aiData.rekomendasi_siswa && aiData.rekomendasi_siswa.length) ? aiData.rekomendasi_siswa.map(function(r) { return '<li>' + escapeHtml(r) + '</li>'; }).join('') : '<li>Melatih keterampilan secara rutin and terencana.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-info mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Orang Tua</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.5;">
+                          ${(aiData.rekomendasi_ortu && aiData.rekomendasi_ortu.length) ? aiData.rekomendasi_ortu.map(function(r) { return '<li>' + escapeHtml(r) + '</li>'; }).join('') : '<li>Memberikan dukungan moral dan fasilitas belajar yang memadai.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
+                        <div class="fw-bold text-secondary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Guru BK</div>
+                        <ul class="mb-0 ps-3" style="line-height:1.5;">
+                          ${(aiData.rekomendasi_bk && aiData.rekomendasi_bk.length) ? aiData.rekomendasi_bk.map(function(r) { return '<li>' + escapeHtml(r) + '</li>'; }).join('') : '<li>Memberikan bimbingan karir secara berkala.</li>'}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+            contentEl.innerHTML = reportHtml;
+          })
+          .catch(function (err) {
+            var contentEl = document.getElementById('rmibLaporanContent');
+            if (contentEl) {
+              contentEl.innerHTML = '<div class="alert alert-danger">Gagal menghubungi Aivene AI.</div>';
+            }
+          });
+
           // Tombol Lihat Detail buka modal
           var viewBtn = document.getElementById('rmibViewBtn');
           if (viewBtn) {
-            viewBtn.style.display = 'inline-block';
-            viewBtn.setAttribute('data-bs-toggle', 'modal');
-            viewBtn.setAttribute('data-bs-target', '#rmibDetailModal');
+            if (window.currentUser && window.currentUser.role === 'siswa' && !window.currentUser.is_impersonated) {
+              viewBtn.style.display = 'none';
+            } else {
+              viewBtn.style.display = 'inline-block';
+              viewBtn.setAttribute('data-bs-toggle', 'modal');
+              viewBtn.setAttribute('data-bs-target', '#rmibDetailModal');
+            }
           }
         }
 
         function load() {
           var body = document.getElementById('rmibProfileBody');
-          fetch('/api/profile/rmib', { headers: { 'Accept': 'application/json' } })
+          fetch('/api/profile')
+            .then(function (r) { return r.json(); })
+            .then(function (pData) {
+              if (pData.success && pData.data) {
+                window.currentUser = pData.data;
+              }
+              return fetch('/api/profile/rmib', { headers: { 'Accept': 'application/json' } });
+            })
             .then(function (r) { return r.json(); })
             .then(function (data) {
               if (!data || !data.success) { renderEmpty(body); return; }
@@ -438,7 +668,7 @@
       })();
     </script>
       <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="/static/js/ds_sidebar.js?v=20260515e"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
     <script src="/static/js/admin_menu.js"></script>
   </body>
 </html>

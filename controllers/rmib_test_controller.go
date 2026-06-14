@@ -610,18 +610,23 @@ func (c *RMIBTestController) SubmitFinal() {
 		}
 	}
 
-	if err := c.finalizeRMIB(inv, user, session); err != nil {
+	nextURL, err := c.finalizeRMIB(inv, user, session)
+	if err != nil {
 		logs.Error("RMIB SubmitFinal finalize error: %v", err)
 		c.Redirect("/test/rmib/summary", 302)
 		return
 	}
 
-	c.Redirect("/profile/rmib", 302)
+	if nextURL != "" {
+		c.Redirect(nextURL, 302)
+	} else {
+		c.Redirect("/hasil-tes", 302)
+	}
 }
 
 // finalizeRMIB menghitung skor + UPSERT RMIBResult + tandai session/invitation selesai.
 // Helper ini dipakai oleh SubmitFinal & DevAutoFill.
-func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *models.User, session *models.RMIBSession) error {
+func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *models.User, session *models.RMIBSession) (string, error) {
 	o := orm.NewOrm()
 
 	type rankRow struct {
@@ -635,7 +640,7 @@ func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *mode
 		JOIN rmib_questions q ON q.id = a.question_id
 		WHERE a.session_id = ?
 	`, session.Id).QueryRows(&rows); err != nil {
-		return err
+		return "", err
 	}
 
 	scoreMap := map[string]int{}
@@ -703,7 +708,7 @@ func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *mode
 			CompletedAt:      time.Now(),
 		}
 		if _, err := o.Insert(&newRes); err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		existing.GenderVersion = session.GenderVersion
@@ -718,7 +723,7 @@ func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *mode
 			"GenderVersion", "ResultJSON", "DominantCategory",
 			"Top1", "Top2", "Top3", "Interpretation", "CompletedAt",
 		); err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -726,14 +731,25 @@ func (c *RMIBTestController) finalizeRMIB(inv *models.TestInvitation, user *mode
 	session.CompletedAt = time.Now()
 	_, _ = o.Update(session, "Status", "CompletedAt")
 
-	if inv.Status != models.StatusInvitationUsed {
-		inv.Status = models.StatusInvitationUsed
-		inv.UsedAt = time.Now()
-		_, _ = o.Update(inv, "Status", "UsedAt")
-		go utils.SendTestCompletionNotification(inv.UserId, "RMIB")
+	var redirectURL = ""
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		redirectURL = nextURL
+	} else {
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "RMIB")
+		}
 	}
 
-	return nil
+	return redirectURL, nil
 }
 
 // =========================
@@ -796,7 +812,8 @@ func (c *RMIBTestController) DevAutoFill() {
 	}
 
 	// Jalankan finalisasi (perhitungan + simpan RMIBResult).
-	if err := c.finalizeRMIB(inv, user, session); err != nil {
+	nextURL, err := c.finalizeRMIB(inv, user, session)
+	if err != nil {
 		logs.Error("RMIB DevAutoFill finalize error: %v", err)
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal finalisasi"}
@@ -804,7 +821,11 @@ func (c *RMIBTestController) DevAutoFill() {
 		return
 	}
 
-	c.Data["json"] = map[string]interface{}{"success": true, "next": "/profile/rmib"}
+	if nextURL == "" {
+		nextURL = "/profile/rmib"
+	}
+
+	c.Data["json"] = map[string]interface{}{"success": true, "next": nextURL}
 	c.ServeJSON()
 }
 

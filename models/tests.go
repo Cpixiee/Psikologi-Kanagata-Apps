@@ -36,12 +36,17 @@ type TestBatch struct {
 	Id              int       `orm:"auto;pk" json:"id"`
 	Name            string    `orm:"size(255)" json:"name"`
 	Institution     string    `orm:"size(255)" json:"institution"`
+	TahunAjaran     string    `orm:"column(tahun_ajaran);size(50);null" json:"tahun_ajaran"`
+	Sekolah         string    `orm:"column(sekolah);size(100);null" json:"sekolah"`
+	Kelas           string    `orm:"column(kelas);size(20);null" json:"kelas"`
+	Jurusan         string    `orm:"column(jurusan);size(100);null" json:"jurusan"`
 	EnableIST       bool      `orm:"column(enable_ist);default(true)" json:"enable_ist"`
 	EnableHolland   bool      `orm:"column(enable_holland);default(false)" json:"enable_holland"`
 	EnableLearningStyle bool  `orm:"column(enable_learning_style);default(false)" json:"enable_learning_style"`
 	EnableKraepelin bool      `orm:"column(enable_kraepelin);default(false)" json:"enable_kraepelin"`
 	EnableRMIB      bool      `orm:"column(enable_rmib);default(false)" json:"enable_rmib"`
 	EnablePAPI      bool      `orm:"column(enable_papi);default(false)" json:"enable_papi"`
+	TestOrder       string    `orm:"column(test_order);type(text);null" json:"test_order"`
 	PurposeCategory string    `orm:"column(purpose_category);size(50)" json:"purpose_category"`
 	PurposeDetail   string    `orm:"column(purpose_detail);size(100)" json:"purpose_detail"`
 	SendViaEmail    bool      `orm:"column(send_via_email);default(true)" json:"send_via_email"`
@@ -49,6 +54,7 @@ type TestBatch struct {
 	SendViaWhatsApp bool      `orm:"column(send_via_whatsapp);default(false)" json:"send_via_whatsapp"`
 	Status          string    `orm:"column(status);size(20);default(active)" json:"status"`
 	CreatedBy       int       `orm:"column(created_by)" json:"created_by"`
+	TeacherId       *int      `orm:"column(teacher_id);null" json:"teacher_id"`
 	CreatedAt       time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
 }
 
@@ -67,6 +73,7 @@ type TestInvitation struct {
 	ExpiresAt  time.Time `orm:"type(timestamp)" json:"expires_at"`
 	UsedAt     time.Time `orm:"null;type(timestamp)" json:"used_at,omitempty"`
 	Status     string    `orm:"size(20)" json:"status"`
+	TeacherId  *int      `orm:"column(teacher_id);null" json:"teacher_id"`
 	CreatedAt  time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
 }
 
@@ -785,3 +792,27 @@ func EnsureRMIBTables() error {
 
 	return nil
 }
+
+// EnsureBatchExtendedFields memastikan kolom baru tahun_ajaran, sekolah, kelas, jurusan, dan teacher_id ada di tabel yang tepat.
+func EnsureBatchExtendedFields() error {
+	o := orm.NewOrm()
+	_, err := o.Raw(`
+		ALTER TABLE test_batches
+		ADD COLUMN IF NOT EXISTS tahun_ajaran VARCHAR(50),
+		ADD COLUMN IF NOT EXISTS sekolah VARCHAR(100),
+		ADD COLUMN IF NOT EXISTS teacher_id INTEGER,
+		ADD COLUMN IF NOT EXISTS test_order TEXT;
+	`).Exec()
+	if err != nil {
+		return err
+	}
+	// Tambah kolom kelas & jurusan jika belum ada.
+	_, _ = o.Raw(`ALTER TABLE test_batches ADD COLUMN IF NOT EXISTS kelas VARCHAR(20);`).Exec()
+	_, _ = o.Raw(`ALTER TABLE test_batches ADD COLUMN IF NOT EXISTS jurusan VARCHAR(100);`).Exec()
+	_, err = o.Raw(`
+		ALTER TABLE test_invitations
+		ADD COLUMN IF NOT EXISTS teacher_id INTEGER;
+	`).Exec()
+	return err
+}
+

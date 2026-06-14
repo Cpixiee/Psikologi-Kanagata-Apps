@@ -5,7 +5,7 @@
  */
 
 :root {
-  --ds-bg: #f4f6fb;
+  --ds-bg: #ffffff;
   --ds-card: #ffffff;
   --ds-border: #e6eaf2;
   --ds-text: #1f2937;
@@ -94,7 +94,7 @@ button { font-family: inherit; cursor: pointer; }
 .ds-nav a.active {
   background: var(--ds-primary);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+  box-shadow: none;
 }
 .ds-nav a.active .ds-icon { color: #fff; }
 .ds-icon { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }

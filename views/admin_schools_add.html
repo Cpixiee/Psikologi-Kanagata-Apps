@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
-    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -36,6 +36,8 @@
         </div>
         <nav class="ds-nav">
           <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+          <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
           <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
           <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
           <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -122,18 +124,8 @@
                     <small class="text-muted">Password ini juga dipakai oleh semua guru sekolah ini.</small>
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label" for="jenisKelamin">Jenis Kelamin</label>
-                    <select id="jenisKelamin" class="form-select" required>
-                      <option value="">Pilih&hellip;</option>
-                      <option value="laki_laki">Laki-laki</option>
-                      <option value="perempuan">Perempuan</option>
-                    </select>
-                    <small class="text-muted">Jenis kelamin penanggung jawab akun sekolah.</small>
-                  </div>
-                </div>
               </div>
+
             </div>
 
             <div class="card mb-4">
@@ -185,18 +177,26 @@
                 '<i class="bx bx-trash"></i>' +
               '</button>' +
             '</div>' +
-            '<div class="row">' +
-              '<div class="col-md-4 mb-2">' +
+          '<div class="row">' +
+              '<div class="col-md-3 mb-2">' +
                 '<label class="form-label">Nama Guru</label>' +
                 '<input type="text" class="form-control t-nama" placeholder="Nama lengkap" />' +
               '</div>' +
-              '<div class="col-md-4 mb-2">' +
+              '<div class="col-md-3 mb-2">' +
                 '<label class="form-label">Kelas</label>' +
                 '<select class="form-select t-kelas">' + kelasOpts + '</select>' +
               '</div>' +
-              '<div class="col-md-4 mb-2">' +
+              '<div class="col-md-3 mb-2">' +
                 '<label class="form-label">Email Guru</label>' +
                 '<input type="email" class="form-control t-email" placeholder="guru@example.com" />' +
+              '</div>' +
+              '<div class="col-md-3 mb-2">' +
+                '<label class="form-label">Jenis Kelamin</label>' +
+                '<select class="form-select t-gender">' +
+                  '<option value="">Pilih&hellip;</option>' +
+                  '<option value="laki_laki">Laki-laki</option>' +
+                  '<option value="perempuan">Perempuan</option>' +
+                '</select>' +
               '</div>' +
             '</div>' +
           '</div>'
@@ -222,7 +222,8 @@
           out.push({
             nama: (card.querySelector('.t-nama').value || '').trim(),
             kelas: (card.querySelector('.t-kelas').value || '').trim(),
-            email: (card.querySelector('.t-email').value || '').trim()
+            email: (card.querySelector('.t-email').value || '').trim(),
+            jenis_kelamin: (card.querySelector('.t-gender').value || '').trim()
           });
         });
         return out;
@@ -235,7 +236,6 @@
           email: document.getElementById('email').value.trim(),
           sekolah: document.getElementById('sekolah').value,
           password: document.getElementById('password').value,
-          jenis_kelamin: document.getElementById('jenisKelamin').value,
           teachers: collectTeachers()
         };
         try {

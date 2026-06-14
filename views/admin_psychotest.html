@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
-    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260515a" />
-    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260515h" />
-    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260515g" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
@@ -98,6 +98,8 @@
 
         <nav class="ds-nav">
           <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+          <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
           <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
           <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
           <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
@@ -167,17 +169,7 @@
         </header>
 
             <div class="container-xxl flex-grow-1 container-p-y" style="padding: 0;">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                  <h4 class="fw-bold mb-1">Pengelolaan Tes Psikologi</h4>
-                  <p class="mb-0 text-muted">Buat sesi tes, undang peserta, dan pantau hasil IST & Holland.</p>
-                </div>
-                <div class="d-flex align-items-center">
-                  <a href="/admin/psychotest/batches/add" class="strict-admin-only btn btn-primary btn-sm">
-                    <i class="bx bx-plus me-1"></i>Tambah Batch
-                  </a>
-                </div>
-              </div>
+
 
               <div class="row">
                 <div class="col-lg-4 d-none">
@@ -250,9 +242,9 @@
                 <div class="col-lg-12">
                   <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                      <div class="d-flex align-items-center">
-                        <h5 class="mb-0 me-4">Daftar Batch Tes</h5>
-                        <ul class="nav nav-pills card-header-pills mb-0">
+                      <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h5 class="mb-0 me-3">Daftar Batch Tes</h5>
+                        <ul class="nav nav-pills card-header-pills mb-0 me-3">
                           <li class="nav-item">
                             <a class="nav-link active" id="tabAktif" href="javascript:void(0)" onclick="switchBatchView('active')">Aktif</a>
                           </li>
@@ -260,8 +252,26 @@
                             <a class="nav-link" id="tabArsip" href="javascript:void(0)" onclick="switchBatchView('archived')">Arsip</a>
                           </li>
                         </ul>
+                        <!-- Filter UI -->
+                        <div class="d-flex align-items-center gap-2">
+                          <select id="filterTahunAjaran" class="form-select form-select-sm w-auto" onchange="filterBatchesClientSide()">
+                            <option value="">Semua Tahun Ajaran</option>
+                            <option value="TA 2025/2026">TA 2025/2026</option>
+                            <option value="TA 2026/2027">TA 2026/2027</option>
+                            <option value="TA 2027/2028">TA 2027/2028</option>
+                            <option value="TA 2028/2029">TA 2028/2029</option>
+                            <option value="TA 2029/2030">TA 2029/2030</option>
+                            <option value="TA 2030/2031">TA 2030/2031</option>
+                          </select>
+                          <select id="filterSekolah" class="form-select form-select-sm w-auto" onchange="filterBatchesClientSide()">
+                            <option value="">Semua Sekolah</option>
+                          </select>
+                        </div>
                       </div>
-                      <div class="d-flex align-items-center">
+                      <div class="d-flex align-items-center gap-2">
+                        <a href="/admin/psychotest/batches/add" class="strict-admin-only btn btn-primary btn-sm">
+                          <i class="bx bx-plus me-1"></i>Tambah Batch
+                        </a>
                         <div id="batchSettingsControls" class="strict-admin-only">
                           <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleBatchSettingsMode()">
                             Settings
@@ -289,8 +299,9 @@
                             <th id="batchSelectHeader" style="width: 40px;" class="d-none text-center">
                               <input type="checkbox" class="form-check-input" id="selectAllBatches" />
                             </th>
-                            <th>Batch</th>
-                            <th>Institusi</th>
+                            <th>Nama Batch</th>
+                            <th>Sekolah BK</th>
+                            <th class="text-center">Tahun Ajaran</th>
                             <th class="text-center">Jenis Tes</th>
                             <th class="text-center">Tujuan</th>
                             <th class="text-center">Dibuat</th>
@@ -299,7 +310,7 @@
                         </thead>
                         <tbody id="batchTableBody">
                           <tr>
-                            <td colspan="7" class="text-center text-muted py-4">Memuat data...</td>
+                            <td colspan="8" class="text-center text-muted py-4">Memuat data...</td>
                           </tr>
                         </tbody>
                       </table>
@@ -497,9 +508,130 @@
         loadBatches();
       }
 
+      let loadedBatches = [];
+      let allSchoolList = [];
+
+      async function loadFilterSchools() {
+        try {
+          const res = await fetch('/api/admin/schools');
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.success && data.data) {
+            allSchoolList = data.data.sekolah_list || [];
+            const select = document.getElementById('filterSekolah');
+            if (select) {
+              select.innerHTML = '<option value="">Semua Sekolah</option>';
+              allSchoolList.forEach(sch => {
+                const opt = document.createElement('option');
+                opt.value = sch;
+                opt.textContent = sch;
+                select.appendChild(opt);
+              });
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function filterBatchesClientSide() {
+        const tbody = document.getElementById('batchTableBody');
+        const yearFilter = document.getElementById('filterTahunAjaran').value;
+        const schoolFilterValue = document.getElementById('filterSekolah') ? document.getElementById('filterSekolah').value : '';
+
+        let filtered = loadedBatches;
+        if (yearFilter) {
+          filtered = filtered.filter(b => b.tahun_ajaran === yearFilter);
+        }
+        if (schoolFilterValue) {
+          filtered = filtered.filter(b => b.sekolah === schoolFilterValue);
+        }
+
+        if (filtered.length === 0) {
+          const emptyMsg = batchViewMode === 'archived' ? 'Belum ada batch di arsip.' : 'Belum ada batch tes.';
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">' + emptyMsg + '</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        filtered.forEach(function (batch) {
+          batchCache[batch.id] = batch; // simpan untuk dipakai renderRankingButton
+          const tr = document.createElement('tr');
+          const safeName = batch.name ? batch.name.replace(/'/g, "\\'") : '';
+          const safeInst = batch.institution ? batch.institution.replace(/'/g, "\\'") : '';
+          const safeTahun = batch.tahun_ajaran ? batch.tahun_ajaran.replace(/'/g, "\\'") : '';
+          const safeSekolah = batch.sekolah ? batch.sekolah.replace(/'/g, "\\'") : '';
+          tr.innerHTML = `
+            <td class="batch-select-cell d-none text-center" style="width: 40px;">
+              <input type="checkbox" class="form-check-input batch-checkbox" data-id="${batch.id}" />
+            </td>
+            <td>
+              <span class="fw-semibold text-heading">${batch.name}</span>
+            </td>
+            <td>
+              <span>${batch.sekolah || batch.institution || '-'}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-label-secondary">${batch.tahun_ajaran || '-'}</span>
+            </td>
+            <td class="text-center">
+              ${(() => {
+                let badgesHtml = '';
+                if (batch.test_order) {
+                  batch.test_order.split(',').forEach(key => {
+                    if (key === 'ist') badgesHtml += '<span class="badge bg-label-primary me-1">IST</span>';
+                    if (key === 'holland') badgesHtml += '<span class="badge bg-label-success me-1">Holland</span>';
+                    if (key === 'learning_style') badgesHtml += '<span class="badge bg-label-info me-1">VAK</span>';
+                    if (key === 'kraepelin') badgesHtml += '<span class="badge bg-label-warning me-1">Kraepelin</span>';
+                    if (key === 'rmib') badgesHtml += '<span class="badge bg-label-danger me-1">RMIB</span>';
+                    if (key === 'papi') badgesHtml += '<span class="badge bg-label-info me-1">PAPI</span>';
+                  });
+                } else {
+                  if (batch.enable_ist) badgesHtml += '<span class="badge bg-label-primary me-1">IST</span>';
+                  if (batch.enable_holland) badgesHtml += '<span class="badge bg-label-success me-1">Holland</span>';
+                  if (batch.enable_learning_style) badgesHtml += '<span class="badge bg-label-info me-1">VAK</span>';
+                  if (batch.enable_kraepelin) badgesHtml += '<span class="badge bg-label-warning me-1">Kraepelin</span>';
+                  if (batch.enable_rmib) badgesHtml += '<span class="badge bg-label-danger me-1">RMIB</span>';
+                  if (batch.enable_papi) badgesHtml += '<span class="badge bg-label-info me-1">PAPI</span>';
+                }
+                return badgesHtml || '-';
+              })()}
+            </td>
+            <td class="text-center"><small>${batch.purpose_category} &mdash; ${batch.purpose_detail}</small></td>
+            <td class="text-center">
+               <small>${new Date(batch.created_at).toLocaleString('id-ID')}</small>
+               ${batch.teacher_name ? `<br/><span class="badge bg-label-info mt-1" style="font-size:10px; padding:0.2em 0.5em;">Oleh: ${batch.teacher_name}</span>` : ''}
+            </td>
+            <td class="text-center text-nowrap">
+              <div class="batch-view-btn d-inline-flex justify-content-center">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="openBatchResults(${batch.id}, '${safeName}')">
+                  Lihat Hasil
+                </button>
+              </div>
+              <div class="batch-settings-actions d-none">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary" title="Edit" onclick="editBatch(${batch.id}, '${safeName}', '${safeInst}', '${safeTahun}', '${safeSekolah}')">
+                    <i class="bx bx-pencil"></i>
+                  </button>
+                  ${batchViewMode === 'archived'
+                    ? '<button type="button" class="btn btn-outline-success" title="Kembalikan ke Aktif" onclick="restoreSingleBatch(' + batch.id + ')"><i class="bx bx-archive-out"></i></button>'
+                    : '<button type="button" class="btn btn-outline-warning" title="Arsipkan" onclick="archiveSingleBatch(' + batch.id + ')"><i class="bx bx-archive"></i></button>'
+                  }
+                  <button type="button" class="btn btn-outline-danger" title="Hapus" onclick="deleteSingleBatch(${batch.id})">
+                    <i class="bx bx-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        applyBatchSettingsMode();
+      }
+
       async function loadBatches() {
         const tbody = document.getElementById('batchTableBody');
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>';
         const statusParam = batchViewMode === 'archived' ? '?status=archived' : '?status=active';
         try {
           const res = await fetch('/api/admin/test-batches' + statusParam);
@@ -509,86 +641,58 @@
             throw new Error(data.message || 'Gagal memuat batch');
           }
 
-          const allBatches = Array.isArray(data.data) ? data.data : [];
-          const batches = allBatches.filter(function (batch) {
-            if (batchViewMode === 'archived') {
-              return batch.status === 'archived';
-            }
-            return batch.status === 'active';
-          });
-
-          if (batches.length === 0) {
-            const emptyMsg = batchViewMode === 'archived' ? 'Belum ada batch di arsip.' : 'Belum ada batch tes.';
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">' + emptyMsg + '</td></tr>';
-            return;
-          }
-
-          tbody.innerHTML = '';
-          batches.forEach(function (batch) {
-            batchCache[batch.id] = batch; // simpan untuk dipakai renderRankingButton
-            const tr = document.createElement('tr');
-            const safeName = batch.name ? batch.name.replace(/'/g, "\\'") : '';
-            const safeInst = batch.institution ? batch.institution.replace(/'/g, "\\'") : '';
-            tr.innerHTML = `
-              <td class="batch-select-cell d-none text-center" style="width: 40px;">
-                <input type="checkbox" class="form-check-input batch-checkbox" data-id="${batch.id}" />
-              </td>
-              <td>${batch.name}</td>
-              <td>${batch.institution}</td>
-              <td class="text-center">
-                ${batch.enable_ist ? '<span class="badge bg-label-primary me-1">IST</span>' : ''}
-                ${batch.enable_holland ? '<span class="badge bg-label-success me-1">Holland</span>' : ''}
-                ${batch.enable_learning_style ? '<span class="badge bg-label-info me-1">VAK</span>' : ''}
-                ${batch.enable_kraepelin ? '<span class="badge bg-label-warning me-1">Kraepelin</span>' : ''}
-                ${batch.enable_rmib ? '<span class="badge bg-label-danger">RMIB</span>' : ''}
-                ${batch.enable_papi ? '<span class="badge bg-label-info">PAPI</span>' : ''}
-              </td>
-              <td class="text-center"><small>${batch.purpose_category} &mdash; ${batch.purpose_detail}</small></td>
-              <td class="text-center"><small>${new Date(batch.created_at).toLocaleString('id-ID')}</small></td>
-              <td class="text-center text-nowrap">
-                <div class="batch-view-btn d-inline-flex justify-content-center">
-                  <button type="button" class="btn btn-outline-primary btn-sm" onclick="openBatchResults(${batch.id}, '${safeName}')">
-                    Lihat Hasil
-                  </button>
-                </div>
-                <div class="batch-settings-actions d-none">
-                  <div class="btn-group btn-group-sm" role="group">
-                    <button type="button" class="btn btn-outline-secondary" title="Edit" onclick="editBatch(${batch.id}, '${safeName}', '${safeInst}')">
-                      <i class="bx bx-pencil"></i>
-                    </button>
-                    ${batchViewMode === 'archived'
-                      ? '<button type="button" class="btn btn-outline-success" title="Kembalikan ke Aktif" onclick="restoreSingleBatch(' + batch.id + ')"><i class="bx bx-archive-out"></i></button>'
-                      : '<button type="button" class="btn btn-outline-warning" title="Arsipkan" onclick="archiveSingleBatch(' + batch.id + ')"><i class="bx bx-archive"></i></button>'
-                    }
-                    <button type="button" class="btn btn-outline-danger" title="Hapus" onclick="deleteSingleBatch(${batch.id})">
-                      <i class="bx bx-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
-          applyBatchSettingsMode();
+          loadedBatches = Array.isArray(data.data) ? data.data : [];
+          filterBatchesClientSide();
         } catch (err) {
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
         }
       }
 
       async function handleCreateBatch(event) {
         event.preventDefault();
-        const selected = document.querySelector('input[name="testType"]:checked');
-        if (!selected) {
-          Swal.fire({ icon: 'warning', title: 'Pilih jenis tes', text: 'Batch harus memilih tepat satu jenis tes.' });
+        const checkboxes = Array.from(document.querySelectorAll('.test-checkbox:checked'));
+        if (checkboxes.length === 0) {
+          Swal.fire({ icon: 'warning', title: 'Pilih jenis tes', text: 'Batch harus memilih minimal satu jenis tes.' });
           return;
         }
-        const testType = selected.value;
+
+        const testOrders = [];
+        let valid = true;
+        checkboxes.forEach(cb => {
+          const row = cb.closest('tr');
+          const orderInput = row.querySelector('.test-order-input');
+          const val = parseInt(orderInput.value, 10);
+          if (isNaN(val) || val < 1 || val > 6) {
+            valid = false;
+          } else {
+            testOrders.push({ key: cb.value, order: val });
+          }
+        });
+
+        if (!valid) {
+          Swal.fire({ icon: 'warning', title: 'Urutan tidak valid', text: 'Semua alat tes yang dipilih harus memiliki nomor urutan pengerjaan antara 1 - 6.' });
+          return;
+        }
+
+        const orders = testOrders.map(t => t.order);
+        if (new Set(orders).size !== orders.length) {
+          Swal.fire({ icon: 'warning', title: 'Urutan duplikat', text: 'Urutan pengerjaan tidak boleh ada yang sama.' });
+          return;
+        }
+
+        testOrders.sort((a, b) => a.order - b.order);
+        const testOrderStr = testOrders.map(t => t.key).join(',');
+
         const payload = {
           name: document.getElementById('batchName').value,
           institution: document.getElementById('batchInstitution').value,
-          enable_ist: testType === 'ist',
-          enable_holland: testType === 'holland',
-          enable_learning_style: testType === 'learning_style',
+          enable_ist: testOrders.some(t => t.key === 'ist'),
+          enable_holland: testOrders.some(t => t.key === 'holland'),
+          enable_learning_style: testOrders.some(t => t.key === 'learning_style'),
+          enable_kraepelin: testOrders.some(t => t.key === 'kraepelin'),
+          enable_rmib: testOrders.some(t => t.key === 'rmib'),
+          enable_papi: testOrders.some(t => t.key === 'papi'),
+          test_order: testOrderStr,
           purpose_category: document.getElementById('purposeCategory').value,
           purpose_detail: document.getElementById('purposeDetail').value,
           send_via_email: document.getElementById('sendViaEmail').checked,
@@ -608,8 +712,6 @@
           }
           Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Batch tes berhasil dibuat', timer: 2000, showConfirmButton: false });
           document.getElementById('batchForm').reset();
-          document.getElementById('enableIST').checked = true;
-          document.getElementById('sendViaEmail').checked = true;
           loadBatches();
         } catch (err) {
           Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan' });
@@ -658,26 +760,168 @@
         }
       }
 
-      async function editBatch(id, currentName, currentInstitution) {
+      async function editBatch(id, currentName, currentInstitution, currentTahun, currentSekolah) {
+        // Build Tahun Ajaran options
+        const tahunOptions = [
+          'TA 2025/2026', 'TA 2026/2027', 'TA 2027/2028',
+          'TA 2028/2029', 'TA 2029/2030', 'TA 2030/2031'
+        ].map(t => `<option value="${t}" ${t === currentTahun ? 'selected' : ''}>${t}</option>`).join('');
+
+        // Build Sekolah options
+        const sekolahOptions = allSchoolList.map(s => 
+          `<option value="${s}" ${s === currentSekolah ? 'selected' : ''}>${s}</option>`
+        ).join('');
+
+        const batch = batchCache[id] || {};
+        const testOrder = batch.test_order || '';
+        const orderMap = {};
+        if (testOrder) {
+          testOrder.split(',').forEach((key, index) => {
+            orderMap[key] = index + 1;
+          });
+        }
+        const tests = [
+          { key: 'ist', label: 'IST (IQ)', enabled: !!batch.enable_ist },
+          { key: 'holland', label: 'Holland (RIASEC)', enabled: !!batch.enable_holland },
+          { key: 'learning_style', label: 'Gaya Belajar (VAK)', enabled: !!batch.enable_learning_style },
+          { key: 'kraepelin', label: 'Kraepelin', enabled: !!batch.enable_kraepelin },
+          { key: 'rmib', label: 'RMIB (Minat)', enabled: !!batch.enable_rmib },
+          { key: 'papi', label: 'PAPI', enabled: !!batch.enable_papi }
+        ];
+        
+        tests.forEach(t => {
+          t.order = orderMap[t.key] || (t.enabled ? 1 : '');
+        });
+
+        let tableRows = '';
+        tests.forEach(t => {
+          tableRows += `
+            <tr>
+              <td class="text-center" style="padding: 0.5rem 0.25rem;">
+                <input class="form-check-input swal-test-checkbox" type="checkbox" id="swal-test-${t.key}" value="${t.key}" ${t.enabled ? 'checked' : ''} />
+              </td>
+              <td class="text-start" style="padding: 0.5rem 0.25rem;">
+                <label class="form-check-label fw-medium mb-0" for="swal-test-${t.key}" style="font-size: 13px;">${t.label}</label>
+              </td>
+              <td style="padding: 0.5rem 0.25rem;">
+                <input type="number" class="form-control form-control-sm swal-test-order-input" id="swal-order-${t.key}" min="1" max="6" value="${t.order}" ${t.enabled ? '' : 'disabled'} style="width: 80px;" />
+              </td>
+            </tr>
+          `;
+        });
+
+        const tableHtml = `
+          <div class="mb-3 text-start">
+            <label class="form-label fw-bold" style="font-size: 14px;">Jenis Tes & Urutan Pengerjaan</label>
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm align-middle mb-0" style="font-size: 13px;">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 50px;" class="text-center">Pilih</th>
+                    <th>Alat Tes</th>
+                    <th style="width: 100px;">Urutan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
         const { value: formValues } = await Swal.fire({
           title: 'Edit Batch Tes',
           html:
-            '<div class="mb-3 text-start"><label class="form-label">Nama Batch</label>' +
+            '<div class="mb-3 text-start"><label class="form-label fw-bold">Nama Batch</label>' +
             '<input id="swal-batch-name" class="form-control" value="' + (currentName || '') + '"></div>' +
-            '<div class="mb-3 text-start"><label class="form-label">Institusi / Sekolah</label>' +
-            '<input id="swal-batch-inst" class="form-control" value="' + (currentInstitution || '') + '"></div>',
+            '<div class="mb-3 text-start"><label class="form-label fw-bold">Tahun Ajaran</label>' +
+            '<select id="swal-batch-tahun" class="form-select">' +
+            '<option value="" disabled>Pilih Tahun Ajaran</option>' +
+            tahunOptions +
+            '</select></div>' +
+            '<div class="mb-3 text-start"><label class="form-label fw-bold">Sekolah Pilihan</label>' +
+            '<select id="swal-batch-sekolah" class="form-select">' +
+            '<option value="" disabled>Pilih Sekolah</option>' +
+            sekolahOptions +
+            '</select></div>' +
+            tableHtml,
           focusConfirm: false,
           showCancelButton: true,
           confirmButtonText: 'Simpan',
           cancelButtonText: 'Batal',
+          didOpen: () => {
+            const checkboxes = document.querySelectorAll('.swal-test-checkbox');
+            checkboxes.forEach(cb => {
+              cb.addEventListener('change', (e) => {
+                const row = cb.closest('tr');
+                const orderInput = row.querySelector('.swal-test-order-input');
+                if (cb.checked) {
+                  orderInput.disabled = false;
+                  const activeCount = Array.from(document.querySelectorAll('.swal-test-checkbox:checked')).length;
+                  orderInput.value = activeCount;
+                } else {
+                  orderInput.disabled = true;
+                  orderInput.value = '';
+                }
+              });
+            });
+          },
           preConfirm: () => {
             const name = document.getElementById('swal-batch-name').value.trim();
-            const inst = document.getElementById('swal-batch-inst').value.trim();
-            if (!name || !inst) {
-              Swal.showValidationMessage('Nama batch dan institusi wajib diisi');
+            const tahun = document.getElementById('swal-batch-tahun').value;
+            const sekolah = document.getElementById('swal-batch-sekolah').value;
+            if (!name || !tahun || !sekolah) {
+              Swal.showValidationMessage('Semua kolom wajib diisi');
               return false;
             }
-            return { name: name, institution: inst };
+
+            const checkboxes = Array.from(document.querySelectorAll('.swal-test-checkbox:checked'));
+            if (checkboxes.length === 0) {
+              Swal.showValidationMessage('Pilih minimal satu jenis tes.');
+              return false;
+            }
+
+            const testOrders = [];
+            let valid = true;
+            checkboxes.forEach(cb => {
+              const row = cb.closest('tr');
+              const orderInput = row.querySelector('.swal-test-order-input');
+              const val = parseInt(orderInput.value, 10);
+              if (isNaN(val) || val < 1 || val > 6) {
+                valid = false;
+              } else {
+                testOrders.push({ key: cb.value, order: val });
+              }
+            });
+
+            if (!valid) {
+              Swal.showValidationMessage('Urutan pengerjaan harus antara 1 - 6.');
+              return false;
+            }
+
+            const orders = testOrders.map(t => t.order);
+            if (new Set(orders).size !== orders.length) {
+              Swal.showValidationMessage('Urutan pengerjaan tidak boleh ada yang sama.');
+              return false;
+            }
+
+            testOrders.sort((a, b) => a.order - b.order);
+            const testOrderStr = testOrders.map(t => t.key).join(',');
+
+            return {
+              name: name,
+              institution: sekolah,
+              tahun_ajaran: tahun,
+              sekolah: sekolah,
+              enable_ist: testOrders.some(t => t.key === 'ist'),
+              enable_holland: testOrders.some(t => t.key === 'holland'),
+              enable_learning_style: testOrders.some(t => t.key === 'learning_style'),
+              enable_kraepelin: testOrders.some(t => t.key === 'kraepelin'),
+              enable_rmib: testOrders.some(t => t.key === 'rmib'),
+              enable_papi: testOrders.some(t => t.key === 'papi'),
+              test_order: testOrderStr
+            };
           }
         });
 
@@ -1498,7 +1742,7 @@
 
         document.getElementById('adminRmibDetailBody').innerHTML = html;
         var excelBtn = document.getElementById('adminRmibDetailExcel');
-        if (excelBtn) excelBtn.href = '/test/rmib/result/excel?invId=' + inv.id;
+        if (excelBtn) excelBtn.href = '/api/results/export-zip?invId=' + inv.id + '&test=rmib';
 
         if (window.bootstrap && bootstrap.Modal) {
           bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -1508,6 +1752,7 @@
       }
 
       document.addEventListener('DOMContentLoaded', function () {
+        loadFilterSchools();
         loadBatches();
         const searchInput = document.getElementById('inviteSearch');
         if (searchInput) {
@@ -1535,8 +1780,8 @@
             <div class="text-center text-muted py-3">Memuat detail...</div>
           </div>
           <div class="modal-footer">
-            <a id="adminRmibDetailExcel" href="#" class="btn btn-success">
-              <i class="bx bx-download me-1"></i>Unduh Excel
+            <a id="adminRmibDetailExcel" href="#" class="btn btn-primary">
+              <i class="bx bx-download me-1"></i>Unduh Laporan Lengkap (ZIP)
             </a>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
           </div>
@@ -1573,12 +1818,21 @@
             if (!data.success || !data.data) return;
             var u = data.data;
             var name = u.nama_lengkap || 'Admin';
+            var roleText = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            if (u.teacher_name) {
+              name = u.teacher_name + ' (' + name + ')';
+              roleText = 'Guru ' + roleText;
+            }
             document.getElementById('topUserName').textContent = name;
-            document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            document.getElementById('topUserRole').textContent = roleText;
             var av = document.getElementById('topUserAvatar');
             if (av) av.src = u.foto_profil ? '/static/uploads/profiles/' + u.foto_profil : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
             var k = document.getElementById('sbKelasValue'); if (k) k.textContent = u.kelas || '-';
             var j = document.getElementById('sbJurusanValue'); if (j) j.textContent = u.jurusan || '-';
+            if (u.role === 'sekolah') {
+              var filterSekolah = document.getElementById('filterSekolah');
+              if (filterSekolah) filterSekolah.style.display = 'none';
+            }
           } catch (e) { console.error(e); }
         }
         async function handleLogout(e) {

@@ -58,7 +58,7 @@
   }
 
   // ============== Data normalisation ==============
-  // RIASEC dimension → label & deskripsi singkat
+  // RIASEC dimension &#8594; label & deskripsi singkat
   const RIASEC_LABELS = {
     R: "Realistic", I: "Investigative", A: "Artistic",
     S: "Social", E: "Enterprising", C: "Conventional",
@@ -116,31 +116,96 @@
     const map = {
       siswa: "Siswa", mahasiswa: "Mahasiswa", guru: "Guru",
       pekerja: "Pekerja", umum: "Umum", admin: "Administrator",
+      sekolah: "Sekolah",
     };
     return map[(role || "").toLowerCase()] || "Siswa";
   }
 
-  // ============== Render: Sidebar (kelas & jurusan) ==============
   function renderSidebarStats(ctx) {
     const u = ctx.user || {};
-    setText("#sbKelasValue", u.kelas || "-");
-    setText("#sbJurusanValue", u.jurusan || u.asal_instansi || "-");
+    const role = (u.role || "").toLowerCase();
+    const kelasEl = $("#sbKelasValue");
+    const jurusanEl = $("#sbJurusanValue");
+
+    if (role === "sekolah") {
+      if (kelasEl) {
+        const lbl = kelasEl.previousElementSibling;
+        if (lbl) lbl.textContent = "Asal Sekolah";
+        kelasEl.textContent = u.sekolah || "-";
+      }
+      if (jurusanEl) {
+        const lbl = jurusanEl.previousElementSibling;
+        if (lbl) lbl.textContent = "Bidang";
+        jurusanEl.textContent = "BK";
+      }
+    } else {
+      if (kelasEl) {
+        const lbl = kelasEl.previousElementSibling;
+        if (lbl) lbl.textContent = "Kelas";
+        kelasEl.textContent = u.kelas || "-";
+      }
+      if (jurusanEl) {
+        const lbl = jurusanEl.previousElementSibling;
+        if (lbl) lbl.textContent = "Jurusan";
+        jurusanEl.textContent = u.jurusan || u.asal_instansi || "-";
+      }
+    }
   }
 
   // ============== Render: Topbar ==============
   function renderTopbar(ctx) {
     const u = ctx.user || {};
-    setText("#topUserName", u.nama_lengkap || u.email || "Siswa");
-    setText("#topUserRole", roleLabel(u.role));
+    let displayName = u.nama_lengkap || u.email || "Siswa";
+    let roleText = roleLabel(u.role);
+    if (u.teacher_name) {
+      displayName = u.teacher_name + " (" + displayName + ")";
+      roleText = "Guru " + roleText;
+    }
+    setText("#topUserName", displayName);
+    setText("#topUserRole", roleText);
     const ava = $("#topUserAvatar");
     if (ava) ava.src = avatarUrl(u);
+
+    // Sembunyikan judul topbar bawaan siswa jika peran sekolah/guru
+    const isSekolah = (u.role || "").toLowerCase() === "sekolah";
+    const mainTitle = $("#dsTopbarTitle");
+    const mainSubtitle = $("#dsTopbarSubtitle");
+    if (isSekolah) {
+      if (mainTitle) mainTitle.style.display = "none";
+      if (mainSubtitle) mainSubtitle.style.display = "none";
+    } else {
+      if (mainTitle) mainTitle.style.display = "";
+      if (mainSubtitle) mainSubtitle.style.display = "";
+    }
+
+    // Tampilkan banner selamat datang untuk akun sekolah
+    if ((u.role || "").toLowerCase() === "sekolah") {
+      const banner = $("#schoolWelcomeBanner");
+      const titleEl = $("#schoolWelcomeTitle");
+      if (banner) banner.style.display = "block";
+      if (titleEl) {
+        let welcomeName = u.sekolah || u.nama_lengkap || "Sekolah";
+        if (u.teacher_name) {
+          welcomeName = u.teacher_name + " @ " + welcomeName;
+        }
+        titleEl.textContent = "Selamat datang kembali, " + welcomeName + "!";
+      }
+
+      // Ambil jumlah guru terdaftar
+      fetchJson("/api/schools/my-teachers").then(function(res) {
+        const countEl = $("#schoolTeacherCount");
+        if (!countEl) return;
+        const list = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+        countEl.textContent = Array.isArray(list) ? list.length : "-";
+      }).catch(function() {});
+    }
   }
 
   // ============== Render: Student Profile ==============
   function renderStudentProfile(ctx) {
     const u = ctx.user || {};
     setText("#spName", u.nama_lengkap || "-");
-    setText("#spStudentId", "Student ID: " + (u.nisn || u.nip || "—"));
+    setText("#spStudentId", "Student ID: " + (u.nisn || u.nip || "-"));
     const meta = $("#spMeta");
     if (meta) {
       meta.innerHTML = "";
@@ -180,7 +245,7 @@
     // Stat tiles
     setText("#spKelas", u.kelas || "-");
     setText("#spJurusan", u.jurusan || "-");
-    setText("#spTalent", ctx.dominantTalent || "—");
+    setText("#spTalent", ctx.dominantTalent || "-");
     setText("#spCareerName", ctx.topCareer.name);
     setText("#spCareerMatch", ctx.topCareer.match + "%");
   }
@@ -402,7 +467,7 @@
     if (ist && Array.isArray(ist.std_scores)) {
       IST_KEYS.forEach((k, i) => {
         const v = ist.std_scores[i] || 0;
-        // map 80–130 → 0–100
+        // map 80-130 &#8594; 0-100
         istPct[k] = pct(((v - 80) / 50) * 100);
       });
     } else {
@@ -423,7 +488,7 @@
 
     // === Learning style label ===
     const learningStyleLabel = vak
-      ? (vak.dominant_type || "—")
+      ? (vak.dominant_type || "-")
       : "Belum tersedia";
 
     // === Dominant intelligence dari IST top aspect ===
@@ -438,11 +503,11 @@
       : "Belum tersedia";
 
     // === Motivation / Stress / Leadership (heuristik) ===
-    // Motivation: Holland E + RMIB top "Persuasif" sederhana → pakai E score
+    // Motivation: Holland E + RMIB top "Persuasif" sederhana &#8594; pakai E score
     const motivationPct = pct(((holPct.E || 50) + (rmibTop ? 70 : 50)) / 2);
     const motivationLevel = motivationPct >= 70 ? "High" : motivationPct >= 45 ? "Mid" : "Low";
 
-    // Stress: dari Kraepelin error rate (lower=better → invert)
+    // Stress: dari Kraepelin error rate (lower=better &#8594; invert)
     let stressPct = 40;
     if (krp) {
       const total = (krp.total_correct || 0) + (krp.total_errors || 0) + (krp.total_skipped || 0);
@@ -566,7 +631,7 @@
 
     // === Student level (heuristik dari IST IQ) ===
     const iq = ist ? (ist.iq || 0) : 0;
-    const level = Math.max(1, Math.round((iq || 90) / 5)); // IQ 100 → Lv 20
+    const level = Math.max(1, Math.round((iq || 90) / 5)); // IQ 100 &#8594; Lv 20
     const pctToNext = clamp((iq % 5) * 20, 10, 90);
     const rankBand = iq >= 130 ? 1 : iq >= 120 ? 5 : iq >= 110 ? 10 : iq >= 100 ? 25 : iq >= 90 ? 50 : 75;
     const rankLabel = "Top " + rankBand + "%";
@@ -587,7 +652,7 @@
     return {
       user: u,
       studentLevel: { level, pctToNext, rankLabel, rankNote },
-      personalityType: { label: personalityLabel, code: code || "—" },
+      personalityType: { label: personalityLabel, code: code || "-" },
       learningStyleLabel,
       dominantIntelligence,
       motivationLevel, stressLevel, leadershipPotential,
@@ -605,6 +670,293 @@
     };
   }
 
+  // ============== Teacher Batch Dashboard ==============
+
+  var _allBatches = [];
+
+  function getBatchTypeName(b) {
+    if (b.enable_ist) return "IST";
+    if (b.enable_holland) return "Holland";
+    if (b.enable_learning_style) return "Gaya Belajar";
+    if (b.enable_kraepelin) return "Kraepelin";
+    if (b.enable_rmib) return "RMIB";
+    if (b.enable_papi) return "PAPI";
+    return "Tes";
+  }
+
+  function getBatchTypeKey(b) {
+    if (b.enable_ist) return "ist";
+    if (b.enable_holland) return "holland";
+    if (b.enable_learning_style) return "learning_style";
+    if (b.enable_kraepelin) return "kraepelin";
+    if (b.enable_rmib) return "rmib";
+    if (b.enable_papi) return "papi";
+    return "";
+  }
+
+  function renderBatchCards(batches) {
+    const grid = document.getElementById("teacherBatchGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    if (!batches || batches.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--ds-muted);">' +
+        '<i data-lucide="folder-open" style="width:48px;height:48px;margin:0 auto 12px;display:block;opacity:0.3;"></i>' +
+        '<p style="font-size:15px;font-weight:500;margin:0;">Tidak ada batch yang ditemukan</p>' +
+        '<p style="font-size:13px;margin-top:4px;">Coba ubah filter pencarian Anda</p></div>';
+      if (window.lucide) try { window.lucide.createIcons(); } catch(_) {}
+      return;
+    }
+
+    batches.forEach(function(b) {
+      const typeKey = getBatchTypeKey(b);
+      const typeName = getBatchTypeName(b);
+      const status = (b.status || "active") === "active" ? "aktif" : "selesai";
+      const statusLabel = status === "aktif" ? "Aktif" : "Selesai";
+      const total = b.participant_count || 0;
+      const done = b.completed_count || 0;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      const kelas = b.kelas || "";
+      const jurusan = b.jurusan || "";
+      const subtitle = [kelas ? "Kelas " + kelas : "", jurusan].filter(Boolean).join(" \u2022 ") || b.institution || "-";
+
+      const card = document.createElement("div");
+      card.className = "batch-card";
+      card.setAttribute("data-batch-id", b.id);
+      card.setAttribute("data-kelas", (kelas || "").toUpperCase());
+      card.setAttribute("data-jurusan", (jurusan || "").toLowerCase());
+      card.setAttribute("data-tipe", typeKey);
+      card.setAttribute("data-name", (b.name || "").toLowerCase());
+      card.innerHTML =
+        '<div class="batch-card-header">' +
+          '<span class="batch-type-badge ' + typeKey + '">' + typeName + '</span>' +
+          '<span class="batch-status-badge ' + status + '">' + statusLabel + '</span>' +
+        '</div>' +
+        '<div class="batch-card-body">' +
+          '<p class="batch-card-title-text"></p>' +
+          '<p class="batch-card-subtitle-text"></p>' +
+        '</div>' +
+        '<div class="batch-card-footer">' +
+          '<div class="batch-meta-item">' +
+            '<i data-lucide="users"></i>' +
+            '<span>' + total + ' peserta</span>' +
+          '</div>' +
+          '<div class="batch-meta-item">' +
+            '<span class="batch-progress-pct">' + pct + '% selesai</span>' +
+          '</div>' +
+        '</div>';
+
+      card.querySelector(".batch-card-title-text").textContent = b.tahun_ajaran || b.name || "-";
+      card.querySelector(".batch-card-subtitle-text").textContent = subtitle;
+
+      card.addEventListener("click", function() {
+        window.location.href = "/dashboard/batch/" + b.id;
+      });
+
+      grid.appendChild(card);
+    });
+
+    if (window.lucide) try { window.lucide.createIcons(); } catch(_) {}
+  }
+
+  function filterAndRenderBatches() {
+    const search = (document.getElementById("batchSearchInput") || {}).value || "";
+    const kelas = (document.getElementById("batchFilterKelas") || {}).value || "";
+    const jurusan = (document.getElementById("batchFilterJurusan") || {}).value || "";
+    const tipe = (document.getElementById("batchFilterTipe") || {}).value || "";
+
+    const filtered = _allBatches.filter(function(b) {
+      const nameMatch = !search ||
+        (b.name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (b.tahun_ajaran || "").toLowerCase().includes(search.toLowerCase()) ||
+        (b.institution || "").toLowerCase().includes(search.toLowerCase());
+      const kelasMatch = !kelas || (b.kelas || "").toUpperCase() === kelas.toUpperCase();
+      const jurusanMatch = !jurusan || (b.jurusan || "").toLowerCase().includes(jurusan.toLowerCase());
+      const tipeMatch = !tipe || getBatchTypeKey(b) === tipe;
+      return nameMatch && kelasMatch && jurusanMatch && tipeMatch;
+    });
+
+    renderBatchCards(filtered);
+  }
+
+  async function initSchoolBatchDashboard(userData) {
+    const section = document.getElementById("schoolDashboardSection");
+    const grid = document.getElementById("teacherBatchGrid");
+    const studentGrid = document.querySelector(".ds-grid");
+    const welcomeBanner = document.getElementById("schoolWelcomeBanner");
+
+    if (section) section.style.display = "block";
+    if (studentGrid) studentGrid.style.display = "none";
+    if (welcomeBanner) welcomeBanner.style.display = "none";
+
+    const schoolName = userData.sekolah || userData.nama_lengkap || "Sekolah";
+
+    const res = await fetchJson("/api/admin/test-batches");
+    const batches = (res && res.data) ? res.data : [];
+    _allBatches = batches;
+
+    const activeBatches = batches.filter(function(b) { return b.status === "active"; });
+    const titleEl = document.getElementById("teacherDashboardTitle");
+    const subtitleEl = document.getElementById("teacherDashboardSubtitle");
+    if (titleEl) titleEl.textContent = "Daftar Batch Tes";
+    if (subtitleEl) subtitleEl.textContent = schoolName + " \u2014 " + batches.length + " batch aktif";
+
+    renderBatchCards(batches);
+
+    const searchInput = document.getElementById("batchSearchInput");
+    const kelasFilter = document.getElementById("batchFilterKelas");
+    const jurusanFilter = document.getElementById("batchFilterJurusan");
+    const tipeFilter = document.getElementById("batchFilterTipe");
+
+    if (searchInput) searchInput.addEventListener("input", filterAndRenderBatches);
+    if (kelasFilter) kelasFilter.addEventListener("change", filterAndRenderBatches);
+    if (jurusanFilter) jurusanFilter.addEventListener("change", filterAndRenderBatches);
+    if (tipeFilter) tipeFilter.addEventListener("change", filterAndRenderBatches);
+  }
+ 
+  // ============== Live AI Fetching & Rendering ==============
+  async function fetchAndRenderLiveCombinedAI(userData, summaryData, rmibList, papiList) {
+    const list = $("#aiRecList");
+    const strengthsUl = $("#smStrengths");
+    const devUl = $("#smDev");
+    const potentialDesc = $("#smPotentialDesc");
+    const insightEl = $("#smInsight");
+ 
+    if (list) {
+      list.innerHTML = `<div class="text-center py-4" style="grid-column: 1/-1;"><div class="spinner-border text-primary" role="status" style="width: 24px; height: 24px; margin: 0 auto; display: block;"></div><p class="text-muted text-xs mt-2">Menganalisis rekomendasi karir & kegiatan dengan AI...</p></div>`;
+    }
+ 
+    const skLoading = `<li><div style="height:10px; background:#e9ecef; border-radius:4px; margin:6px 0; width:90%; animation: pulse 1.5s infinite;"></div></li>
+                       <li><div style="height:10px; background:#e9ecef; border-radius:4px; margin:6px 0; width:80%; animation: pulse 1.5s infinite;"></div></li>`;
+    if (strengthsUl) strengthsUl.innerHTML = skLoading;
+    if (devUl) devUl.innerHTML = skLoading;
+    if (potentialDesc) potentialDesc.textContent = "Menghitung potensi dengan AI...";
+    if (insightEl) insightEl.textContent = "Memproses wawasan AI...";
+ 
+    // Collect completed tests
+    const completedTests = [];
+    const resultsPayload = {};
+    if (summaryData) {
+      if (summaryData.last_ist_result) { completedTests.push("ist"); resultsPayload.ist = summaryData.last_ist_result; }
+      if (summaryData.last_holland_result) { completedTests.push("holland"); resultsPayload.holland = summaryData.last_holland_result; }
+      if (summaryData.last_learning_style_result) { completedTests.push("learning_style"); resultsPayload.learning_style = summaryData.last_learning_style_result; }
+      if (summaryData.last_kraepelin_attempt) { completedTests.push("kraepelin"); resultsPayload.kraepelin = summaryData.last_kraepelin_attempt; }
+    }
+    if (rmibList && rmibList.length > 0) {
+      completedTests.push("rmib");
+      resultsPayload.rmib = rmibList[0].rmib_result || rmibList[0];
+    }
+    if (papiList && papiList.length > 0) {
+      completedTests.push("papi");
+      resultsPayload.papi = papiList[0].papi_result || papiList[0];
+    }
+ 
+    if (completedTests.length === 0) {
+      if (list) list.innerHTML = `<p class="text-muted text-xs text-center" style="grid-column: 1/-1;">Siswa belum mengerjakan alat tes apa pun.</p>`;
+      if (strengthsUl) strengthsUl.innerHTML = `<li>Belum ada data tes</li>`;
+      if (devUl) devUl.innerHTML = `<li>Belum ada data tes</li>`;
+      if (potentialDesc) potentialDesc.textContent = "Siswa belum menyelesaikan tes.";
+      if (insightEl) insightEl.textContent = "Belum ada tes yang diselesaikan.";
+      return;
+    }
+ 
+    try {
+      const studentName = userData.nama_lengkap || userData.email || "Siswa";
+      const batchName = userData.sekolah || "Batch Umum";
+      const payload = {
+        student_name: studentName,
+        batch_name: batchName,
+        results: resultsPayload
+      };
+ 
+      const res = await fetch("/api/ai/student-combined-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (!json || !json.success || !json.data) {
+        throw new Error("Gagal mengambil data AI");
+      }
+ 
+      const aiData = json.data;
+ 
+      // 1. Render Recommendations
+      if (list && Array.isArray(aiData.recommendations)) {
+        list.innerHTML = "";
+        aiData.recommendations.forEach((r) => {
+          const item = document.createElement("div");
+          item.className = "ds-rec-item " + (r.color || "violet");
+          const itemsHtml = (r.items || []).map((t) => {
+            const li = document.createElement("li");
+            li.textContent = t;
+            return li.outerHTML;
+          }).join("");
+ 
+          item.innerHTML = '<span class="ic"><i data-lucide="' + (r.icon || "sparkles") + '"></i></span>'
+            + '<div style="flex:1;min-width:0;">'
+            + '<h5>' + encodeHTML(r.title) + '</h5>'
+            + '<ul>' + itemsHtml + '</ul>'
+            + '</div>'
+            + '<i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--ds-muted);align-self:center;"></i>';
+          list.appendChild(item);
+        });
+      }
+ 
+      // 2. Strengths
+      if (strengthsUl && Array.isArray(aiData.strengths)) {
+        strengthsUl.innerHTML = "";
+        aiData.strengths.forEach(s => {
+          const li = document.createElement("li");
+          li.textContent = s;
+          strengthsUl.appendChild(li);
+        });
+      }
+ 
+      // 3. Developments
+      if (devUl && Array.isArray(aiData.developments)) {
+        devUl.innerHTML = "";
+        aiData.developments.forEach(d => {
+          const li = document.createElement("li");
+          li.textContent = d;
+          devUl.appendChild(li);
+        });
+      }
+ 
+      // 4. Potential
+      if (aiData.potential != null) {
+        setRing($("#smPotentialRing"), aiData.potential, "#8b5cf6");
+        setText("#smPotentialVal", aiData.potential + "%");
+      }
+      if (aiData.potential_desc) {
+        setText("#smPotentialDesc", aiData.potential_desc);
+      }
+ 
+      // 5. Insight
+      if (aiData.insight) {
+        setText("#smInsight", aiData.insight);
+      }
+ 
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        try { window.lucide.createIcons(); } catch (_) {}
+      }
+    } catch (err) {
+      console.error(err);
+      if (list) list.innerHTML = `<p class="text-danger text-xs text-center" style="grid-column: 1/-1;">Gagal memuat rekomendasi AI.</p>`;
+      if (strengthsUl) strengthsUl.innerHTML = `<li>Gagal memuat data</li>`;
+      if (devUl) devUl.innerHTML = `<li>Gagal memuat data</li>`;
+      if (potentialDesc) potentialDesc.textContent = "Gagal memproses potensi.";
+      if (insightEl) insightEl.textContent = "Gagal memproses wawasan AI.";
+    }
+  }
+ 
+  function encodeHTML(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+ 
   // ============== Bootstrap ==============
   async function init() {
     const [profile, summary, rmibRes, papiRes] = await Promise.all([
@@ -617,20 +969,75 @@
     const summaryData = summary && summary.data ? summary.data : null;
     const rmibList = rmibRes && rmibRes.data ? rmibRes.data : [];
     const papiList = papiRes && papiRes.data ? papiRes.data : [];
-
+ 
     const ctx = buildContext(userData, summaryData, rmibList, papiList);
-
+ 
     renderTopbar(ctx);
     renderSidebarStats(ctx);
-    renderStudentProfile(ctx);
-    renderPsychoMap(ctx);
-    renderEmotional(ctx);
-    renderSkills(ctx);
-    renderCareer(ctx);
-    renderAIRec(ctx);
-    renderSmart(ctx);
-
-    // Render semua Lucide icons (termasuk yang baru dimasukkan dinamis).
+ 
+    const role = ((userData || {}).role || "").toLowerCase();
+    if (role === "sekolah") {
+      await initSchoolBatchDashboard(userData || {});
+    } else {
+      const isImpersonated = !!(userData && userData.is_impersonated);
+      if (!isImpersonated) {
+        // Sembunyikan bagian kompleks untuk siswa biasa
+        const hideIds = [
+          "#cardStudentProfile",
+          "#cardPsychoMap",
+          "#cardEmotional",
+          "#cardSkillTracker",
+          "#cardCareerRoadmap",
+          "#cardAiRecommendation",
+          "#cardAiSmartSummary"
+        ];
+        hideIds.forEach(id => {
+          const el = $(id);
+          if (el) el.style.display = "none";
+        });
+        const stats = $(".ds-profile-stats");
+        if (stats) stats.style.display = "none";
+ 
+        // Tampilkan welcome info card
+        const welcome = $("#cardStudentWelcome");
+        if (welcome) welcome.style.display = "block";
+ 
+        renderStudentProfile(ctx);
+      } else {
+        // Tampilkan semua bagian kompleks untuk BK / sekolah (impersonasi)
+        const welcome = $("#cardStudentWelcome");
+        if (welcome) welcome.style.display = "none";
+ 
+        const showIds = [
+          "#cardStudentProfile",
+          "#cardPsychoMap",
+          "#cardEmotional",
+          "#cardSkillTracker",
+          "#cardCareerRoadmap",
+          "#cardAiRecommendation",
+          "#cardAiSmartSummary"
+        ];
+        showIds.forEach(id => {
+          const el = $(id);
+          if (el) el.style.display = "block";
+        });
+        const stats = $(".ds-profile-stats");
+        if (stats) stats.style.display = "";
+ 
+        renderStudentProfile(ctx);
+        renderPsychoMap(ctx);
+        renderEmotional(ctx);
+        renderSkills(ctx);
+        renderCareer(ctx);
+        renderAIRec(ctx); // render default fallback first
+        renderSmart(ctx);  // render default fallback first
+ 
+        // Jalankan fetch AI live & dinamis
+        fetchAndRenderLiveCombinedAI(userData, summaryData, rmibList, papiList);
+      }
+    }
+ 
+    // Render semua Lucide icons
     if (window.lucide && typeof window.lucide.createIcons === "function") {
       try { window.lucide.createIcons(); } catch (_) {}
     }

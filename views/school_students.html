@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Siswa - Psychee Wellness</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+
+    <!-- Dashboard styles -->
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
+
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <style>
+      .page-students-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 8px; }
+ 
+      /* Header */
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+      }
+      .page-title { font-size: 24px; font-weight: 700; color: #1a1a18; }
+      .page-sub { font-size: 14.5px; color: #5f5e5a; margin-top: 4px; }
+      .role-badge {
+        font-size: 13px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        background: #eaf3de;
+        color: #3b6d11;
+        font-weight: 600;
+      }
+ 
+      /* Stat cards */
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: #fff;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 14px;
+        padding: 18px 22px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+      }
+      .stat-label { font-size: 13px; color: #5f5e5a; margin-bottom: 6px; font-weight: 500; }
+      .stat-value { font-size: 32px; font-weight: 700; color: #1a1a18; }
+ 
+      /* Search & filter */
+      .search-row {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 1.5rem;
+        align-items: center;
+      }
+      .search-wrap { position: relative; flex: 1; }
+      .search-wrap i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        color: #888780;
+      }
+      .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        font-size: 14.5px;
+        border: 0.5px solid #b4b2a9;
+        border-radius: 12px;
+        background: #fff;
+        color: #1a1a18;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .search-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+      .filter-select {
+        padding: 12px 18px;
+        font-size: 14.5px;
+        border: 0.5px solid #b4b2a9;
+        border-radius: 12px;
+        background: #fff;
+        color: #1a1a18;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      .filter-select:focus { border-color: #8b5cf6; }
+ 
+      /* Section label */
+      .section-label {
+        font-size: 14px;
+        color: #888780;
+        margin-bottom: 12px;
+      }
+ 
+      /* Student list */
+      .student-list { display: flex; flex-direction: column; gap: 12px; }
+ 
+      .student-card {
+        background: #fff;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 16px;
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+      }
+      .student-card:hover { border-color: #8b5cf6; box-shadow: 0 8px 24px rgba(139, 92, 246, 0.08); }
+ 
+      /* Avatar */
+      .avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .av-blue   { background: #e6f1fb; color: #0c447c; }
+      .av-teal   { background: #e1f5ee; color: #085041; }
+      .av-coral  { background: #faece7; color: #712b13; }
+      .av-purple { background: #eeedfe; color: #3c3489; }
+      .av-amber  { background: #faeeda; color: #633806; }
+ 
+      /* Student info */
+      .student-info { flex: 1; min-width: 0; }
+      .student-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1a1a18;
+        margin-bottom: 6px;
+      }
+      .student-meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+      .badge {
+        font-size: 12.5px;
+        padding: 3px 12px;
+        border-radius: 20px;
+      }
+      .badge-kelas   { background: #e6f1fb; color: #185fa5; }
+      .badge-jurusan { background: #eeedfe; color: #534ab7; }
+      .student-email {
+        font-size: 13.5px;
+        color: #888780;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .student-email i { font-size: 15px; }
+ 
+      /* Divider */
+      .divider {
+        width: 0.5px;
+        height: 52px;
+        background: #d3d1c7;
+        flex-shrink: 0;
+      }
+ 
+      /* Access button */
+      .access-btn {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 22px;
+        font-size: 14px;
+        font-weight: 600;
+        border: 0.5px solid #b4b2a9;
+        border-radius: 12px;
+        background: transparent;
+        color: #1a1a18;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+      }
+      .access-btn:hover { background: #f5f3ff; border-color: #8b5cf6; color: #8b5cf6; }
+      .access-btn:active { transform: scale(0.98); }
+      .access-btn i { font-size: 18px; }
+ 
+      /* Responsive */
+      @media (max-width: 600px) {
+        .stats-row { grid-template-columns: 1fr; }
+        .search-row { flex-wrap: wrap; }
+        .badge-jurusan { display: none; }
+        .access-btn span { display: none; }
+      }
+    </style>
+  </head>
+ 
+  <body>
+    <div class="ds-shell">
+      <!-- ============== SIDEBAR ============== -->
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+          <div class="ds-brand-text">
+            <div class="name">PsychoWellness</div>
+            <div class="sub">AI Analytics System</div>
+          </div>
+        </div>
+ 
+        <nav class="ds-nav">
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+          <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+          <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+          <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+          <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+              <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+              <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+            </div>
+          </details>
+          <details class="ds-submenu admin-only" hidden>
+            <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+            <div class="ds-subnav">
+              <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+              <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+              <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+              <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+            </div>
+          </details>
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </nav>
+ 
+        <div class="ds-side-card">
+          <div class="label">Kelas</div>
+          <div class="value" id="sbKelasValue">-</div>
+        </div>
+        <div class="ds-side-card" style="margin-top: 0;">
+          <div class="label">Jurusan</div>
+          <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+        </div>
+ 
+        <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+      </aside>
+ 
+      <!-- ============== MAIN ============== -->
+      <main class="ds-main">
+        <!-- Topbar -->
+        <header class="ds-topbar" style="border-bottom: 1px solid var(--ds-border);">
+          <div class="ds-title">
+            <h1 id="dsTopbarTitle">Daftar Siswa</h1>
+            <p id="dsTopbarSubtitle">Kelola dan akses akun siswa untuk meninjau hasil serta rekomendasi psikologis secara detail.</p>
+          </div>
+          <div class="ds-search" style="visibility: hidden;">
+            <i data-lucide="search" class="ds-icon"></i>
+            <input type="text" placeholder="Search..." disabled />
+          </div>
+          <a href="/notifications" class="ds-bell"><i data-lucide="bell"></i><span class="badge">0</span></a>
+          <div class="ds-userpill-wrap">
+            <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
+              <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff&bold=true" alt="" />
+              <div class="meta">
+                <div class="name" id="topUserName">User</div>
+                <div class="role" id="topUserRole">Role</div>
+              </div>
+              <i data-lucide="chevron-down" style="color:var(--ds-muted);width:14px;height:14px;"></i>
+            </button>
+            <div class="ds-dropdown" id="ds-userpill-menu" role="menu" hidden>
+              <a href="/profile" role="menuitem"><i data-lucide="user"></i> Profil Saya</a>
+              <a href="/settings" role="menuitem"><i data-lucide="settings"></i> Pengaturan</a>
+              <a href="/notifications" role="menuitem"><i data-lucide="bell"></i> Notifikasi</a>
+              <div class="ds-dropdown-sep"></div>
+              <a href="#" role="menuitem" id="ds-logout-btn-2" class="danger"><i data-lucide="log-out"></i> Logout</a>
+            </div>
+          </div>
+        </header>
+ 
+        <!-- Main Body -->
+        <div class="page-students-wrap">
+          <!-- Header -->
+          <div class="page-header">
+            <div>
+              <p class="page-title" style="font-size: 28px; font-weight: 700; color: #1a1a18; margin-bottom: 2px;">Daftar Siswa</p>
+              <p class="page-sub" id="schoolNameMeta">SMK &middot; Akses akun siswa</p>
+            </div>
+            <span class="role-badge">Akun Sekolah</span>
+          </div>
+ 
+          <!-- Stats -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <p class="stat-label">Total Siswa</p>
+              <p class="stat-value" id="statTotalStudents">0</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-label">Jurusan</p>
+              <p class="stat-value" id="statTotalMajors">0</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-label">Kelas Aktif</p>
+              <p class="stat-value" id="statTotalClasses">0</p>
+            </div>
+          </div>
+ 
+          <!-- Search & Filter -->
+          <div class="search-row">
+            <div class="search-wrap">
+              <i class="ti ti-search" style="left:16px; font-size: 18px; color: #888780;"></i>
+              <input class="search-input" type="text" id="inputSearch" placeholder="Cari nama atau email siswa..." />
+            </div>
+            <select class="filter-select" id="selectKelas">
+              <option value="">Semua Kelas</option>
+            </select>
+            <select class="filter-select" id="selectJurusan">
+              <option value="">Semua Jurusan</option>
+            </select>
+          </div>
+ 
+          <p class="section-label" id="countLabel">Menampilkan 0 dari 0 siswa</p>
+ 
+          <!-- Student List -->
+          <div class="student-list" id="studentsContainer">
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" role="status" style="width: 32px; height: 32px;"></div>
+              <p class="text-muted mt-2">Memuat data siswa...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Bootstrap Bundle & SweetAlert -->
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Sidebar & Shared JS -->
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
+
+    <script>
+      let studentsList = [];
+
+      // Helpers
+      function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+      }
+
+      function getInitials(name) {
+        if (!name) return "?";
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+
+      function getAvatarColorClass(name) {
+        const classes = ['av-blue', 'av-teal', 'av-coral', 'av-purple', 'av-amber'];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+          hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const idx = Math.abs(hash) % classes.length;
+        return classes[idx];
+      }
+
+      // Fetch Profile for Topbar
+      fetch("/api/profile")
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success) {
+            const u = res.data.user || res.data;
+            document.getElementById("topUserName").textContent = u.nama_lengkap || u.email;
+            document.getElementById("topUserRole").textContent = u.role === "sekolah" ? "Akun Sekolah (BK)" : u.role;
+            if (u.foto_profil) {
+              document.getElementById("topUserAvatar").src = "/static/uploads/profiles/" + u.foto_profil;
+            } else {
+              document.getElementById("topUserAvatar").src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nama_lengkap || u.email)}&background=4f46e5&color=fff&bold=true`;
+            }
+          }
+        });
+
+      // Userpill Dropdown toggle
+      (function () {
+        const btn = document.getElementById("ds-userpill-btn");
+        const menu = document.getElementById("ds-userpill-menu");
+        if (!btn || !menu) return;
+        function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+        function open() { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); }
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (menu.hidden) open(); else close();
+        });
+        document.addEventListener("click", function (e) {
+          if (!menu.contains(e.target) && !btn.contains(e.target)) close();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") close();
+        });
+      })();
+
+      // Load Students
+      function loadStudents() {
+        const container = document.getElementById("studentsContainer");
+        fetch("/api/schools/students")
+          .then(res => res.json())
+          .then(res => {
+            if (res && res.success) {
+              const data = res.data;
+              studentsList = data.students || [];
+
+              // Populate stats
+              document.getElementById("statTotalStudents").textContent = data.total_students;
+              document.getElementById("statTotalClasses").textContent = data.total_classes;
+              document.getElementById("statTotalMajors").textContent = data.total_majors;
+
+              // Update school meta subtitle
+              document.getElementById("schoolNameMeta").textContent = (data.sekolah || "Sekolah") + " \u00B7 Akses akun siswa";
+
+              // Populate filter options
+              populateFilters(studentsList);
+
+              // Render
+              renderStudents(studentsList);
+            } else {
+              container.innerHTML = `
+                <div class="text-center py-5" style="border: 1.5px dashed #dc2626; border-radius: 12px; background: #fff;">
+                  <i class="ti ti-alert-triangle" style="font-size: 3rem; color: #dc2626;"></i>
+                  <p style="font-weight: 600; color: #dc2626; margin-top: 8px;">Gagal Memuat Data</p>
+                  <p class="text-muted text-sm">${res.message || "Terjadi kesalahan saat memuat data."}</p>
+                </div>
+              `;
+            }
+          })
+          .catch(err => {
+            container.innerHTML = `
+              <div class="text-center py-5" style="border: 1.5px dashed #dc2626; border-radius: 12px; background: #fff;">
+                <i class="ti ti-wifi-off" style="font-size: 3rem; color: #dc2626;"></i>
+                <p style="font-weight: 600; color: #dc2626; margin-top: 8px;">Gagal Menghubungi Server</p>
+                <p class="text-muted text-sm">Pastikan server Anda berjalan dengan baik.</p>
+              </div>
+            `;
+          });
+      }
+
+      function populateFilters(students) {
+        const classes = new Set();
+        const majors = new Set();
+
+        students.forEach(s => {
+          if (s.kelas && s.kelas.trim() !== "") classes.add(s.kelas.trim());
+          if (s.jurusan && s.jurusan.trim() !== "") majors.add(s.jurusan.trim());
+        });
+
+        const selectKelas = document.getElementById("selectKelas");
+        const selectJurusan = document.getElementById("selectJurusan");
+
+        // Clear existing options after the first one
+        while (selectKelas.options.length > 1) selectKelas.remove(1);
+        while (selectJurusan.options.length > 1) selectJurusan.remove(1);
+
+        Array.from(classes).sort().forEach(cls => {
+          const opt = document.createElement("option");
+          opt.value = cls;
+          opt.textContent = cls;
+          selectKelas.appendChild(opt);
+        });
+
+        Array.from(majors).sort().forEach(mjr => {
+          const opt = document.createElement("option");
+          opt.value = mjr;
+          opt.textContent = mjr;
+          selectJurusan.appendChild(opt);
+        });
+      }
+
+      function renderStudents(students) {
+        const container = document.getElementById("studentsContainer");
+        container.innerHTML = "";
+
+        const countLabel = document.getElementById("countLabel");
+        if (countLabel) {
+          countLabel.textContent = `Menampilkan ${students.length} dari ${studentsList.length} siswa`;
+        }
+
+        if (students.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-5" style="border: 1.5px dashed #d3d1c7; border-radius: 12px; background: #fff;">
+              <i class="ti ti-users" style="font-size: 3rem; color: #888780;"></i>
+              <p style="font-weight: 600; color: #1a1a18; margin-top: 8px;">Tidak Ada Siswa</p>
+              <p class="text-muted text-sm">Belum ada data siswa yang sesuai dengan filter pencarian.</p>
+            </div>
+          `;
+          return;
+        }
+
+        students.forEach(s => {
+          const card = document.createElement("div");
+          card.className = "student-card";
+
+          const initials = getInitials(s.nama_lengkap);
+          const avColor = getAvatarColorClass(s.nama_lengkap);
+
+          card.innerHTML = `
+            <div class="avatar ${avColor}">${esc(initials)}</div>
+            <div class="student-info">
+              <p class="student-name">${esc(s.nama_lengkap)}</p>
+              <div class="student-meta">
+                <span class="badge badge-kelas"><i class="ti ti-school" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>${esc(s.kelas || "-")}</span>
+                <span class="badge badge-jurusan">${esc(s.jurusan || "-")}</span>
+              </div>
+              <p class="student-email"><i class="ti ti-mail"></i>${esc(s.email)}</p>
+            </div>
+            <div class="divider"></div>
+            <button class="access-btn" onclick="accessStudent(${s.id}, '${s.nama_lengkap.replace(/'/g, "\\'")}')">
+              <i class="ti ti-login"></i><span>Akses Akun</span>
+            </button>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      // Filter Logic
+      function filterAndRender() {
+        const q = document.getElementById("inputSearch").value.toLowerCase();
+        const selectedKelas = document.getElementById("selectKelas").value;
+        const selectedJurusan = document.getElementById("selectJurusan").value;
+
+        const filtered = studentsList.filter(s => {
+          const matchQ = s.nama_lengkap.toLowerCase().includes(q) || 
+                          s.email.toLowerCase().includes(q) || 
+                          (s.nisn && s.nisn.includes(q));
+          const matchKelas = selectedKelas === "" || s.kelas === selectedKelas;
+          const matchJurusan = selectedJurusan === "" || s.jurusan === selectedJurusan;
+
+          return matchQ && matchKelas && matchJurusan;
+        });
+
+        renderStudents(filtered);
+      }
+
+      document.getElementById("inputSearch").addEventListener("input", filterAndRender);
+      document.getElementById("selectKelas").addEventListener("change", filterAndRender);
+      document.getElementById("selectJurusan").addEventListener("change", filterAndRender);
+
+      // Access Student (Impersonation)
+      function accessStudent(studentId, studentName) {
+        Swal.fire({
+          title: "Akses Akun Siswa",
+          text: `Apakah Anda yakin ingin mengakses dashboard atas nama ${studentName}?`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#4f46e5",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Ya, Akses",
+          cancelButtonText: "Batal",
+          showLoaderOnConfirm: true,
+          preConfirm: () => {
+            return fetch(`/api/schools/access-student/${studentId}`, { method: "POST" })
+              .then(res => {
+                if (!res.ok) throw new Error("Gagal melakukan impersonasi");
+                return res.json();
+              })
+              .catch(error => {
+                Swal.showValidationMessage(`Request failed: ${error}`);
+              });
+          },
+          allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+          if (result.isConfirmed && result.value.success) {
+            Swal.fire({
+              title: "Akses Berhasil!",
+              text: `Membuka dashboard ${studentName}...`,
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false
+            });
+            setTimeout(() => {
+              window.location.href = "/dashboard";
+            }, 1500);
+          }
+        });
+      }
+
+      window.addEventListener("DOMContentLoaded", loadStudents);
+    </script>
+    <script src="/static/js/admin_menu.js"></script>
+  </body>
+</html>

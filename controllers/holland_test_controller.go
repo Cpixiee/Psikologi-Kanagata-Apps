@@ -690,12 +690,23 @@ func (c *HollandTestController) SubmitPage3API() {
 		"favorite_subject", "disliked_subject",
 	)
 
-	// Mark invitation used (like IST flow).
-	if inv.Status != models.StatusInvitationUsed {
-		inv.Status = models.StatusInvitationUsed
-		inv.UsedAt = time.Now()
-		_, _ = o.Update(inv, "Status", "UsedAt")
-		go utils.SendTestCompletionNotification(inv.UserId, "Holland (RIASEC)")
+	var finishRedirect = "/hasil-tes"
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		finishRedirect = nextURL
+	} else {
+		// Mark invitation used (like IST flow).
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "Holland (RIASEC)")
+		}
 	}
 
 	// Optional: mark any derived summary if needed in the future.
@@ -703,7 +714,7 @@ func (c *HollandTestController) SubmitPage3API() {
 
 	c.Data["json"] = map[string]interface{}{
 		"success":         true,
-		"finish_redirect": "/profile/holland",
+		"finish_redirect": finishRedirect,
 	}
 	c.ServeJSON()
 }
@@ -770,8 +781,6 @@ func (c *HollandTestController) ExportResultExcel() {
 		return
 	}
 
-	// Kepemilikan: terima jika invitation.user_id cocok ATAU result.user cocok
-	// (invitation lama yang dibuat admin via email kadang user_id-nya kosong).
 	owned := inv.UserId != nil && *inv.UserId == userID
 	if !owned && res.User != nil && res.User.Id == userID {
 		owned = true
@@ -785,26 +794,72 @@ func (c *HollandTestController) ExportResultExcel() {
 		return
 	}
 
-	qsPage1, err := c.hollandQuestionsRange(1, 35)
+	excelBytes, err := buildHollandResultXLSX(o, nil, &inv, &user)
 	if err != nil {
-		logs.Error("Holland export: load questions 1-35: %v", err)
-		writeErr(500, "Gagal memuat daftar aktivitas (1-35)")
-		return
-	}
-	qsPage2, err := c.hollandQuestionsRange(36, 60)
-	if err != nil {
-		logs.Error("Holland export: load questions 36-60: %v", err)
-		writeErr(500, "Gagal memuat daftar aktivitas (36-60)")
+		writeErr(500, err.Error())
 		return
 	}
 
-	answersMap, err := c.hollandAnswersMap(inv.Id)
-	if err != nil {
-		logs.Error("Holland export: load answers for inv %d: %v", inv.Id, err)
-		writeErr(500, "Gagal memuat jawaban Holland")
-		return
+	makeSafeName := func(s string) string {
+		s = strings.ToLower(strings.TrimSpace(s))
+		if s == "" {
+			return "user"
+		}
+		var b strings.Builder
+		lastUnderscore := false
+		for _, r := range s {
+			isAlphaNum := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+			if isAlphaNum {
+				b.WriteRune(r)
+				lastUnderscore = false
+				continue
+			}
+			if !lastUnderscore {
+				b.WriteRune('_')
+				lastUnderscore = true
+			}
+		}
+		out := strings.Trim(b.String(), "_")
+		if out == "" {
+			return "user"
+		}
+		return out
 	}
-	logs.Info("Holland export: inv=%d user=%d questions=%d/%d answers=%d code=%s", inv.Id, userID, len(qsPage1), len(qsPage2), len(answersMap), res.Code)
+
+	downloadName := strings.TrimSpace(user.NamaLengkap)
+	if downloadName == "" {
+		downloadName = strings.TrimSpace(user.Email)
+	}
+	if downloadName == "" {
+		downloadName = strings.TrimSpace(inv.Email)
+	}
+	filename := fmt.Sprintf("holland_result_%s.xlsx", makeSafeName(downloadName))
+	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
+	_, _ = c.Ctx.ResponseWriter.Write(excelBytes)
+}
+
+// buildHollandResultXLSX compiles the Holland Excel result sheet programmatically
+func buildHollandResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestInvitation, user *models.User) ([]byte, error) {
+	var res models.HollandResult
+	err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
+	if err != nil || res.Id == 0 {
+		return nil, fmt.Errorf("Hasil Holland untuk sesi ini belum tersedia")
+	}
+
+	qsPage1, err := hollandQuestionsRangeRaw(o, 1, 35)
+	if err != nil {
+		return nil, fmt.Errorf("Gagal memuat daftar aktivitas (1-35): %v", err)
+	}
+	qsPage2, err := hollandQuestionsRangeRaw(o, 36, 60)
+	if err != nil {
+		return nil, fmt.Errorf("Gagal memuat daftar aktivitas (36-60): %v", err)
+	}
+
+	answersMap, err := hollandAnswersMapRaw(o, inv.Id)
+	if err != nil {
+		return nil, fmt.Errorf("Gagal memuat jawaban Holland: %v", err)
+	}
 
 	completePage1 := true
 	for _, q := range qsPage1 {
@@ -1066,47 +1121,43 @@ func (c *HollandTestController) ExportResultExcel() {
 	// Write xlsx
 	buf, err := f.WriteToBuffer()
 	if err != nil {
-		logs.Error("Holland export: write buffer: %v", err)
-		writeErr(500, "Gagal membuat file Excel")
-		return
+		return nil, fmt.Errorf("gagal membuat buffer excel: %v", err)
 	}
+	return buf.Bytes(), nil
+}
 
-	makeSafeName := func(s string) string {
-		s = strings.ToLower(strings.TrimSpace(s))
-		if s == "" {
-			return "user"
-		}
-		var b strings.Builder
-		lastUnderscore := false
-		for _, r := range s {
-			isAlphaNum := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
-			if isAlphaNum {
-				b.WriteRune(r)
-				lastUnderscore = false
-				continue
-			}
-			if !lastUnderscore {
-				b.WriteRune('_')
-				lastUnderscore = true
-			}
-		}
-		out := strings.Trim(b.String(), "_")
-		if out == "" {
-			return "user"
-		}
-		return out
+func hollandQuestionsRangeRaw(o orm.Ormer, startNum, endNum int) ([]models.HollandQuestion, error) {
+	var qs []models.HollandQuestion
+	_, err := o.QueryTable(new(models.HollandQuestion)).
+		Filter("Number__gte", startNum).
+		Filter("Number__lte", endNum).
+		OrderBy("Number").
+		All(&qs)
+	if err != nil {
+		return nil, err
 	}
-	downloadName := strings.TrimSpace(user.NamaLengkap)
-	if downloadName == "" {
-		downloadName = strings.TrimSpace(user.Email)
+	return qs, nil
+}
+
+func hollandAnswersMapRaw(o orm.Ormer, invID int) (map[int]int, error) {
+	type answerRow struct {
+		QuestionID int `orm:"column(question_id)" json:"question_id"`
+		Value      int `orm:"column(value)" json:"value"`
 	}
-	if downloadName == "" {
-		downloadName = strings.TrimSpace(inv.Email)
+	var rows []answerRow
+	_, err := o.Raw(`
+		SELECT a.question_id, a.value
+		FROM holland_answers a
+		WHERE a.invitation_id = ?
+	`, invID).QueryRows(&rows)
+	if err != nil {
+		return nil, err
 	}
-	filename := fmt.Sprintf("holland_result_%s.xlsx", makeSafeName(downloadName))
-	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
-	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())
+	m := make(map[int]int, len(rows))
+	for _, r := range rows {
+		m[r.QuestionID] = r.Value
+	}
+	return m, nil
 }
 
 // styleBoldIfPossible is a tiny helper to avoid duplicating style definitions.

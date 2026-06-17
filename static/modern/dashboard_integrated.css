@@ -460,10 +460,15 @@ button { font-family: inherit; cursor: pointer; }
   border: 1px solid var(--ds-border);
   border-radius: 12px;
   padding: 12px;
-  min-height: 220px;
+  height: 290px;
 }
 .ds-smart-block h5 { margin: 0 0 8px; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-.ds-smart-block ul { margin: 0; padding-left: 16px; font-size: 11.5px; color: var(--ds-text); }
+.ds-smart-block ul {
+  margin: 0; padding-left: 16px; font-size: 11.5px; color: var(--ds-text);
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 2px;
+}
 .ds-smart-block ul li { margin-bottom: 5px; line-height: 1.4; }
 .ds-smart-block.green h5 { color: var(--ds-success); }
 .ds-smart-block.amber h5 { color: var(--ds-warn); }
@@ -473,6 +478,8 @@ button { font-family: inherit; cursor: pointer; }
   justify-content: center;
   align-items: center;
   gap: 4px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 .ds-potential .ring {
   --pct: 0deg;
@@ -481,6 +488,7 @@ button { font-family: inherit; cursor: pointer; }
   background: conic-gradient(var(--ds-violet) var(--pct), #eef0f6 0);
   display: flex; align-items: center; justify-content: center;
   position: relative;
+  flex-shrink: 0;
 }
 .ds-potential .ring::before { content:''; position: absolute; inset: 10px; background: #fff; border-radius: 50%; }
 .ds-potential .ring .v { position: relative; font-weight: 800; font-size: 22px; }
@@ -499,6 +507,13 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--ds-text);
   flex-direction: row !important;
   gap: 10px;
+  align-items: flex-start;
+}
+.ds-insight > div:last-child {
+  overflow-y: auto;
+  height: 100%;
+  flex: 1;
+  padding-right: 4px;
 }
 .ds-insight .bot {
   width: 56px; height: 56px; border-radius: 12px; background: transparent;
@@ -515,6 +530,56 @@ button { font-family: inherit; cursor: pointer; }
 }
 .ds-insight h5 { margin: 0 0 4px; font-size: 12.5px; color: var(--ds-success); }
 .ds-insight em { display: block; margin-top: 6px; color: var(--ds-muted); font-style: italic; font-size: 11px; }
+
+/* Scrollbar utility classes for smart summary blocks */
+.ds-smart-block ul,
+.ds-potential,
+.ds-insight > div:last-child {
+  scrollbar-width: thin;
+}
+.ds-smart-block ul::-webkit-scrollbar,
+.ds-potential::-webkit-scrollbar,
+.ds-insight > div:last-child::-webkit-scrollbar {
+  width: 4px;
+}
+.ds-smart-block ul::-webkit-scrollbar-track,
+.ds-potential::-webkit-scrollbar-track,
+.ds-insight > div:last-child::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ds-smart-block ul::-webkit-scrollbar-thumb,
+.ds-potential::-webkit-scrollbar-thumb,
+.ds-insight > div:last-child::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+}
+
+.ds-smart-block.green ul {
+  scrollbar-color: rgba(22, 163, 74, 0.2) transparent;
+}
+.ds-smart-block.green ul::-webkit-scrollbar-thumb {
+  background-color: rgba(22, 163, 74, 0.25);
+}
+
+.ds-smart-block.amber ul {
+  scrollbar-color: rgba(245, 158, 11, 0.2) transparent;
+}
+.ds-smart-block.amber ul::-webkit-scrollbar-thumb {
+  background-color: rgba(245, 158, 11, 0.25);
+}
+
+.ds-potential {
+  scrollbar-color: rgba(139, 92, 246, 0.2) transparent;
+}
+.ds-potential::-webkit-scrollbar-thumb {
+  background-color: rgba(139, 92, 246, 0.25);
+}
+
+.ds-insight > div:last-child {
+  scrollbar-color: rgba(22, 163, 74, 0.2) transparent;
+}
+.ds-insight > div:last-child::-webkit-scrollbar-thumb {
+  background-color: rgba(22, 163, 74, 0.25);
+}
 
 /* ============== FOOTER ============== */
 .ds-footer { font-size: 11px; color: var(--ds-muted); padding: 14px; border-top: 1px solid var(--ds-border); margin-top: auto; }

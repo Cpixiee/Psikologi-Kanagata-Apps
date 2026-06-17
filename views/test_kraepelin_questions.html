@@ -163,8 +163,16 @@
             persistLocal();
             scheduleAutoSave();
             renderActiveColumn();
-            const sel = document.querySelector(`input[data-idx="${row}"]`);
-            if (sel && !sel.disabled) sel.focus();
+            if (saved[currentColIndex][row] !== null && saved[currentColIndex][row] !== undefined) {
+              const nextRow = row + 1;
+              if (nextRow < 26) {
+                const sel = document.querySelector(`input[data-idx="${nextRow}"]`);
+                if (sel && !sel.disabled) sel.focus();
+              }
+            } else {
+              const sel = document.querySelector(`input[data-idx="${row}"]`);
+              if (sel && !sel.disabled) sel.focus();
+            }
           });
           ans.appendChild(input);
 
@@ -235,8 +243,48 @@
       }
 
       renderActiveColumn();
+      const initialGap = firstGapIndex(currentColIndex);
+      if (initialGap < 26) {
+        const sel = document.querySelector(`input[data-idx="${initialGap}"]`);
+        if (sel && !sel.disabled) sel.focus();
+      }
       tickSecond();
       setInterval(tickSecond, 1000);
+
+      const devBtn = document.getElementById('devAutoFillBtn');
+      if (devBtn) {
+        devBtn.addEventListener('click', function () {
+          Swal.fire({
+            icon: 'warning',
+            title: 'DEV Auto-Fill',
+            text: 'Isi semua 40 kolom Kraepelin secara acak dan langsung submit?',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, lanjut',
+            cancelButtonText: 'Batal'
+          }).then(function (res) {
+            if (!res.isConfirmed) return;
+            devBtn.disabled = true;
+            devBtn.textContent = 'Memproses...';
+            window.removeEventListener("popstate", function() {});
+            fetch('/test/kraepelin/dev-autofill', { method: 'POST' })
+              .then(r => r.json())
+              .then(d => {
+                if (d && d.success) {
+                  window.location.href = d.next || '/test/kraepelin/finish';
+                } else {
+                  Swal.fire({ icon: 'error', title: 'Gagal', text: (d && d.message) || 'Auto-fill gagal' });
+                  devBtn.disabled = false;
+                  devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                }
+              })
+              .catch(err => {
+                Swal.fire({ icon: 'error', title: 'Error', text: String(err) });
+                devBtn.disabled = false;
+                devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+              });
+          });
+        });
+      }
 
       // Cegah user kembali ke raw sebelumnya via tombol Back browser.
       {
@@ -253,6 +301,15 @@
     <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
     <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
     <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    {{if .IsDev}}
+    <button id="devAutoFillBtn" type="button"
+            style="position:fixed; bottom:24px; left:24px; z-index:1060;
+                   background:#ff5e7e; color:#fff; border:0; padding:10px 16px;
+                   border-radius:10px; font-weight:700; font-size:.85rem;
+                   box-shadow:0 6px 18px rgba(255,94,126,.4); cursor:pointer;">
+      &#9881; DEV: Auto-Fill &amp; Submit
+    </button>
+    {{end}}
   </body>
 </html>
 

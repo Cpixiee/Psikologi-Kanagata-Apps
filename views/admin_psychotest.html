@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
     <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
     <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260614_white" />
-    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260615_v3" />
     <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
@@ -398,6 +398,9 @@
                               <th>IST - Total SS</th>
                               <th>Holland</th>
                               <th>RMIB</th>
+                              <th>VAK</th>
+                              <th>Kraepelin</th>
+                              <th>PAPI</th>
                               <th>Dibuat</th>
                               <th>Aksi</th>
                             </tr>
@@ -1110,7 +1113,7 @@
           const data = await res.json();
 
           if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
             return;
           }
 
@@ -1119,6 +1122,9 @@
             const ist = row.ist_result;
             const holland = row.holland_result;
             const rmib = row.rmib_result;
+            const vak = row.learning_style_result;
+            const kraepelin = row.kraepelin_attempt;
+            const papi = row.papi_result;
             const inv = row.invitation;
             
             // Debug logging (bisa dihapus setelah fix)
@@ -1147,6 +1153,17 @@
             const rmibTopDisplay = rmib && (rmib.top1 || rmib.top2 || rmib.top3)
               ? [rmib.top1, rmib.top2, rmib.top3].filter(Boolean).join(' / ')
               : '<span class="text-muted">-</span>';
+            
+            const vakDisplay = vak && vak.dominant_type
+              ? vak.dominant_type
+              : '<span class="text-muted">-</span>';
+            const kraepelinDisplay = kraepelin && typeof kraepelin.total_correct === 'number'
+              ? kraepelin.total_correct + ' Benar'
+              : '<span class="text-muted">-</span>';
+            const papiDisplay = papi && papi.dominant_category
+              ? papi.dominant_category
+              : '<span class="text-muted">-</span>';
+
             const rmibDetailBtn = rmib
               ? `<button type="button" class="btn btn-sm btn-outline-info ms-1" data-rmib-inv="${inv.id}" data-rmib-email="${(inv.email || '').replace(/"/g,'&quot;')}">`+
                   `<i class="bx bx-detail"></i> Detail RMIB</button>`
@@ -1166,6 +1183,9 @@
               <td class="text-center">${totalSSDisplay}</td>
               <td class="text-center">${holland ? holland.code : '<span class="text-muted">-</span>'}</td>
               <td class="text-center">${rmibTopDisplay}</td>
+              <td class="text-center">${vakDisplay}</td>
+              <td class="text-center">${kraepelinDisplay}</td>
+              <td class="text-center">${papiDisplay}</td>
               <td class="text-center"><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
               <td class="text-center text-nowrap">
                 <div class="d-inline-flex flex-wrap gap-1 justify-content-center">
@@ -1192,13 +1212,13 @@
           });
         } catch (err) {
           console.error('Error load batch results:', err);
-          tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="13" class="text-center text-danger py-4">Gagal memuat hasil.</td></tr>';
         }
       }
 
       function downloadInvitation(invId) {
-        if (!currentBatchId || !invId) return;
-        window.location.href = '/api/admin/test-batches/' + currentBatchId + '/invitations/' + invId + '/export';
+        if (!invId) return;
+        window.location.href = '/api/results/export-zip?invId=' + invId + '&test=keseluruhan';
       }
 
       async function sendInvitationCode(invId) {

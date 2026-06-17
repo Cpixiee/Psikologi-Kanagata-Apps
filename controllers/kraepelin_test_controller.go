@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -11,8 +12,8 @@ import (
 	"psikologi_apps/utils"
 
 	"github.com/beego/beego/v2/client/orm"
-	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -305,6 +306,7 @@ func (c *KraepelinTestController) QuestionsPage() {
 	c.Data["Attempt"] = att
 	c.Data["CurrentRaw"] = rawIdx
 	c.Data["TotalRaw"] = 40
+	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_kraepelin_questions.html"
 }
 
@@ -983,5 +985,114 @@ func (c *KraepelinTestController) ExportResultExcel() {
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
 	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())
+}
+
+// DEV ONLY: POST /test/kraepelin/dev-autofill
+func (c *KraepelinTestController) DevAutoFill() {
+	if !strings.EqualFold(beego.BConfig.RunMode, "dev") {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Endpoint hanya tersedia di mode development"}
+		c.ServeJSON()
+		return
+	}
+
+	inv, _, ok := c.mustGetSessionInvitation()
+	if !ok {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Sesi tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	var att models.KraepelinAttempt
+	if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&att); err != nil || att.Id == 0 {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Attempt tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	var digits [][]int
+	if strings.TrimSpace(att.DigitsJSON) == "" {
+		digits = kraepelinFixedDigits()
+	} else if err := json.Unmarshal([]byte(att.DigitsJSON), &digits); err != nil || len(digits) != 40 {
+		digits = kraepelinFixedDigits()
+	}
+	if len(digits) > 40 {
+		digits = digits[:40]
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	allAnswers := make([][]*int, 40)
+	counts := make([]int, 40)
+	totalCorrect := 0
+	totalErrors := 0
+	totalSkipped := 0
+
+	for col := 0; col < 40; col++ {
+		allAnswers[col] = make([]*int, 26)
+		colDigits := digits[col]
+		correctInCol := 0
+		for i := 0; i < 26; i++ {
+			expected := (colDigits[i] + colDigits[i+1]) % 10
+			var ans int
+			// 85% chance of correct, 15% error
+			if rng.Intn(100) < 85 {
+				ans = expected
+				correctInCol++
+				totalCorrect++
+			} else {
+				ans = (expected + 1 + rng.Intn(8)) % 10
+				totalErrors++
+			}
+			allAnswers[col][i] = &ans
+		}
+		counts[col] = correctInCol
+	}
+
+	allAnswersJSON, _ := json.Marshal(allAnswers)
+	countsJSON, _ := json.Marshal(counts)
+
+	att.AnswersJSON = string(allAnswersJSON)
+	att.CorrectCountsJSON = string(countsJSON)
+	att.TotalCorrect = totalCorrect
+	att.TotalErrors = totalErrors
+	att.TotalSkipped = totalSkipped
+	att.Status = "finished"
+	att.FinishedAt = time.Now()
+
+	var redirectURL = ""
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		redirectURL = nextURL
+	} else {
+		redirectURL = "/test/kraepelin/finish"
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "Kraepelin")
+		}
+	}
+
+	if _, err := o.Update(&att,
+		"AnswersJSON", "CorrectCountsJSON",
+		"TotalCorrect", "TotalErrors", "TotalSkipped",
+		"Status", "FinishedAt",
+	); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal menyimpan jawaban dev"}
+		c.ServeJSON()
+		return
+	}
+
+	c.Data["json"] = map[string]interface{}{"success": true, "next": redirectURL}
+	c.ServeJSON()
 }
 

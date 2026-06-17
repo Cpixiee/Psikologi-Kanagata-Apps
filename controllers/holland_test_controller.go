@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -238,6 +239,7 @@ func (c *HollandTestController) HollandPage1() {
 		c.Data["Error"] = "Gagal memuat aktivitas Holland page 1"
 		c.Data["User"] = user
 		c.Data["Invitation"] = inv
+		c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 		c.TplName = "test_holland_page1.html"
 		return
 	}
@@ -245,6 +247,7 @@ func (c *HollandTestController) HollandPage1() {
 	c.Data["Questions"] = qs
 	c.Data["User"] = user
 	c.Data["Invitation"] = inv
+	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_holland_page1.html"
 }
 
@@ -273,6 +276,7 @@ func (c *HollandTestController) HollandPage2() {
 		c.Data["Error"] = "Gagal memuat aktivitas Holland page 2"
 		c.Data["User"] = user
 		c.Data["Invitation"] = inv
+		c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 		c.TplName = "test_holland_page2.html"
 		return
 	}
@@ -280,6 +284,7 @@ func (c *HollandTestController) HollandPage2() {
 	c.Data["Questions"] = qs
 	c.Data["User"] = user
 	c.Data["Invitation"] = inv
+	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_holland_page2.html"
 }
 
@@ -304,6 +309,7 @@ func (c *HollandTestController) HollandPage3() {
 
 	c.Data["User"] = user
 	c.Data["Invitation"] = inv
+	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_holland_page3.html"
 }
 
@@ -1166,5 +1172,172 @@ func styleBoldIfPossible(f *excelize.File, styleBody int) int {
 	// We don't need a unique "bold" style; keeping this as a placeholder helper
 	// to keep compile safe even if style changes later.
 	return styleBody
+}
+
+// DEV ONLY: POST /test/holland/dev-autofill
+func (c *HollandTestController) DevAutoFill() {
+	if !strings.EqualFold(beego.BConfig.RunMode, "dev") {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Endpoint hanya tersedia di mode development"}
+		c.ServeJSON()
+		return
+	}
+
+	inv, user, ok := c.mustGetSessionInvitation()
+	if !ok {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Sesi tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	
+	// Get all questions
+	qs, err := c.hollandQuestionsRange(1, 60)
+	if err != nil || len(qs) != 60 {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Soal Holland belum lengkap"}
+		c.ServeJSON()
+		return
+	}
+
+	tx, err := o.Begin()
+	if err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal transaksi"}
+		c.ServeJSON()
+		return
+	}
+
+	// Hapus jawaban lama
+	if _, derr := tx.QueryTable(new(models.HollandAnswer)).Filter("Invitation__Id", inv.Id).Delete(); derr != nil {
+		_ = tx.Rollback()
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal hapus jawaban lama"}
+		c.ServeJSON()
+		return
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for _, q := range qs {
+		v := rng.Intn(5) // 0 to 4
+		qCopy := q
+		ans := models.HollandAnswer{
+			Invitation: inv,
+			User:       user,
+			Question:   &qCopy,
+			Value:      v,
+		}
+		if _, ierr := tx.Insert(&ans); ierr != nil {
+			_ = tx.Rollback()
+			c.Ctx.Output.SetStatus(500)
+			c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal simpan jawaban"}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal commit"}
+		c.ServeJSON()
+		return
+	}
+
+	// Hitung skor
+	scores, err := c.hollandScores(inv.Id)
+	if err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal hitung skor"}
+		c.ServeJSON()
+		return
+	}
+	top1, top2, top3, code := c.top3FromScores(scores)
+
+	descMap := make(map[string]models.HollandDescription)
+	{
+		var descs []models.HollandDescription
+		_, derr := o.QueryTable(new(models.HollandDescription)).All(&descs)
+		if derr == nil {
+			for _, d := range descs {
+				uc := strings.ToUpper(strings.TrimSpace(d.Code))
+				descMap[uc] = d
+			}
+		}
+	}
+
+	var interpParts []string
+	for _, dc := range []string{top1, top2, top3} {
+		if d, ok := descMap[dc]; ok && strings.TrimSpace(d.Description) != "" {
+			interpParts = append(interpParts, fmt.Sprintf("%s: %s", d.Title, d.Description))
+		}
+	}
+	if len(interpParts) == 0 {
+		interpParts = []string{"Interpretasi Holland sedang diproses."}
+	}
+
+	interpExtra := "3 Pekerjaan Impian:\n1) Pilot\n2) Astronot\n3) Ilmuwan\n\nSubjek Favorit: Matematika\nSubjek Paling Tidak Disukai: Kimia"
+	interp := strings.TrimSpace(strings.Join(interpParts, "\n\n")) + "\n\n" + interpExtra
+
+	var res models.HollandResult
+	err = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
+	if err != nil || res.Id == 0 {
+		res = models.HollandResult{
+			Invitation: inv,
+			User:       user,
+		}
+		if _, ierr := o.Insert(&res); ierr != nil {
+			c.Ctx.Output.SetStatus(500)
+			c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal buat Holland result"}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	res.ScoreR = scores["R"]
+	res.ScoreI = scores["I"]
+	res.ScoreA = scores["A"]
+	res.ScoreS = scores["S"]
+	res.ScoreE = scores["E"]
+	res.ScoreC = scores["C"]
+	res.Top1 = top1
+	res.Top2 = top2
+	res.Top3 = top3
+	res.Code = code
+	res.Interpretation = interp
+	res.DreamJob1 = "Pilot"
+	res.DreamJob2 = "Astronot"
+	res.DreamJob3 = "Ilmuwan"
+	res.FavoriteSubject = "Matematika"
+	res.DislikedSubject = "Kimia"
+
+	_, _ = o.Update(&res,
+		"score_r", "score_i", "score_a", "score_s", "score_e", "score_c",
+		"top1", "top2", "top3", "code", "interpretation",
+		"dream_job_1", "dream_job_2", "dream_job_3",
+		"favorite_subject", "disliked_subject",
+	)
+
+	var finishRedirect = "/hasil-tes"
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		finishRedirect = nextURL
+	} else {
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = o.Update(inv, "Status", "UsedAt")
+			go utils.SendTestCompletionNotification(inv.UserId, "Holland (RIASEC)")
+		}
+	}
+
+	c.Data["json"] = map[string]interface{}{"success": true, "next": finishRedirect}
+	c.ServeJSON()
 }
 

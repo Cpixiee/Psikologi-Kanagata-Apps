@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -294,6 +294,7 @@
         var currentPage = 1;
 
         var answers = {};
+        var bypassBeforeUnload = false;
         rows.forEach(function (tr) {
           var qid = tr.dataset.questionId;
           var sel = tr.dataset.selected;
@@ -338,6 +339,7 @@
 
         function submitTest() {
           // Lewati prompt beforeunload
+          bypassBeforeUnload = true;
           window.onbeforeunload = null;
           fetch('/test/papi/submit', {
             method: 'POST',
@@ -520,6 +522,7 @@
           });
 
           window.addEventListener('beforeunload', function (e) {
+            if (bypassBeforeUnload) return;
             var n = Object.keys(answers).length;
             if (n > 0 && n < totalQuestions) {
               e.preventDefault();
@@ -539,7 +542,7 @@
                 cancelButtonText: 'Batal'
               }).then(function (res) {
                 if (!res.isConfirmed) return;
-                window.removeEventListener('beforeunload', function () {});
+                bypassBeforeUnload = true;
                 devBtn.disabled = true;
                 devBtn.textContent = 'Memproses...';
                 fetch('/test/papi/dev-autofill', { method: 'POST' })

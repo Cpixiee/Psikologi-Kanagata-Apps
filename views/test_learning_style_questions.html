@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id" class="layout-menu-fixed layout-compact" data-assets-path="/static/sneat/assets/" data-template="vertical-menu-template-free">
   <head>
     <meta charset="utf-8" />
@@ -243,9 +243,52 @@
           Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan' });
         }
       }
-
-      document.addEventListener('DOMContentLoaded', attachHandlers);
+ 
+      document.addEventListener('DOMContentLoaded', function() {
+        attachHandlers();
+        const devBtn = document.getElementById('devAutoFillBtn');
+        if (devBtn) {
+          devBtn.addEventListener('click', function () {
+            Swal.fire({
+              icon: 'warning',
+              title: 'DEV Auto-Fill',
+              text: 'Isi semua jawaban acak dan langsung submit?',
+              showCancelButton: true,
+              confirmButtonText: 'Ya, lanjut',
+              cancelButtonText: 'Batal'
+            }).then(function (res) {
+              if (!res.isConfirmed) return;
+              devBtn.disabled = true;
+              devBtn.textContent = 'Memproses...';
+              fetch('/test/learning-style/dev-autofill', { method: 'POST' })
+                .then(r => r.json())
+                .then(d => {
+                  if (d && d.success) {
+                    window.location.href = d.next || '/profile/learning-style';
+                  } else {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: (d && d.message) || 'Auto-fill gagal' });
+                    devBtn.disabled = false;
+                    devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                  }
+                })
+                .catch(err => {
+                  Swal.fire({ icon: 'error', title: 'Error', text: String(err) });
+                  devBtn.disabled = false;
+                  devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                });
+            });
+          });
+        }
+      });
     </script>
+    {{if .IsDev}}
+    <button id="devAutoFillBtn" type="button"
+            style="position:fixed; bottom:24px; left:24px; z-index:1060;
+                   background:#ff5e7e; color:#fff; border:0; padding:10px 16px;
+                   border-radius:10px; font-weight:700; font-size:.85rem;
+                   box-shadow:0 6px 18px rgba(255,94,126,.4); cursor:pointer;">
+      &#9881; DEV: Auto-Fill &amp; Submit
+    </button>
+    {{end}}
   </body>
 </html>
-

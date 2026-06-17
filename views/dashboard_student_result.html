@@ -12,12 +12,58 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260615_v3" />
     <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
     <style>
+      html, body {
+        overflow-y: auto !important;
+        height: auto !important;
+      }
+      .ds-shell {
+        height: auto !important;
+        overflow: visible !important;
+      }
+      aside#layout-menu.ds-sidebar,
+      .ds-sidebar {
+        position: relative !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+      }
+      .ds-main {
+        height: auto !important;
+        display: flex;
+        flex-direction: column;
+        overflow: visible !important;
+        padding-bottom: 30px !important;
+      }
+      .main-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+      .tab-content {
+        overflow: visible !important;
+      }
+      .narrative-report-card {
+        max-height: 550px;
+        overflow-y: auto !important;
+        scrollbar-width: thin;
+        padding-right: 8px;
+      }
+      .narrative-report-card::-webkit-scrollbar {
+        width: 6px;
+      }
+      .narrative-report-card::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .narrative-report-card::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 3px;
+      }
       /* ===== Root overrides for Modern White & Slate theme ===== */
       :root {
         --accent: #0f172a;
@@ -276,7 +322,12 @@
               <p style="margin: 3px 0 0; font-size: 12.5px; color: var(--muted);">Hasil lengkap evaluasi minat, bakat, kognitif, dan kepribadian siswa.</p>
             </div>
           </div>
-          <div class="ds-userpill-wrap">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <a href="#" id="btnDownloadHeaderZip" class="btn btn-outline-primary" style="display:none; text-decoration:none; padding:8px 16px; border-radius:10px; font-weight:600; font-size:13px; align-items:center; gap:8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all 0.2s;" title="Unduh Hasil Lengkap (ZIP)">
+              <i data-lucide="download" style="width:16px;height:16px;"></i>
+              <span>Unduh Hasil Lengkap (ZIP)</span>
+            </a>
+            <div class="ds-userpill-wrap">
             <button type="button" class="ds-userpill" id="ds-userpill-btn" aria-haspopup="menu" aria-expanded="false">
               <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Sekolah&background=475569&color=fff&bold=true" alt="" />
               <div class="meta">
@@ -294,7 +345,7 @@
         </header>
 
         <!-- Content -->
-        <div style="padding: 0 8px 40px;">
+        <div class="main-content-wrapper" style="padding: 0 8px 10px; display: flex; flex-direction: column; overflow: visible;">
 
           <!-- Student Profile Card -->
           <div class="profile-card">
@@ -324,8 +375,8 @@
             </div>
           </div>
 
-          <!-- Page 1 / Page 2 Tabs -->
-          <div class="mb-4">
+          <!-- Page 1 / Page 2 / Page 3 Tabs (Sticky) -->
+          <div class="mb-4" style="position: sticky; top: 0; background: var(--surface2); z-index: 1020; padding: 10px 0; margin-top: -10px;">
             <ul class="nav nav-tabs" id="pageReportTabs" role="tablist" style="border-bottom: 2px solid var(--border);">
               <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold" id="laporan-tab" data-bs-toggle="tab" data-bs-target="#laporan-panel" type="button" role="tab" style="font-size: 14px; padding: 10px 20px; border-radius: 8px 8px 0 0;">
@@ -337,6 +388,12 @@
                 <button class="nav-link fw-bold" id="psikogram-tab" data-bs-toggle="tab" data-bs-target="#psikogram-panel" type="button" role="tab" style="font-size: 14px; padding: 10px 20px; border-radius: 8px 8px 0 0;">
                   <i data-lucide="bar-chart-2" style="width:16px;height:16px;margin-right:6px;display:inline-block;vertical-align:-2px;"></i>
                   Halaman 2: Rincian Skor &amp; Psikogram
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="keseluruhan-tab" data-bs-toggle="tab" data-bs-target="#keseluruhan-panel" type="button" role="tab" style="font-size: 14px; padding: 10px 20px; border-radius: 8px 8px 0 0;">
+                  <i data-lucide="grid" style="width:16px;height:16px;margin-right:6px;display:inline-block;vertical-align:-2px;"></i>
+                  Halaman 3: Laporan Summary All Alat Test
                 </button>
               </li>
             </ul>
@@ -385,6 +442,12 @@
                   </div>
                   <div class="jurusan-grid" id="jurusanRec"></div>
                 </div>
+              </div>
+            </div>
+            <!-- Tab Pane 3: Laporan Summary All Alat Test -->
+            <div class="tab-pane fade" id="keseluruhan-panel" role="tabpanel" aria-labelledby="keseluruhan-tab">
+              <div id="keseluruhanContent">
+                <!-- Comprehensive report rendered dynamically -->
               </div>
             </div>
           </div>
@@ -477,6 +540,76 @@
         return '';
       }
 
+      /* ===== Classification Helpers for Aspect Tables ===== */
+      var getCategoryFromSW = function(sw) {
+        var val = Number(sw) || 0;
+        if (val >= 120) return "Sangat Baik";
+        if (val >= 110) return "Baik";
+        if (val >= 100) return "Cukup Baik";
+        if (val >= 90) return "Cukup";
+        if (val >= 80) return "Kurang";
+        return "Kurang Sekali";
+      };
+
+      var getHollandCategory = function(score) {
+        var val = Number(score) || 0;
+        if (val >= 25) return "Sangat Baik";
+        if (val >= 18) return "Baik";
+        if (val >= 12) return "Cukup Baik";
+        if (val >= 6) return "Cukup";
+        return "Kurang";
+      };
+
+      var getVAKCategory = function(score) {
+        var val = Number(score) || 0;
+        if (val >= 15) return "Sangat Baik";
+        if (val >= 12) return "Baik";
+        if (val >= 8) return "Cukup Baik";
+        if (val >= 5) return "Cukup";
+        return "Kurang";
+      };
+
+      var getRMIBCategory = function(rank) {
+        var val = Number(rank) || 0;
+        if (val <= 3) return "Sangat Baik";
+        if (val <= 6) return "Baik";
+        if (val <= 9) return "Cukup Baik";
+        return "Kurang";
+      };
+
+      var getPAPICategory = function(score) {
+        var val = Number(score) || 0;
+        if (val >= 8) return "Sangat Baik";
+        if (val >= 6) return "Baik";
+        if (val >= 4) return "Cukup Baik";
+        if (val == 3) return "Cukup";
+        return "Kurang";
+      };
+
+      var getKraepelinCategory = function(score, type) {
+        var val = Number(score) || 0;
+        if (type === 'kecepatan' || type === 'ketahanan') {
+          if (val >= 180) return "Sangat Baik";
+          if (val >= 130) return "Baik";
+          if (val >= 90) return "Cukup Baik";
+          if (val >= 60) return "Cukup";
+          return "Kurang";
+        } else if (type === 'ketelitian') {
+          if (val <= 5) return "Sangat Baik";
+          if (val <= 15) return "Baik";
+          if (val <= 25) return "Cukup Baik";
+          if (val <= 40) return "Cukup";
+          return "Kurang";
+        } else if (type === 'konsentrasi') {
+          if (val >= 95) return "Sangat Baik";
+          if (val >= 85) return "Baik";
+          if (val >= 75) return "Cukup Baik";
+          if (val >= 60) return "Cukup";
+          return "Kurang";
+        }
+        return "Kurang";
+      };
+
       /* ===== Load Result Details ===== */
       async function loadResultDetails(invId) {
         try {
@@ -497,8 +630,467 @@
 
       var _activeTypeKey = '';
 
+      function calculateAge(dobStr) {
+        if (!dobStr) return 0;
+        var today = new Date();
+        var birthDate = new Date(dobStr);
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+      }
+
+      async function fetchCombinedNarrativeForPanel(d) {
+        var completedTests = [];
+        if (d.ist_result) completedTests.push('ist');
+        if (d.holland_result) completedTests.push('holland');
+        if (d.learning_style_result) completedTests.push('learning_style');
+        if (d.kraepelin_attempt) completedTests.push('kraepelin');
+        if (d.rmib_result) completedTests.push('rmib');
+        if (d.papi_result) completedTests.push('papi');
+
+        var resultsPayload = {};
+        completedTests.forEach(key => {
+          if (key === 'ist') resultsPayload.ist = d.ist_result;
+          if (key === 'holland') resultsPayload.holland = d.holland_result;
+          if (key === 'learning_style') resultsPayload.learning_style = d.learning_style_result;
+          if (key === 'kraepelin') resultsPayload.kraepelin = d.kraepelin_attempt;
+          if (key === 'rmib') resultsPayload.rmib = d.rmib_result;
+          if (key === 'papi') resultsPayload.papi = d.papi_result;
+        });
+
+        var name = d.student_name || 'Peserta';
+        var batch = d.batch || {};
+        try {
+          var payload = {
+            student_name: name,
+            batch_name: batch.name || 'Batch Tes',
+            results: resultsPayload
+          };
+          var res = await fetch('/api/ai/student-combined-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          var json = await res.json();
+          if (json.success && json.data) {
+            var aiData = json.data;
+            if (aiData.kesimpulan_gabungan) {
+              q('#compNarrativeText').innerHTML = `<p>${esc(aiData.kesimpulan_gabungan)}</p>`;
+            }
+          }
+        } catch(e) {
+          console.error(e);
+        }
+      }
+
+      async function fetchSubAiSummary(d, key, summaryId, bulletsId, testTypeFriendly) {
+        var resultData = d[key + '_result'] || d[key + '_attempt'] || d[key];
+        if (!resultData) return;
+        var name = d.student_name || 'Peserta';
+        try {
+          var payload = {test_type:testTypeFriendly, title:name+' — '+testTypeFriendly, result:resultData};
+          var res = await fetch('/api/ai/test-summary', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+          var json = await res.json();
+          if(json.success && json.data){
+            var aiData = json.data;
+            q('#' + summaryId).innerHTML = `<p><em>Interpretasi Hasil:</em> ${esc(aiData.summary)}</p>`;
+            
+            var bulletsHtml = '';
+            if (aiData.kekuatan && aiData.kekuatan.length) {
+              bulletsHtml += `
+                <div class="mt-2">
+                  <div class="fw-bold text-success mb-1" style="font-size:11px; text-transform:uppercase;">Kekuatan Utama</div>
+                  <ul style="list-style:none; padding:0; margin:0;">
+                    ${aiData.kekuatan.map(k => `<li style="display:flex; align-items:flex-start; gap:6px; margin-bottom:4px;"><span style="color:#059669; font-weight:bold;">☑</span> <span>${esc(k)}</span></li>`).join('')}
+                  </ul>
+                </div>
+              `;
+            }
+            if (aiData.rekomendasi_siswa && aiData.rekomendasi_siswa.length) {
+              bulletsHtml += `
+                <div class="mt-2">
+                  <div class="fw-bold text-warning mb-1" style="font-size:11px; text-transform:uppercase;">Rekomendasi Pengembangan</div>
+                  <ul style="list-style:none; padding:0; margin:0;">
+                    ${aiData.rekomendasi_siswa.map(r => `<li style="display:flex; align-items:flex-start; gap:6px; margin-bottom:4px;"><span style="color:#d97706; font-weight:bold;">☑</span> <span>${esc(r)}</span></li>`).join('')}
+                  </ul>
+                </div>
+              `;
+            }
+            q('#' + bulletsId).innerHTML = bulletsHtml;
+          }
+        } catch(e) {
+          console.error(e);
+        }
+      }
+
+      function renderComprehensiveReport(d) {
+        var name = d.student_name || 'Peserta';
+        var gender = d.student_gender || '-';
+        var pobDob = '';
+        if (d.student_pob) pobDob += d.student_pob;
+        if (d.student_dob) {
+          if (pobDob) pobDob += ', ';
+          pobDob += new Date(d.student_dob).toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
+        }
+        if (!pobDob) pobDob = '-';
+        var sekolah = d.student_school || d.invitation.sekolah || '-';
+        var kelasJurusan = '';
+        if (d.student_class || d.invitation.kelas) {
+          kelasJurusan += (d.student_class || d.invitation.kelas);
+        }
+        if (d.student_major) {
+          if (kelasJurusan) kelasJurusan += ' / ';
+          kelasJurusan += d.student_major;
+        }
+        if (!kelasJurusan) kelasJurusan = '-';
+        
+        var dateStr = d.invitation.used_at || d.invitation.created_at;
+        var tanggalPemeriksaan = dateStr ? new Date(dateStr).toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'}) : '-';
+
+        var completedTests = [];
+        if (d.ist_result) completedTests.push('IST');
+        if (d.holland_result) completedTests.push('HOLLAND');
+        if (d.learning_style_result) completedTests.push('VAK');
+        if (d.kraepelin_attempt) completedTests.push('KRAEPELIN');
+        if (d.rmib_result) completedTests.push('RMIB');
+        if (d.papi_result) completedTests.push('PAPI');
+        var alatTestUsed = completedTests.join(', ');
+
+        var html = `
+          <div class="narrative-report-card p-4 mb-4" style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; font-family:'Inter', sans-serif; color:#0f172a; max-width:850px; margin:0 auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div class="text-center mb-4">
+              <img src="/static/icons/icon_psikologi_kanagata.png" style="height:70px; width:auto; max-width:100%; object-fit:contain; margin-bottom:10px;" />
+              <h4 class="fw-bold mb-1" style="letter-spacing: 0.5px; color:#1e293b;">KANAGATA INSTITUTE</h4>
+              <h5 class="fw-bold text-muted text-uppercase" style="font-size: 14px; letter-spacing: 1px;">SMART PSIKOTEST STUDENT REPORT</h5>
+            </div>
+
+            <div class="mb-4">
+              <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
+                <tbody>
+                  <tr><td style="width: 240px;" class="fw-semibold text-muted">NAMA</td><td style="width: 15px;">:</td><td class="fw-bold text-uppercase">${esc(name)}</td></tr>
+                  <tr><td class="fw-semibold text-muted">USIA</td><td>:</td><td class="fw-bold text-uppercase">${d.student_dob ? esc(calculateAge(d.student_dob) + ' TAHUN') : '-'}</td></tr>
+                  <tr><td class="fw-semibold text-muted">JENIS KELAMIN</td><td>:</td><td class="fw-bold text-uppercase">${esc(gender)}</td></tr>
+                  <tr><td class="fw-semibold text-muted">KELAS</td><td>:</td><td class="fw-bold text-uppercase">${esc(d.student_class || d.invitation.kelas || '-')}</td></tr>
+                  <tr><td class="fw-semibold text-muted">ASAL SEKOLAH</td><td>:</td><td class="fw-bold text-uppercase">${esc(sekolah)}</td></tr>
+                  <tr><td class="fw-semibold text-muted">TANGGAL ASESMEN</td><td>:</td><td class="fw-bold text-uppercase">${esc(tanggalPemeriksaan)}</td></tr>
+                  <tr><td class="fw-semibold text-muted">ALAT TEST YANG DIGUNAKAN</td><td>:</td><td class="fw-bold text-uppercase">${esc(alatTestUsed)}</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">(PROFIL SISWA DARI SUMMARY SEMUA ALAT TEST)</h6>
+              <div id="compNarrativeText" style="font-size:13px; line-height:1.6; color:#334155;">
+                <p>Memuat ringkasan keseluruhan...</p>
+              </div>
+            </div>
+
+            <!-- Page Break Style on Web -->
+            <div style="border-top: 2px dashed #cbd5e1; margin: 40px 0; position: relative; text-align: center;">
+              <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #fff; padding: 2px 10px; font-size: 11px; color: #64748b; font-weight: 600; border-radius: 20px; border: 1px solid #e2e8f0;">Halaman 2: Student Potential</span>
+            </div>
+
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-3" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">STUDENT POTENTIAL (KESIMPULAN DARI HASIL MASING-MASING ALAT TEST)</h6>
+              <div id="compPotentialSections">
+                <!-- Dynamic Test Sections -->
+              </div>
+            </div>
+          </div>
+        `;
+        if (q('#keseluruhanContent')) {
+          q('#keseluruhanContent').innerHTML = html;
+        }
+        fetchCombinedNarrativeForPanel(d);
+        renderComprehensiveSubsections(d);
+      }
+
+      function renderComprehensiveSubsections(d) {
+        var box = q('#compPotentialSections');
+        box.innerHTML = '';
+        var testIndex = 0;
+
+        // 1. IST
+        if (d.ist_result) {
+          testIndex++;
+          var ist = d.ist_result;
+          var se = ist.std_se || 0, wa = ist.std_wa || 0, an = ist.std_an || 0, ge = ist.std_ge || 0, ra = ist.std_ra || 0, za = ist.std_za || 0, fa = ist.std_fa || 0, wu = ist.std_wu || 0, me = ist.std_me || 0;
+          var avgSW = function() {
+            var sum = 0, n = 0;
+            for (var i = 0; i < arguments.length; i++) {
+              var v = arguments[i];
+              if (v > 0) { sum += v; n++; }
+            }
+            return n === 0 ? 0 : Math.round(sum / n);
+          };
+          var aspects = [
+            { name: "Kemampuan Verbal", cat: getCategoryFromSW(avgSW(se, wa, ge)) },
+            { name: "Kemampuan Numerik", cat: getCategoryFromSW(avgSW(ra, za)) },
+            { name: "Kemampuan Analitis dan Logika", cat: getCategoryFromSW(an) },
+            { name: "Kemampuan Visual dan Spasial", cat: getCategoryFromSW(avgSW(fa, wu)) },
+            { name: "Kemampuan Memori dan Konsentrasi", cat: getCategoryFromSW(me) }
+          ];
+          var rowsHtml = aspects.map((a, idx) => `
+            <tr><td>${idx+1}. ${a.name}</td><td class="fw-bold text-primary">${a.cat}</td></tr>
+          `).join('');
+
+          var div = document.createElement('div');
+          div.className = 'mb-4 p-3 border rounded';
+          div.style.background = '#f8fafc';
+          div.innerHTML = `
+            <h6 class="fw-bold mb-2" style="font-size: 13.5px; color:#1e293b;">${testIndex}. KEMAMPUAN KOGNITIF (IST)</h6>
+            <table class="table table-borderless table-sm mb-2" style="font-size:12.5px; max-width: 350px;">
+              <tr><td style="width: 150px;" class="fw-semibold text-muted">Intelligence Quotient (IQ)</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${ist.iq || '-'}</td></tr>
+              <tr><td class="fw-semibold text-muted">Kategori</td><td>:</td><td class="fw-bold">${ist.iq_category || '-'}</td></tr>
+            </table>
+            <div class="table-responsive mb-2">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; background:#fff;">
+                <thead class="table-light"><tr><th>ASPEK</th><th style="width: 150px;">PENILAIAN</th></tr></thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+            <div id="compIstSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
+              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+            </div>
+            <div id="compIstBullets"></div>
+          `;
+          box.appendChild(div);
+          fetchSubAiSummary(d, 'ist', 'compIstSummary', 'compIstBullets', 'IST');
+        }
+
+        // 2. HOLLAND
+        if (d.holland_result) {
+          testIndex++;
+          var hol = d.holland_result;
+          var aspects = [
+            { name: "Realistic (R)", score: hol.score_r },
+            { name: "Investigative (I)", score: hol.score_i },
+            { name: "Artistic (A)", score: hol.score_a },
+            { name: "Social (S)", score: hol.score_s },
+            { name: "Enterprising (E)", score: hol.score_e },
+            { name: "Conventional (C)", score: hol.score_c }
+          ];
+          var rowsHtml = aspects.map((a, idx) => `
+            <tr><td>${idx+1}. ${a.name}</td><td class="fw-bold text-primary">${getHollandCategory(a.score)}</td></tr>
+          `).join('');
+
+          var div = document.createElement('div');
+          div.className = 'mb-4 p-3 border rounded';
+          div.style.background = '#f8fafc';
+          div.innerHTML = `
+            <h6 class="fw-bold mb-2" style="font-size: 13.5px; color:#1e293b;">${testIndex}. MINAT DAN BAKAT (HOLLAND)</h6>
+            <table class="table table-borderless table-sm mb-2" style="font-size:12.5px; max-width: 350px;">
+              <tr><td style="width: 150px;" class="fw-semibold text-muted">Kode RIASEC</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${hol.code || '-'}</td></tr>
+              <tr><td class="fw-semibold text-muted">Minat Teratas</td><td>:</td><td>${[hol.top1, hol.top2, hol.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
+            </table>
+            <div class="table-responsive mb-2">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; background:#fff;">
+                <thead class="table-light"><tr><th>ASPEK MINAT HOLLAND</th><th style="width: 150px;">PENILAIAN</th></tr></thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+            <div id="compHollandSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
+              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+            </div>
+            <div id="compHollandBullets"></div>
+          `;
+          box.appendChild(div);
+          fetchSubAiSummary(d, 'holland', 'compHollandSummary', 'compHollandBullets', 'Holland');
+        }
+
+        // 3. VAK (Learning Style)
+        if (d.learning_style_result) {
+          testIndex++;
+          var vak = d.learning_style_result;
+          var aspects = [
+            { name: "Visual", score: vak.score_visual },
+            { name: "Auditori", score: vak.score_auditory },
+            { name: "Kinestetik", score: vak.score_kinesthetic }
+          ];
+          var rowsHtml = aspects.map((a, idx) => `
+            <tr><td>${idx+1}. ${a.name}</td><td class="fw-bold text-primary">${getVAKCategory(a.score)}</td></tr>
+          `).join('');
+
+          var div = document.createElement('div');
+          div.className = 'mb-4 p-3 border rounded';
+          div.style.background = '#f8fafc';
+          div.innerHTML = `
+            <h6 class="fw-bold mb-2" style="font-size: 13.5px; color:#1e293b;">${testIndex}. GAYA BELAJAR (VAK)</h6>
+            <table class="table table-borderless table-sm mb-2" style="font-size:12.5px; max-width: 350px;">
+              <tr><td style="width: 150px;" class="fw-semibold text-muted">Gaya Belajar Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${vak.dominant_type || '-'}</td></tr>
+            </table>
+            <div class="table-responsive mb-2">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; background:#fff;">
+                <thead class="table-light"><tr><th>ASPEK GAYA BELAJAR</th><th style="width: 150px;">PENILAIAN</th></tr></thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+            <div id="compVakSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
+              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+            </div>
+            <div id="compVakBullets"></div>
+          `;
+          box.appendChild(div);
+          fetchSubAiSummary(d, 'learning_style', 'compVakSummary', 'compVakBullets', 'Gaya_Belajar');
+        }
+
+        // 4. RMIB
+        if (d.rmib_result) {
+          testIndex++;
+          var rm = d.rmib_result;
+          var parsed = {};
+          try { parsed = JSON.parse(rm.result_json || '{}'); } catch(e) {}
+          
+          var codes = ['OUT','MEC','COMP','SCI','PERS','AEST','MUS','LIT','SOC','CLER','PRAC','MED'];
+          var labels = {
+            OUT: "Outdoor", MEC: "Mechanical", COMP: "Computational", SCI: "Scientific",
+            PERS: "Personal Contact", AEST: "Aesthetic", MUS: "Musical", LIT: "Literary",
+            SOC: "Social Service", CLER: "Clerical", PRAC: "Practical", MED: "Medical"
+          };
+          var aspects = codes.map(c => {
+            var item = parsed[c] || {};
+            return { name: labels[c] + " (" + c + ")", rank: item.rank || 12 };
+          });
+          aspects.sort((a, b) => a.rank - b.rank);
+
+          var rowsHtml = aspects.slice(0, 5).map((a, idx) => `
+            <tr><td>${idx+1}. ${a.name}</td><td class="fw-bold text-primary">${getRMIBCategory(a.rank)}</td></tr>
+          `).join('');
+
+          var div = document.createElement('div');
+          div.className = 'mb-4 p-3 border rounded';
+          div.style.background = '#f8fafc';
+          div.innerHTML = `
+            <h6 class="fw-bold mb-2" style="font-size: 13.5px; color:#1e293b;">${testIndex}. MINAT PEKERJAAN (RMIB)</h6>
+            <table class="table table-borderless table-sm mb-2" style="font-size:12.5px; max-width: 350px;">
+              <tr><td style="width: 150px;" class="fw-semibold text-muted">Minat Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${rm.dominant_category || '-'}</td></tr>
+              <tr><td class="fw-semibold text-muted">Urutan Minat (Top 3)</td><td>:</td><td>${[rm.top1, rm.top2, rm.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
+            </table>
+            <div class="table-responsive mb-2">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; background:#fff;">
+                <thead class="table-light"><tr><th>ASPEK MINAT RMIB (TOP 5)</th><th style="width: 150px;">PENILAIAN</th></tr></thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+            <div id="compRmibSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
+              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+            </div>
+            <div id="compRmibBullets"></div>
+          `;
+          box.appendChild(div);
+          fetchSubAiSummary(d, 'rmib', 'compRmibSummary', 'compRmibBullets', 'RMIB');
+        }
+
+        // 5. PAPI
+        if (d.papi_result) {
+          testIndex++;
+          var papi = d.papi_result;
+          var parsed = {};
+          try { parsed = JSON.parse(papi.result_json || '{}'); } catch(e) {}
+
+          var codes = ["G", "L", "I", "T", "V", "S", "R", "D", "C", "E", "N", "A", "P", "X", "B", "O", "Z", "K", "F", "W"];
+          var labels = {
+            "G": "Pekerja keras", "L": "Kepemimpinan", "I": "Mudah membuat keputusan",
+            "T": "Tipe orang sibuk", "V": "Tipe orang bersemangat",
+            "S": "Hubungan sosial luas", "R": "Tipe teoritis",
+            "D": "Tipe orang teratur", "C": "Mengorganisir",
+            "E": "Pengendalian emosi", "N": "Penyelesaian mandiri",
+            "A": "Kebutuhan berprestasi", "P": "Mengatur orang lain",
+            "X": "Untuk mendapat perhatian", "B": "Diterima kelompok",
+            "O": "Hubungan akrab", "Z": "Hasrat berubah",
+            "K": "Agresi", "F": "Mendukung atasan", "W": "Mengikuti aturan"
+          };
+
+          var leftColHtml = '';
+          var rightColHtml = '';
+          codes.forEach((c, idx) => {
+            var item = parsed[c] || {};
+            var score = item.score || 0;
+            var cat = getPAPICategory(score);
+            var row = `<tr><td><b>${c}</b> - ${labels[c]}</td><td class="fw-bold text-primary" style="width: 100px;">${cat}</td></tr>`;
+            if (idx < 5) {
+              leftColHtml += row;
+            } else if (idx >= 10 && idx < 15) {
+              rightColHtml += row;
+            }
+          });
+
+          var div = document.createElement('div');
+          div.className = 'mb-4 p-3 border rounded';
+          div.style.background = '#f8fafc';
+          div.innerHTML = `
+            <h6 class="fw-bold mb-2" style="font-size: 13.5px; color:#1e293b;">${testIndex}. KEPRIBADIAN KERJA (PAPI)</h6>
+            <table class="table table-borderless table-sm mb-2" style="font-size:12.5px; max-width: 350px;">
+              <tr><td style="width: 150px;" class="fw-semibold text-muted">Kategori Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${papi.dominant_category || '-'}</td></tr>
+            </table>
+            <div class="row mb-2">
+              <div class="col-md-6 mb-1">
+                <table class="table table-bordered table-sm mb-0" style="font-size:11px; background:#fff;">
+                  <thead class="table-light"><tr><th>ASPEK KEPRIBADIAN</th><th>KATEGORI</th></tr></thead>
+                  <tbody>${leftColHtml}</tbody>
+                </table>
+              </div>
+              <div class="col-md-6 mb-1">
+                <table class="table table-bordered table-sm mb-0" style="font-size:11px; background:#fff;">
+                  <thead class="table-light"><tr><th>ASPEK KEPRIBADIAN</th><th>KATEGORI</th></tr></thead>
+                  <tbody>${rightColHtml}</tbody>
+                </table>
+              </div>
+            </div>
+            <div id="compPapiSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
+              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+            </div>
+            <div id="compPapiBullets"></div>
+          `;
+          box.appendChild(div);
+          fetchSubAiSummary(d, 'papi', 'compPapiSummary', 'compPapiBullets', 'PAPI');
+        }
+
+        // 6. KRAEPELIN
+        if (d.kraepelin_attempt) {
+          testIndex++;
+          var krp = d.kraepelin_attempt;
+          var tot = (krp.total_correct||0) + (krp.total_errors||0) + (krp.total_skipped||0);
+          var acc = tot > 0 ? ((krp.total_correct||0)/tot)*100 : 0;
+          
+          var aspects = [
+            { name: "Kecepatan Kerja", score: krp.total_correct, type: 'kecepatan' },
+            { name: "Ketelitian Kerja", score: krp.total_errors, type: 'ketelitian' },
+            { name: "Konsentrasi Kerja", score: acc, type: 'konsentrasi' },
+            { name: "Ketahanan Kerja", score: krp.total_correct, type: 'ketahanan' }
+          ];
+          var rowsHtml = aspects.map((a, idx) => `
+            <tr><td>${idx+1}. ${a.name}</td><td class="fw-bold text-primary">${getKraepelinCategory(a.score, a.type)}</td></tr>
+          `).join('');
+
+          var div = document.createElement('div');
+          div.className = 'mb-4 p-3 border rounded';
+          div.style.background = '#f8fafc';
+          div.innerHTML = `
+            <h6 class="fw-bold mb-2" style="font-size: 13.5px; color:#1e293b;">${testIndex}. PERFORMANSI KERJA (KRAEPELIN)</h6>
+            <div class="table-responsive mb-2">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; background:#fff;">
+                <thead class="table-light"><tr><th>ASPEK PERFORMANSI KERJA</th><th style="width: 150px;">PENILAIAN</th></tr></thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+            <div id="compKraepelinSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
+              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+            </div>
+            <div id="compKraepelinBullets"></div>
+          `;
+          box.appendChild(div);
+          fetchSubAiSummary(d, 'kraepelin', 'compKraepelinSummary', 'compKraepelinBullets', 'Kraepelin');
+        }
+      }
+
       function handleTabClick(typeKey) {
         _activeTypeKey = typeKey;
+        // Scroll window/page to the top smoothly on tab switch
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         // Update active class on tab buttons
         document.querySelectorAll('.multi-test-tab-btn').forEach(btn => {
           if (btn.getAttribute('data-test') === typeKey) {
@@ -510,48 +1102,116 @@
 
         var name = _resultData.student_name || 'Peserta';
 
-        // Update score box display (IQ score for IST)
-        var scoreVal = null, scoreLbl = '';
-        if (typeKey === 'ist' && _resultData.ist_result) {
-          scoreVal = _resultData.ist_result.iq;
-          scoreLbl = 'IQ';
-        }
-        var scoreBoxWrap = q('#scoreBoxWrap');
-        if (scoreVal != null && scoreVal > 0) {
-          scoreBoxWrap.style.display = '';
-          q('#scoreBoxLabel').textContent = scoreLbl;
-          q('#scoreBoxVal').textContent = scoreVal;
+        if (typeKey === 'keseluruhan') {
+          // Hide Specific Test panels
+          q('#scoreBoxWrap').style.display = 'none';
+          q('#pageReportTabs').style.display = 'flex';
+          document.querySelector('.tab-content').style.display = 'block';
+          q('#combinedAICard').style.display = 'none';
+          
+          // Switch to Halaman 3 tab
+          if (q('#keseluruhan-tab')) {
+            var tabTrigger = new bootstrap.Tab(q('#keseluruhan-tab'));
+            tabTrigger.show();
+          }
+
+          // Configure download link for keseluruhan
+          if (q('#btnDownloadZip')) {
+            q('#btnDownloadZip').href = `/api/results/export-zip?invId=${_invId}&test=keseluruhan`;
+            q('#btnDownloadZip').style.display = 'inline-flex';
+          }
+          if (q('#btnDownloadHeaderZip')) {
+            q('#btnDownloadHeaderZip').href = `/api/results/export-zip?invId=${_invId}&test=keseluruhan`;
+            q('#btnDownloadHeaderZip').style.display = 'inline-flex';
+          }
         } else {
-          scoreBoxWrap.style.display = 'none';
+          // Show Specific Test panels
+          q('#pageReportTabs').style.display = 'flex';
+          document.querySelector('.tab-content').style.display = 'block';
+          
+          var activeTabEl = q('#pageReportTabs .nav-link.active');
+          if (activeTabEl && activeTabEl.id === 'keseluruhan-tab') {
+            if (q('#laporan-tab')) {
+              var tabTrigger = new bootstrap.Tab(q('#laporan-tab'));
+              tabTrigger.show();
+            }
+          }
+          
+          // Update score box display (IQ score for IST)
+          var scoreVal = null, scoreLbl = '';
+          if (typeKey === 'ist' && _resultData.ist_result) {
+            scoreVal = _resultData.ist_result.iq;
+            scoreLbl = 'IQ';
+          }
+          var scoreBoxWrap = q('#scoreBoxWrap');
+          if (scoreVal != null && scoreVal > 0) {
+            scoreBoxWrap.style.display = '';
+            q('#scoreBoxLabel').textContent = scoreLbl;
+            q('#scoreBoxVal').textContent = scoreVal;
+          } else {
+            scoreBoxWrap.style.display = 'none';
+          }
+
+          // Render Skor
+          renderSkor(_resultData, typeKey);
+
+          // System assessment & jurusan
+          var sys = generateSystemAssessment(_resultData, typeKey, name);
+          q('#systemAssess').textContent = sys.narasi;
+          var jBox = q('#jurusanRec');
+          jBox.innerHTML = '';
+          sys.jurusan.forEach(function(j){
+            var ch = document.createElement('span');
+            ch.className = 'jurusan-chip';
+            ch.textContent = j;
+            jBox.appendChild(ch);
+          });
+
+          // AI Interpretation
+          q('#aiContent').innerHTML = `
+            <div class="sk w90"></div><div class="sk w80"></div>
+            <div class="sk w60"></div><div class="sk w80"></div>
+            <div class="sk w45"></div>
+          `;
+          if (q('#btnConsultAI')) q('#btnConsultAI').style.display = 'none';
+          if (q('#btnDownloadZip')) {
+            q('#btnDownloadZip').href = `/api/results/export-zip?invId=${_invId}&test=${typeKey}`;
+            q('#btnDownloadZip').style.display = 'inline-flex';
+          }
+          if (q('#btnDownloadHeaderZip')) {
+            q('#btnDownloadHeaderZip').href = `/api/results/export-zip?invId=${_invId}&test=${typeKey}`;
+            q('#btnDownloadHeaderZip').style.display = 'inline-flex';
+          }
+          fetchAiveneSummary(_resultData, typeKey, name);
+          
+          // Show Combined AI Card if there are multiple tests in total
+          var activeTests = [];
+          var batch = _resultData.batch || {};
+          if (batch.test_order) {
+            activeTests = batch.test_order.split(',');
+          } else {
+            if (batch.enable_ist) activeTests.push('ist');
+            if (batch.enable_holland) activeTests.push('holland');
+            if (batch.enable_learning_style) activeTests.push('learning_style');
+            if (batch.enable_kraepelin) activeTests.push('kraepelin');
+            if (batch.enable_rmib) activeTests.push('rmib');
+            if (batch.enable_papi) activeTests.push('papi');
+          }
+          var completedTests = activeTests.filter(key => {
+            if (key === 'ist') return !!_resultData.ist_result;
+            if (key === 'holland') return !!_resultData.holland_result;
+            if (key === 'learning_style') return !!_resultData.learning_style_result;
+            if (key === 'kraepelin') return !!_resultData.kraepelin_attempt;
+            if (key === 'rmib') return !!_resultData.rmib_result;
+            if (key === 'papi') return !!_resultData.papi_result;
+            return false;
+          });
+          if (completedTests.length > 1) {
+            q('#combinedAICard').style.display = 'block';
+          } else {
+            q('#combinedAICard').style.display = 'none';
+          }
         }
-
-        // Render Skor
-        renderSkor(_resultData, typeKey);
-
-        // System assessment & jurusan
-        var sys = generateSystemAssessment(_resultData, typeKey, name);
-        q('#systemAssess').textContent = sys.narasi;
-        var jBox = q('#jurusanRec');
-        jBox.innerHTML = '';
-        sys.jurusan.forEach(function(j){
-          var ch = document.createElement('span');
-          ch.className = 'jurusan-chip';
-          ch.textContent = j;
-          jBox.appendChild(ch);
-        });
-
-        // AI Interpretation
-        q('#aiContent').innerHTML = `
-          <div class="sk w90"></div><div class="sk w80"></div>
-          <div class="sk w60"></div><div class="sk w80"></div>
-          <div class="sk w45"></div>
-        `;
-        if (q('#btnConsultAI')) q('#btnConsultAI').style.display = 'none';
-        if (q('#btnDownloadZip')) {
-          q('#btnDownloadZip').href = `/api/results/export-zip?invId=${_invId}&test=${typeKey}`;
-          q('#btnDownloadZip').style.display = 'inline-flex';
-        }
-        fetchAiveneSummary(_resultData, typeKey, name);
       }
 
       /* ===== Render Page Content ===== */
@@ -643,7 +1303,14 @@
           return false;
         });
 
-        if (completedTests.length > 1) {
+        if (completedTests.length >= 1) {
+          // Pre-render the comprehensive report
+          renderComprehensiveReport(d);
+          
+          if (q('#btnDownloadHeaderZip')) {
+            q('#btnDownloadHeaderZip').style.display = 'inline-flex';
+          }
+
           // Render Tab Headers
           var tabsWrap = q('#multiTestTabsWrap');
           var tabsList = q('#multiTestTabsList');
@@ -655,6 +1322,13 @@
             li.innerHTML = `<button type="button" class="nav-link multi-test-tab-btn btn btn-outline-primary" data-test="${key}" style="border-radius:20px; font-weight:600; padding:6px 16px;">${getBatchTypeName(key)}</button>`;
             tabsList.appendChild(li);
           });
+          // Append Laporan Keseluruhan tab
+          var li = document.createElement('li');
+          li.className = 'nav-item';
+          li.style.marginRight = '8px';
+          li.innerHTML = `<button type="button" class="nav-link multi-test-tab-btn btn btn-outline-primary" data-test="keseluruhan" style="border-radius:20px; font-weight:600; padding:6px 16px;">Laporan Keseluruhan</button>`;
+          tabsList.appendChild(li);
+
           tabsWrap.style.display = 'block';
 
           // Add click listeners
@@ -665,60 +1339,20 @@
           });
 
           // Set active type key if not set
-          if (!_activeTypeKey || completedTests.indexOf(_activeTypeKey) === -1) {
+          if (!_activeTypeKey || (completedTests.indexOf(_activeTypeKey) === -1 && _activeTypeKey !== 'keseluruhan')) {
             _activeTypeKey = completedTests[0];
           }
           handleTabClick(_activeTypeKey);
         } else {
-          // If 1 or 0 completed tests, hide tabs wrap
+          // If 0 completed tests, hide tabs wrap
           q('#multiTestTabsWrap').style.display = 'none';
-          
-          var typeKey = '';
-          if (d.ist_result) typeKey = 'ist';
-          else if (d.holland_result) typeKey = 'holland';
-          else if (d.learning_style_result) typeKey = 'learning_style';
-          else if (d.kraepelin_attempt) typeKey = 'kraepelin';
-          else if (d.rmib_result) typeKey = 'rmib';
-          else if (d.papi_result) typeKey = 'papi';
-
-          if (typeKey) {
-            // Score Box (like IQ score for IST)
-            var scoreVal = null, scoreLbl = '';
-            if (typeKey === 'ist' && d.ist_result) {
-              scoreVal = d.ist_result.iq;
-              scoreLbl = 'IQ';
-            }
-            var scoreBoxWrap = q('#scoreBoxWrap');
-            if (scoreVal != null && scoreVal > 0) {
-              scoreBoxWrap.style.display = '';
-              q('#scoreBoxLabel').textContent = scoreLbl;
-              q('#scoreBoxVal').textContent = scoreVal;
-            } else {
-              scoreBoxWrap.style.display = 'none';
-            }
-
-            // Render Skor
-            renderSkor(d, typeKey);
-
-            // System assessment & jurusan
-            var sys = generateSystemAssessment(d, typeKey, name);
-            q('#systemAssess').textContent = sys.narasi;
-            var jBox = q('#jurusanRec');
-            jBox.innerHTML = '';
-            sys.jurusan.forEach(function(j){
-              var ch = document.createElement('span');
-              ch.className = 'jurusan-chip';
-              ch.textContent = j;
-              jBox.appendChild(ch);
-            });
-
-            // AI Interpretation
-            if (q('#btnDownloadZip')) {
-              q('#btnDownloadZip').href = `/api/results/export-zip?invId=${_invId}&test=${typeKey}`;
-              q('#btnDownloadZip').style.display = 'inline-flex';
-            }
-            fetchAiveneSummary(d, typeKey, name);
-          }
+          q('#btnDownloadZip').style.display = 'none';
+          if (q('#btnDownloadHeaderZip')) q('#btnDownloadHeaderZip').style.display = 'none';
+          q('#laporanNaratifContent').innerHTML = '<div class="alert alert-warning">Belum ada tes yang diselesaikan dalam batch ini.</div>';
+          q('#skorContent').innerHTML = '<p class="text-muted">Data skor tidak tersedia.</p>';
+          q('#systemAssess').textContent = '-';
+          q('#jurusanRec').innerHTML = '';
+          q('#aiContent').innerHTML = '<p class="text-muted">Tidak ada data untuk analisis AI.</p>';
         }
 
         // Always call fetchStudentCombinedSummary if at least 1 test is completed
@@ -1048,46 +1682,257 @@
 
         // 2. SPESIFIK HASIL TES
         var specificHtml = '';
-        if (typeKey === 'ist') {
-          specificHtml = '<p class="text-secondary mb-0">Potensi kemampuan khusus diukur melalui subtes IST, rincian skor tertera pada Halaman 2.</p>';
+        if (typeKey === 'ist' && d.ist_result) {
+          var ist = d.ist_result;
+          var se = ist.std_se || 0, wa = ist.std_wa || 0, an = ist.std_an || 0, ge = ist.std_ge || 0, ra = ist.std_ra || 0, za = ist.std_za || 0, fa = ist.std_fa || 0, wu = ist.std_wu || 0, me = ist.std_me || 0;
+          var avgSW = function() {
+            var sum = 0, n = 0;
+            for (var i = 0; i < arguments.length; i++) {
+              var v = arguments[i];
+              if (v > 0) { sum += v; n++; }
+            }
+            return n === 0 ? 0 : Math.round(sum / n);
+          };
+          var aspects = [
+            { name: "Penalaran Konkret", cat: getCategoryFromSW(avgSW(se, ge)) },
+            { name: "Penalaran Verbal", cat: getCategoryFromSW(avgSW(se, wa, ge)) },
+            { name: "Daya Analisis", cat: getCategoryFromSW(an) },
+            { name: "Penalaran Abstrak", cat: getCategoryFromSW(za) },
+            { name: "Daya Ingat", cat: getCategoryFromSW(me) },
+            { name: "Kemampuan Berhitung", cat: getCategoryFromSW(ra) },
+            { name: "Analogi Angka", cat: getCategoryFromSW(za) },
+            { name: "Daya Bayang Konstruksional", cat: getCategoryFromSW(fa) },
+            { name: "Daya Bayang Ruang", cat: getCategoryFromSW(wu) }
+          ];
+
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${a.cat}</td></tr>`;
+          }).join('');
+
+          specificHtml = `
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Aspek Intelektual</th>
+                    <th style="width: 150px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Kemampuan Khusus:</em> ${esc(aiData.summary)}</p>
+          `;
         } else if (typeKey === 'holland' && d.holland_result) {
           var hol = d.holland_result;
+          var aspects = [
+            { name: "Realistic (R)", score: hol.score_r },
+            { name: "Investigative (I)", score: hol.score_i },
+            { name: "Artistic (A)", score: hol.score_a },
+            { name: "Social (S)", score: hol.score_s },
+            { name: "Enterprising (E)", score: hol.score_e },
+            { name: "Conventional (C)", score: hol.score_c }
+          ];
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getHollandCategory(a.score)}</td></tr>`;
+          }).join('');
+
           specificHtml = `
             <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
               <tr><td style="width: 180px;" class="fw-semibold text-muted">Kode RIASEC Dominan (Top 3)</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${hol.code || '-'}</td></tr>
               <tr><td class="fw-semibold text-muted">Urutan Minat</td><td>:</td><td>${[hol.top1, hol.top2, hol.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
             </table>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Aspek Minat Holland</th>
+                    <th style="width: 150px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
             <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Minat Karir:</em> ${esc(aiData.summary)}</p>
           `;
         } else if (typeKey === 'rmib' && d.rmib_result) {
           var rm = d.rmib_result;
+          var parsed = {};
+          try {
+            parsed = JSON.parse(rm.result_json);
+          } catch(e) {}
+          
+          var codes = ['OUT','MEC','COMP','SCI','PERS','AEST','MUS','LIT','SOC','CLER','PRAC','MED'];
+          var labels = {
+            OUT: "Outdoor", MEC: "Mechanical", COMP: "Computational", SCI: "Scientific",
+            PERS: "Personal Contact", AEST: "Aesthetic", MUS: "Musical", LIT: "Literary",
+            SOC: "Social Service", CLER: "Clerical", PRAC: "Practical", MED: "Medical"
+          };
+          var aspects = codes.map(function(c) {
+            var item = parsed[c] || {};
+            return { name: labels[c] + " (" + c + ")", rank: item.rank || 12 };
+          });
+          aspects.sort(function(a, b) { return a.rank - b.rank; });
+
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getRMIBCategory(a.rank)}</td></tr>`;
+          }).join('');
+
           specificHtml = `
             <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
               <tr><td style="width: 180px;" class="fw-semibold text-muted">Minat Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${rm.dominant_category || '-'}</td></tr>
               <tr><td class="fw-semibold text-muted">Urutan Minat (Top 3)</td><td>:</td><td>${[rm.top1, rm.top2, rm.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
             </table>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Aspek Minat RMIB</th>
+                    <th style="width: 150px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
             <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Minat Karir:</em> ${esc(aiData.summary)}</p>
           `;
         } else if (typeKey === 'learning_style' && d.learning_style_result) {
           var vak = d.learning_style_result;
+          var aspects = [
+            { name: "Visual", score: vak.score_visual },
+            { name: "Auditori", score: vak.score_auditory },
+            { name: "Kinestetik", score: vak.score_kinesthetic }
+          ];
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getVAKCategory(a.score)}</td></tr>`;
+          }).join('');
+
           specificHtml = `
             <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
               <tr><td style="width: 180px;" class="fw-semibold text-muted">Gaya Belajar Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${vak.dominant_type || '-'}</td></tr>
               <tr><td class="fw-semibold text-muted">Skor V-A-K</td><td>:</td><td>Visual: ${vak.score_visual || 0}, Auditori: ${vak.score_auditory || 0}, Kinestetik: ${vak.score_kinesthetic || 0}</td></tr>
             </table>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Aspek Gaya Belajar</th>
+                    <th style="width: 150px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
             <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Gaya Belajar:</em> ${esc(aiData.summary)}</p>
           `;
         } else if (typeKey === 'papi' && d.papi_result) {
           var papi = d.papi_result;
+          var parsed = {};
+          try {
+            parsed = JSON.parse(papi.result_json);
+          } catch(e) {}
+
+          var codes = ["G", "L", "I", "T", "V", "S", "R", "D", "C", "E", "N", "A", "P", "X", "B", "O", "Z", "K", "F", "W"];
+          var labels = {
+            "G": "Pekerja keras", "L": "Kepemimpinan", "I": "Mudah membuat keputusan",
+            "T": "Tipe orang yang sibuk", "V": "Tipe orang yang bersemangat",
+            "S": "Hubungan sosial / pergaulan luas", "R": "Tipe teoritis",
+            "D": "Tipe orang teratur / bekerja detail", "C": "Mengatur / mengorganisir",
+            "E": "Pengendalian emosi", "N": "Penyelesaian mandiri",
+            "A": "Kebutuhan untuk berprestasi", "P": "Mengatur orang lain",
+            "X": "Untuk mendapat perhatian", "B": "Diterima dalam kelompok",
+            "O": "Hubungan akrab / intim", "Z": "Hasrat untuk berubah",
+            "K": "Agresi", "F": "Mendukung / membantu atasan", "W": "Mengikuti aturan"
+          };
+
+          var leftColHtml = '';
+          var rightColHtml = '';
+          codes.forEach(function(c, idx) {
+            var item = parsed[c] || {};
+            var score = item.score || 0;
+            var cat = getPAPICategory(score);
+            var row = `<tr><td><b>${c}</b> - ${labels[c]}</td><td class="fw-bold text-primary" style="width: 100px;">${cat}</td></tr>`;
+            if (idx < 10) {
+              leftColHtml += row;
+            } else {
+              rightColHtml += row;
+            }
+          });
+
           specificHtml = `
             <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
               <tr><td style="width: 180px;" class="fw-semibold text-muted">Kategori Perilaku Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${papi.dominant_category || '-'}</td></tr>
               <tr><td class="fw-semibold text-muted">Aspek Menonjol</td><td>:</td><td>${papi.top_categories || '-'}</td></tr>
             </table>
+            <div class="row mb-3" style="max-width: 800px;">
+              <div class="col-md-6 mb-2">
+                <table class="table table-bordered table-sm mb-0" style="font-size:11px;">
+                  <thead class="table-light">
+                    <tr><th>Aspek Kepribadian</th><th>Kategori</th></tr>
+                  </thead>
+                  <tbody>
+                    ${leftColHtml}
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-md-6 mb-2">
+                <table class="table table-bordered table-sm mb-0" style="font-size:11px;">
+                  <thead class="table-light">
+                    <tr><th>Aspek Kepribadian</th><th>Kategori</th></tr>
+                  </thead>
+                  <tbody>
+                    ${rightColHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Kepribadian Kerja:</em> ${esc(aiData.summary)}</p>
           `;
-        } else if (typeKey === 'kraepelin') {
-          specificHtml = '<p class="text-secondary mb-0">Pengukuran konsentrasi dan stamina kerja tertera secara rinci pada Halaman 2.</p>';
+        } else if (typeKey === 'kraepelin' && d.kraepelin_attempt) {
+          var krp = d.kraepelin_attempt;
+          var tot = (krp.total_correct||0) + (krp.total_errors||0) + (krp.total_skipped||0);
+          var acc = tot > 0 ? ((krp.total_correct||0)/tot)*100 : 0;
+          
+          var aspects = [
+            { name: "Kecepatan Kerja", score: krp.total_correct, type: 'kecepatan' },
+            { name: "Ketelitian Kerja", score: krp.total_errors, type: 'ketelitian' },
+            { name: "Konsentrasi Kerja", score: acc, type: 'konsentrasi' },
+            { name: "Ketahanan Kerja", score: krp.total_correct, type: 'ketahanan' }
+          ];
+
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getKraepelinCategory(a.score, a.type)}</td></tr>`;
+          }).join('');
+
+          specificHtml = `
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Aspek Performansi Kerja</th>
+                    <th style="width: 150px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Performansi Kerja:</em> ${esc(aiData.summary)}</p>
+          `;
         }
 
         var kekuatanHtml = '';
@@ -1358,22 +2203,32 @@
 
           // 2. Analisis per Alat Tes
           if (aiData.kesimpulan_detail && Object.keys(aiData.kesimpulan_detail).length > 0) {
-            html += '<div>';
-            html += '  <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;">';
-            html += '    <i data-lucide="clipboard-list" style="width:16px;height:16px;color:var(--accent3);"></i> Kesimpulan Setiap Alat Tes';
-            html += '  </div>';
-            html += '  <div style="display:grid; grid-template-columns:1fr; gap:12px;">';
+            var hasAnyValidDetail = false;
+            var detailsHtml = '';
             Object.keys(aiData.kesimpulan_detail).forEach(key => {
               var text = aiData.kesimpulan_detail[key];
+              // Skip if test is not completed or if text indicates not available
+              if (completedTests.indexOf(key) === -1) return;
+              if (text && (text.includes("tidak tersedia") || text.includes("belum dapat dianalisis"))) return;
+              
               if (text && text.trim()) {
-                html += '    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px;">';
-                html += '      <div style="font-weight:700; font-size:11px; color:var(--accent2); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">' + getBatchTypeName(key) + '</div>';
-                html += '      <p style="font-size:12.5px; line-height:1.6; color:var(--text); margin:0;">' + esc(text) + '</p>';
-                html += '    </div>';
+                hasAnyValidDetail = true;
+                detailsHtml += '    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px;">';
+                detailsHtml += '      <div style="font-weight:700; font-size:11px; color:var(--accent2); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">' + getBatchTypeName(key) + '</div>';
+                detailsHtml += '      <p style="font-size:12.5px; line-height:1.6; color:var(--text); margin:0;">' + esc(text) + '</p>';
+                detailsHtml += '    </div>';
               }
             });
-            html += '  </div>';
-            html += '</div>';
+            if (hasAnyValidDetail) {
+              html += '<div>';
+              html += '  <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;">';
+              html += '    <i data-lucide="clipboard-list" style="width:16px;height:16px;color:var(--accent3);"></i> Kesimpulan Setiap Alat Tes';
+              html += '  </div>';
+              html += '  <div style="display:grid; grid-template-columns:1fr; gap:12px;">';
+              html += detailsHtml;
+              html += '  </div>';
+              html += '</div>';
+            }
           }
 
           combinedContent.innerHTML = html || '<p style="color:var(--muted);font-size:13px;">Tidak ada data analisis gabungan yang dapat ditampilkan.</p>';

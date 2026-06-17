@@ -205,6 +205,7 @@
                   <div class="card mb-3">
                     <div class="card-body d-flex justify-content-between align-items-center">
                       <div>
+                        <a href="/hasil-tes" class="btn btn-outline-secondary btn-sm mb-2" style="border-radius:8px;"><i class="bx bx-arrow-back me-1"></i> Kembali ke Hasil Tes</a>
                         <h5 class="mb-1">Hasil Tes Holland</h5>
                         <p class="mb-0 text-muted">Ringkasan kode kepribadian dan skor RIASEC terbaru.</p>
                       </div>
@@ -377,8 +378,8 @@
         window.location.href = '/profile/holland/start?invId=' + encodeURIComponent(pendingHollandInvitationId);
       }
 
-      document.addEventListener('DOMContentLoaded', function () {
-        loadProfile();
+      document.addEventListener('DOMContentLoaded', async function () {
+        await loadProfile();
         loadHollandSummary();
         loadPendingInvitation();
       });
@@ -808,6 +809,11 @@
                         Halaman 2: Rincian Skor
                       </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link fw-bold" id="holland-keseluruhan-tab" data-bs-toggle="tab" data-bs-target="#holland-keseluruhan-panel" type="button" role="tab" style="padding: 10px 20px;">
+                        Halaman 3: Laporan Summary All Alat Test
+                      </button>
+                    </li>
                   </ul>
                 </div>
                 <div class="modal-body p-0">
@@ -872,10 +878,19 @@
                         </table>
                       </div>
                     </div>
+                    <!-- Tab Pane 3: Laporan Summary All Alat Test -->
+                    <div class="tab-pane fade p-4" id="holland-keseluruhan-panel" role="tabpanel" aria-labelledby="holland-keseluruhan-tab">
+                      <div id="hollandKeseluruhanContent">
+                        <div class="text-center py-4">
+                          <div class="spinner-border text-primary" role="status"></div>
+                          <p class="text-muted mt-2">Memuat ringkasan keseluruhan...</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="modal-footer border-top justify-content-start" style="padding: 1rem 1.5rem;">
-                  <a href="/api/results/export-zip?invId=${data.invitation_id}&test=holland" class="btn btn-primary d-inline-flex align-items-center justify-content-center" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; gap: 8px;">
+                  <a href="/api/results/export-zip?invId=${data.invitation_id}&test=keseluruhan" class="btn btn-primary d-inline-flex align-items-center justify-content-center" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; gap: 8px;">
                     <i class="bx bx-download" style="font-size: 1.15rem;"></i>
                     <span>Unduh Laporan Lengkap (ZIP)</span>
                   </a>
@@ -898,6 +913,10 @@
         document.body.insertAdjacentHTML('beforeend', modalContent);
         const modal = new bootstrap.Modal(document.getElementById('hollandDetailModal'));
         modal.show();
+        
+        if (data.invitation_id) {
+          loadCombinedSummaryInTab(data.invitation_id, 'hollandKeseluruhanContent');
+        }
 
         // Fetch AI Summary asynchronously
         const userName = window.currentUser ? window.currentUser.nama_lengkap : 'Peserta';
@@ -1083,13 +1102,253 @@
         });
       }
 
-        const existingModal = document.getElementById('hollandDetailModal');
-        if (existingModal) existingModal.remove();
+      async function loadCombinedSummaryInTab(invId, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
 
-        document.body.insertAdjacentHTML('beforeend', modalContent);
-        const modal = new bootstrap.Modal(document.getElementById('hollandDetailModal'));
-        modal.show();
+        container.innerHTML = `
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Menghubungkan ke Aivene AI & menganalisis hasil keseluruhan...</p>
+          </div>
+        `;
+
+        function esc(s) {
+          if (s == null) return '';
+          return String(s).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+          });
+        }
+
+        function getBatchTypeName(key) {
+          var mapping = {
+            ist: 'IST (IQ)',
+            holland: 'Holland (RIASEC)',
+            learning_style: 'Gaya Belajar (VAK)',
+            kraepelin: 'Kraepelin',
+            rmib: 'RMIB',
+            papi: 'PAPI'
+          };
+          return mapping[key] || key.toUpperCase();
+        }
+
+        try {
+          const [summaryRes, rmibRes, papiRes] = await Promise.all([
+            fetch('/api/profile/test-summary').then(r => r.json()),
+            fetch('/api/profile/rmib').then(r => r.json()).catch(() => ({ success: false })),
+            fetch('/api/profile/papi-results').then(r => r.json()).catch(() => ({ success: false }))
+          ]);
+
+          if (!summaryRes || !summaryRes.success) {
+            container.innerHTML = '<div class="alert alert-warning m-3">Gagal memuat profil hasil tes.</div>';
+            return;
+          }
+
+          const summary = summaryRes.data || {};
+          const rmibData = rmibRes && rmibRes.success && Array.isArray(rmibRes.data) ? rmibRes.data : [];
+          const papiData = papiRes && papiRes.success && Array.isArray(papiRes.data) ? papiRes.data : [];
+
+          const resultsPayload = {};
+          const completedTests = [];
+
+          if (summary.LastISTResult) {
+            resultsPayload.ist = {
+              iq: summary.LastISTResult.IQ,
+              iq_category: summary.LastISTResult.IQCategory,
+              total_standard_score: summary.LastISTResult.TotalStandardScore,
+              std_scores: summary.LastISTResult.StdScores,
+              raw_scores: summary.LastISTResult.RawScores
+            };
+            completedTests.push('ist');
+          }
+          if (summary.LastHollandResult) {
+            resultsPayload.holland = {
+              score_r: summary.LastHollandResult.ScoreR,
+              score_i: summary.LastHollandResult.ScoreI,
+              score_a: summary.LastHollandResult.ScoreA,
+              score_s: summary.LastHollandResult.ScoreS,
+              score_e: summary.LastHollandResult.ScoreE,
+              score_c: summary.LastHollandResult.ScoreC,
+              top1: summary.LastHollandResult.Top1,
+              top2: summary.LastHollandResult.Top2,
+              top3: summary.LastHollandResult.Top3,
+              code: summary.LastHollandResult.Code
+            };
+            completedTests.push('holland');
+          }
+          if (summary.LastLearningStyleResult) {
+            resultsPayload.learning_style = {
+              score_visual: summary.LastLearningStyleResult.ScoreVisual,
+              score_auditory: summary.LastLearningStyleResult.ScoreAuditory,
+              score_kinesthetic: summary.LastLearningStyleResult.ScoreKinesthetic,
+              dominant_type: summary.LastLearningStyleResult.DominantType
+            };
+            completedTests.push('learning_style');
+          }
+          if (summary.LastKraepelinAttempt) {
+            resultsPayload.kraepelin = {
+              total_correct: summary.LastKraepelinAttempt.TotalCorrect,
+              total_errors: summary.LastKraepelinAttempt.TotalErrors,
+              total_skipped: summary.LastKraepelinAttempt.TotalSkipped,
+              correct_counts: summary.LastKraepelinAttempt.CorrectCounts
+            };
+            completedTests.push('kraepelin');
+          }
+          if (rmibData.length > 0) {
+            resultsPayload.rmib = {
+              dominant_category: rmibData[0].dominant_category,
+              top1: rmibData[0].top1,
+              top2: rmibData[0].top2,
+              top3: rmibData[0].top3,
+              result_json: rmibData[0].result_json
+            };
+            completedTests.push('rmib');
+          }
+          if (papiData.length > 0) {
+            resultsPayload.papi = {
+              dominant_category: papiData[0].dominant_category,
+              top_categories: papiData[0].top_categories,
+              result_json: papiData[0].result_json
+            };
+            completedTests.push('papi');
+          }
+
+          if (completedTests.length === 0) {
+            container.innerHTML = '<div class="alert alert-info m-3">Belum ada tes yang selesai.</div>';
+            return;
+          }
+
+          const u = window.currentUser || {};
+          const studentName = u.nama_lengkap || u.email || 'Peserta';
+          const batchName = summary.LastISTResult ? summary.LastISTResult.BatchName : (summary.LastHollandResult ? summary.LastHollandResult.BatchName : 'Batch Tes');
+
+          const payload = {
+            student_name: studentName,
+            batch_name: batchName,
+            results: resultsPayload
+          };
+
+          const res = await fetch('/api/ai/student-combined-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const json = await res.json();
+          if (!json.success || !json.data) {
+            container.innerHTML = '<div class="alert alert-warning m-3">Gagal memuat analisis gabungan AI.</div>';
+            return;
+          }
+
+          const aiData = json.data;
+          let html = `
+            <div class="combined-summary-tab-content p-3 text-start">
+              <div class="text-center mb-4">
+                <h5 class="fw-bold mb-1">Laporan Summary All Alat Test</h5>
+                <p class="text-muted small">Ringkasan Integratif Hasil Evaluasi Psikologis</p>
+              </div>
+          `;
+
+          if (aiData.kesimpulan_gabungan) {
+            html += `
+              <div class="card border-0 bg-light-primary mb-3" style="background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%); border-left: 4px solid #6366f1 !important; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div class="card-body p-3">
+                  <h6 class="fw-bold text-primary mb-2"><i class="bx bx-analyse me-1"></i> Kesimpulan Gabungan</h6>
+                  <p class="mb-0 text-dark small" style="line-height: 1.6; text-align: justify;">\${esc(aiData.kesimpulan_gabungan)}</p>
+                </div>
+              </div>
+            `;
+          }
+
+          if (aiData.kesimpulan_detail && Object.keys(aiData.kesimpulan_detail).length > 0) {
+            let detailsHtml = '';
+            Object.keys(aiData.kesimpulan_detail).forEach(key => {
+              const text = aiData.kesimpulan_detail[key];
+              if (completedTests.indexOf(key) === -1) return;
+              if (text && (text.includes("tidak tersedia") || text.includes("belum dapat dianalisis"))) return;
+
+              if (text && text.trim()) {
+                detailsHtml += `
+                  <div class="p-3 border rounded mb-2" style="background: #f8fafc;">
+                    <div class="fw-bold text-uppercase text-secondary mb-1" style="font-size: 11px; letter-spacing: .05em;">\${getBatchTypeName(key)}</div>
+                    <p class="mb-0 small text-dark" style="line-height: 1.6;">\${esc(text)}</p>
+                  </div>
+                `;
+              }
+            });
+
+            if (detailsHtml) {
+              html += `
+                <div class="mb-3">
+                  <h6 class="fw-bold mb-2 text-secondary"><i class="bx bx-list-check me-1"></i> Hasil per Alat Tes</h6>
+                  <div class="d-flex flex-column gap-1">\${detailsHtml}</div>
+                </div>
+              `;
+            }
+          }
+
+          if ((aiData.strengths && aiData.strengths.length) || (aiData.developments && aiData.developments.length)) {
+            html += \`<div class="row mb-3">\`;
+            if (aiData.strengths && aiData.strengths.length) {
+              html += `
+                <div class="col-md-6 mb-2">
+                  <div class="card border h-100" style="border-radius: 8px; background: #fff;">
+                    <div class="card-body p-3">
+                      <h6 class="fw-bold text-success mb-2"><i class="bx bx-trending-up me-1"></i> Kekuatan Utama</h6>
+                      <ul class="mb-0 ps-3 small text-muted" style="line-height: 1.6;">
+                        \${aiData.strengths.map(k => `<li>\${esc(k)}</li>`).join('')}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+            if (aiData.developments && aiData.developments.length) {
+              html += `
+                <div class="col-md-6 mb-2">
+                  <div class="card border h-100" style="border-radius: 8px; background: #fff;">
+                    <div class="card-body p-3">
+                      <h6 class="fw-bold text-warning mb-2"><i class="bx bx-edit me-1"></i> Area Pengembangan</h6>
+                      <ul class="mb-0 ps-3 small text-muted" style="line-height: 1.6;">
+                        \${aiData.developments.map(d => `<li>\${esc(d)}</li>`).join('')}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+            html += `</div>`;
+          }
+
+          if (aiData.recommendations && aiData.recommendations.length > 0) {
+            let recsHtml = '';
+            aiData.recommendations.forEach(r => {
+              recsHtml += `
+                <div class="col-md-4 mb-2">
+                  <div class="p-3 border rounded h-100" style="background:#f8fafc;">
+                    <div class="fw-bold text-primary mb-2" style="font-size:11px; text-transform:uppercase;">\${esc(r.title)}</div>
+                    <ul class="mb-0 ps-3 small text-muted" style="line-height:1.5;">
+                      \${r.items.map(item => `<li>\${esc(item)}</li>`).join('')}
+                    </ul>
+                  </div>
+                </div>
+              `;
+            });
+            html += `
+              <div class="mb-3">
+                <h6 class="fw-bold mb-2 text-secondary"><i class="bx bx-award me-1"></i> Rekomendasi Karir & Akademik</h6>
+                <div class="row">\${recsHtml}</div>
+              </div>
+            `;
+          }
+
+          html += `</div>`;
+          container.innerHTML = html;
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = '<div class="alert alert-danger m-3">Terjadi kesalahan saat memproses data.</div>';
+        }
       }
+    </script>
     </script>
       <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>

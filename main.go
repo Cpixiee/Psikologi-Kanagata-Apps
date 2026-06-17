@@ -94,6 +94,12 @@ func main() {
 		log.Printf("RMIB wanita seed warning: %v", err)
 		logs.Warning("RMIB wanita seed warning: %v", err)
 	}
+
+	// Ensure PAPI schema exists
+	if err := models.EnsurePAPITables(); err != nil {
+		log.Printf("PAPI schema ensure warning: %v", err)
+		logs.Warning("PAPI schema ensure warning: %v", err)
+	}
 	
 	logs.Info("Application starting on port %s...", beego.AppConfig.DefaultString("httpport", "112"))
 	beego.Run()

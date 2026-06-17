@@ -589,7 +589,9 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
   "potential": 85,
   "potential_desc": "1-2 kalimat deskripsi singkat potensi tinggi siswa",
   "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary"
-}`, req.StudentName, req.BatchName, string(resultsJSON))
+}
+
+PENTING: Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci (seperti 'ist', 'holland', dst) untuk alat tes yang datanya benar-benar dikirimkan dalam JSON input. Jika data suatu alat tes tidak ada di dalam input, JANGAN sertakan kunci tersebut sama sekali dalam objek 'kesimpulan_detail' (jangan membuat teks placeholder atau tulisan 'tidak tersedia').`, req.StudentName, req.BatchName, string(resultsJSON))
 
 	text, status, err := callGemini(systemHint, userPrompt, true)
 	if err != nil {
@@ -606,6 +608,22 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 		return
 	}
 
+	// Filter out uncompleted tests or placeholder messages from kesimpulan_detail
+	if details, ok := parsed["kesimpulan_detail"].(map[string]interface{}); ok {
+		for key := range details {
+			if _, exists := req.Results[key]; !exists {
+				delete(details, key)
+			} else {
+				if valStr, ok := details[key].(string); ok {
+					lowerVal := strings.ToLower(valStr)
+					if strings.Contains(lowerVal, "tidak tersedia") || strings.Contains(lowerVal, "belum dapat dianalisis") {
+						delete(details, key)
+					}
+				}
+			}
+		}
+	}
+
 	// Save to cache
 	if cacheFile != "" {
 		if fileBytes, err := json.Marshal(parsed); err == nil {
@@ -616,6 +634,118 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 	c.Data["json"] = aiResponse{Success: true, Data: parsed}
 	c.ServeJSON()
 }
+
+// GetOrGenerateCombinedSummaryInternal is a helper called by the ZIP download endpoint to retrieve or build the combined AI summary on-the-fly.
+func GetOrGenerateCombinedSummaryInternal(studentName string, batchName string, results map[string]interface{}) (map[string]interface{}, error) {
+	req := struct {
+		StudentName string                 `json:"student_name"`
+		BatchName   string                 `json:"batch_name"`
+		Results     map[string]interface{} `json:"results"`
+	}{
+		StudentName: studentName,
+		BatchName:   batchName,
+		Results:     results,
+	}
+
+	cacheKey := getCacheHash(req)
+	var cacheFile string
+	if cacheKey != "" {
+		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_%s.json", cacheKey)
+		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
+			var cachedData map[string]interface{}
+			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
+				return cachedData, nil
+			}
+		}
+	}
+
+	resultsJSON, _ := json.MarshalIndent(results, "", "  ")
+	systemHint := "Anda adalah seorang psikolog dan career advisor profesional yang memberikan analisis kepribadian, gaya belajar, dan karir terintegrasi untuk seorang siswa berdasarkan hasil beberapa alat tes psikologi. Jawab dalam Bahasa Indonesia secara hangat, bersahabat, dan praktis. Jangan pernah memberikan diagnosis klinis."
+	userPrompt := fmt.Sprintf(`Berikut adalah data hasil beberapa alat tes psikologi untuk seorang siswa.
+ 
+Nama Siswa: %s
+Nama Batch: %s
+ 
+Hasil Alat Tes (JSON):
+%s
+ 
+Sebagai psikolog dan advisor, buatlah analisis komprehensif yang mendalam untuk siswa ini.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "kesimpulan_detail": {
+     "ist": "Kesimpulan singkat khusus hasil IST (jika datanya ada)...",
+     "holland": "Kesimpulan singkat khusus hasil Holland RIASEC (jika datanya ada)...",
+     "learning_style": "Kesimpulan singkat khusus hasil Gaya Belajar/VAK (jika datanya ada)...",
+     "kraepelin": "Kesimpulan singkat khusus hasil Kraepelin (jika datanya ada)...",
+     "rmib": "Kesimpulan singkat khusus hasil RMIB (jika datanya ada)...",
+     "papi": "Kesimpulan singkat khusus hasil PAPI-Kostick (jika datanya ada)..."
+  },
+  "kesimpulan_gabungan": "Kesimpulan integratif gabungan seluruh aspek bakat, minat, kepribadian, gaya belajar, dan stabilitas emosi siswa.",
+  "strengths": ["3-5 poin singkat kekuatan menonjol siswa"],
+  "developments": ["3-5 poin singkat area pengembangan diri siswa"],
+  "recommendations": [
+    {
+      "color": "violet",
+      "icon": "graduation-cap",
+      "title": "Academic Recommendation",
+      "items": ["2-3 rekomendasi akademik konkret sesuai bakat/minat"]
+    },
+    {
+      "color": "blue",
+      "icon": "code-2",
+      "title": "Skill Recommendation",
+      "items": ["2-3 rekomendasi keahlian teknis/soft-skill konkret yang perlu dipelajari"]
+    },
+    {
+      "color": "pink",
+      "icon": "rocket",
+      "title": "Activity Recommendation",
+      "items": ["2-3 rekomendasi kegiatan/ekstrakurikuler/lomba/kursus yang disarankan"]
+    }
+  ],
+  "potential": 85,
+  "potential_desc": "1-2 kalimat deskripsi singkat potensi tinggi siswa",
+  "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary"
+}
+
+PENTING: Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci (seperti 'ist', 'holland', dst) untuk alat tes yang datanya benar-benar dikirimkan dalam JSON input. Jika data suatu alat tes tidak ada di dalam input, JANGAN sertakan kunci tersebut sama sekali dalam objek 'kesimpulan_detail' (jangan membuat teks placeholder atau tulisan 'tidak tersedia').`, studentName, batchName, string(resultsJSON))
+
+	text, _, err := callGemini(systemHint, userPrompt, true)
+	if err != nil {
+		return nil, fmt.Errorf("gagal menghubungi AI: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(text), &parsed); err != nil {
+		return map[string]interface{}{"kesimpulan_gabungan": text}, nil
+	}
+
+	// Filter out uncompleted tests or placeholder messages from kesimpulan_detail
+	if details, ok := parsed["kesimpulan_detail"].(map[string]interface{}); ok {
+		for key := range details {
+			if _, exists := results[key]; !exists {
+				delete(details, key)
+			} else {
+				if valStr, ok := details[key].(string); ok {
+					lowerVal := strings.ToLower(valStr)
+					if strings.Contains(lowerVal, "tidak tersedia") || strings.Contains(lowerVal, "belum dapat dianalisis") {
+						delete(details, key)
+					}
+				}
+			}
+		}
+	}
+
+	// Save to cache
+	if cacheFile != "" {
+		if fileBytes, err := json.Marshal(parsed); err == nil {
+			_ = os.WriteFile(cacheFile, fileBytes, 0644)
+		}
+	}
+
+	return parsed, nil
+}
+
 
 func getCacheHash(data interface{}) string {
 	b, err := json.Marshal(data)

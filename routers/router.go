@@ -184,6 +184,7 @@ func init() {
 	beego.Router("/api/test/holland/page1", &controllers.HollandTestController{}, "post:SubmitPage1API")
 	beego.Router("/api/test/holland/page2", &controllers.HollandTestController{}, "post:SubmitPage2API")
 	beego.Router("/api/test/holland/page3", &controllers.HollandTestController{}, "post:SubmitPage3API")
+	beego.Router("/test/holland/dev-autofill", &controllers.HollandTestController{}, "post:DevAutoFill")
 
 	// Learning Style (VAK) test flow (peserta)
 	beego.Router("/test/learning-style/start", &controllers.LearningStyleTestController{}, "get:StartPage;post:SubmitStart")
@@ -192,6 +193,7 @@ func init() {
 	beego.Router("/test/learning-style/finish", &controllers.LearningStyleTestController{}, "get:FinishPage")
 	beego.Router("/test/learning-style/result/excel", &controllers.LearningStyleTestController{}, "get:ExportResultExcel")
 	beego.Router("/api/test/learning-style/submit", &controllers.LearningStyleTestController{}, "post:SubmitAnswersAPI")
+	beego.Router("/test/learning-style/dev-autofill", &controllers.LearningStyleTestController{}, "post:DevAutoFill")
 
 	// Kraepelin test flow (peserta)
 	beego.Router("/test/kraepelin/start", &controllers.KraepelinTestController{}, "get:StartPage;post:SubmitStart")
@@ -200,6 +202,7 @@ func init() {
 	beego.Router("/test/kraepelin/finish", &controllers.KraepelinTestController{}, "get:FinishPage")
 	beego.Router("/test/kraepelin/result/excel", &controllers.KraepelinTestController{}, "get:ExportResultExcel")
 	beego.Router("/api/test/kraepelin/submit", &controllers.KraepelinTestController{}, "post:SubmitAnswersAPI")
+	beego.Router("/test/kraepelin/dev-autofill", &controllers.KraepelinTestController{}, "post:DevAutoFill")
 
 	// RMIB test flow (peserta) - versi pria/wanita ditentukan otomatis dari gender user.
 	beego.Router("/test/rmib/start", &controllers.RMIBTestController{}, "get:StartPage")

@@ -189,19 +189,7 @@ func (c *PsychotestAdminController) ListBatches() {
 		o.Raw("SELECT COUNT(*) FROM test_invitations WHERE batch_id = $1", b.Id).QueryRow(&partCount)
 		
 		if partCount > 0 {
-			if b.EnableIST {
-				o.Raw("SELECT COUNT(*) FROM ist_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
-			} else if b.EnableHolland {
-				o.Raw("SELECT COUNT(*) FROM holland_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
-			} else if b.EnableRMIB {
-				o.Raw("SELECT COUNT(*) FROM rmib_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
-			} else if b.EnableLearningStyle {
-				o.Raw("SELECT COUNT(*) FROM learning_style_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
-			} else if b.EnableKraepelin {
-				o.Raw("SELECT COUNT(*) FROM kraepelin_attempts WHERE status = 'finished' AND invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
-			} else if b.EnablePAPI {
-				o.Raw("SELECT COUNT(*) FROM papi_results WHERE invitation_id IN (SELECT id FROM test_invitations WHERE batch_id = $1)", b.Id).QueryRow(&compCount)
-			}
+			o.Raw("SELECT COUNT(*) FROM test_invitations WHERE batch_id = $1 AND status = 'used'", b.Id).QueryRow(&compCount)
 		}
 
 		resData[i] = BatchResponseItem{
@@ -1805,6 +1793,33 @@ func (c *PsychotestAdminController) ExportInvitationAnswers() {
 			written++
 		}
 	}
+	if batch.EnableRMIB {
+		content, ferr := buildRMIBResultXLSX(o, &batch, &inv, user)
+		if ferr == nil && len(content) > 0 {
+			fname := makeUniqueZipName(usedNames, fmt.Sprintf("%s_Hasil_RMIB.xlsx", base), inv.Id)
+			w, _ := zw.Create(fname)
+			_, _ = w.Write(content)
+			written++
+		}
+	}
+	if batch.EnablePAPI {
+		content, ferr := buildPAPIResultXLSX(o, &batch, &inv, user)
+		if ferr == nil && len(content) > 0 {
+			fname := makeUniqueZipName(usedNames, fmt.Sprintf("%s_Hasil_PAPI.xlsx", base), inv.Id)
+			w, _ := zw.Create(fname)
+			_, _ = w.Write(content)
+			written++
+		}
+	}
+	if batch.EnableKraepelin {
+		content, ferr := buildKraepelinResultXLSX(o, &batch, &inv, user)
+		if ferr == nil && len(content) > 0 {
+			fname := makeUniqueZipName(usedNames, fmt.Sprintf("%s_Hasil_Kraepelin.xlsx", base), inv.Id)
+			w, _ := zw.Create(fname)
+			_, _ = w.Write(content)
+			written++
+		}
+	}
 
 	if written == 0 {
 		w, _ := zw.Create("README.txt")
@@ -3238,10 +3253,6 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 
 	// Resolve target test type
 	testType := strings.ToLower(strings.TrimSpace(c.GetString("test")))
-	if testType == "" {
-		writeErr(400, "Parameter test (ist, holland, learning_style, kraepelin, rmib, papi) wajib diisi")
-		return
-	}
 
 	// 2. Fetch User & Batch data
 	var user models.User
@@ -3253,6 +3264,72 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 	if inv.BatchId != nil {
 		batch.Id = *inv.BatchId
 		_ = o.Read(&batch)
+	}
+
+	// Resolve "keseluruhan" or empty to the first completed test tool in batch
+	if testType == "keseluruhan" || testType == "" {
+		resolved := false
+		if batch.EnableIST {
+			var res models.ISTResult
+			if o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
+				testType = "ist"
+				resolved = true
+			}
+		}
+		if !resolved && batch.EnableHolland {
+			var res models.HollandResult
+			if o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
+				testType = "holland"
+				resolved = true
+			}
+		}
+		if !resolved && batch.EnableLearningStyle {
+			var res models.LearningStyleResult
+			if o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
+				testType = "learning_style"
+				resolved = true
+			}
+		}
+		if !resolved && batch.EnableRMIB {
+			var res models.RMIBResult
+			if o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
+				testType = "rmib"
+				resolved = true
+			}
+		}
+		if !resolved && batch.EnablePAPI {
+			var res models.PAPIResult
+			if o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
+				testType = "papi"
+				resolved = true
+			}
+		}
+		if !resolved && batch.EnableKraepelin {
+			var res models.KraepelinAttempt
+			if o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
+				testType = "kraepelin"
+				resolved = true
+			}
+		}
+
+		// Fallback to first enabled if none completed yet
+		if !resolved {
+			if batch.EnableIST {
+				testType = "ist"
+			} else if batch.EnableHolland {
+				testType = "holland"
+			} else if batch.EnableLearningStyle {
+				testType = "learning_style"
+			} else if batch.EnableRMIB {
+				testType = "rmib"
+			} else if batch.EnablePAPI {
+				testType = "papi"
+			} else if batch.EnableKraepelin {
+				testType = "kraepelin"
+			} else {
+				testType = "ist"
+			}
+		}
 	}
 
 	// 3. Retrieve specific result & Excel bytes
@@ -3366,7 +3443,13 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 		return
 	}
 
-	// 6. Build ZIP archive containing both files
+	// 5b. Generate Comprehensive PDF
+	comprehensivePdfBytes, err := c.generateComprehensivePDFReport(o, &inv, &user, &batch)
+	if err != nil {
+		logs.Error("Single export: failed to generate comprehensive PDF: %v", err)
+	}
+
+	// 6. Build ZIP archive containing three files
 	zipBuf := new(bytes.Buffer)
 	zw := zip.NewWriter(zipBuf)
 
@@ -3390,6 +3473,14 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 		return
 	}
 	_, _ = wXlsx.Write(excelBytes)
+
+	if len(comprehensivePdfBytes) > 0 {
+		compPdfName := fmt.Sprintf("Laporan_Keseluruhan_Hasil_Asesmen_%s.pdf", studentSafe)
+		wCompPdf, err := zw.Create(compPdfName)
+		if err == nil {
+			_, _ = wCompPdf.Write(comprehensivePdfBytes)
+		}
+	}
 
 	_ = zw.Close()
 
@@ -3448,6 +3539,134 @@ func (c *PsychotestAdminController) checkResultAccessInternal(o orm.Ormer, inv *
 	}
 
 	return false, fmt.Errorf("Anda tidak memiliki akses ke hasil ini")
+}
+
+// Score-to-category classification helpers for Go PDF reports
+func getCategoryFromSW(sw int) string {
+	if sw >= 120 {
+		return "Sangat Baik"
+	}
+	if sw >= 110 {
+		return "Baik"
+	}
+	if sw >= 100 {
+		return "Cukup Baik"
+	}
+	if sw >= 90 {
+		return "Cukup"
+	}
+	if sw >= 80 {
+		return "Kurang"
+	}
+	return "Kurang Sekali"
+}
+
+func getHollandCategory(score int) string {
+	if score >= 25 {
+		return "Sangat Baik"
+	}
+	if score >= 18 {
+		return "Baik"
+	}
+	if score >= 12 {
+		return "Cukup Baik"
+	}
+	if score >= 6 {
+		return "Cukup"
+	}
+	return "Kurang"
+}
+
+func getVAKCategory(score int) string {
+	if score >= 15 {
+		return "Sangat Baik"
+	}
+	if score >= 12 {
+		return "Baik"
+	}
+	if score >= 8 {
+		return "Cukup Baik"
+	}
+	if score >= 5 {
+		return "Cukup"
+	}
+	return "Kurang"
+}
+
+func getRMIBCategory(rank int) string {
+	if rank <= 3 {
+		return "Sangat Baik"
+	}
+	if rank <= 6 {
+		return "Baik"
+	}
+	if rank <= 9 {
+		return "Cukup Baik"
+	}
+	return "Kurang"
+}
+
+func getPAPICategory(score int) string {
+	if score >= 8 {
+		return "Sangat Baik"
+	}
+	if score >= 6 {
+		return "Baik"
+	}
+	if score >= 4 {
+		return "Cukup Baik"
+	}
+	if score == 3 {
+		return "Cukup"
+	}
+	return "Kurang"
+}
+
+func getKraepelinCategory(score float64, aspectType string) string {
+	if aspectType == "kecepatan" || aspectType == "ketahanan" {
+		if score >= 180 {
+			return "Sangat Baik"
+		}
+		if score >= 130 {
+			return "Baik"
+		}
+		if score >= 90 {
+			return "Cukup Baik"
+		}
+		if score >= 60 {
+			return "Cukup"
+		}
+		return "Kurang"
+	} else if aspectType == "ketelitian" {
+		if score <= 5 {
+			return "Sangat Baik"
+		}
+		if score <= 15 {
+			return "Baik"
+		}
+		if score <= 25 {
+			return "Cukup Baik"
+		}
+		if score <= 40 {
+			return "Cukup"
+		}
+		return "Kurang"
+	} else if aspectType == "konsentrasi" {
+		if score >= 95 {
+			return "Sangat Baik"
+		}
+		if score >= 85 {
+			return "Baik"
+		}
+		if score >= 75 {
+			return "Cukup Baik"
+		}
+		if score >= 60 {
+			return "Cukup"
+		}
+		return "Kurang"
+	}
+	return "Kurang"
 }
 
 // generateProfessionalPDFReport renders the 1st page narrative report professionally using gofpdf
@@ -3635,8 +3854,35 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			pdf.Ln(1)
 			pdf.SetFont("Arial", "", 9)
 			pdf.CellFormat(0, 4.5, fmt.Sprintf("Kode RIASEC Dominan (Top 3): %s", hol.Code), "", 1, "L", false, 0, "")
-			pdf.CellFormat(0, 4.5, fmt.Sprintf("Detail Skor: Realistic=%d, Investigative=%d, Artistic=%d, Social=%d, Enterprising=%d, Conventional=%d", hol.ScoreR, hol.ScoreI, hol.ScoreA, hol.ScoreS, hol.ScoreE, hol.ScoreC), "", 1, "L", false, 0, "")
-			pdf.Ln(2)
+			pdf.Ln(1.5)
+
+			// Table Header
+			pdf.SetFont("Arial", "B", 8.5)
+			pdf.SetFillColor(240, 240, 240)
+			pdf.CellFormat(15, 5.5, "No", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(115, 5.5, "Aspek Minat Holland", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(50, 5.5, "Kategori", "1", 1, "C", true, 0, "")
+
+			aspects := []struct {
+				No   int
+				Name string
+				Cat  string
+			}{
+				{1, "Realistic (R)", getHollandCategory(hol.ScoreR)},
+				{2, "Investigative (I)", getHollandCategory(hol.ScoreI)},
+				{3, "Artistic (A)", getHollandCategory(hol.ScoreA)},
+				{4, "Social (S)", getHollandCategory(hol.ScoreS)},
+				{5, "Enterprising (E)", getHollandCategory(hol.ScoreE)},
+				{6, "Conventional (C)", getHollandCategory(hol.ScoreC)},
+			}
+
+			pdf.SetFont("Arial", "", 8.5)
+			for _, a := range aspects {
+				pdf.CellFormat(15, 5, fmt.Sprintf("%d", a.No), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(115, 5, a.Name, "1", 0, "L", false, 0, "")
+				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
+			}
+			pdf.Ln(2.5)
 			
 			summaryText, _ := summaryData["summary"].(string)
 			if summaryText != "" {
@@ -3660,23 +3906,60 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			}
 			parsed := map[string]entry{}
 			_ = json.Unmarshal([]byte(rmib.ResultJSON), &parsed)
-			var sorted []entry
-			for _, e := range parsed {
-				sorted = append(sorted, e)
+			
+			codes := []string{"OUT", "MEC", "COMP", "SCI", "PERS", "AEST", "MUS", "LIT", "SOC", "CLER", "PRAC", "MED"}
+			labels := map[string]string{
+				"OUT": "Outdoor", "MEC": "Mechanical", "COMP": "Computational", "SCI": "Scientific",
+				"PERS": "Personal Contact", "AEST": "Aesthetic", "MUS": "Musical", "LIT": "Literary",
+				"SOC": "Social Service", "CLER": "Clerical", "PRAC": "Practical", "MED": "Medical",
 			}
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Rank < sorted[j].Rank
+			
+			type aspectRow struct {
+				Name string
+				Rank int
+				Cat  string
+			}
+			var aspects []aspectRow
+			for _, c := range codes {
+				item := parsed[c]
+				rank := item.Rank
+				if rank == 0 {
+					rank = 12
+				}
+				aspects = append(aspects, aspectRow{
+					Name: labels[c] + " (" + c + ")",
+					Rank: rank,
+					Cat:  getRMIBCategory(rank),
+				})
+			}
+			sort.Slice(aspects, func(i, j int) bool {
+				return aspects[i].Rank < aspects[j].Rank
 			})
 			
 			var top3 []string
-			for idx, s := range sorted {
+			for idx, s := range aspects {
 				if idx >= 3 {
 					break
 				}
-				top3 = append(top3, fmt.Sprintf("%s (Peringkat %d)", s.Label, s.Rank))
+				top3 = append(top3, fmt.Sprintf("%s (Peringkat %d)", s.Name, s.Rank))
 			}
 			pdf.CellFormat(0, 4.5, "Minat Teratas (Top 3): "+strings.Join(top3, ", "), "", 1, "L", false, 0, "")
-			pdf.Ln(2)
+			pdf.Ln(1.5)
+
+			// Table Header
+			pdf.SetFont("Arial", "B", 8.5)
+			pdf.SetFillColor(240, 240, 240)
+			pdf.CellFormat(15, 5.5, "No", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(115, 5.5, "Aspek Minat RMIB", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(50, 5.5, "Kategori", "1", 1, "C", true, 0, "")
+
+			pdf.SetFont("Arial", "", 8.5)
+			for i, a := range aspects {
+				pdf.CellFormat(15, 5, fmt.Sprintf("%d", i+1), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(115, 5, a.Name, "1", 0, "L", false, 0, "")
+				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
+			}
+			pdf.Ln(2.5)
 			
 			summaryText, _ := summaryData["summary"].(string)
 			if summaryText != "" {
@@ -3692,16 +3975,33 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			pdf.CellFormat(0, 4.5, "2. PROFIL GAYA BELAJAR (VAK)", "", 1, "L", false, 0, "")
 			pdf.Ln(1)
 			pdf.SetFont("Arial", "", 9)
-			tot := vak.ScoreVisual + vak.ScoreAuditory + vak.ScoreKinesthetic
-			vPct, aPct, kPct := 0.0, 0.0, 0.0
-			if tot > 0 {
-				vPct = float64(vak.ScoreVisual) / float64(tot) * 100.0
-				aPct = float64(vak.ScoreAuditory) / float64(tot) * 100.0
-				kPct = float64(vak.ScoreKinesthetic) / float64(tot) * 100.0
-			}
-			pdf.CellFormat(0, 4.5, fmt.Sprintf("Skor / Persentase: Visual=%d (%.1f%%), Auditori=%d (%.1f%%), Kinestetik=%d (%.1f%%)", vak.ScoreVisual, vPct, vak.ScoreAuditory, aPct, vak.ScoreKinesthetic, kPct), "", 1, "L", false, 0, "")
 			pdf.CellFormat(0, 4.5, fmt.Sprintf("Gaya Belajar Dominan: %s", vak.DominantType), "", 1, "L", false, 0, "")
-			pdf.Ln(2)
+			pdf.Ln(1.5)
+
+			// Table Header
+			pdf.SetFont("Arial", "B", 8.5)
+			pdf.SetFillColor(240, 240, 240)
+			pdf.CellFormat(15, 5.5, "No", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(115, 5.5, "Aspek Gaya Belajar", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(50, 5.5, "Kategori", "1", 1, "C", true, 0, "")
+
+			aspects := []struct {
+				No   int
+				Name string
+				Score int
+			}{
+				{1, "Visual", vak.ScoreVisual},
+				{2, "Auditori", vak.ScoreAuditory},
+				{3, "Kinestetik", vak.ScoreKinesthetic},
+			}
+
+			pdf.SetFont("Arial", "", 8.5)
+			for _, a := range aspects {
+				pdf.CellFormat(15, 5, fmt.Sprintf("%d", a.No), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(115, 5, a.Name, "1", 0, "L", false, 0, "")
+				pdf.CellFormat(50, 5, getVAKCategory(a.Score), "1", 1, "C", false, 0, "")
+			}
+			pdf.Ln(2.5)
 
 			summaryText, _ := summaryData["summary"].(string)
 			if summaryText != "" {
@@ -3718,10 +4018,55 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			pdf.Ln(1)
 			pdf.SetFont("Arial", "", 9)
 			pdf.CellFormat(0, 4.5, fmt.Sprintf("Kategori Perilaku Dominan: %s", papi.DominantCategory), "", 1, "L", false, 0, "")
-			if papi.TopCategories != "" {
-				pdf.CellFormat(0, 4.5, fmt.Sprintf("Aspek Menonjol: %s", papi.TopCategories), "", 1, "L", false, 0, "")
+			pdf.Ln(1.5)
+
+			type entry struct {
+				Label string `json:"label"`
+				Score int    `json:"score"`
+				Rank  int    `json:"rank"`
 			}
-			pdf.Ln(2)
+			parsed := map[string]entry{}
+			_ = json.Unmarshal([]byte(papi.ResultJSON), &parsed)
+
+			codes := []string{"G", "L", "I", "T", "V", "S", "R", "D", "C", "E", "N", "A", "P", "X", "B", "O", "Z", "K", "F", "W"}
+			labels := map[string]string{
+				"G": "Pekerja keras", "L": "Kepemimpinan", "I": "Mudah membuat keputusan",
+				"T": "Tipe orang yang sibuk", "V": "Tipe orang yang bersemangat",
+				"S": "Hubungan sosial luas", "R": "Tipe teoritis",
+				"D": "Tipe orang teratur", "C": "Mengatur/mengorganisir",
+				"E": "Pengendalian emosi", "N": "Penyelesaian mandiri",
+				"A": "Kebutuhan berprestasi", "P": "Mengatur orang lain",
+				"X": "Untuk mendapat perhatian", "B": "Diterima kelompok",
+				"O": "Hubungan akrab", "Z": "Hasrat berubah",
+				"K": "Agresi", "F": "Mendukung atasan", "W": "Mengikuti aturan",
+			}
+
+			// Draw 2-column table header
+			pdf.SetFont("Arial", "B", 7.5)
+			pdf.SetFillColor(240, 240, 240)
+			pdf.CellFormat(60, 4.5, "Aspek Kepribadian", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(25, 4.5, "Kategori", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(10, 4.5, "", "", 0, "C", false, 0, "") // spacer
+			pdf.CellFormat(60, 4.5, "Aspek Kepribadian", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(25, 4.5, "Kategori", "1", 1, "C", true, 0, "")
+
+			pdf.SetFont("Arial", "", 7.5)
+			for i := 0; i < 10; i++ {
+				cLeft := codes[i]
+				itemLeft := parsed[cLeft]
+				catLeft := getPAPICategory(itemLeft.Score)
+
+				cRight := codes[i+10]
+				itemRight := parsed[cRight]
+				catRight := getPAPICategory(itemRight.Score)
+
+				pdf.CellFormat(60, 3.8, fmt.Sprintf("%s - %s", cLeft, labels[cLeft]), "1", 0, "L", false, 0, "")
+				pdf.CellFormat(25, 3.8, catLeft, "1", 0, "C", false, 0, "")
+				pdf.CellFormat(10, 3.8, "", "", 0, "C", false, 0, "") // spacer
+				pdf.CellFormat(60, 3.8, fmt.Sprintf("%s - %s", cRight, labels[cRight]), "1", 0, "L", false, 0, "")
+				pdf.CellFormat(25, 3.8, catRight, "1", 1, "C", false, 0, "")
+			}
+			pdf.Ln(2.5)
 
 			summaryText, _ := summaryData["summary"].(string)
 			if summaryText != "" {
@@ -3730,6 +4075,97 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.SetFont("Arial", "", 9)
 				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
 			}
+		}
+	} else if testType == "IST" {
+		if ist, ok := resultData.(models.ISTResult); ok {
+			pdf.SetFont("Arial", "B", 9.5)
+			pdf.CellFormat(0, 4.5, "2. ASPEK INTELEKTUAL SPESIFIK (IST)", "", 1, "L", false, 0, "")
+			pdf.Ln(1)
+
+			// Table Header
+			pdf.SetFont("Arial", "B", 8.5)
+			pdf.SetFillColor(240, 240, 240)
+			pdf.CellFormat(15, 5.5, "No", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(115, 5.5, "Aspek Intelektual", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(50, 5.5, "Kategori", "1", 1, "C", true, 0, "")
+
+			avgSW := func(vals ...int) int {
+				sum := 0
+				n := 0
+				for _, v := range vals {
+					if v > 0 {
+						sum += v
+						n++
+					}
+				}
+				if n == 0 {
+					return 0
+				}
+				return sum / n
+			}
+
+			se, wa, an, ge, ra, za, fa, wu, me := ist.StdSE, ist.StdWA, ist.StdAN, ist.StdGE, ist.StdRA, ist.StdZA, ist.StdFA, ist.StdWU, ist.StdME
+			aspects := []struct {
+				No   int
+				Name string
+				Cat  string
+			}{
+				{1, "Penalaran Konkret", getCategoryFromSW(avgSW(se, ge))},
+				{2, "Penalaran Verbal", getCategoryFromSW(avgSW(se, wa, ge))},
+				{3, "Daya Analisis", getCategoryFromSW(an)},
+				{4, "Penalaran Abstrak", getCategoryFromSW(za)},
+				{5, "Daya Ingat", getCategoryFromSW(me)},
+				{6, "Kemampuan Berhitung", getCategoryFromSW(ra)},
+				{7, "Analogi Angka", getCategoryFromSW(za)},
+				{8, "Daya Bayang Konstruksional", getCategoryFromSW(fa)},
+				{9, "Daya Bayang Ruang", getCategoryFromSW(wu)},
+			}
+
+			pdf.SetFont("Arial", "", 8.5)
+			for _, a := range aspects {
+				pdf.CellFormat(15, 5, fmt.Sprintf("%d", a.No), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(115, 5, a.Name, "1", 0, "L", false, 0, "")
+				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
+			}
+			pdf.Ln(2.5)
+		}
+	} else if testType == "Kraepelin" {
+		if krp, ok := resultData.(models.KraepelinAttempt); ok {
+			pdf.SetFont("Arial", "B", 9.5)
+			pdf.CellFormat(0, 4.5, "2. HASIL PENGUKURAN SPESIFIK (Kraepelin)", "", 1, "L", false, 0, "")
+			pdf.Ln(1)
+
+			tot := krp.TotalCorrect + krp.TotalErrors + krp.TotalSkipped
+			acc := 0.0
+			if tot > 0 {
+				acc = float64(krp.TotalCorrect) / float64(tot) * 100.0
+			}
+
+			// Table Header
+			pdf.SetFont("Arial", "B", 8.5)
+			pdf.SetFillColor(240, 240, 240)
+			pdf.CellFormat(15, 5.5, "No", "1", 0, "C", true, 0, "")
+			pdf.CellFormat(115, 5.5, "Aspek Performansi Kerja", "1", 0, "L", true, 0, "")
+			pdf.CellFormat(50, 5.5, "Kategori", "1", 1, "C", true, 0, "")
+
+			aspects := []struct {
+				No   int
+				Name string
+				Cat  string
+			}{
+				{1, "Kecepatan Kerja", getKraepelinCategory(float64(krp.TotalCorrect), "kecepatan")},
+				{2, "Ketelitian Kerja", getKraepelinCategory(float64(krp.TotalErrors), "ketelitian")},
+				{3, "Konsentrasi Kerja", getKraepelinCategory(acc, "konsentrasi")},
+				{4, "Ketahanan Kerja", getKraepelinCategory(float64(krp.TotalCorrect), "ketahanan")},
+			}
+
+			pdf.SetFont("Arial", "", 8.5)
+			for _, a := range aspects {
+				pdf.CellFormat(15, 5, fmt.Sprintf("%d", a.No), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(115, 5, a.Name, "1", 0, "L", false, 0, "")
+				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
+			}
+			pdf.Ln(2.5)
 		}
 	}
 	pdf.Ln(3)
@@ -3907,3 +4343,722 @@ func parseArrayOrString(val interface{}) []string {
 	}
 	return nil
 }
+
+// generateComprehensivePDFReport renders a multi-page, comprehensive report of all test tools completed in a batch.
+func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, inv *models.TestInvitation, user *models.User, batch *models.TestBatch) ([]byte, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetTitle("Laporan Hasil Asesmen Keseluruhan", false)
+	pdf.SetMargins(15, 15, 15)
+
+	// Fetch all results
+	var istRes models.ISTResult
+	_ = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&istRes)
+
+	var hollandRes models.HollandResult
+	_ = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&hollandRes)
+
+	var learningRes models.LearningStyleResult
+	_ = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&learningRes)
+
+	var kraepelinRes models.KraepelinAttempt
+	_ = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&kraepelinRes)
+
+	var rmibRes models.RMIBResult
+	_ = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&rmibRes)
+
+	var papiRes models.PAPIResult
+	_ = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&papiRes)
+
+	// Build results map
+	resultsMap := map[string]interface{}{}
+	var completedTestNames []string
+	if istRes.Id > 0 {
+		resultsMap["ist"] = istRes
+		completedTestNames = append(completedTestNames, "IST")
+	}
+	if hollandRes.Id > 0 {
+		resultsMap["holland"] = hollandRes
+		completedTestNames = append(completedTestNames, "HOLLAND")
+	}
+	if learningRes.Id > 0 {
+		resultsMap["learning_style"] = learningRes
+		completedTestNames = append(completedTestNames, "VAK")
+	}
+	if kraepelinRes.Id > 0 {
+		resultsMap["kraepelin"] = kraepelinRes
+		completedTestNames = append(completedTestNames, "KRAEPELIN")
+	}
+	if rmibRes.Id > 0 {
+		resultsMap["rmib"] = rmibRes
+		completedTestNames = append(completedTestNames, "RMIB")
+	}
+	if papiRes.Id > 0 {
+		resultsMap["papi"] = papiRes
+		completedTestNames = append(completedTestNames, "PAPI")
+	}
+
+	nama := user.NamaLengkap
+	if nama == "" {
+		nama = inv.Email
+	}
+
+	combinedSummary, err := GetOrGenerateCombinedSummaryInternal(nama, batch.Name, resultsMap)
+	if err != nil {
+		logs.Error("Combined report: failed to generate combined summary: %v", err)
+	}
+
+	// Set Footer callback (applies automatically to AddPage)
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-22)
+		pdf.SetLineWidth(0.2)
+		pdf.SetDrawColor(200, 200, 200)
+		pdf.Line(15, pdf.GetY(), 195, pdf.GetY())
+		pdf.Ln(2)
+		
+		pdf.SetFont("Arial", "", 7)
+		pdf.SetTextColor(100, 100, 100)
+		pdf.CellFormat(0, 3, "KANAGATA INSTITUTE", "", 1, "R", false, 0, "")
+		pdf.CellFormat(0, 3, "RUMAH SADANARA, Jl. Maatum No.2, RT.10/RW.5, Utan Kayu Utara, Kec. Matraman, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta 13120", "", 1, "R", false, 0, "")
+		pdf.CellFormat(0, 3, "Whatsapp : +62 81110811188 | www.kanagata.co.id | kanagata@sadanara.co.id", "", 1, "R", false, 0, "")
+	})
+
+	addNewPage := func() {
+		pdf.AddPage()
+		// Watermark background
+		pdf.SetAlpha(0.03, "Normal")
+		pdf.Image("static/icons/icon_psikologi_kanagata.png", 40, 80, 130, 130, false, "", 0, "")
+		pdf.SetAlpha(1.0, "Normal")
+		
+		// Page Header (on Page 2+)
+		if pdf.PageNo() > 1 {
+			pdf.Image("static/icons/icon_psikologi_kanagata.png", 95, 8, 16, 16, false, "", 0, "")
+			pdf.SetY(25)
+			pdf.SetTextColor(0, 0, 0)
+			pdf.SetFont("Arial", "B", 9)
+			pdf.CellFormat(0, 4, "KANAGATA INSTITUTE", "", 1, "C", false, 0, "")
+			pdf.Ln(3)
+		}
+	}
+
+	// PAGE 1
+	addNewPage()
+
+	// Title block on Page 1
+	pdf.Image("static/icons/icon_psikologi_kanagata.png", 91, 10, 28, 28, false, "", 0, "")
+	pdf.SetY(39)
+	pdf.SetFont("Arial", "B", 12)
+	pdf.CellFormat(0, 5, "KANAGATA INSTITUTE", "", 1, "C", false, 0, "")
+	pdf.Ln(2)
+	pdf.SetFont("Arial", "B", 11)
+	pdf.CellFormat(0, 5, "SMART PSIKOTEST STUDENT REPORT", "", 1, "C", false, 0, "")
+	pdf.Ln(8)
+
+	// Participant Info
+	gender := "-"
+	if user.JenisKelamin == models.GenderLakiLaki {
+		gender = "LAKI-LAKI"
+	} else if user.JenisKelamin == models.GenderPerempuan {
+		gender = "PEREMPUAN"
+	}
+	age := 0
+	if user.TanggalLahir != nil {
+		age = utils.AgeYears(*user.TanggalLahir, time.Now())
+	}
+	usiaStr := "-"
+	if age > 0 {
+		usiaStr = fmt.Sprintf("%d TAHUN", age)
+	}
+	sekolah := batch.Sekolah
+	if sekolah == "" {
+		sekolah = user.Sekolah
+	}
+	if sekolah == "" {
+		sekolah = batch.Institution
+	}
+	if sekolah == "" {
+		sekolah = "-"
+	}
+	kelas := batch.Kelas
+	if kelas == "" {
+		kelas = user.Kelas
+	}
+	if kelas == "" {
+		kelas = "-"
+	}
+	tglPeriksa := inv.UsedAt.Format("02 January 2006")
+	if inv.UsedAt.IsZero() {
+		tglPeriksa = inv.CreatedAt.Format("02 January 2006")
+	}
+	alatTestUsed := strings.Join(completedTestNames, ", ")
+
+	drawRow := func(label, val string) {
+		pdf.SetFont("Arial", "", 9.5)
+		pdf.CellFormat(65, 5.5, label, "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 5.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5.5, val, "", 1, "L", false, 0, "")
+	}
+
+	drawRow("NAMA", strings.ToUpper(nama))
+	drawRow("USIA", strings.ToUpper(usiaStr))
+	drawRow("JENIS KELAMIN", strings.ToUpper(gender))
+	drawRow("KELAS", strings.ToUpper(kelas))
+	drawRow("ASAL SEKOLAH", strings.ToUpper(sekolah))
+	drawRow("TANGGAL ASESMEN", strings.ToUpper(tglPeriksa))
+	drawRow("ALAT TEST YANG DIGUNAKAN", strings.ToUpper(alatTestUsed))
+	pdf.Ln(6)
+
+	// Section 1: Narrative Summary
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.SetTextColor(220, 38, 38) // red
+	pdf.CellFormat(0, 6, "(PROFIL SISWA DARI SUMMARY SEMUA ALAT TEST)", "", 1, "L", false, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(3)
+
+	pdf.SetFont("Arial", "", 9)
+	kesimpulanText := ""
+	if combinedSummary != nil {
+		if k, ok := combinedSummary["kesimpulan_gabungan"].(string); ok {
+			kesimpulanText = k
+		}
+	}
+	if kesimpulanText == "" {
+		kesimpulanText = fmt.Sprintf("Berdasarkan hasil asesmen yang dilaksanakan, %s menunjukkan profil psikologis yang bervariasi sesuai dengan alat tes yang digunakan. Analisis lengkap per aspek terlampir pada halaman berikutnya.", nama)
+	}
+
+	paragraphs := strings.Split(kesimpulanText, "\n")
+	for _, p := range paragraphs {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		pdf.MultiCell(0, 4.5, p, "", "L", false)
+		pdf.Ln(3)
+	}
+
+	// Helper to draw check box bullets
+	drawBulletItem := func(text string) {
+		x := pdf.GetX()
+		y := pdf.GetY()
+		
+		// Check Y page overflow space
+		if y + 6 > 270 {
+			addNewPage()
+			y = pdf.GetY()
+			x = pdf.GetX()
+		}
+		
+		pdf.SetLineWidth(0.2)
+		pdf.SetDrawColor(0, 0, 0)
+		pdf.Rect(x, y+0.8, 3.2, 3.2, "D")
+		pdf.Line(x+0.7, y+2.2, x+1.4, y+3.0)
+		pdf.Line(x+1.4, y+3.0, x+2.6, y+1.3)
+		
+		pdf.SetXY(x + 5.5, y)
+		pdf.SetFont("Arial", "", 8.5)
+		pdf.MultiCell(0, 4.5, text, "", "L", false)
+		pdf.Ln(1)
+	}
+
+	checkPageSpace := func(h float64) {
+		if pdf.GetY() + h > 270 {
+			addNewPage()
+		}
+	}
+
+	// PAGE 2+: STUDENT POTENTIAL
+	addNewPage()
+
+	pdf.SetFont("Arial", "B", 10.5)
+	pdf.SetTextColor(220, 38, 38) // red
+	pdf.CellFormat(0, 6, "STUDENT POTENTIAL (KESIMPULAN DARI HASIL MASING-MASING ALAT TEST)", "", 1, "L", false, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(4)
+
+	// Loop completed tests
+	var testIndex = 0
+
+	// 1. IST
+	if istRes.Id > 0 {
+		testIndex++
+		checkPageSpace(60)
+		
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5, fmt.Sprintf("%d. KEMAMPUAN KOGNITIF (IST)", testIndex), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Intelligence Quotient (IQ)", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, fmt.Sprintf("%d", istRes.IQ), "", 1, "L", false, 0, "")
+		
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Kategori", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, istRes.IQCategory, "", 1, "L", false, 0, "")
+		pdf.Ln(3)
+
+		// Table
+		pdf.SetFillColor(240, 240, 240)
+		pdf.SetFont("Arial", "B", 8)
+		pdf.CellFormat(120, 5.5, "ASPEK", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(60, 5.5, "PENILAIAN", "1", 1, "C", true, 0, "")
+		
+		avgSW := func(vals ...int) int {
+			sum, n := 0, 0
+			for _, v := range vals {
+				if v > 0 {
+					sum += v
+					n++
+				}
+			}
+			if n == 0 {
+				return 0
+			}
+			return sum / n
+		}
+		se, wa, an, ge, ra, za, fa, wu, me := istRes.StdSE, istRes.StdWA, istRes.StdAN, istRes.StdGE, istRes.StdRA, istRes.StdZA, istRes.StdFA, istRes.StdWU, istRes.StdME
+		aspects := []struct {
+			Name string
+			Cat  string
+		}{
+			{"Kemampuan Verbal", getCategoryFromSW(avgSW(se, wa, ge))},
+			{"Kemampuan Numerik", getCategoryFromSW(avgSW(ra, za))},
+			{"Kemampuan Analitis dan Logika", getCategoryFromSW(an)},
+			{"Kemampuan Visual dan Spasial", getCategoryFromSW(avgSW(fa, wu))},
+			{"Kemampuan Memori dan Konsentrasi", getCategoryFromSW(me)},
+		}
+		
+		pdf.SetFont("Arial", "", 8)
+		for _, a := range aspects {
+			pdf.CellFormat(120, 5, a.Name, "1", 0, "L", false, 0, "")
+			pdf.CellFormat(60, 5, a.Cat, "1", 1, "C", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		istSummary, _ := GetOrGenerateTestSummaryInternal(o, "IST", istRes, nama)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8.5)
+		istConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["ist"].(string)
+		if istConcl == "" {
+			istConcl, _ = istSummary["summary"].(string)
+		}
+		pdf.MultiCell(0, 4, istConcl, "", "L", false)
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Kekuatan Utama", "", 1, "L", false, 0, "")
+		for _, k := range parseArrayOrString(istSummary["kekuatan"]) {
+			drawBulletItem(k)
+		}
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+		for _, r := range parseArrayOrString(istSummary["rekomendasi_siswa"]) {
+			drawBulletItem(r)
+		}
+		pdf.Ln(4)
+	}
+
+	// 2. HOLLAND
+	if hollandRes.Id > 0 {
+		testIndex++
+		checkPageSpace(60)
+		
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5, fmt.Sprintf("%d. MINAT DAN BAKAT (HOLLAND)", testIndex), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Kode RIASEC", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, hollandRes.Code, "", 1, "L", false, 0, "")
+		
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Minat Teratas", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, strings.Join([]string{hollandRes.Top1, hollandRes.Top2, hollandRes.Top3}, " -> "), "", 1, "L", false, 0, "")
+		pdf.Ln(3)
+
+		// Table
+		pdf.SetFillColor(240, 240, 240)
+		pdf.SetFont("Arial", "B", 8)
+		pdf.CellFormat(120, 5.5, "ASPEK MINAT HOLLAND", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(60, 5.5, "PENILAIAN", "1", 1, "C", true, 0, "")
+
+		aspects := []struct {
+			Name string
+			Cat  string
+		}{
+			{"Realistic (R)", getHollandCategory(hollandRes.ScoreR)},
+			{"Investigative (I)", getHollandCategory(hollandRes.ScoreI)},
+			{"Artistic (A)", getHollandCategory(hollandRes.ScoreA)},
+			{"Social (S)", getHollandCategory(hollandRes.ScoreS)},
+			{"Enterprising (E)", getHollandCategory(hollandRes.ScoreE)},
+			{"Conventional (C)", getHollandCategory(hollandRes.ScoreC)},
+		}
+		
+		pdf.SetFont("Arial", "", 8)
+		for _, a := range aspects {
+			pdf.CellFormat(120, 5, a.Name, "1", 0, "L", false, 0, "")
+			pdf.CellFormat(60, 5, a.Cat, "1", 1, "C", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		hollandSummary, _ := GetOrGenerateTestSummaryInternal(o, "Holland", hollandRes, nama)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8.5)
+		hollandConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["holland"].(string)
+		if hollandConcl == "" {
+			hollandConcl, _ = hollandSummary["summary"].(string)
+		}
+		pdf.MultiCell(0, 4, hollandConcl, "", "L", false)
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Kekuatan Utama", "", 1, "L", false, 0, "")
+		for _, k := range parseArrayOrString(hollandSummary["kekuatan"]) {
+			drawBulletItem(k)
+		}
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+		for _, r := range parseArrayOrString(hollandSummary["rekomendasi_siswa"]) {
+			drawBulletItem(r)
+		}
+		pdf.Ln(4)
+	}
+
+	// 3. VAK (Learning Style)
+	if learningRes.Id > 0 {
+		testIndex++
+		checkPageSpace(60)
+		
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5, fmt.Sprintf("%d. GAYA BELAJAR (VAK)", testIndex), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Gaya Belajar Dominan", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, learningRes.DominantType, "", 1, "L", false, 0, "")
+		pdf.Ln(3)
+
+		// Table
+		pdf.SetFillColor(240, 240, 240)
+		pdf.SetFont("Arial", "B", 8)
+		pdf.CellFormat(120, 5.5, "ASPEK GAYA BELAJAR", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(60, 5.5, "PENILAIAN", "1", 1, "C", true, 0, "")
+
+		aspects := []struct {
+			Name string
+			Cat  string
+		}{
+			{"Visual", getVAKCategory(learningRes.ScoreVisual)},
+			{"Auditori", getVAKCategory(learningRes.ScoreAuditory)},
+			{"Kinestetik", getVAKCategory(learningRes.ScoreKinesthetic)},
+		}
+		
+		pdf.SetFont("Arial", "", 8)
+		for _, a := range aspects {
+			pdf.CellFormat(120, 5, a.Name, "1", 0, "L", false, 0, "")
+			pdf.CellFormat(60, 5, a.Cat, "1", 1, "C", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		vakSummary, _ := GetOrGenerateTestSummaryInternal(o, "Gaya_Belajar", learningRes, nama)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8.5)
+		vakConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["learning_style"].(string)
+		if vakConcl == "" {
+			vakConcl, _ = vakSummary["summary"].(string)
+		}
+		pdf.MultiCell(0, 4, vakConcl, "", "L", false)
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Kekuatan Utama", "", 1, "L", false, 0, "")
+		for _, k := range parseArrayOrString(vakSummary["kekuatan"]) {
+			drawBulletItem(k)
+		}
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+		for _, r := range parseArrayOrString(vakSummary["rekomendasi_siswa"]) {
+			drawBulletItem(r)
+		}
+		pdf.Ln(4)
+	}
+
+	// 4. RMIB
+	if rmibRes.Id > 0 {
+		testIndex++
+		checkPageSpace(60)
+		
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5, fmt.Sprintf("%d. MINAT PEKERJAAN (RMIB)", testIndex), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Minat Dominan", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, rmibRes.DominantCategory, "", 1, "L", false, 0, "")
+		
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Urutan Minat (Top 3)", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, strings.Join([]string{rmibRes.Top1, rmibRes.Top2, rmibRes.Top3}, " -> "), "", 1, "L", false, 0, "")
+		pdf.Ln(3)
+
+		// Table
+		pdf.SetFillColor(240, 240, 240)
+		pdf.SetFont("Arial", "B", 8)
+		pdf.CellFormat(120, 5.5, "ASPEK MINAT RMIB", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(60, 5.5, "PENILAIAN", "1", 1, "C", true, 0, "")
+
+		type entry struct {
+			Label string `json:"label"`
+			Score int    `json:"score"`
+			Rank  int    `json:"rank"`
+		}
+		parsed := map[string]entry{}
+		_ = json.Unmarshal([]byte(rmibRes.ResultJSON), &parsed)
+		
+		codes := []string{"OUT", "MEC", "COMP", "SCI", "PERS", "AEST", "MUS", "LIT", "SOC", "CLER", "PRAC", "MED"}
+		labels := map[string]string{
+			"OUT": "Outdoor", "MEC": "Mechanical", "COMP": "Computational", "SCI": "Scientific",
+			"PERS": "Personal Contact", "AEST": "Aesthetic", "MUS": "Musical", "LIT": "Literary",
+			"SOC": "Social Service", "CLER": "Clerical", "PRAC": "Practical", "MED": "Medical",
+		}
+		
+		type aspectRow struct {
+			Name string
+			Rank int
+			Cat  string
+		}
+		var aspects []aspectRow
+		for _, c := range codes {
+			item := parsed[c]
+			rank := item.Rank
+			if rank == 0 {
+				rank = 12
+			}
+			aspects = append(aspects, aspectRow{
+				Name: labels[c] + " (" + c + ")",
+				Rank: rank,
+				Cat:  getRMIBCategory(rank),
+			})
+		}
+		sort.Slice(aspects, func(i, j int) bool {
+			return aspects[i].Rank < aspects[j].Rank
+		})
+
+		pdf.SetFont("Arial", "", 8)
+		// Limit to top 5 for comprehensive report to save space
+		for i, a := range aspects {
+			if i >= 5 {
+				break
+			}
+			pdf.CellFormat(120, 5, fmt.Sprintf("%d. %s", i+1, a.Name), "1", 0, "L", false, 0, "")
+			pdf.CellFormat(60, 5, a.Cat, "1", 1, "C", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		rmibSummary, _ := GetOrGenerateTestSummaryInternal(o, "RMIB", rmibRes, nama)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8.5)
+		rmibConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["rmib"].(string)
+		if rmibConcl == "" {
+			rmibConcl, _ = rmibSummary["summary"].(string)
+		}
+		pdf.MultiCell(0, 4, rmibConcl, "", "L", false)
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Kekuatan Utama", "", 1, "L", false, 0, "")
+		for _, k := range parseArrayOrString(rmibSummary["kekuatan"]) {
+			drawBulletItem(k)
+		}
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+		for _, r := range parseArrayOrString(rmibSummary["rekomendasi_siswa"]) {
+			drawBulletItem(r)
+		}
+		pdf.Ln(4)
+	}
+
+	// 5. PAPI
+	if papiRes.Id > 0 {
+		testIndex++
+		checkPageSpace(70)
+		
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5, fmt.Sprintf("%d. KEPRIBADIAN KERJA (PAPI)", testIndex), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 9)
+		pdf.CellFormat(40, 4.5, "Kategori Dominan", "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 4.5, ":", "", 0, "L", false, 0, "")
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 4.5, papiRes.DominantCategory, "", 1, "L", false, 0, "")
+		pdf.Ln(3)
+
+		// 2-Column Table of Aspect Categories
+		pdf.SetFont("Arial", "B", 7.5)
+		pdf.SetFillColor(240, 240, 240)
+		pdf.CellFormat(60, 4.5, "Aspek Kepribadian", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(25, 4.5, "Kategori", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(10, 4.5, "", "", 0, "C", false, 0, "") // spacer
+		pdf.CellFormat(60, 4.5, "Aspek Kepribadian", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(25, 4.5, "Kategori", "1", 1, "C", true, 0, "")
+
+		type entry struct {
+			Label string `json:"label"`
+			Score int    `json:"score"`
+			Rank  int    `json:"rank"`
+		}
+		parsed := map[string]entry{}
+		_ = json.Unmarshal([]byte(papiRes.ResultJSON), &parsed)
+
+		codes := []string{"G", "L", "I", "T", "V", "S", "R", "D", "C", "E", "N", "A", "P", "X", "B", "O", "Z", "K", "F", "W"}
+		labels := map[string]string{
+			"G": "Pekerja keras", "L": "Kepemimpinan", "I": "Mudah mengambil keputusan",
+			"T": "Tipe orang sibuk", "V": "Tipe orang bersemangat",
+			"S": "Hubungan sosial luas", "R": "Tipe teoritis",
+			"D": "Tipe orang teratur", "C": "Mengorganisir",
+			"E": "Pengendalian emosi", "N": "Penyelesaian mandiri",
+			"A": "Kebutuhan berprestasi", "P": "Mengatur orang lain",
+			"X": "Untuk mendapat perhatian", "B": "Diterima kelompok",
+			"O": "Hubungan akrab", "Z": "Hasrat berubah",
+			"K": "Agresi", "F": "Mendukung atasan", "W": "Mengikuti aturan",
+		}
+
+		pdf.SetFont("Arial", "", 7.5)
+		// Render top 5 rows (10 aspects total) to save space
+		for i := 0; i < 5; i++ {
+			cLeft := codes[i]
+			itemLeft := parsed[cLeft]
+			catLeft := getPAPICategory(itemLeft.Score)
+
+			cRight := codes[i+5]
+			itemRight := parsed[cRight]
+			catRight := getPAPICategory(itemRight.Score)
+
+			pdf.CellFormat(60, 3.8, fmt.Sprintf("%s - %s", cLeft, labels[cLeft]), "1", 0, "L", false, 0, "")
+			pdf.CellFormat(25, 3.8, catLeft, "1", 0, "C", false, 0, "")
+			pdf.CellFormat(10, 3.8, "", "", 0, "C", false, 0, "") // spacer
+			pdf.CellFormat(60, 3.8, fmt.Sprintf("%s - %s", cRight, labels[cRight]), "1", 0, "L", false, 0, "")
+			pdf.CellFormat(25, 3.8, catRight, "1", 1, "C", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		papiSummary, _ := GetOrGenerateTestSummaryInternal(o, "PAPI", papiRes, nama)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8.5)
+		papiConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["papi"].(string)
+		if papiConcl == "" {
+			papiConcl, _ = papiSummary["summary"].(string)
+		}
+		pdf.MultiCell(0, 4, papiConcl, "", "L", false)
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Kekuatan Utama", "", 1, "L", false, 0, "")
+		for _, k := range parseArrayOrString(papiSummary["kekuatan"]) {
+			drawBulletItem(k)
+		}
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+		for _, r := range parseArrayOrString(papiSummary["rekomendasi_siswa"]) {
+			drawBulletItem(r)
+		}
+		pdf.Ln(4)
+	}
+
+	// 6. KRAEPELIN
+	if kraepelinRes.Id > 0 {
+		testIndex++
+		checkPageSpace(60)
+		
+		pdf.SetFont("Arial", "B", 9.5)
+		pdf.CellFormat(0, 5, fmt.Sprintf("%d. PERFORMANSI KERJA (KRAEPELIN)", testIndex), "", 1, "L", false, 0, "")
+		pdf.Ln(2)
+
+		tot := kraepelinRes.TotalCorrect + kraepelinRes.TotalErrors + kraepelinRes.TotalSkipped
+		acc := 0.0
+		if tot > 0 {
+			acc = float64(kraepelinRes.TotalCorrect) / float64(tot) * 100.0
+		}
+
+		// Table
+		pdf.SetFillColor(240, 240, 240)
+		pdf.SetFont("Arial", "B", 8)
+		pdf.CellFormat(120, 5.5, "ASPEK PERFORMANSI KERJA", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(60, 5.5, "PENILAIAN", "1", 1, "C", true, 0, "")
+
+		aspects := []struct {
+			Name string
+			Cat  string
+		}{
+			{"Kecepatan Kerja", getKraepelinCategory(float64(kraepelinRes.TotalCorrect), "kecepatan")},
+			{"Ketelitian Kerja", getKraepelinCategory(float64(kraepelinRes.TotalErrors), "ketelitian")},
+			{"Konsentrasi Kerja", getKraepelinCategory(acc, "konsentrasi")},
+			{"Ketahanan Kerja", getKraepelinCategory(float64(kraepelinRes.TotalCorrect), "ketahanan")},
+		}
+		
+		pdf.SetFont("Arial", "", 8)
+		for _, a := range aspects {
+			pdf.CellFormat(120, 5, a.Name, "1", 0, "L", false, 0, "")
+			pdf.CellFormat(60, 5, a.Cat, "1", 1, "C", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		kraepelinSummary, _ := GetOrGenerateTestSummaryInternal(o, "Kraepelin", kraepelinRes, nama)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8.5)
+		kraepelinConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["kraepelin"].(string)
+		if kraepelinConcl == "" {
+			kraepelinConcl, _ = kraepelinSummary["summary"].(string)
+		}
+		pdf.MultiCell(0, 4, kraepelinConcl, "", "L", false)
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Kekuatan Utama", "", 1, "L", false, 0, "")
+		for _, k := range parseArrayOrString(kraepelinSummary["kekuatan"]) {
+			drawBulletItem(k)
+		}
+		pdf.Ln(2)
+
+		pdf.SetFont("Arial", "B", 9)
+		pdf.CellFormat(0, 5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+		for _, r := range parseArrayOrString(kraepelinSummary["rekomendasi_siswa"]) {
+			drawBulletItem(r)
+		}
+		pdf.Ln(4)
+	}
+
+	buf := new(bytes.Buffer)
+	err = pdf.Output(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+

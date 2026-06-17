@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -167,8 +167,42 @@
             showToast('Terjadi error saat mengirim jawaban', 'danger');
           }
         });
+
+        const devBtn = document.getElementById('devAutoFillBtn');
+        if (devBtn) {
+          devBtn.addEventListener('click', function () {
+            if (!confirm('DEV Mode: Apakah Anda yakin ingin mengisi otomatis seluruh tes Holland dan menyelesaikan tes ini?')) return;
+            devBtn.disabled = true;
+            devBtn.textContent = 'Memproses...';
+            fetch('/test/holland/dev-autofill', { method: 'POST' })
+              .then(r => r.json())
+              .then(d => {
+                if (d && d.success) {
+                  window.location.href = d.next || '/test/holland/finish';
+                } else {
+                  alert((d && d.message) || 'Auto-fill gagal');
+                  devBtn.disabled = false;
+                  devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+                }
+              })
+              .catch(err => {
+                alert('Terjadi kesalahan: ' + err);
+                devBtn.disabled = false;
+                devBtn.innerHTML = '&#9881; DEV: Auto-Fill &amp; Submit';
+              });
+          });
+        }
       })();
     </script>
+    {{if .IsDev}}
+    <button id="devAutoFillBtn" type="button"
+            style="position:fixed; bottom:24px; left:24px; z-index:1060;
+                   background:#ff5e7e; color:#fff; border:0; padding:10px 16px;
+                   border-radius:10px; font-weight:700; font-size:.85rem;
+                   box-shadow:0 6px 18px rgba(255,94,126,.4); cursor:pointer;">
+      &#9881; DEV: Auto-Fill &amp; Submit
+    </button>
+    {{end}}
   </body>
 </html>
 

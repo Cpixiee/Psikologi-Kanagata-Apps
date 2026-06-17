@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -252,6 +253,7 @@ func (c *LearningStyleTestController) QuestionsPage() {
 	c.Data["Questions"] = qs
 	c.Data["AnswersMap"] = ansMap
 	c.Data["Result"] = res
+	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_learning_style_questions.html"
 }
 
@@ -712,5 +714,178 @@ func (c *LearningStyleTestController) ExportResultExcel() {
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
 	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())
+}
+
+// DEV ONLY: POST /test/learning-style/dev-autofill
+func (c *LearningStyleTestController) DevAutoFill() {
+	if !strings.EqualFold(beego.BConfig.RunMode, "dev") {
+		c.Ctx.Output.SetStatus(403)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Endpoint hanya tersedia di mode development"}
+		c.ServeJSON()
+		return
+	}
+
+	inv, user, ok := c.mustGetSessionInvitation()
+	if !ok {
+		c.Ctx.Output.SetStatus(401)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Sesi tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	var qs []models.LearningStyleQuestion
+	_, err := o.QueryTable(new(models.LearningStyleQuestion)).OrderBy("Number").All(&qs)
+	if err != nil || len(qs) != 36 {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Soal belum lengkap"}
+		c.ServeJSON()
+		return
+	}
+
+	tx, err := o.Begin()
+	if err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal memulai transaksi"}
+		c.ServeJSON()
+		return
+	}
+
+	rollback := func(status int, msg string) {
+		_ = tx.Rollback()
+		c.Ctx.Output.SetStatus(status)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": msg}
+		c.ServeJSON()
+	}
+
+	// Hapus jawaban lama
+	if _, derr := tx.QueryTable(new(models.LearningStyleAnswer)).Filter("Invitation__Id", inv.Id).Delete(); derr != nil {
+		rollback(500, "Gagal menghapus jawaban lama")
+		return
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	scoreV, scoreA, scoreK := 0, 0, 0
+
+	for _, q := range qs {
+		yes := 0
+		no := 1
+		if rng.Intn(2) == 1 {
+			yes = 1
+			no = 0
+		}
+
+		qCopy := q
+		ans := models.LearningStyleAnswer{
+			Invitation: inv,
+			User:       user,
+			Question:   &qCopy,
+			AnswerYes:  yes,
+			AnswerNo:   no,
+		}
+		if _, ierr := tx.Insert(&ans); ierr != nil {
+			rollback(500, "Gagal menyimpan jawaban")
+			return
+		}
+
+		if yes == 1 {
+			switch strings.ToUpper(strings.TrimSpace(q.Dimension)) {
+			case "V":
+				scoreV++
+			case "A":
+				scoreA++
+			case "K":
+				scoreK++
+			}
+		}
+	}
+
+	dominant := "Visual"
+	max := scoreV
+	if scoreA > max {
+		max = scoreA
+		dominant = "Auditori"
+	}
+	if scoreK > max {
+		max = scoreK
+		dominant = "Kinestetik"
+	}
+
+	var res models.LearningStyleResult
+	rerr := tx.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
+	if rerr != nil || res.Id == 0 {
+		res = models.LearningStyleResult{
+			Invitation:  inv,
+			User:        user,
+			TestDate:    time.Now(),
+			TestName:    user.NamaLengkap,
+			TestAge:     17,
+			TestInstitution: "SMA Negeri 1",
+			TestGender:  "laki-laki",
+			InterpretationVisual:      seeds.LearningStyleInterpretationVisual(),
+			InterpretationAuditory:    seeds.LearningStyleInterpretationAuditory(),
+			InterpretationKinesthetic: seeds.LearningStyleInterpretationKinesthetic(),
+		}
+		if _, ierr := tx.Insert(&res); ierr != nil {
+			rollback(500, "Gagal menyimpan hasil")
+			return
+		}
+	}
+
+	res.ScoreVisual = scoreV
+	res.ScoreAuditory = scoreA
+	res.ScoreKinesthetic = scoreK
+	res.DominantType = dominant
+	res.TestDate = time.Now()
+	if strings.TrimSpace(res.TestName) == "" {
+		res.TestName = user.NamaLengkap
+	}
+	if res.TestAge <= 0 {
+		res.TestAge = 17
+	}
+	if strings.TrimSpace(res.TestInstitution) == "" {
+		res.TestInstitution = "SMA Negeri 1"
+	}
+	if strings.TrimSpace(res.TestGender) == "" {
+		res.TestGender = "laki-laki"
+	}
+
+	_, _ = tx.Update(&res,
+		"TestName", "TestAge", "TestInstitution", "TestGender", "TestDate",
+		"ScoreVisual", "ScoreAuditory", "ScoreKinesthetic", "DominantType",
+		"InterpretationVisual", "InterpretationAuditory", "InterpretationKinesthetic",
+	)
+
+	var finishRedirect = "/hasil-tes"
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = tx.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+
+	justCompleted := false
+	if nextURL != "" {
+		finishRedirect = nextURL
+	} else {
+		if inv.Status != models.StatusInvitationUsed {
+			inv.Status = models.StatusInvitationUsed
+			inv.UsedAt = time.Now()
+			_, _ = tx.Update(inv, "Status", "UsedAt")
+			justCompleted = true
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		rollback(500, "Gagal menyimpan jawaban")
+		return
+	}
+
+	if justCompleted {
+		go utils.SendTestCompletionNotification(inv.UserId, "Gaya Belajar")
+	}
+
+	c.Data["json"] = map[string]interface{}{"success": true, "next": finishRedirect}
+	c.ServeJSON()
 }
 

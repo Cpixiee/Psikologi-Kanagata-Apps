@@ -682,14 +682,280 @@
         return age;
       }
 
-      async function fetchCombinedNarrativeForPanel(d) {
-        var completedTests = [];
-        if (d.ist_result) completedTests.push('ist');
-        if (d.holland_result) completedTests.push('holland');
-        if (d.learning_style_result) completedTests.push('learning_style');
-        if (d.kraepelin_attempt) completedTests.push('kraepelin');
-        if (d.rmib_result) completedTests.push('rmib');
-        if (d.papi_result) completedTests.push('papi');
+      function setRing(node, percent, color) {
+        if (!node) return;
+        var p = clamp(percent, 0, 100);
+        var deg = p * 3.6;
+        node.style.setProperty("--pct", deg + "deg");
+        if (color) node.style.setProperty("--col", color);
+        var num = node.querySelector(".num");
+        if (num) num.textContent = Math.round(p);
+      }
+
+      function descClass(p) { return p >= 75 ? "good" : (p >= 50 ? "fair" : "low"); }
+      function descLabel(p) {
+        if (p >= 85) return "Excellent";
+        if (p >= 70) return "Good";
+        if (p >= 50) return "Fair";
+        return "Needs Work";
+      }
+
+      function getHeuristicCombinedData(d) {
+        var ist = d.ist_result || null;
+        var hol = d.holland_result || null;
+        var vak = d.learning_style_result || null;
+        var krp = d.kraepelin_attempt || null;
+        var rm = d.rmib_result || null;
+        var papi = d.papi_result || null;
+
+        var se = ist ? ist.std_se || 100 : 100;
+        var wa = ist ? ist.std_wa || 100 : 100;
+        var an = ist ? ist.std_an || 100 : 100;
+        var ge = ist ? ist.std_ge || 100 : 100;
+        var ra = ist ? ist.std_ra || 100 : 100;
+        var za = ist ? ist.std_za || 100 : 100;
+        var fa = ist ? ist.std_fa || 100 : 100;
+        var wu = ist ? ist.std_wu || 100 : 100;
+        var me = ist ? ist.std_me || 100 : 100;
+
+        var istPct = {
+          SE: clamp(Math.round(((se - 80) / 50) * 100), 10, 100),
+          WA: clamp(Math.round(((wa - 80) / 50) * 100), 10, 100),
+          AN: clamp(Math.round(((an - 80) / 50) * 100), 10, 100),
+          GE: clamp(Math.round(((ge - 80) / 50) * 100), 10, 100),
+          RA: clamp(Math.round(((ra - 80) / 50) * 100), 10, 100),
+          ZA: clamp(Math.round(((za - 80) / 50) * 100), 10, 100),
+          FA: clamp(Math.round(((fa - 80) / 50) * 100), 10, 100),
+          WU: clamp(Math.round(((wu - 80) / 50) * 100), 10, 100),
+          ME: clamp(Math.round(((me - 80) / 50) * 100), 10, 100),
+        };
+
+        var holPct = { R: 50, I: 50, A: 50, S: 50, E: 50, C: 50 };
+        if (hol) {
+          var holScores = {
+            R: hol.score_r || 0, I: hol.score_i || 0, A: hol.score_a || 0,
+            S: hol.score_s || 0, E: hol.score_e || 0, C: hol.score_c || 0
+          };
+          var holMax = Math.max(1, holScores.R, holScores.I, holScores.A, holScores.S, holScores.E, holScores.C);
+          holPct = {
+            R: Math.round((holScores.R / holMax) * 100),
+            I: Math.round((holScores.I / holMax) * 100),
+            A: Math.round((holScores.A / holMax) * 100),
+            S: Math.round((holScores.S / holMax) * 100),
+            E: Math.round((holScores.E / holMax) * 100),
+            C: Math.round((holScores.C / holMax) * 100),
+          };
+        } else {
+          // Approximate holPct from RMIB, PAPI, or IST
+          if (rm) {
+            var parsedRM = {};
+            try { parsedRM = JSON.parse(rm.result_json || '{}'); } catch(e) {}
+            var getRmPct = function(cat) {
+              var item = parsedRM[cat] || {};
+              var r = item.rank || 12;
+              return Math.round(((13 - r) / 12) * 100);
+            };
+            holPct.R = Math.round((getRmPct("OUT") + getRmPct("MEC") + getRmPct("PRAC")) / 3);
+            holPct.I = Math.round((getRmPct("SCI") + getRmPct("MED")) / 2);
+            holPct.A = Math.round((getRmPct("AEST") + getRmPct("MUS") + getRmPct("LIT")) / 3);
+            holPct.S = getRmPct("SOC");
+            holPct.E = getRmPct("PERS");
+            holPct.C = Math.round((getRmPct("COMP") + getRmPct("CLER")) / 2);
+          } else if (papi) {
+            var parsedPapi = {};
+            try { parsedPapi = JSON.parse(papi.result_json || '{}'); } catch(e) {}
+            var getPapiPct = function(codes) {
+              var sum = 0, count = 0;
+              codes.forEach(function(code) {
+                var item = parsedPapi[code] || {};
+                sum += (item.score || 0);
+                count++;
+              });
+              return Math.round((sum / (count * 9)) * 100);
+            };
+            holPct.R = getPapiPct(["G", "T", "K"]);
+            holPct.I = getPapiPct(["I", "R", "N"]);
+            holPct.A = getPapiPct(["X", "Z"]);
+            holPct.S = getPapiPct(["S", "B", "O"]);
+            holPct.E = getPapiPct(["L", "V", "A", "P"]);
+            holPct.C = getPapiPct(["D", "C", "F", "W"]);
+          } else if (ist) {
+            holPct.R = Math.round((istPct.FA + istPct.WU) / 2);
+            holPct.I = Math.round((istPct.AN + istPct.GE) / 2);
+            holPct.A = istPct.GE;
+            holPct.S = Math.round((istPct.SE + istPct.WA) / 2);
+            holPct.E = istPct.WA;
+            holPct.C = Math.round((istPct.RA + istPct.ZA + istPct.ME) / 3);
+          }
+        }
+
+        var code = hol ? hol.code || "" : "";
+        var careerSeed = [];
+        if (code) {
+          careerSeed = code.split("");
+        } else {
+          // Dynamic career seed from RMIB, PAPI, or IST
+          if (rm) {
+            var rmibToRiasec = {
+              OUT: "R", MEC: "R", MECH: "R", COMP: "C", SCI: "I",
+              PERS: "E", AEST: "A", ART: "A", MUS: "A", LIT: "A",
+              SOC: "S", CLER: "C", PRAC: "R", MED: "I"
+            };
+            var cats = [rm.dominant_category, rm.top1, rm.top2, rm.top3].filter(Boolean);
+            cats.forEach(function(c) {
+              var letter = rmibToRiasec[c.toUpperCase()];
+              if (letter && careerSeed.indexOf(letter) === -1) careerSeed.push(letter);
+            });
+          }
+          if (careerSeed.length < 3 && papi) {
+            var papiToRiasec = {
+              G: "R", L: "E", I: "I", T: "R", V: "E", S: "S", R: "I", D: "C", C: "C", E: "S",
+              N: "I", A: "E", P: "E", X: "A", B: "S", O: "S", Z: "A", K: "R", F: "C", W: "C"
+            };
+            var dom = (papi.dominant_category || "").toUpperCase();
+            var letter = papiToRiasec[dom];
+            if (letter && careerSeed.indexOf(letter) === -1) careerSeed.push(letter);
+            if (papi.top_categories) {
+              var tops = [];
+              try { tops = JSON.parse(papi.top_categories); } catch(e) {
+                tops = String(papi.top_categories).split(/[,\[\]\"' →]/).map(x => x.trim()).filter(Boolean);
+              }
+              if (Array.isArray(tops)) {
+                tops.forEach(function(c) {
+                  var l = papiToRiasec[c.toUpperCase()];
+                  if (l && careerSeed.indexOf(l) === -1) careerSeed.push(l);
+                });
+              }
+            }
+          }
+          if (careerSeed.length < 3 && ist) {
+            var istScores = [
+              { score: istPct.SE || 0, letter: "S" },
+              { score: istPct.WA || 0, letter: "S" },
+              { score: istPct.AN || 0, letter: "I" },
+              { score: istPct.GE || 0, letter: "A" },
+              { score: istPct.RA || 0, letter: "C" },
+              { score: istPct.ZA || 0, letter: "I" },
+              { score: istPct.FA || 0, letter: "R" },
+              { score: istPct.WU || 0, letter: "R" },
+              { score: istPct.ME || 0, letter: "C" }
+            ];
+            istScores.sort(function(a, b) { return b.score - a.score; });
+            istScores.forEach(function(item) {
+              if (careerSeed.indexOf(item.letter) === -1) careerSeed.push(item.letter);
+            });
+          }
+          // fill with defaults
+          ["I", "S", "E", "A", "R", "C"].forEach(function(l) {
+            if (careerSeed.length < 3 && careerSeed.indexOf(l) === -1) careerSeed.push(l);
+          });
+        }
+        careerSeed = careerSeed.slice(0, 3);
+
+        var motivationPct = Math.round(((holPct.E || 50) + (rm ? 70 : 50)) / 2);
+        var stressPct = 40;
+        if (krp) {
+          var total = (krp.total_correct || 0) + (krp.total_errors || 0) + (krp.total_skipped || 0);
+          if (total > 0) {
+            var errPct = ((krp.total_errors + krp.total_skipped) / total) * 100;
+            stressPct = clamp(Math.round(errPct * 1.5), 10, 95);
+          }
+        }
+        var leadershipPct = Math.round(((holPct.E || 0) + (holPct.S || 0)) / 2);
+
+        var emotional = {
+          selfAwareness: Math.round(((istPct.WA || 50) + (vak ? 75 : 50)) / 2),
+          selfRegulation: Math.round(((istPct.RA || 50) + (100 - stressPct)) / 2),
+          motivation: motivationPct,
+          empathy: Math.round(((holPct.S || 50) + (istPct.WA || 50)) / 2),
+          stressManagement: 100 - stressPct,
+          resilience: Math.round(((istPct.AN || 50) + (100 - stressPct)) / 2)
+        };
+
+        var skills = [
+          { name: "Coding & Programming", value: Math.round(((istPct.RA || 50) + (holPct.I || 50)) / 2) },
+          { name: "Problem Solving", value: istPct.RA || 50 },
+          { name: "Critical Thinking", value: istPct.AN || 50 },
+          { name: "Communication", value: Math.round(((istPct.WA || 50) + (holPct.S || 50)) / 2) },
+          { name: "Leadership", value: leadershipPct || 50 },
+          { name: "Creativity", value: Math.max(istPct.GE || 50, istPct.FA || 50, holPct.A || 50) }
+        ];
+
+        var CAREER_BY_LETTER = {
+          R: [
+            { name: "Mechanical Engineer", base: 88, icon: "briefcase" },
+            { name: "Robotics Engineer", base: 84, icon: "cpu" },
+            { name: "Field Technician", base: 80, icon: "wrench" }
+          ],
+          I: [
+            { name: "Data Scientist", base: 90, icon: "bar-chart-2" },
+            { name: "AI Engineer", base: 92, icon: "bot" },
+            { name: "Research Scientist", base: 88, icon: "flask-conical" }
+          ],
+          A: [
+            { name: "UI/UX Designer", base: 87, icon: "palette" },
+            { name: "Creative Director", base: 84, icon: "pen-tool" },
+            { name: "Content Creator", base: 82, icon: "video" }
+          ],
+          S: [
+            { name: "Guru / Educator", base: 86, icon: "graduation-cap" },
+            { name: "Konselor", base: 84, icon: "users" },
+            { name: "HR Specialist", base: 82, icon: "contact" }
+          ],
+          E: [
+            { name: "Entrepreneur", base: 88, icon: "rocket" },
+            { name: "Tech Lead / Founder", base: 86, icon: "crown" },
+            { name: "Marketing Manager", base: 82, icon: "megaphone" }
+          ],
+          C: [
+            { name: "Software Developer", base: 89, icon: "code-2" },
+            { name: "Cyber Security Analyst", base: 86, icon: "shield-check" },
+            { name: "Financial Analyst", base: 84, icon: "coins" }
+          ]
+        };
+
+        var careerMap = new Map();
+        careerSeed.forEach(function(letter, idx) {
+          var list = CAREER_BY_LETTER[letter] || [];
+          list.forEach(function(c) {
+            var adj = c.base - idx * 2;
+            if (!careerMap.has(c.name) || careerMap.get(c.name).match < adj) {
+              careerMap.set(c.name, { name: c.name, match: clamp(adj, 50, 96), icon: c.icon });
+            }
+          });
+        });
+        var careers = Array.from(careerMap.values()).sort(function(a, b) { return b.match - a.match; }).slice(0, 5);
+
+        var topCareerName = careers[0] ? careers[0].name : "AI Engineer";
+
+        var roadmap = [
+          { term: "Short Term (1-2 Tahun)", items: ["Kuasai skill dasar kognitif dan verbal", "Ikut proyek/kelompok belajar peminatan"] },
+          { term: "Mid Term (3-5 Tahun)", items: ["Magang/internship industri", "Pendalaman jalur spesialisasi " + topCareerName] },
+          { term: "Long Term (5+ Tahun)", items: ["Karir profesional sebagai " + topCareerName, "Melanjutkan sertifikasi keahlian global"] }
+        ];
+
+        return {
+          emotional_analytics: emotional,
+          skill_tracker: skills,
+          career_roadmap: {
+            careers: careers,
+            roadmap: roadmap
+          }
+        };
+      }
+
+      async function fetchAndRenderCombinedAI(d, completedTests, studentName, batchName) {
+        var compNarrative = q('#compNarrativeText');
+        var combinedContent = q('#combinedAIContent');
+        var combinedCard = q('#combinedAICard');
+
+        if (compNarrative) compNarrative.innerHTML = '<p>Memuat ringkasan keseluruhan...</p>';
+        if (combinedContent) {
+          combinedContent.innerHTML = `
+            <div class="sk w90"></div><div class="sk w80"></div>
+            <div class="sk w60"></div>
+          `;
+        }
 
         var resultsPayload = {};
         completedTests.forEach(key => {
@@ -701,44 +967,195 @@
           if (key === 'papi') resultsPayload.papi = d.papi_result;
         });
 
-        var name = d.student_name || 'Peserta';
-        var batch = d.batch || {};
+        var payload = {
+          student_name: studentName,
+          batch_name: batchName,
+          results: resultsPayload
+        };
+
+        var aiData = null;
+        var useFallback = false;
+
         try {
-          var payload = {
-            student_name: name,
-            batch_name: batch.name || 'Batch Tes',
-            results: resultsPayload
-          };
           var res = await fetch('/api/ai/student-combined-summary', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+
           if (!res.ok) {
             var st = res.status;
             if (st === 402 || st === 429) {
-              showAIToast('Token AI tidak mencukupi atau rate limit tercapai. Laporan naratif tidak dapat dimuat.', 'token');
+              showAIToast('Token AI tidak mencukupi atau rate limit tercapai. Menggunakan rekomendasi data lokal.', 'token');
             } else if (st >= 500) {
-              showAIToast('Server AI sedang tidak tersedia. Laporan naratif tidak dapat dimuat.', 'server');
+              showAIToast('Server AI sedang tidak tersedia. Menggunakan rekomendasi data lokal.', 'server');
             } else {
-              showAIToast('Gagal memuat laporan AI. Kode error: ' + st, 'error');
+              showAIToast('Gagal menghubungi AI. Menggunakan rekomendasi data lokal.', 'error');
             }
-            throw new Error('HTTP ' + st);
-          }
-          var json = await res.json();
-          if (json.success && json.data) {
-            var aiData = json.data;
-            if (aiData.kesimpulan_gabungan) {
-              q('#compNarrativeText').innerHTML = `<p>${esc(aiData.kesimpulan_gabungan)}</p>`;
-            }
+            useFallback = true;
           } else {
-            var errMsg = (json && json.message) || '';
-            if (/token|quota|rate|insufficient|limit/i.test(errMsg)) {
-              showAIToast('Token AI tidak mencukupi. Laporan naratif tidak dapat dimuat.', 'token');
+            var json = await res.json();
+            if (json.success && json.data) {
+              aiData = json.data;
+            } else {
+              var errMsg = (json && json.message) || '';
+              if (/token|quota|rate|insufficient|limit/i.test(errMsg)) {
+                showAIToast('Token AI tidak mencukupi. Menggunakan rekomendasi data lokal.', 'token');
+              } else {
+                showAIToast('Gagal memproses respons AI. Menggunakan rekomendasi data lokal.', 'error');
+              }
+              useFallback = true;
             }
           }
         } catch(e) {
           console.error(e);
+          showAIToast('Gagal menghubungi AI. Menggunakan rekomendasi data lokal.', 'error');
+          useFallback = true;
+        }
+
+        if (useFallback || !aiData) {
+          aiData = getHeuristicCombinedData(d);
+          if (compNarrative) {
+            compNarrative.innerHTML = '<p><em>Rekomendasi Karir & Kompetensi Lokal:</em> Analisis gabungan dihitung secara cerdas berdasarkan kecocokan pola tes psikologi Anda (IQ, RIASEC, Gaya Belajar, dan Performansi).</p>';
+          }
+        } else {
+          if (compNarrative && aiData.kesimpulan_gabungan) {
+            compNarrative.innerHTML = `<p>${esc(aiData.kesimpulan_gabungan)}</p>`;
+          }
+        }
+
+        // Render Emotional Analytics
+        if (aiData.emotional_analytics) {
+          var ea = aiData.emotional_analytics;
+          var map = [
+            ["#comp_gSelfAware", ea.selfAwareness || ea.self_awareness || 50, "#22c55e"],
+            ["#comp_gSelfReg",   ea.selfRegulation || ea.self_regulation || 50, "#3b82f6"],
+            ["#comp_gMotivation",ea.motivation || 50, "#8b5cf6"],
+            ["#comp_gEmpathy",   ea.empathy || 50, "#f59e0b"],
+            ["#comp_gStressMgmt",ea.stressManagement || ea.stress_management || 50, "#14b8a6"],
+            ["#comp_gResilience",ea.resilience || 50, "#ec4899"]
+          ];
+          map.forEach(function(m) {
+            var node = q(m[0]);
+            if (!node) return;
+            setRing(node.querySelector(".ring"), m[1], m[2]);
+            var dLabel = node.querySelector(".desc");
+            if (dLabel) {
+              dLabel.textContent = descLabel(m[1]);
+              dLabel.className = "desc " + descClass(m[1]);
+            }
+          });
+        }
+
+        // Render Skill Tracker
+        var compSkillList = q('#compSkillList');
+        if (compSkillList && Array.isArray(aiData.skill_tracker)) {
+          compSkillList.innerHTML = '';
+          var colors = ["", "violet", "green", "amber", "teal", "pink", "blue"];
+          aiData.skill_tracker.forEach(function(s, i) {
+            var val = typeof s.value === 'number' ? s.value : (s.val || 50);
+            var color = colors[i % colors.length];
+            var row = document.createElement("div");
+            row.className = "ds-skill-row " + color;
+            row.style.cssText = "margin-bottom: 12px;";
+            row.innerHTML = `
+              <span class="nm">${esc(s.name)}</span>
+              <span class="vl">${val}%</span>
+              <div class="bar"><span style="width:${val}%"></span></div>
+            `;
+            compSkillList.appendChild(row);
+          });
+        }
+
+        // Render Career Roadmap (Top Career Matches)
+        var compCareerList = q('#compCareerList');
+        if (compCareerList && aiData.career_roadmap && Array.isArray(aiData.career_roadmap.careers)) {
+          compCareerList.innerHTML = '';
+          aiData.career_roadmap.careers.forEach(function(c) {
+            var match = typeof c.match === 'number' ? c.match : (c.val || 75);
+            var row = document.createElement("div");
+            row.className = "ds-career-row";
+            row.innerHTML = `<span class="ic"><i data-lucide="${c.icon || 'briefcase'}"></i></span>`
+              + `<span class="nm"></span>`
+              + `<span class="pct">${match}%</span>`;
+            row.querySelector(".nm").textContent = c.name;
+            compCareerList.appendChild(row);
+          });
+        }
+
+        // Render Career Roadmap Timeline
+        var compCareerTimeline = q('#compCareerTimeline');
+        if (compCareerTimeline && aiData.career_roadmap && Array.isArray(aiData.career_roadmap.roadmap)) {
+          compCareerTimeline.innerHTML = '';
+          aiData.career_roadmap.roadmap.forEach(function(r) {
+            var itm = document.createElement("div");
+            itm.className = "ds-roadmap-item";
+            itm.innerHTML = `<h5>${esc(r.term)}</h5><ul></ul>`;
+            var ul = itm.querySelector("ul");
+            if (Array.isArray(r.items)) {
+              r.items.forEach(function(item) {
+                var li = document.createElement("li");
+                li.textContent = item;
+                ul.appendChild(li);
+              });
+            }
+            compCareerTimeline.appendChild(itm);
+          });
+        }
+
+        // Render Bottom Combined AI Card
+        if (combinedCard && combinedContent) {
+          if (completedTests.length > 1) {
+            combinedCard.style.display = 'block';
+            var html = '';
+
+            // 1. Kesimpulan Gabungan
+            if (aiData.kesimpulan_gabungan) {
+              html += '<div style="background:linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%); border:1px solid #c7d2fe; border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">';
+              html += '  <div style="font-weight:700; color:#4338ca; font-size:13.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">';
+              html += '    <i data-lucide="sparkles" style="width:16px;height:16px;"></i> Kesimpulan Gabungan Integratif';
+              html += '  </div>';
+              html += '  <p style="font-size:12.5px; line-height:1.7; color:#1e1b4b; margin:0;">' + esc(aiData.kesimpulan_gabungan) + '</p>';
+              html += '</div>';
+            }
+
+            // 2. Analisis per Alat Tes
+            if (aiData.kesimpulan_detail && Object.keys(aiData.kesimpulan_detail).length > 0) {
+              var hasAnyValidDetail = false;
+              var detailsHtml = '';
+              Object.keys(aiData.kesimpulan_detail).forEach(key => {
+                var text = aiData.kesimpulan_detail[key];
+                if (completedTests.indexOf(key) === -1) return;
+                if (text && (text.includes("tidak tersedia") || text.includes("belum dapat dianalisis"))) return;
+                
+                if (text && text.trim()) {
+                  hasAnyValidDetail = true;
+                  detailsHtml += '    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px;">';
+                  detailsHtml += '      <div style="font-weight:700; font-size:11px; color:var(--accent2); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">' + getBatchTypeName(key) + '</div>';
+                  detailsHtml += '      <p style="font-size:12.5px; line-height:1.6; color:var(--text); margin:0;">' + esc(text) + '</p>';
+                  detailsHtml += '    </div>';
+                }
+              });
+              if (hasAnyValidDetail) {
+                html += '<div>';
+                html += '  <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;">';
+                html += '    <i data-lucide="clipboard-list" style="width:16px;height:16px;color:var(--accent3);"></i> Kesimpulan Setiap Alat Tes';
+                html += '  </div>';
+                html += '  <div style="display:grid; grid-template-columns:1fr; gap:12px;">';
+                html += detailsHtml;
+                html += '  </div>';
+                html += '</div>';
+              }
+            }
+
+            combinedContent.innerHTML = html || '<p style="color:var(--muted);font-size:13px;">Tidak ada data analisis gabungan yang dapat ditampilkan.</p>';
+          } else {
+            combinedCard.style.display = 'none';
+          }
+        }
+
+        if (window.lucide) {
+          try { lucide.createIcons(); } catch(_){}
         }
       }
 
@@ -871,18 +1288,95 @@
                 <!-- Dynamic Test Sections -->
               </div>
             </div>
+
+            <!-- Page Break Style on Web for Halaman 3 -->
+            <div style="border-top: 2px dashed #cbd5e1; margin: 40px 0; position: relative; text-align: center;">
+              <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #fff; padding: 2px 10px; font-size: 11px; color: #64748b; font-weight: 600; border-radius: 20px; border: 1px solid #e2e8f0;">Halaman 3: AI Analytics & Recommendations</span>
+            </div>
+
+            <!-- Emotional Analytics -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-3" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">EMOTIONAL ANALYTICS (KESIMPULAN DARI STABILITAS EMOSI SISWA)</h6>
+              <div class="ds-gauge-grid" id="compEmotionalGrid">
+                <div class="ds-gauge" id="comp_gSelfAware">
+                  <div class="label">Self Awareness</div>
+                  <div class="ring"><span class="num">0</span></div>
+                  <div class="desc">&mdash;</div>
+                </div>
+                <div class="ds-gauge" id="comp_gSelfReg">
+                  <div class="label">Self Regulation</div>
+                  <div class="ring"><span class="num">0</span></div>
+                  <div class="desc">&mdash;</div>
+                </div>
+                <div class="ds-gauge" id="comp_gMotivation">
+                  <div class="label">Motivation</div>
+                  <div class="ring"><span class="num">0</span></div>
+                  <div class="desc">&mdash;</div>
+                </div>
+                <div class="ds-gauge" id="comp_gEmpathy">
+                  <div class="label">Empathy</div>
+                  <div class="ring"><span class="num">0</span></div>
+                  <div class="desc">&mdash;</div>
+                </div>
+                <div class="ds-gauge" id="comp_gStressMgmt">
+                  <div class="label">Stress Management</div>
+                  <div class="ring"><span class="num">0</span></div>
+                  <div class="desc">&mdash;</div>
+                </div>
+                <div class="ds-gauge" id="comp_gResilience">
+                  <div class="label">Mental Resilience</div>
+                  <div class="ring"><span class="num">0</span></div>
+                  <div class="desc">&mdash;</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skill Tracker -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-3" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">SKILL TRACKER (PETA KOMPETENSI SISWA)</h6>
+              <div id="compSkillList" style="font-size: 13px;">
+                <div class="text-muted">Memuat kompetensi...</div>
+              </div>
+            </div>
+
+            <!-- Career Roadmap -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-3" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">CAREER ROADMAP (REKOMENDASI JALUR KARIR SISWA)</h6>
+              <div class="ds-career-grid">
+                <div>
+                  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Top Career Matches</div>
+                  <div class="ds-career-list" id="compCareerList">
+                    <div class="text-muted">Memuat karir...</div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Roadmap Timeline</div>
+                  <div class="ds-roadmap" id="compCareerTimeline">
+                    <div class="text-muted">Memuat timeline...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         `;
         if (q('#keseluruhanContent')) {
           q('#keseluruhanContent').innerHTML = html;
         }
-        fetchCombinedNarrativeForPanel(d);
+        var completedTestsLower = [];
+        if (d.ist_result) completedTestsLower.push('ist');
+        if (d.holland_result) completedTestsLower.push('holland');
+        if (d.learning_style_result) completedTestsLower.push('learning_style');
+        if (d.kraepelin_attempt) completedTestsLower.push('kraepelin');
+        if (d.rmib_result) completedTestsLower.push('rmib');
+        if (d.papi_result) completedTestsLower.push('papi');
+
+        fetchAndRenderCombinedAI(d, completedTestsLower, name, (d.batch && d.batch.name) || 'Batch Tes');
         renderComprehensiveSubsections(d);
       }
 
       function renderComprehensiveSubsections(d) {
         var box = q('#compPotentialSections');
-        box.innerHTML = '';
+        if (box) box.innerHTML = '';
         var testIndex = 0;
 
         // 1. IST
@@ -1427,10 +1921,7 @@
           q('#aiContent').innerHTML = '<p class="text-muted">Tidak ada data untuk analisis AI.</p>';
         }
 
-        // Always call fetchStudentCombinedSummary if at least 1 test is completed
-        if (completedTests.length >= 1) {
-          fetchStudentCombinedSummary(d, completedTests, name, batch.name || 'Batch Tes');
-        } else {
+        if (completedTests.length < 1) {
           q('#combinedAICard').style.display = 'none';
         }
 

@@ -473,12 +473,56 @@
     } else {
       IST_KEYS.forEach((k) => (istPct[k] = 50));
     }
-
+    
     // === Holland percentages (skor R/I/A/S/E/C; max kira-kira 40) ===
-    const holScores = hol ? { R: hol.score_r, I: hol.score_i, A: hol.score_a, S: hol.score_s, E: hol.score_e, C: hol.score_c } : { R:0,I:0,A:0,S:0,E:0,C:0 };
-    const holMax = Math.max(40, ...Object.values(holScores));
-    const holPct = {};
-    Object.keys(holScores).forEach((k) => { holPct[k] = pct((holScores[k] / holMax) * 100); });
+    let holPct = { R: 50, I: 50, A: 50, S: 50, E: 50, C: 50 };
+    if (hol) {
+      const holScores = { R: hol.score_r, I: hol.score_i, A: hol.score_a, S: hol.score_s, E: hol.score_e, C: hol.score_c };
+      const holMax = Math.max(40, ...Object.values(holScores));
+      Object.keys(holScores).forEach((k) => { holPct[k] = pct((holScores[k] / holMax) * 100); });
+    } else {
+      // Approximate holPct from RMIB, PAPI, or IST
+      if (rmibTop) {
+        var parsedRM = {};
+        try { parsedRM = JSON.parse(rmibTop.result_json || '{}'); } catch(e) {}
+        var getRmPct = function(cat) {
+          var item = parsedRM[cat] || {};
+          var r = item.rank || 12;
+          return Math.round(((13 - r) / 12) * 100);
+        };
+        holPct.R = Math.round((getRmPct("OUT") + getRmPct("MEC") + getRmPct("PRAC")) / 3);
+        holPct.I = Math.round((getRmPct("SCI") + getRmPct("MED")) / 2);
+        holPct.A = Math.round((getRmPct("AEST") + getRmPct("MUS") + getRmPct("LIT")) / 3);
+        holPct.S = getRmPct("SOC");
+        holPct.E = getRmPct("PERS");
+        holPct.C = Math.round((getRmPct("COMP") + getRmPct("CLER")) / 2);
+      } else if (papiTop) {
+        var parsedPapi = {};
+        try { parsedPapi = JSON.parse(papiTop.result_json || '{}'); } catch(e) {}
+        var getPapiPct = function(codes) {
+          var sum = 0, count = 0;
+          codes.forEach(function(code) {
+            var item = parsedPapi[code] || {};
+            sum += (item.score || 0);
+            count++;
+          });
+          return Math.round((sum / (count * 9)) * 100);
+        };
+        holPct.R = getPapiPct(["G", "T", "K"]);
+        holPct.I = getPapiPct(["I", "R", "N"]);
+        holPct.A = getPapiPct(["X", "Z"]);
+        holPct.S = getPapiPct(["S", "B", "O"]);
+        holPct.E = getPapiPct(["L", "V", "A", "P"]);
+        holPct.C = getPapiPct(["D", "C", "F", "W"]);
+      } else if (ist) {
+        holPct.R = Math.round((istPct.FA + istPct.WU) / 2);
+        holPct.I = Math.round((istPct.AN + istPct.GE) / 2);
+        holPct.A = istPct.GE;
+        holPct.S = Math.round((istPct.SE + istPct.WA) / 2);
+        holPct.E = istPct.WA;
+        holPct.C = Math.round((istPct.RA + istPct.ZA + istPct.ME) / 3);
+      }
+    }
 
     // === Personality type from RIASEC ===
     const code = hol ? (hol.code || (hol.top1 + hol.top2 + hol.top3)) : "";
@@ -503,11 +547,11 @@
       : "Belum tersedia";
 
     // === Motivation / Stress / Leadership (heuristik) ===
-    // Motivation: Holland E + RMIB top "Persuasif" sederhana &#8594; pakai E score
+    // Motivation: Holland E + RMIB top "Persuasif" sederhana -> pakai E score
     const motivationPct = pct(((holPct.E || 50) + (rmibTop ? 70 : 50)) / 2);
     const motivationLevel = motivationPct >= 70 ? "High" : motivationPct >= 45 ? "Mid" : "Low";
 
-    // Stress: dari Kraepelin error rate (lower=better &#8594; invert)
+    // Stress: dari Kraepelin error rate (lower=better -> invert)
     let stressPct = 40;
     if (krp) {
       const total = (krp.total_correct || 0) + (krp.total_errors || 0) + (krp.total_skipped || 0);
@@ -556,7 +600,68 @@
     const skillTotalLabel = skillAvg >= 75 ? "Good Performance" : skillAvg >= 55 ? "Average" : "Needs Improvement";
 
     // === Career roadmap ===
-    const careerSeed = (code || "ISE").split("");
+    let careerSeed = [];
+    if (code) {
+      careerSeed = code.split("");
+    } else {
+      // Dynamic career seed from RMIB, PAPI, or IST
+      if (rmibTop) {
+        var rmibToRiasec = {
+          OUT: "R", MEC: "R", MECH: "R", COMP: "C", SCI: "I",
+          PERS: "E", AEST: "A", ART: "A", MUS: "A", LIT: "A",
+          SOC: "S", CLER: "C", PRAC: "R", MED: "I"
+        };
+        var cats = [rmibTop.dominant_category, rmibTop.top1, rmibTop.top2, rmibTop.top3].filter(Boolean);
+        cats.forEach(function(c) {
+          var letter = rmibToRiasec[c.toUpperCase()];
+          if (letter && careerSeed.indexOf(letter) === -1) careerSeed.push(letter);
+        });
+      }
+      if (careerSeed.length < 3 && papiTop) {
+        var papiToRiasec = {
+          G: "R", L: "E", I: "I", T: "R", V: "E", S: "S", R: "I", D: "C", C: "C", E: "S",
+          N: "I", A: "E", P: "E", X: "A", B: "S", O: "S", Z: "A", K: "R", F: "C", W: "C"
+        };
+        var dom = (papiTop.dominant_category || "").toUpperCase();
+        var letter = papiToRiasec[dom];
+        if (letter && careerSeed.indexOf(letter) === -1) careerSeed.push(letter);
+        if (papiTop.top_categories) {
+          var tops = [];
+          try { tops = JSON.parse(papiTop.top_categories); } catch(e) {
+            tops = String(papiTop.top_categories).split(/[,\[\]\"' →]/).map(x => x.trim()).filter(Boolean);
+          }
+          if (Array.isArray(tops)) {
+            tops.forEach(function(c) {
+              var l = papiToRiasec[c.toUpperCase()];
+              if (l && careerSeed.indexOf(l) === -1) careerSeed.push(l);
+            });
+          }
+        }
+      }
+      if (careerSeed.length < 3 && ist) {
+        var istScores = [
+          { score: istPct.SE || 0, letter: "S" },
+          { score: istPct.WA || 0, letter: "S" },
+          { score: istPct.AN || 0, letter: "I" },
+          { score: istPct.GE || 0, letter: "A" },
+          { score: istPct.RA || 0, letter: "C" },
+          { score: istPct.ZA || 0, letter: "I" },
+          { score: istPct.FA || 0, letter: "R" },
+          { score: istPct.WU || 0, letter: "R" },
+          { score: istPct.ME || 0, letter: "C" }
+        ];
+        istScores.sort(function(a, b) { return b.score - a.score; });
+        istScores.forEach(function(item) {
+          if (careerSeed.indexOf(item.letter) === -1) careerSeed.push(item.letter);
+        });
+      }
+      // fill with defaults
+      ["I", "S", "E", "A", "R", "C"].forEach(function(l) {
+        if (careerSeed.length < 3 && careerSeed.indexOf(l) === -1) careerSeed.push(l);
+      });
+    }
+    careerSeed = careerSeed.slice(0, 3);
+
     const careerMap = new Map();
     careerSeed.forEach((letter, idx) => {
       const list = CAREER_BY_LETTER[letter] || [];

@@ -874,8 +874,30 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+
+      // Deteksi error HTTP (token habis, rate limit, dll)
+      if (!res.ok) {
+        const status = res.status;
+        let errMsg = "Gagal memuat rekomendasi AI.";
+        if (status === 402 || status === 429) {
+          errMsg = "Token AI tidak mencukupi atau rate limit tercapai. Coba lagi beberapa saat.";
+          showAIToast(errMsg, "token");
+        } else if (status >= 500) {
+          errMsg = "Server AI sedang tidak tersedia. Silakan coba lagi nanti.";
+          showAIToast(errMsg, "server");
+        } else {
+          showAIToast(errMsg, "error");
+        }
+        throw new Error(errMsg);
+      }
+
       const json = await res.json();
       if (!json || !json.success || !json.data) {
+        // Cek apakah error karena token
+        const msg = (json && json.message) || "";
+        if (/token|quota|rate|insufficient|limit/i.test(msg)) {
+          showAIToast("Token AI tidak mencukupi. Rekomendasi menggunakan data lokal.", "token");
+        }
         throw new Error("Gagal mengambil data AI");
       }
  
@@ -936,6 +958,51 @@
       if (aiData.insight) {
         setText("#smInsight", aiData.insight);
       }
+
+      // 6. Emotional Analytics dari AI
+      if (aiData.emotional_analytics) {
+        const ea = aiData.emotional_analytics;
+        const emotional = {
+          selfAwareness:   typeof ea.selfAwareness   === 'number' ? ea.selfAwareness   : 50,
+          selfRegulation:  typeof ea.selfRegulation  === 'number' ? ea.selfRegulation  : 50,
+          motivation:      typeof ea.motivation      === 'number' ? ea.motivation      : 50,
+          empathy:         typeof ea.empathy         === 'number' ? ea.empathy         : 50,
+          stressManagement:typeof ea.stressManagement=== 'number' ? ea.stressManagement: 50,
+          resilience:      typeof ea.resilience      === 'number' ? ea.resilience      : 50,
+        };
+        renderEmotional({ emotional });
+      }
+
+      // 7. Skill Tracker dari AI
+      if (Array.isArray(aiData.skill_tracker) && aiData.skill_tracker.length > 0) {
+        const skills = aiData.skill_tracker.map(s => ({
+          name:  s.name  || "Skill",
+          value: typeof s.value === 'number' ? Math.min(100, Math.max(0, s.value)) : 50
+        }));
+        const skillAvg = Math.round(skills.reduce((a, b) => a + b.value, 0) / skills.length);
+        const skillTotal = skillAvg + " /100";
+        const skillTotalLabel = skillAvg >= 75 ? "Good Performance" : skillAvg >= 55 ? "Average" : "Needs Improvement";
+        renderSkills({ skills, skillTotal, skillTotalLabel });
+      }
+
+      // 8. Career Roadmap dari AI
+      if (aiData.career_roadmap) {
+        const cr = aiData.career_roadmap;
+        const careers = Array.isArray(cr.careers) ? cr.careers.map(c => ({
+          name:  c.name  || "Karir",
+          match: typeof c.match === 'number' ? c.match : 75,
+          icon:  c.icon  || "briefcase"
+        })) : [];
+        const roadmap = Array.isArray(cr.roadmap) ? cr.roadmap : [];
+
+        // Update student profile stat tile (top career)
+        if (careers.length > 0) {
+          setText("#spCareerName", careers[0].name);
+          setText("#spCareerMatch", careers[0].match + "%");
+        }
+
+        renderCareer({ careers, roadmap });
+      }
  
       if (window.lucide && typeof window.lucide.createIcons === "function") {
         try { window.lucide.createIcons(); } catch (_) {}
@@ -950,6 +1017,104 @@
     }
   }
  
+  // ============== Toast Alert System ==============
+  function showAIToast(message, type) {
+    // Pastikan container ada
+    let container = document.getElementById("ai-toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "ai-toast-container";
+      container.style.cssText = [
+        "position:fixed",
+        "bottom:24px",
+        "right:24px",
+        "z-index:99999",
+        "display:flex",
+        "flex-direction:column",
+        "gap:10px",
+        "pointer-events:none"
+      ].join(";");
+      document.body.appendChild(container);
+    }
+
+    // Warna berdasarkan tipe
+    const colors = {
+      token:  { bg: "#fef2f2", border: "#fca5a5", icon: "#ef4444", text: "#991b1b" },
+      server: { bg: "#fffbeb", border: "#fcd34d", icon: "#f59e0b", text: "#92400e" },
+      error:  { bg: "#fef2f2", border: "#fca5a5", icon: "#ef4444", text: "#991b1b" },
+      info:   { bg: "#eff6ff", border: "#93c5fd", icon: "#3b82f6", text: "#1e40af" },
+    };
+    const c = colors[type] || colors.error;
+
+    const icons = {
+      token:  "zap-off",
+      server: "alert-triangle",
+      error:  "alert-circle",
+      info:   "info",
+    };
+    const iconName = icons[type] || "alert-circle";
+
+    const toast = document.createElement("div");
+    toast.style.cssText = [
+      "pointer-events:auto",
+      "display:flex",
+      "align-items:flex-start",
+      "gap:10px",
+      "background:" + c.bg,
+      "border:1px solid " + c.border,
+      "border-radius:12px",
+      "padding:12px 14px",
+      "min-width:280px",
+      "max-width:360px",
+      "box-shadow:0 4px 16px rgba(0,0,0,0.12)",
+      "animation:toastSlideIn 0.3s cubic-bezier(0.4,0,0.2,1)",
+      "font-family:inherit",
+    ].join(";");
+
+    const iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + c.icon + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    const zapSvg  = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + c.icon + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    const warnSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + c.icon + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    const usedSvg = type === 'token' ? zapSvg : type === 'server' ? warnSvg : iconSvg;
+
+    const label = type === 'token' ? 'Token AI Habis' : type === 'server' ? 'AI Tidak Tersedia' : 'Error AI';
+
+    toast.innerHTML =
+      usedSvg +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:12px;font-weight:700;color:' + c.icon + ';margin-bottom:2px;">' + label + '</div>' +
+        '<div style="font-size:12.5px;color:' + c.text + ';line-height:1.5;">' + encodeHTML(message) + '</div>' +
+      '</div>' +
+      '<button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:' + c.text + ';opacity:0.6;font-size:16px;padding:0;line-height:1;flex-shrink:0;">✕</button>';
+
+    container.appendChild(toast);
+
+    // Auto dismiss setelah 7 detik
+    setTimeout(function() {
+      toast.style.animation = "toastSlideOut 0.3s ease forwards";
+      setTimeout(function() { if (toast.parentElement) toast.remove(); }, 300);
+    }, 7000);
+
+    // Inject keyframes jika belum ada
+    if (!document.getElementById("ai-toast-styles")) {
+      const style = document.createElement("style");
+      style.id = "ai-toast-styles";
+      style.textContent = [
+        "@keyframes toastSlideIn{",
+          "from{transform:translateX(120%);opacity:0}",
+          "to{transform:translateX(0);opacity:1}",
+        "}",
+        "@keyframes toastSlideOut{",
+          "from{transform:translateX(0);opacity:1}",
+          "to{transform:translateX(120%);opacity:0}",
+        "}"
+      ].join("");
+      document.head.appendChild(style);
+    }
+  }
+
+  // Expose globally for use in other pages
+  window.showAIToast = showAIToast;
+
   function encodeHTML(s) {
     if (s == null) return '';
     return String(s).replace(/[&<>"']/g, function(c) {

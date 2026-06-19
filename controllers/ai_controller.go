@@ -531,7 +531,7 @@ func (c *AIController) StudentCombinedSummary() {
 	cacheKey := getCacheHash(req)
 	var cacheFile string
 	if cacheKey != "" {
-		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_%s.json", cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_v2_%s.json", cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -588,10 +588,45 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
   ],
   "potential": 85,
   "potential_desc": "1-2 kalimat deskripsi singkat potensi tinggi siswa",
-  "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary"
+  "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary",
+  "emotional_analytics": {
+    "selfAwareness": 75,
+    "selfRegulation": 70,
+    "motivation": 80,
+    "empathy": 65,
+    "stressManagement": 72,
+    "resilience": 78
+  },
+  "skill_tracker": [
+    {"name": "Analytical Thinking", "value": 85},
+    {"name": "Problem Solving", "value": 80},
+    {"name": "Communication", "value": 70},
+    {"name": "Leadership", "value": 65},
+    {"name": "Creativity", "value": 75},
+    {"name": "Technical Skill", "value": 80}
+  ],
+  "career_roadmap": {
+    "careers": [
+      {"name": "Nama Karir 1", "match": 90, "icon": "briefcase"},
+      {"name": "Nama Karir 2", "match": 85, "icon": "bar-chart-2"},
+      {"name": "Nama Karir 3", "match": 80, "icon": "code-2"},
+      {"name": "Nama Karir 4", "match": 75, "icon": "users"},
+      {"name": "Nama Karir 5", "match": 70, "icon": "rocket"}
+    ],
+    "roadmap": [
+      {"term": "Short Term (1-2 Tahun)", "items": ["langkah konkret 1 sesuai bakat siswa", "langkah konkret 2"]},
+      {"term": "Mid Term (3-5 Tahun)", "items": ["target menengah 1", "target menengah 2"]},
+      {"term": "Long Term (5+ Tahun)", "items": ["target jangka panjang 1", "target jangka panjang 2"]}
+    ]
+  }
 }
 
-PENTING: Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci (seperti 'ist', 'holland', dst) untuk alat tes yang datanya benar-benar dikirimkan dalam JSON input. Jika data suatu alat tes tidak ada di dalam input, JANGAN sertakan kunci tersebut sama sekali dalam objek 'kesimpulan_detail' (jangan membuat teks placeholder atau tulisan 'tidak tersedia').`, req.StudentName, req.BatchName, string(resultsJSON))
+PENTING:
+1. Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci untuk alat tes yang datanya ada di input. Jika tidak ada, JANGAN sertakan kunci tersebut.
+2. Semua nilai numerik harus integer 0-100.
+3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia.
+4. 'skill_tracker' harus mencerminkan kemampuan spesifik siswa berdasarkan tes yang tersedia (bukan generik).
+5. 'career_roadmap.careers' harus berisi karir yang BENAR-BENAR cocok dengan profil siswa, bukan template umum.`, req.StudentName, req.BatchName, string(resultsJSON))
 
 	text, status, err := callGemini(systemHint, userPrompt, true)
 	if err != nil {
@@ -650,7 +685,7 @@ func GetOrGenerateCombinedSummaryInternal(studentName string, batchName string, 
 	cacheKey := getCacheHash(req)
 	var cacheFile string
 	if cacheKey != "" {
-		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_%s.json", cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_v2_%s.json", cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -705,10 +740,45 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
   ],
   "potential": 85,
   "potential_desc": "1-2 kalimat deskripsi singkat potensi tinggi siswa",
-  "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary"
+  "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary",
+  "emotional_analytics": {
+    "selfAwareness": 75,
+    "selfRegulation": 70,
+    "motivation": 80,
+    "empathy": 65,
+    "stressManagement": 72,
+    "resilience": 78
+  },
+  "skill_tracker": [
+    {"name": "Analytical Thinking", "value": 85},
+    {"name": "Problem Solving", "value": 80},
+    {"name": "Communication", "value": 70},
+    {"name": "Leadership", "value": 65},
+    {"name": "Creativity", "value": 75},
+    {"name": "Technical Skill", "value": 80}
+  ],
+  "career_roadmap": {
+    "careers": [
+      {"name": "Nama Karir 1", "match": 90, "icon": "briefcase"},
+      {"name": "Nama Karir 2", "match": 85, "icon": "bar-chart-2"},
+      {"name": "Nama Karir 3", "match": 80, "icon": "code-2"},
+      {"name": "Nama Karir 4", "match": 75, "icon": "users"},
+      {"name": "Nama Karir 5", "match": 70, "icon": "rocket"}
+    ],
+    "roadmap": [
+      {"term": "Short Term (1-2 Tahun)", "items": ["langkah konkret 1 sesuai bakat siswa", "langkah konkret 2"]},
+      {"term": "Mid Term (3-5 Tahun)", "items": ["target menengah 1", "target menengah 2"]},
+      {"term": "Long Term (5+ Tahun)", "items": ["target jangka panjang 1", "target jangka panjang 2"]}
+    ]
+  }
 }
 
-PENTING: Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci (seperti 'ist', 'holland', dst) untuk alat tes yang datanya benar-benar dikirimkan dalam JSON input. Jika data suatu alat tes tidak ada di dalam input, JANGAN sertakan kunci tersebut sama sekali dalam objek 'kesimpulan_detail' (jangan membuat teks placeholder atau tulisan 'tidak tersedia').`, studentName, batchName, string(resultsJSON))
+PENTING:
+1. Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci untuk alat tes yang datanya ada di input. Jika tidak ada, JANGAN sertakan kunci tersebut.
+2. Semua nilai numerik harus integer 0-100.
+3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia.
+4. 'skill_tracker' harus mencerminkan kemampuan spesifik siswa berdasarkan tes yang tersedia (bukan generik).
+5. 'career_roadmap.careers' harus berisi karir yang BENAR-BENAR cocok dengan profil siswa, bukan template umum.`, studentName, batchName, string(resultsJSON))
 
 	text, _, err := callGemini(systemHint, userPrompt, true)
 	if err != nil {

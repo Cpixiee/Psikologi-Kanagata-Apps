@@ -814,13 +814,85 @@
     if (tipeFilter) tipeFilter.addEventListener("change", filterAndRenderBatches);
   }
  
+  // ============== Skeleton Loaders ==============
+  function skBar(w) {
+    return '<div style="height:8px;background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite;border-radius:99px;width:' + w + '%;margin:3px 0;"></div>';
+  }
+  (function injectSkStyles() {
+    if (document.getElementById('sk-shimmer-style')) return;
+    const s = document.createElement('style');
+    s.id = 'sk-shimmer-style';
+    s.textContent = '@keyframes skShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';
+    document.head.appendChild(s);
+  })();
+
+  function renderSkeletonEmotional() {
+    const palette = ["#22c55e", "#3b82f6", "#8b5cf6", "#f59e0b", "#14b8a6", "#ec4899"];
+    const ids = ["#gSelfAware","#gSelfReg","#gMotivation","#gEmpathy","#gStressMgmt","#gResilience"];
+    ids.forEach((id, i) => {
+      const node = $(id);
+      if (!node) return;
+      const ring = node.querySelector('.ring');
+      if (ring) { ring.style.setProperty('--pct', '0deg'); ring.style.setProperty('--col', palette[i]); }
+      const num = node.querySelector('.num');
+      if (num) num.textContent = '...';
+      const d = node.querySelector('.desc');
+      if (d) { d.textContent = 'Memuat...'; d.className = 'desc'; }
+    });
+  }
+
+  function renderSkeletonSkills() {
+    const list = $("#skillList");
+    if (!list) return;
+    list.innerHTML = [
+      [70], [55], [80], [60], [45], [65]
+    ].map((_, i) => {
+      const widths = [70, 55, 80, 60, 45, 65];
+      return '<div class="ds-skill-row" style="pointer-events:none">'
+        + '<span class="nm">' + skBar(40 + i * 5) + '</span>'
+        + '<span class="vl" style="color:transparent">--%</span>'
+        + '<div class="bar"><span style="width:' + widths[i] + '%;background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite;"></span></div>'
+        + '</div>';
+    }).join('');
+    const st = $("#skillTotal");
+    if (st) st.textContent = '— /100';
+    const stl = $("#skillTotalLabel");
+    if (stl) stl.textContent = 'Menganalisis...';
+  }
+
+  function renderSkeletonCareer() {
+    const list = $("#careerList");
+    if (list) {
+      list.innerHTML = [1,2,3,4,5].map(() =>
+        '<div class="ds-career-row" style="pointer-events:none">'
+        + '<span class="ic"><i data-lucide="briefcase"></i></span>'
+        + '<span class="nm">' + skBar(50) + '</span>'
+        + '<span class="pct" style="color:transparent">--%</span>'
+        + '</div>'
+      ).join('');
+      if (window.lucide) try { window.lucide.createIcons(); } catch(_) {}
+    }
+    const tl = $("#careerTimeline");
+    if (tl) {
+      tl.innerHTML = ['Short Term','Mid Term','Long Term'].map(term =>
+        '<div class="ds-roadmap-item">'
+        + '<h5>' + term + '</h5>'
+        + '<ul>' + skBar(70) + skBar(55) + '</ul>'
+        + '</div>'
+      ).join('');
+    }
+  }
+
   // ============== Live AI Fetching & Rendering ==============
-  async function fetchAndRenderLiveCombinedAI(userData, summaryData, rmibList, papiList) {
+  async function fetchAndRenderLiveCombinedAI(userData, summaryData, rmibList, papiList, ctx) {
     const list = $("#aiRecList");
     const strengthsUl = $("#smStrengths");
     const devUl = $("#smDev");
     const potentialDesc = $("#smPotentialDesc");
     const insightEl = $("#smInsight");
+    const skillList = $("#skillList");
+    const careerList = $("#careerList");
+    const careerTimeline = $("#careerTimeline");
  
     if (list) {
       list.innerHTML = `<div class="text-center py-4" style="grid-column: 1/-1;"><div class="spinner-border text-primary" role="status" style="width: 24px; height: 24px; margin: 0 auto; display: block;"></div><p class="text-muted text-xs mt-2">Menganalisis rekomendasi karir & kegiatan dengan AI...</p></div>`;
@@ -832,7 +904,10 @@
     if (devUl) devUl.innerHTML = skLoading;
     if (potentialDesc) potentialDesc.textContent = "Menghitung potensi dengan AI...";
     if (insightEl) insightEl.textContent = "Memproses wawasan AI...";
- 
+
+    // Skeleton sudah dirender di init(), tapi pastikan juga jika dipanggil langsung
+    if (!ctx) { renderSkeletonSkills(); renderSkeletonCareer(); renderSkeletonEmotional(); }
+
     // Collect completed tests
     const completedTests = [];
     const resultsPayload = {};
@@ -857,6 +932,8 @@
       if (devUl) devUl.innerHTML = `<li>Belum ada data tes</li>`;
       if (potentialDesc) potentialDesc.textContent = "Siswa belum menyelesaikan tes.";
       if (insightEl) insightEl.textContent = "Belum ada tes yang diselesaikan.";
+      // Fallback ke heuristik jika tidak ada tes sama sekali
+      if (ctx) { renderEmotional(ctx); renderSkills(ctx); renderCareer(ctx); }
       return;
     }
  
@@ -983,6 +1060,9 @@
         const skillTotal = skillAvg + " /100";
         const skillTotalLabel = skillAvg >= 75 ? "Good Performance" : skillAvg >= 55 ? "Average" : "Needs Improvement";
         renderSkills({ skills, skillTotal, skillTotalLabel });
+      } else if (ctx) {
+        // Tidak ada field dari AI (cache lama), fallback ke heuristik
+        renderSkills(ctx);
       }
 
       // 8. Career Roadmap dari AI
@@ -1002,6 +1082,9 @@
         }
 
         renderCareer({ careers, roadmap });
+      } else if (ctx) {
+        // Tidak ada field dari AI (cache lama), fallback ke heuristik
+        renderCareer(ctx);
       }
  
       if (window.lucide && typeof window.lucide.createIcons === "function") {
@@ -1014,6 +1097,11 @@
       if (devUl) devUl.innerHTML = `<li>Gagal memuat data</li>`;
       if (potentialDesc) potentialDesc.textContent = "Gagal memproses potensi.";
       if (insightEl) insightEl.textContent = "Gagal memproses wawasan AI.";
+      // Fallback ke heuristik jika AI error
+      if (ctx) { renderEmotional(ctx); renderSkills(ctx); renderCareer(ctx); }
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        try { window.lucide.createIcons(); } catch (_) {}
+      }
     }
   }
  
@@ -1191,14 +1279,15 @@
  
         renderStudentProfile(ctx);
         renderPsychoMap(ctx);
-        renderEmotional(ctx);
-        renderSkills(ctx);
-        renderCareer(ctx);
+        // Emotional, Skills, Career: tampilkan skeleton dulu — AI akan isi
+        renderSkeletonEmotional();
+        renderSkeletonSkills();
+        renderSkeletonCareer();
         renderAIRec(ctx); // render default fallback first
         renderSmart(ctx);  // render default fallback first
  
-        // Jalankan fetch AI live & dinamis
-        fetchAndRenderLiveCombinedAI(userData, summaryData, rmibList, papiList);
+        // Jalankan fetch AI live & dinamis (akan override skeleton di atas)
+        fetchAndRenderLiveCombinedAI(userData, summaryData, rmibList, papiList, ctx);
       }
     }
  

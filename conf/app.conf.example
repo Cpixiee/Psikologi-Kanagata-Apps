@@ -2,7 +2,7 @@
 # File asli app.conf tidak di-commit (lihat .gitignore). Nilai di bawah diganti entrypoint dari .env.docker.
 
 appname = psikologi_apps
-httpport = 112
+httpport = 8086
 runmode = prod
 copyrequestbody = true
 
@@ -36,14 +36,14 @@ FROM_NAME = Psychee Wellness
 # Google OAuth (optional)
 GOOGLE_CLIENT_ID =
 GOOGLE_CLIENT_SECRET =
-GOOGLE_REDIRECT_URL = http://localhost:112/api/auth/google/callback
+GOOGLE_REDIRECT_URL = http://localhost:8086/api/auth/google/callback
 
 # Admin seed (optional)
 admin_email = admin@psikologi.local
 admin_password = admin123
 
 # Public URL (optional)
-BASE_URL = http://localhost:112
+BASE_URL = http://localhost:8086
 
 # Google Gemini API key (untuk fitur AI ringkasan & chat)
 # Dapat juga diset lewat env GEMINI_API_KEY.

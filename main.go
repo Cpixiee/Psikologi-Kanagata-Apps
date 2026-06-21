@@ -101,6 +101,6 @@ func main() {
 		logs.Warning("PAPI schema ensure warning: %v", err)
 	}
 	
-	logs.Info("Application starting on port %s...", beego.AppConfig.DefaultString("httpport", "112"))
+	logs.Info("Application starting on port %s...", beego.AppConfig.DefaultString("httpport", "8086"))
 	beego.Run()
 }

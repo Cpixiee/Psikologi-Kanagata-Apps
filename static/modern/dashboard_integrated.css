@@ -404,7 +404,7 @@ button { font-family: inherit; cursor: pointer; }
 .ds-career-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
 }
-.ds-career-list { display: flex; flex-direction: column; gap: 8px; }
+.ds-career-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
 .ds-career-row {
   display: flex; align-items: center; gap: 10px;
   padding: 6px 10px; border-radius: 8px; background: #f7f8fc;
@@ -413,7 +413,7 @@ button { font-family: inherit; cursor: pointer; }
 .ds-career-row .nm { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; }
 .ds-career-row .pct { font-size: 12px; font-weight: 700; color: var(--ds-success); }
 
-.ds-roadmap { display: flex; flex-direction: column; gap: 10px; }
+.ds-roadmap { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
 .ds-roadmap-item { padding-left: 12px; border-left: 2px solid var(--ds-primary-soft); position: relative; }
 .ds-roadmap-item::before { content: ''; position: absolute; left: -5px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--ds-primary); }
 .ds-roadmap-item h5 { margin: 0; font-size: 12px; color: var(--ds-primary); font-weight: 700; }
@@ -531,26 +531,42 @@ button { font-family: inherit; cursor: pointer; }
 .ds-insight h5 { margin: 0 0 4px; font-size: 12.5px; color: var(--ds-success); }
 .ds-insight em { display: block; margin-top: 6px; color: var(--ds-muted); font-style: italic; font-size: 11px; }
 
-/* Scrollbar utility classes for smart summary blocks */
+/* Scrollbar utility classes for smart summary blocks & career roadmap */
 .ds-smart-block ul,
 .ds-potential,
-.ds-insight > div:last-child {
+.ds-insight > div:last-child,
+.ds-career-list,
+.ds-roadmap {
   scrollbar-width: thin;
 }
 .ds-smart-block ul::-webkit-scrollbar,
 .ds-potential::-webkit-scrollbar,
-.ds-insight > div:last-child::-webkit-scrollbar {
+.ds-insight > div:last-child::-webkit-scrollbar,
+.ds-career-list::-webkit-scrollbar,
+.ds-roadmap::-webkit-scrollbar {
   width: 4px;
 }
 .ds-smart-block ul::-webkit-scrollbar-track,
 .ds-potential::-webkit-scrollbar-track,
-.ds-insight > div:last-child::-webkit-scrollbar-track {
+.ds-insight > div:last-child::-webkit-scrollbar-track,
+.ds-career-list::-webkit-scrollbar-track,
+.ds-roadmap::-webkit-scrollbar-track {
   background: transparent;
 }
 .ds-smart-block ul::-webkit-scrollbar-thumb,
 .ds-potential::-webkit-scrollbar-thumb,
-.ds-insight > div:last-child::-webkit-scrollbar-thumb {
+.ds-insight > div:last-child::-webkit-scrollbar-thumb,
+.ds-career-list::-webkit-scrollbar-thumb,
+.ds-roadmap::-webkit-scrollbar-thumb {
   border-radius: 2px;
+}
+.ds-career-list::-webkit-scrollbar-thumb,
+.ds-roadmap::-webkit-scrollbar-thumb {
+  background-color: rgba(79, 70, 229, 0.25);
+}
+.ds-career-list,
+.ds-roadmap {
+  scrollbar-color: rgba(79, 70, 229, 0.2) transparent;
 }
 
 .ds-smart-block.green ul {

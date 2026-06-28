@@ -419,22 +419,58 @@
       document.addEventListener('DOMContentLoaded', () => {
         loadSchools();
         
-        // Handle checkbox toggles and input state
         const table = document.getElementById('testOrderTable');
+
+        // Auto-renormalisasi: setiap kali ada perubahan checkbox atau input urutan,
+        // semua test yang dipilih diberi ulang urutan 1..N berurutan sesuai urutan saat ini.
+        function renormalizeOrders() {
+          const rows = Array.from(table.querySelectorAll('tbody tr'));
+          
+          // Kumpulkan baris yang diceklis beserta nilai urutan saat ini
+          let checkedRows = [];
+          rows.forEach(row => {
+            const cb = row.querySelector('.test-checkbox');
+            const inp = row.querySelector('.test-order-input');
+            if (cb && cb.checked) {
+              const val = parseInt(inp.value, 10);
+              checkedRows.push({ row, cb, inp, order: isNaN(val) ? 9999 : val });
+            } else if (cb && inp) {
+              inp.disabled = true;
+              inp.value = '';
+            }
+          });
+
+          // Urutkan berdasarkan nilai order yang ada (kecil ke besar)
+          checkedRows.sort((a, b) => a.order - b.order);
+
+          // Assign ulang 1..N agar tidak ada gap/duplikat
+          checkedRows.forEach((item, idx) => {
+            item.inp.disabled = false;
+            item.inp.value = idx + 1;
+          });
+        }
+
         table.addEventListener('change', (e) => {
           if (e.target.classList.contains('test-checkbox')) {
             const checkbox = e.target;
             const row = checkbox.closest('tr');
             const orderInput = row.querySelector('.test-order-input');
             if (checkbox.checked) {
+              // Beri nilai sementara yang besar agar renormalize meletakkan di akhir
               orderInput.disabled = false;
-              // Set default order number based on currently checked tests
-              const activeCount = Array.from(table.querySelectorAll('.test-checkbox:checked')).length;
-              orderInput.value = activeCount;
+              orderInput.value = 9999;
             } else {
               orderInput.disabled = true;
               orderInput.value = '';
             }
+            renormalizeOrders();
+          }
+        });
+
+        // Renormalisasi juga saat user mengubah angka urutan secara manual
+        table.addEventListener('change', (e) => {
+          if (e.target.classList.contains('test-order-input')) {
+            renormalizeOrders();
           }
         });
       });
@@ -448,34 +484,20 @@
           return;
         }
 
-        // Validate and read orders
+        // Kumpulkan test yang dipilih beserta urutannya
         const testOrders = [];
-        let valid = true;
         checkboxes.forEach(cb => {
           const row = cb.closest('tr');
           const orderInput = row.querySelector('.test-order-input');
           const val = parseInt(orderInput.value, 10);
-          if (isNaN(val) || val < 1 || val > 6) {
-            valid = false;
-          } else {
-            testOrders.push({ key: cb.value, order: val });
-          }
+          testOrders.push({ key: cb.value, order: isNaN(val) ? 9999 : val });
         });
 
-        if (!valid) {
-          Swal.fire({ icon: 'warning', title: 'Urutan tidak valid', text: 'Semua alat tes yang dipilih harus memiliki nomor urutan pengerjaan antara 1 - 6.' });
-          return;
-        }
-
-        // Check for duplicates in order
-        const orders = testOrders.map(t => t.order);
-        if (new Set(orders).size !== orders.length) {
-          Swal.fire({ icon: 'warning', title: 'Urutan duplikat', text: 'Urutan pengerjaan tidak boleh ada yang sama.' });
-          return;
-        }
-
-        // Sort by order and join keys
+        // Sort berdasarkan urutan → assign 1..N (garantikan tidak ada gap/duplikat)
         testOrders.sort((a, b) => a.order - b.order);
+        testOrders.forEach((item, idx) => { item.order = idx + 1; });
+
+        // Build test_order string
         const testOrderStr = testOrders.map(t => t.key).join(',');
 
         const sekolahValue = document.getElementById('batchSekolah').value;

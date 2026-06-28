@@ -305,3 +305,8 @@ body.ds-sidebar-open .ds-backdrop {
   margin-top: auto;
   line-height: 1.4;
 }
+
+/* Sembunyikan toggle bawaan Sneat karena kita menggunakan tombol hamburger .ds-mobile-toggle yang di-inject secara global */
+.layout-menu-toggle {
+  display: none !important;
+}

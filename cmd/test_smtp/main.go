@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/smtp"
 	"psikologi_apps/utils"
@@ -43,7 +44,10 @@ func main() {
 	defer client.Close()
 	
 	// Start TLS
-	if err := client.StartTLS(nil); err != nil {
+	tlsConfig := &tls.Config{
+		ServerName: config.SMTPHost,
+	}
+	if err := client.StartTLS(tlsConfig); err != nil {
 		fmt.Printf("❌ Failed to start TLS: %v\n", err)
 		return
 	}

@@ -70,6 +70,78 @@
         border-top: 1px solid rgba(15,23,42,0.08);
         padding: 12px 0;
       }
+      @media (max-width: 768px) {
+        .vak-table table, .vak-table thead, .vak-table tbody, .vak-table th, .vak-table td, .vak-table tr {
+          display: block;
+        }
+        .vak-table thead {
+          display: none;
+        }
+        .vak-table tr {
+          border: 1px solid rgba(15,23,42,0.08);
+          border-radius: 12px;
+          margin-bottom: 16px;
+          padding: 14px;
+          background: #fff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .vak-table td {
+          border: none !important;
+          padding: 6px 0 !important;
+          text-align: left !important;
+        }
+        .vak-table td:first-child {
+          font-weight: 700;
+          font-size: 0.95rem;
+          color: #4f46e5;
+          display: inline-block;
+          margin-right: 6px;
+        }
+        .vak-table td:first-child::after {
+          content: ".";
+        }
+        .vak-table td:nth-child(2) {
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #1f2937;
+          margin-bottom: 12px;
+          display: inline;
+        }
+        /* Kolom Ya dan Tidak */
+        .vak-table td:nth-child(3),
+        .vak-table td:nth-child(4) {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          width: 48%;
+        }
+        .vak-table td:nth-child(3)::before {
+          content: "Ya: ";
+          font-size: 0.85rem;
+          color: #6b7280;
+          font-weight: 600;
+        }
+        .vak-table td:nth-child(4)::before {
+          content: "Tidak: ";
+          font-size: 0.85rem;
+          color: #6b7280;
+          font-weight: 600;
+        }
+        .vak-table .vak-input {
+          width: 64px !important;
+          height: 38px !important;
+          margin: 0 !important;
+        }
+        /* Status Isian */
+        .vak-table td:last-child {
+          display: block;
+          margin-top: 10px;
+          padding: 6px 12px !important;
+          border-radius: 8px;
+          text-align: center !important;
+          font-size: 0.8rem;
+        }
+      }
     </style>
   </head>
   <body>

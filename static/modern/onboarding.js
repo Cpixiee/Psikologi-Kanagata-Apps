@@ -45,13 +45,13 @@
     };
 
     if (!payload.nisn && !payload.nip) {
-      Swal.fire({ icon: "warning", title: "NISN atau NIP wajib diisi", confirmButtonText: "OK" });
+      Swal.fire({ target: "#onboardingModal", icon: "warning", title: "NISN atau NIP wajib diisi", confirmButtonText: "OK" });
       return false;
     }
     const required = ["kelas", "jurusan", "sekolah", "tempat_lahir", "tanggal_lahir", "kecamatan", "kota", "provinsi"];
     for (const k of required) {
       if (!payload[k]) {
-        Swal.fire({ icon: "warning", title: "Lengkapi semua field", text: "Field " + k.replace(/_/g, " ") + " wajib diisi", confirmButtonText: "OK" });
+        Swal.fire({ target: "#onboardingModal", icon: "warning", title: "Lengkapi semua field", text: "Field " + k.replace(/_/g, " ") + " wajib diisi", confirmButtonText: "OK" });
         return false;
       }
     }
@@ -63,7 +63,7 @@
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      Swal.fire({ icon: "error", title: "Gagal menyimpan", text: data.message || "Terjadi kesalahan" });
+      Swal.fire({ target: "#onboardingModal", icon: "error", title: "Gagal menyimpan", text: data.message || "Terjadi kesalahan" });
       return false;
     }
     return true;

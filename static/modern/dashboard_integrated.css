@@ -1,3 +1,8 @@
+/* Ensure SweetAlert2 is displayed in front of Bootstrap modals */
+.swal2-container {
+  z-index: 20000 !important;
+}
+
 /*
  * Integrated Student Dashboard — SmartStudent style.
  * Self-contained: tidak bergantung pada Sneat/Bootstrap, hanya pakai variabel
@@ -626,4 +631,26 @@ button { font-family: inherit; cursor: pointer; }
   .ds-profile-stats { grid-template-columns: 1fr; }
   .ds-topbar { flex-wrap: wrap; }
   .ds-userpill .meta { display: none; }
+}
+
+@media (max-width: 768px) {
+  #multiTestTabsList,
+  #pageReportTabs,
+  .bd-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  #multiTestTabsList::-webkit-scrollbar,
+  #pageReportTabs::-webkit-scrollbar,
+  .bd-tabs::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+  #multiTestTabsList li,
+  #pageReportTabs li,
+  .bd-tabs .bd-tab {
+    flex: 0 0 auto !important;
+  }
 }

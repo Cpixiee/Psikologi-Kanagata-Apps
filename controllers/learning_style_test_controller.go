@@ -436,11 +436,19 @@ func (c *LearningStyleTestController) SubmitAnswersAPI() {
 		"InterpretationVisual", "InterpretationAuditory", "InterpretationKinesthetic",
 	)
 
+	// Commit transaksi TERLEBIH DAHULU sebelum GetNextTestRedirect.
+	// GetNextTestRedirect menggunakan orm.NewOrm() (koneksi baru) yang tidak bisa
+	// melihat data dalam transaksi yang belum committed.
+	if err := tx.Commit(); err != nil {
+		rollback(500, "Gagal menyimpan jawaban")
+		return
+	}
+
 	var finishRedirect = "/hasil-tes"
 	var batch models.TestBatch
 	if inv.BatchId != nil {
 		batch.Id = *inv.BatchId
-		_ = tx.Read(&batch)
+		_ = orm.NewOrm().Read(&batch)
 	}
 	nextURL := GetNextTestRedirect(inv.Id, &batch)
 
@@ -452,14 +460,9 @@ func (c *LearningStyleTestController) SubmitAnswersAPI() {
 		if inv.Status != models.StatusInvitationUsed {
 			inv.Status = models.StatusInvitationUsed
 			inv.UsedAt = time.Now()
-			_, _ = tx.Update(inv, "Status", "UsedAt")
+			_, _ = orm.NewOrm().Update(inv, "Status", "UsedAt")
 			justCompleted = true
 		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		rollback(500, "Gagal menyimpan jawaban")
-		return
 	}
 
 	if justCompleted {
@@ -856,11 +859,17 @@ func (c *LearningStyleTestController) DevAutoFill() {
 		"InterpretationVisual", "InterpretationAuditory", "InterpretationKinesthetic",
 	)
 
+	// Commit transaksi TERLEBIH DAHULU sebelum GetNextTestRedirect.
+	if err := tx.Commit(); err != nil {
+		rollback(500, "Gagal menyimpan jawaban")
+		return
+	}
+
 	var finishRedirect = "/hasil-tes"
 	var batch models.TestBatch
 	if inv.BatchId != nil {
 		batch.Id = *inv.BatchId
-		_ = tx.Read(&batch)
+		_ = orm.NewOrm().Read(&batch)
 	}
 	nextURL := GetNextTestRedirect(inv.Id, &batch)
 
@@ -871,14 +880,9 @@ func (c *LearningStyleTestController) DevAutoFill() {
 		if inv.Status != models.StatusInvitationUsed {
 			inv.Status = models.StatusInvitationUsed
 			inv.UsedAt = time.Now()
-			_, _ = tx.Update(inv, "Status", "UsedAt")
+			_, _ = orm.NewOrm().Update(inv, "Status", "UsedAt")
 			justCompleted = true
 		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		rollback(500, "Gagal menyimpan jawaban")
-		return
 	}
 
 	if justCompleted {

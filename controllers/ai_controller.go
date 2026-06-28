@@ -614,9 +614,8 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
       {"name": "Nama Karir 5", "match": 70, "icon": "rocket"}
     ],
     "roadmap": [
-      {"term": "Short Term (1-2 Tahun)", "items": ["langkah konkret 1 sesuai bakat siswa", "langkah konkret 2"]},
-      {"term": "Mid Term (3-5 Tahun)", "items": ["target menengah 1", "target menengah 2"]},
-      {"term": "Long Term (5+ Tahun)", "items": ["target jangka panjang 1", "target jangka panjang 2"]}
+      {"term": "Rekomendasi Jurusan (Major Matches)", "items": ["rekomendasi jurusan/program studi 1 yang sangat cocok", "rekomendasi jurusan 2"]},
+      {"term": "Mata Pelajaran Pendukung (Subject Matches)", "items": ["mata pelajaran pendukung 1 yang relevan", "mata pelajaran 2"]}
     ]
   }
 }
@@ -766,9 +765,8 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
       {"name": "Nama Karir 5", "match": 70, "icon": "rocket"}
     ],
     "roadmap": [
-      {"term": "Short Term (1-2 Tahun)", "items": ["langkah konkret 1 sesuai bakat siswa", "langkah konkret 2"]},
-      {"term": "Mid Term (3-5 Tahun)", "items": ["target menengah 1", "target menengah 2"]},
-      {"term": "Long Term (5+ Tahun)", "items": ["target jangka panjang 1", "target jangka panjang 2"]}
+      {"term": "Rekomendasi Jurusan (Major Matches)", "items": ["rekomendasi jurusan/program studi 1 yang sangat cocok", "rekomendasi jurusan 2"]},
+      {"term": "Mata Pelajaran Pendukung (Subject Matches)", "items": ["mata pelajaran pendukung 1 yang relevan", "mata pelajaran 2"]}
     ]
   }
 }

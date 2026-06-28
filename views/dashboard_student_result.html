@@ -26,12 +26,14 @@
         height: auto !important;
         overflow: visible !important;
       }
-      aside#layout-menu.ds-sidebar,
-      .ds-sidebar {
-        position: relative !important;
-        height: auto !important;
-        min-height: 100vh !important;
-        overflow: visible !important;
+      @media (min-width: 992px) {
+        aside#layout-menu.ds-sidebar,
+        .ds-sidebar {
+          position: relative !important;
+          height: auto !important;
+          min-height: 100vh !important;
+          overflow: visible !important;
+        }
       }
       .ds-main {
         height: auto !important;
@@ -1341,18 +1343,18 @@
 
             <!-- Career Roadmap -->
             <div class="mb-4">
-              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-3" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">CAREER ROADMAP (REKOMENDASI JALUR KARIR SISWA)</h6>
+              <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-3" style="font-size: 13px; color:red; border-color:#e2e8f0 !important;">CAREER & MAJOR RECOMMENDATION (REKOMENDASI JALUR KARIR & JURUSAN SISWA)</h6>
               <div class="ds-career-grid">
                 <div>
-                  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Top Career Matches</div>
+                  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Career Matches</div>
                   <div class="ds-career-list" id="compCareerList">
                     <div class="text-muted">Memuat karir...</div>
                   </div>
                 </div>
                 <div>
-                  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Roadmap Timeline</div>
+                  <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px;">Major & Subject Matches</div>
                   <div class="ds-roadmap" id="compCareerTimeline">
-                    <div class="text-muted">Memuat timeline...</div>
+                    <div class="text-muted">Memuat rekomendasi jurusan...</div>
                   </div>
                 </div>
               </div>

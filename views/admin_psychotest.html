@@ -854,20 +854,45 @@
           confirmButtonText: 'Simpan',
           cancelButtonText: 'Batal',
           didOpen: () => {
+            // Fungsi renormalisasi urutan di dalam modal edit
+            function renormalizeEditOrders() {
+              const rows = Array.from(document.querySelectorAll('.swal-test-checkbox')).map(cb => cb.closest('tr'));
+              let checkedRows = [];
+              rows.forEach(row => {
+                const cb = row.querySelector('.swal-test-checkbox');
+                const inp = row.querySelector('.swal-test-order-input');
+                if (cb && cb.checked) {
+                  const val = parseInt(inp.value, 10);
+                  checkedRows.push({ cb, inp, order: isNaN(val) ? 9999 : val });
+                } else if (cb && inp) {
+                  inp.disabled = true;
+                  inp.value = '';
+                }
+              });
+              checkedRows.sort((a, b) => a.order - b.order);
+              checkedRows.forEach((item, idx) => {
+                item.inp.disabled = false;
+                item.inp.value = idx + 1;
+              });
+            }
+
             const checkboxes = document.querySelectorAll('.swal-test-checkbox');
             checkboxes.forEach(cb => {
-              cb.addEventListener('change', (e) => {
+              cb.addEventListener('change', () => {
                 const row = cb.closest('tr');
                 const orderInput = row.querySelector('.swal-test-order-input');
                 if (cb.checked) {
                   orderInput.disabled = false;
-                  const activeCount = Array.from(document.querySelectorAll('.swal-test-checkbox:checked')).length;
-                  orderInput.value = activeCount;
+                  orderInput.value = 9999; // sementara, akan dinormalisasi
                 } else {
                   orderInput.disabled = true;
                   orderInput.value = '';
                 }
+                renormalizeEditOrders();
               });
+              // Renormalisasi saat user mengubah angka
+              const inp = cb.closest('tr').querySelector('.swal-test-order-input');
+              if (inp) inp.addEventListener('change', renormalizeEditOrders);
             });
           },
           preConfirm: () => {
@@ -885,31 +910,16 @@
               return false;
             }
 
+            // Kumpulkan dan normalisasi urutan 1..N
             const testOrders = [];
-            let valid = true;
             checkboxes.forEach(cb => {
               const row = cb.closest('tr');
               const orderInput = row.querySelector('.swal-test-order-input');
               const val = parseInt(orderInput.value, 10);
-              if (isNaN(val) || val < 1 || val > 6) {
-                valid = false;
-              } else {
-                testOrders.push({ key: cb.value, order: val });
-              }
+              testOrders.push({ key: cb.value, order: isNaN(val) ? 9999 : val });
             });
-
-            if (!valid) {
-              Swal.showValidationMessage('Urutan pengerjaan harus antara 1 - 6.');
-              return false;
-            }
-
-            const orders = testOrders.map(t => t.order);
-            if (new Set(orders).size !== orders.length) {
-              Swal.showValidationMessage('Urutan pengerjaan tidak boleh ada yang sama.');
-              return false;
-            }
-
             testOrders.sort((a, b) => a.order - b.order);
+            testOrders.forEach((item, idx) => { item.order = idx + 1; });
             const testOrderStr = testOrders.map(t => t.key).join(',');
 
             return {

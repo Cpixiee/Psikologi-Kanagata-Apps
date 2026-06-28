@@ -20,6 +20,60 @@
       .rmib-status-warn { background:#fff4e1; color:#8a5a00; }
       .rmib-status-err { background:#ffe9eb; color:#a01828; }
       .rmib-saving-pill { font-size:.78rem; color:#5a5e7a; }
+      @media (max-width: 768px) {
+        .rmib-table table, .rmib-table thead, .rmib-table tbody, .rmib-table th, .rmib-table td, .rmib-table tr {
+          display: block;
+        }
+        .rmib-table thead {
+          display: none;
+        }
+        .rmib-table tr.rmib-row {
+          border: 1px solid var(--ds-border, #e6eaf2);
+          border-radius: 12px;
+          margin-bottom: 12px;
+          padding: 12px 16px;
+          background: #fff;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .rmib-table td {
+          border: none !important;
+          padding: 4px 0 !important;
+          text-align: left !important;
+        }
+        .rmib-table td:first-child {
+          font-weight: 700;
+          color: #696cff;
+          display: inline-block;
+          margin-right: 6px;
+        }
+        .rmib-table td:first-child::after {
+          content: ".";
+        }
+        .rmib-table td:nth-child(2) {
+          font-size: 14px;
+          font-weight: 500;
+          color: #1f2937;
+          margin-bottom: 8px;
+          display: inline;
+        }
+        .rmib-table td:last-child {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 8px;
+        }
+        .rmib-table td:last-child::before {
+          content: "Ranking:";
+          font-size: 13px;
+          color: #6b7280;
+          font-weight: 600;
+        }
+        .rmib-rank-select {
+          width: 100% !important;
+          max-width: 120px;
+          height: 38px;
+        }
+      }
 
       /* Toast container */
       .rmib-toast-container {
@@ -82,7 +136,7 @@
               <small class="text-muted">{{.CompletedGroups}}/{{.TotalGroups}} kelompok lengkap</small>
             </div>
             <div class="rmib-progress-wrap">
-              <div class="rmib-progress-bar" style="width:{{.ProgressPercent}}%"></div>
+              <div class="rmib-progress-bar" id="rmibProgressBar" data-progress="{{.ProgressPercent}}" style="width: 0%;"></div>
             </div>
           </div>
           <div class="card-body">
@@ -98,7 +152,7 @@
 
             <div id="rmibStatus" class="mb-3" style="display:none;"></div>
 
-            <form id="formRMIBGroup" data-group="{{.GroupNumber}}">
+            <form id="formRMIBGroup" data-group="{{.GroupNumber}}" data-next="{{if .NextGroup}}{{.NextGroup}}{{else}}{{end}}">
               <div class="table-responsive">
                 <table class="table table-bordered rmib-table align-middle">
                   <thead>
@@ -172,13 +226,20 @@
     <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
     <script>
       (function () {
-        var groupNumber = {{.GroupNumber}};
-        var nextGroup = {{if .NextGroup}}{{.NextGroup}}{{else}}null{{end}};
         var form = document.getElementById('formRMIBGroup');
         var btnNext = document.getElementById('rmibBtnNext');
         var statusEl = document.getElementById('rmibStatus');
         var saveStatus = document.getElementById('rmibSaveStatus');
         if (!form || !btnNext) return;
+
+        var groupNumber = parseInt(form.getAttribute('data-group'), 10);
+        var nextGroupAttr = form.getAttribute('data-next');
+        var nextGroup = nextGroupAttr ? parseInt(nextGroupAttr, 10) : null;
+
+        var progressBar = document.getElementById('rmibProgressBar');
+        if (progressBar) {
+          progressBar.style.width = progressBar.getAttribute('data-progress') + '%';
+        }
 
         var selects = form.querySelectorAll('.rmib-rank-select');
         var debounceMap = {};

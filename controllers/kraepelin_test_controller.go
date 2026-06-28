@@ -478,7 +478,23 @@ func (c *KraepelinTestController) SubmitAnswersAPI() {
 	if finishNow {
 		att.Status = "finished"
 		att.FinishedAt = time.Now()
+	}
 
+	// Simpan ke DB TERLEBIH DAHULU agar status "finished" sudah tercatat
+	// sebelum GetNextTestRedirect mengecek apakah Kraepelin sudah selesai.
+	if _, err := o.Update(&att,
+		"AnswersJSON", "CorrectCountsJSON",
+		"TotalCorrect", "TotalErrors", "TotalSkipped",
+		"Status", "FinishedAt",
+	); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal menyimpan jawaban"}
+		c.ServeJSON()
+		return
+	}
+
+	// Setelah DB diupdate, tentukan redirect berikutnya
+	if finishNow {
 		var batch models.TestBatch
 		if inv.BatchId != nil {
 			batch.Id = *inv.BatchId
@@ -497,17 +513,6 @@ func (c *KraepelinTestController) SubmitAnswersAPI() {
 				go utils.SendTestCompletionNotification(inv.UserId, "Kraepelin")
 			}
 		}
-	}
-
-	if _, err := o.Update(&att,
-		"AnswersJSON", "CorrectCountsJSON",
-		"TotalCorrect", "TotalErrors", "TotalSkipped",
-		"Status", "FinishedAt",
-	); err != nil {
-		c.Ctx.Output.SetStatus(500)
-		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal menyimpan jawaban"}
-		c.ServeJSON()
-		return
 	}
 
 	c.Data["json"] = map[string]interface{}{
@@ -1062,6 +1067,18 @@ func (c *KraepelinTestController) DevAutoFill() {
 	att.Status = "finished"
 	att.FinishedAt = time.Now()
 
+	// Simpan ke DB TERLEBIH DAHULU sebelum GetNextTestRedirect mengecek status Kraepelin
+	if _, err := o.Update(&att,
+		"AnswersJSON", "CorrectCountsJSON",
+		"TotalCorrect", "TotalErrors", "TotalSkipped",
+		"Status", "FinishedAt",
+	); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal menyimpan jawaban dev"}
+		c.ServeJSON()
+		return
+	}
+
 	var redirectURL = ""
 	var batch models.TestBatch
 	if inv.BatchId != nil {
@@ -1079,17 +1096,6 @@ func (c *KraepelinTestController) DevAutoFill() {
 			_, _ = o.Update(inv, "Status", "UsedAt")
 			go utils.SendTestCompletionNotification(inv.UserId, "Kraepelin")
 		}
-	}
-
-	if _, err := o.Update(&att,
-		"AnswersJSON", "CorrectCountsJSON",
-		"TotalCorrect", "TotalErrors", "TotalSkipped",
-		"Status", "FinishedAt",
-	); err != nil {
-		c.Ctx.Output.SetStatus(500)
-		c.Data["json"] = map[string]interface{}{"success": false, "message": "Gagal menyimpan jawaban dev"}
-		c.ServeJSON()
-		return
 	}
 
 	c.Data["json"] = map[string]interface{}{"success": true, "next": redirectURL}

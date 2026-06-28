@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
 
     <!-- Dashboard styles -->
-    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260619_v2" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260628_v1" />
     <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
 
     <!-- Chart.js -->
@@ -28,6 +28,11 @@
     <!-- Lucide icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
+      /* Ensure SweetAlert2 is displayed in front of Bootstrap modals */
+      .swal2-container {
+        z-index: 20000 !important;
+      }
+
       /* Welcome Card Button Animations */
       .welcome-btn-primary { 
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -745,16 +750,16 @@
           <!-- Career Roadmap -->
           <div class="ds-card" id="cardCareerRoadmap">
             <div class="ds-card-header">
-              <div class="ds-card-title"><i data-lucide="briefcase" class="icon"></i> Career Roadmap</div>
+              <div class="ds-card-title"><i data-lucide="briefcase" class="icon"></i> Career & Major Recommendation</div>
               <a href="/profile/holland" class="ds-card-action">View Detail</a>
             </div>
             <div class="ds-career-grid">
               <div>
-                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Top Career Matches</div>
+                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Career Matches</div>
                 <div class="ds-career-list" id="careerList"></div>
               </div>
               <div>
-                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Roadmap Timeline</div>
+                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Major & Subject Matches</div>
                 <div class="ds-roadmap" id="careerTimeline"></div>
               </div>
             </div>
@@ -904,7 +909,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/static/modern/wilayah.js?v=2"></script>
     <script src="/static/modern/enums.js?v=1"></script>
-    <script src="/static/modern/onboarding.js?v=3"></script>
+    <script src="/static/modern/onboarding.js?v=4"></script>
 
     <!-- Dashboard renderer -->
     <script src="/static/modern/dashboard_integrated.js?v=20260613_upd"></script>

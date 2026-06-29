@@ -74,6 +74,17 @@ type User struct {
 	Sekolah           string `orm:"column(sekolah);size(64)" json:"sekolah"`
 	ProfileCompleted  bool   `orm:"column(profile_completed);default(false)" json:"profile_completed"`
 
+	// === Detailed Student Identity Fields ===
+	NoNIK             string `orm:"column(no_nik);size(30)" json:"no_nik"`
+	NoKK              string `orm:"column(no_kk);size(30)" json:"no_kk"`
+	NomorAktaLahir    string `orm:"column(nomor_akta_lahir);size(50)" json:"nomor_akta_lahir"`
+	Agama             string `orm:"column(agama);size(30)" json:"agama"`
+	TempatTinggal     string `orm:"column(tempat_tinggal);size(255)" json:"tempat_tinggal"`
+	ModeTransportasi  string `orm:"column(mode_transportasi);size(255)" json:"mode_transportasi"`
+	AnakKe            int    `orm:"column(anak_ke)" json:"anak_ke"`
+	JumlahBersaudara  int    `orm:"column(jumlah_bersaudara)" json:"jumlah_bersaudara"`
+	RiwayatPenyakit   string `orm:"column(riwayat_penyakit);type(text)" json:"riwayat_penyakit"`
+
 	CreatedAt time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
 	UpdatedAt time.Time `orm:"auto_now;type(datetime)" json:"updated_at"`
 }

@@ -86,6 +86,13 @@ func main() {
 		log.Printf("RMIB schema ensure warning: %v", err)
 		logs.Warning("RMIB schema ensure warning: %v", err)
 	}
+
+	// Ensure Student Survey schema exists
+	if err := models.EnsureSurveyTables(); err != nil {
+		log.Printf("Student Survey schema ensure warning: %v", err)
+		logs.Warning("Student Survey schema ensure warning: %v", err)
+	}
+
 	if err := seeds.SeedRMIBPria(); err != nil {
 		log.Printf("RMIB pria seed warning: %v", err)
 		logs.Warning("RMIB pria seed warning: %v", err)

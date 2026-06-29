@@ -136,6 +136,17 @@ func (c *ProfileController) UpdateProfile() {
 		TempatLahir  string `json:"tempat_lahir"`
 		TanggalLahir string `json:"tanggal_lahir"` // ISO YYYY-MM-DD
 		Kecamatan    string `json:"kecamatan"`
+
+		// Detailed Student Identity Fields
+		NoNIK            string `json:"no_nik"`
+		NoKK             string `json:"no_kk"`
+		NomorAktaLahir   string `json:"nomor_akta_lahir"`
+		Agama            string `json:"agama"`
+		TempatTinggal    string `json:"tempat_tinggal"`
+		ModeTransportasi string `json:"mode_transportasi"`
+		AnakKe           int    `json:"anak_ke"`
+		JumlahBersaudara int    `json:"jumlah_bersaudara"`
+		RiwayatPenyakit  string `json:"riwayat_penyakit"`
 	}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &updateData); err != nil {
@@ -191,6 +202,15 @@ func (c *ProfileController) UpdateProfile() {
 	user.Jurusan = updateData.Jurusan
 	user.TempatLahir = updateData.TempatLahir
 	user.Kecamatan = updateData.Kecamatan
+	user.NoNIK = updateData.NoNIK
+	user.NoKK = updateData.NoKK
+	user.NomorAktaLahir = updateData.NomorAktaLahir
+	user.Agama = updateData.Agama
+	user.TempatTinggal = updateData.TempatTinggal
+	user.ModeTransportasi = updateData.ModeTransportasi
+	user.AnakKe = updateData.AnakKe
+	user.JumlahBersaudara = updateData.JumlahBersaudara
+	user.RiwayatPenyakit = updateData.RiwayatPenyakit
 	if strings.TrimSpace(updateData.TanggalLahir) != "" {
 		if t, perr := time.Parse("2006-01-02", strings.TrimSpace(updateData.TanggalLahir)); perr == nil {
 			user.TanggalLahir = &t
@@ -203,6 +223,8 @@ func (c *ProfileController) UpdateProfile() {
 		"NamaLengkap", "Email", "NoHandphone", "AsalInstansi", "JenisKelamin",
 		"Alamat", "Kota", "Provinsi", "Kodepos",
 		"NISN", "NIP", "Kelas", "Jurusan", "TempatLahir", "Kecamatan",
+		"NoNIK", "NoKK", "NomorAktaLahir", "Agama", "TempatTinggal", "ModeTransportasi",
+		"AnakKe", "JumlahBersaudara", "RiwayatPenyakit",
 	); err != nil {
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = ProfileResponse{

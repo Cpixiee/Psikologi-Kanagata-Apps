@@ -239,6 +239,33 @@
               hasStudentsLink.style.setProperty("display", "none", "important");
             }
           }
+
+          // Handle "Survei Karakteristik" link (static class or dynamic fallback)
+          var surveyLinkEl = nav.querySelector('a.student-only') || nav.querySelector('a[href="/survey"]');
+          if (role === "siswa") {
+            if (surveyLinkEl) {
+              surveyLinkEl.hidden = false;
+              surveyLinkEl.removeAttribute("hidden");
+              surveyLinkEl.style.setProperty("display", "", "important");
+            } else {
+              var insertRef = nav.querySelector('a[href="/hasil-tes"]') || nav.querySelector('a[href="/test"]');
+              if (insertRef) {
+                var surveyLink = document.createElement('a');
+                surveyLink.href = '/survey';
+                surveyLink.className = 'student-only';
+                surveyLink.innerHTML = '<i data-lucide="clipboard-check" class="ds-icon"></i> Survei Karakteristik';
+                insertRef.parentNode.insertBefore(surveyLink, insertRef.nextSibling);
+                initLucide();
+              }
+            }
+          } else {
+            if (surveyLinkEl) {
+              surveyLinkEl.hidden = true;
+              surveyLinkEl.setAttribute("hidden", "");
+              surveyLinkEl.style.setProperty("display", "none", "important");
+            }
+          }
+          autoActive();
         }
 
         // Impersonation ribbon & logout modification

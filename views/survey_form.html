@@ -1,0 +1,2123 @@
+<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulir Survei Karakteristik - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body, html { font-family: 'Inter', 'Poppins', sans-serif; }
+      body { background: #f8fafc !important; }
+      .layout-wrapper > .layout-container, .layout-page { background: #f8fafc !important; }
+      .dp-page { padding: 24px 16px 36px; }
+      .soft-shadow { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); }
+      .input-style {
+        height: 54px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #fafafa;
+        padding-left: 20px;
+        padding-right: 20px;
+        width: 100%;
+        outline: none;
+        transition: .25s;
+        font-size: 14.5px;
+        color: #1f2937;
+      }
+      .input-style:focus {
+        border-color: #0f172a;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
+      }
+      .input-style[readonly] {
+        background: #f1f5f9;
+        color: #475569;
+        cursor: not-allowed;
+      }
+      .textarea-style {
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #fafafa;
+        padding: 16px 20px;
+        width: 100%;
+        outline: none;
+        transition: .25s;
+        font-size: 14.5px;
+        color: #1f2937;
+        min-height: 120px;
+      }
+      .textarea-style:focus {
+        border-color: #0f172a;
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
+      }
+      .form-label {
+        font-size: 14.5px;
+        color: #374151;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .radio-card {
+        border: 1px solid #e2e8f0;
+        background: #fafafa;
+        border-radius: 14px;
+        padding: 14px 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .radio-card:hover {
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+      }
+      .radio-card input[type="radio"]:checked + span,
+      .radio-card input[type="checkbox"]:checked + span {
+        color: #0f172a;
+        font-weight: 600;
+      }
+      .radio-card.active-state {
+        border-color: #0f172a;
+        background: #f1f5f9;
+      }
+      .radio-card input[type="radio"],
+      .radio-card input[type="checkbox"] {
+        color: #0f172a !important;
+      }
+      .radio-card input[type="radio"]:focus,
+      .radio-card input[type="checkbox"]:focus {
+        --tw-ring-color: #0f172a !important;
+      }
+      span.bg-purple-50.text-purple-600 {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+      }
+      .btn-primary-custom {
+        height: 50px;
+        padding: 0 30px;
+        border-radius: 14px;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        transition: .25s;
+        cursor: pointer;
+      }
+      .btn-primary-custom:hover { background: #1e293b; transform: translateY(-2px); }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- SIDEBAR -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
+          <div class="ds-brand">
+            <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+            <div class="ds-brand-text">
+              <div class="name">PsychoWellness</div>
+              <div class="sub">AI Analytics System</div>
+            </div>
+          </div>
+          <nav class="ds-nav">
+            <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+            <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+            <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+            <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+            <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+            <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+            <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+                <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>
+            <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+          </nav>
+          <div class="ds-side-card">
+            <div class="label">Kelas</div>
+            <div class="value" id="sbKelasValue">-</div>
+          </div>
+          <div class="ds-side-card">
+            <div class="label">Jurusan</div>
+            <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+          </div>
+          <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+        </aside>
+
+        <div class="layout-page">
+          <div class="dp-page w-full">
+            <div class="w-full mt-4">
+              <!-- HEADER -->
+              <div class="bg-white rounded-[32px] p-6 lg:p-8 soft-shadow border border-slate-100 mb-6">
+                <h1 class="text-2xl font-extrabold text-slate-800">Isi Formulir Survei</h1>
+                <p class="text-slate-400 text-sm mt-1">Harap lengkapi semua bagian survei karakteristik dan akademik berikut.</p>
+              </div>
+
+              <!-- FORM -->
+              <form id="surveyForm" class="space-y-6">
+                <!-- A. LATAR BELAKANG PERSONAL -->
+                <div class="bg-white rounded-[32px] p-6 lg:p-8 soft-shadow border border-slate-100">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                    <span class="w-10 h-10 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center font-bold">A</span>
+                    <h2 class="text-lg font-extrabold text-slate-800">Latar Belakang Personal</h2>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label class="form-label">Nama Lengkap</label>
+                      <input type="text" class="input-style" value="{{.User.NamaLengkap}}" readonly />
+                    </div>
+                    <div>
+                      <label class="form-label">Nama Panggilan</label>
+                      <input type="text" id="nama_panggilan" name="nama_panggilan" class="input-style" placeholder="Masukkan nama panggilan Anda" required />
+                    </div>
+                    <div>
+                      <label class="form-label">NISN / Nomor Induk Peserta Didik</label>
+                      <input type="text" class="input-style" value="{{.User.NISN}}" readonly />
+                    </div>
+                    <div>
+                      <label class="form-label">Kelas</label>
+                      <input type="text" class="input-style" value="{{.User.Kelas}}" readonly />
+                    </div>
+                  </div>
+
+                  <!-- JALUR MASUK -->
+                  <div class="mt-6">
+                    <label class="form-label">Jalur Masuk</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="jalur_masuk" value="Prestasi" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Prestasi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="jalur_masuk" value="Afirmasi" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Afirmasi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="jalur_masuk" value="Domisili/Jarak terdekat" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Domisili/Jarak terdekat</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="jalur_masuk" value="Mutasi orang tua/wali" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mutasi orang tua/wali</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="jalur_masuk" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="jalur_masuk_lain_container" class="mt-3 hidden">
+                      <input type="text" id="jalur_masuk_lain" name="jalur_masuk_lain" class="input-style" placeholder="Tuliskan jalur masuk lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- DISABILITAS / KEBUTUHAN KHUSUS -->
+                  <div class="mt-6">
+                    <label class="form-label">Apakah kamu memiliki disabilitas/kebutuhan khusus? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Tidak" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Penglihatan" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hambatan Penglihatan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Pendengaran" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hambatan Pendengaran</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Intelektual" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hambatan Intelektual</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Fisik Motorik" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hambatan Fisik Motorik</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Mental (Emosi dan Perilaku)" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hambatan Mental (Emosi & Perilaku)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Gangguan Pemusatan Perhatian dan Hiperaktivitas (ADHD)" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Gangguan Pemusatan (ADHD)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Komunikasi, Interaksi, dan Perilaku (Autisme)" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hambatan Interaksi (Autisme)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Sindrome Down" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Sindrom Down</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Hambatan Intelektual Kategori Lamban Belajar (Slow Learner)" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lamban Belajar (Slow Learner)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Kesulitan Belajar Spesifik" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Kesulitan Belajar Spesifik</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="disabilitas" value="Cerdas Istimewa Bakat Istimewa" class="disabilitas-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Cerdas/Bakat Istimewa</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Nomor HP yang dapat dihubungi</label>
+                      <input type="tel" id="nomor_hp" name="nomor_hp" class="input-style" placeholder="08xxxxxxxxxx" required />
+                    </div>
+                    <div>
+                      <label class="form-label">Asal Sekolah SMP/MTs/Sederajat</label>
+                      <input type="text" id="asal_sekolah" name="asal_sekolah" class="input-style" placeholder="Nama sekolah asal" required />
+                    </div>
+                    <div>
+                      <label class="form-label">Tahun Lulus SMP/MTs/Sederajat</label>
+                      <input type="number" id="tahun_lulus" name="tahun_lulus" class="input-style" placeholder="Tahun kelulusan" required />
+                    </div>
+                  </div>
+
+                  <!-- BAHASA RUMAH -->
+                  <div class="mt-6">
+                    <label class="form-label">Bahasa yang paling sering kamu gunakan saat berkomunikasi di rumah</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="bahasa_rumah" value="Bahasa Indonesia" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Bahasa Indonesia</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="bahasa_rumah" value="Bahasa daerah" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bahasa daerah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="bahasa_rumah" value="Bahasa asing" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bahasa asing</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="bahasa_rumah" value="Campuran" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Campuran</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="bahasa_rumah" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="bahasa_rumah_lain_container" class="mt-3 hidden">
+                      <input type="text" id="bahasa_rumah_lain" name="bahasa_rumah_lain" class="input-style" placeholder="Tuliskan bahasa lainnya..." />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- B. AKADEMIK & MINAT BELAJAR -->
+                <div class="bg-white rounded-[32px] p-6 lg:p-8 soft-shadow border border-slate-100">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                    <span class="w-10 h-10 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center font-bold">B</span>
+                    <h2 class="text-lg font-extrabold text-slate-800">Akademik & Minat Belajar</h2>
+                  </div>
+
+                  <!-- SESUAI MINAT -->
+                  <div>
+                    <label class="form-label">Apakah masuk ke SMA sudah sesuai dengan minatmu?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="sesuai_minat" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Ya</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="sesuai_minat" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="sesuai_minat" value="Belum tahu" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Belum tahu</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- ALASAN MASUK -->
+                  <div class="mt-6">
+                    <label class="form-label">Apa alasan kamu masuk ke SMA yang kamu pilih sekarang?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Keinginan sendiri" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Keinginan sendiri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Saran orang tua/wali" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Saran orang tua/wali</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Saran guru/sekolah sebelumnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Saran guru/sekolah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Peluang kerja" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Peluang kerja</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Ikut teman" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Ikut teman</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Belum memiliki pilihan yang jelas" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Belum ada pilihan jelas</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="alasan_masuk" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="alasan_masuk_lain_container" class="mt-3 hidden">
+                      <input type="text" id="alasan_masuk_lain" name="alasan_masuk_lain" class="input-style" placeholder="Tuliskan alasan lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- PERASAAN DITERIMA -->
+                  <div class="mt-6">
+                    <label class="form-label">Bagaimana perasaanmu diterima di sekolah ini?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="perasaan_diterima" value="Senang" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Senang</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="perasaan_diterima" value="Cukup senang" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Cukup senang</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="perasaan_diterima" value="Biasa saja" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Biasa saja</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="perasaan_diterima" value="Masih ragu" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Masih ragu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="perasaan_diterima" value="Terpaksa" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Terpaksa</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- EKSKUL DIMINATI -->
+                  <div class="mt-6">
+                    <label class="form-label">Pilih ekstrakurikuler atau kegiatan sekolah yang kamu minati <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Pramuka" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Pramuka (Wajib)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Paskibra" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Paskibra</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="PMR" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">PMR (Palang Merah Remaja)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="OSIS/MPK" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">OSIS / MPK</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Karya Ilmiah Remaja (KIR)" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Karya Ilmiah Remaja</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Pecinta Alam" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Pecinta Alam</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Rohis/Rohkris" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Rohani Keagamaan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Olahraga" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Olahraga (Futsal, Basket, dsb)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Seni Musik/Tari/Drama" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Seni (Musik, Tari, Teater)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="Jurnalistik/Fotografi" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Jurnalistik & Fotografi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="English Club" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">English Club</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekskul_diminati" value="IT/Coding Club" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">IT & Coding Club</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- KEBIASAAN BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Bagaimana kebiasaan belajarmu di luar jam sekolah? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Belajar mandiri" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Belajar mandiri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Belajar bersama teman" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Belajar bersama teman</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Didampingi orang tua/wali" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Didampingi orang tua/wali</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Mengikuti bimbingan belajar/les" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mengikuti bimbel/les</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Belajar melalui internet/video" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Belajar via internet/video</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Belajar hanya saat ada tugas/ujian" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hanya saat tugas/ujian</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kebiasaan_belajar" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="kebiasaan_belajar_lain_container" class="mt-3 hidden">
+                      <input type="text" id="kebiasaan_belajar_lain" name="kebiasaan_belajar_lain" class="input-style" placeholder="Tuliskan kebiasaan belajar lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- DURASI BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Berapa jam rata-rata kamu belajar di luar jam sekolah?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="durasi_belajar" value="Tidak ada" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Tidak ada</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="durasi_belajar" value="Kurang dari 30 menit" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">&lt; 30 menit</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="durasi_belajar" value="31-60 menit" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">31-60 menit</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="durasi_belajar" value="60-90 menit" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">60-90 menit</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="durasi_belajar" value="Lebih dari 90 menit" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">&gt; 90 menit</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- CARA BELAJAR EFEKTIF -->
+                  <div class="mt-6">
+                    <label class="form-label">Saat belajar, cara apa yang paling membantumu memahami materi? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Mendengarkan penjelasan" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mendengarkan penjelasan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Membaca materi" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Membaca materi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Melihat contoh/gambar/video" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Melihat gambar/video</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Praktik langsung" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Praktik langsung</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Diskusi dengan teman" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Diskusi dengan teman</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Dibimbing guru/orang lain" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Dibimbing guru/orang lain</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Membuat catatan/rangkuman" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mencatat/merangkum</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="cara_belajar_efektif" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="cara_belajar_efektif_lain_container" class="mt-3 hidden">
+                      <input type="text" id="cara_belajar_efektif_lain" name="cara_belajar_efektif_lain" class="input-style" placeholder="Tuliskan cara belajar lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- KESULITAN BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Saat mengikuti pembelajaran, hal apa yang biasanya paling menyulitkanmu? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Tidak ada" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak ada</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Memahami penjelasan lisan" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Memahami penjelasan lisan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Mencatat materi" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mencatat materi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Menghitung/matematika" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Menghitung/Matematika</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Menggunakan komputer/perangkat digital" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Menggunakan laptop/digital</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Mengerjakan tugas tepat waktu" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mengerjakan tugas tepat waktu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Memusatkan perhatian pada pelajaran" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Memusatkan perhatian</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Berbicara/presentasi di depan kelas" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Presentasi di depan kelas</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Bekerja dalam kelompok" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bekerja kelompok</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Mengatur waktu belajar" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Mengatur waktu belajar</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Memahami bacaan" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Memahami bacaan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar" value="Lainnya" class="kesulitan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="kesulitan_belajar_lain_container" class="mt-3 hidden">
+                      <input type="text" id="kesulitan_belajar_lain" name="kesulitan_belajar_lain" class="input-style" placeholder="Tuliskan kesulitan lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- BUTUH BANTUAN BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Apakah kamu biasanya memerlukan bantuan tambahan untuk memahami materi pelajaran?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="butuh_bantuan_belajar" value="Tidak" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Tidak</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="butuh_bantuan_belajar" value="Kadang-kadang" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Kadang-kadang</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="butuh_bantuan_belajar" value="Sering" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Sering</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="butuh_bantuan_belajar" value="Hampir Selalu" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Hampir Selalu</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- JENIS BANTUAN BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Jika membutuhkan bantuan belajar, bantuan seperti apa yang paling kamu perlukan? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Tidak memerlukan bantuan" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak memerlukan bantuan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Penjelasan ulang dari guru" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Penjelasan ulang guru</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Contoh soal/praktik tambahan" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Contoh soal/praktik tambahan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Pendampingan teman sebaya" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Pendampingan teman sebaya</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Bimbingan konseling" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bimbingan konseling</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Materi tertulis/video" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Materi tertulis/video</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Waktu belajar tambahan" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Waktu belajar tambahan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="jenis_bantuan_belajar" value="Lainnya" class="bantuan-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="jenis_bantuan_belajar_lain_container" class="mt-3 hidden">
+                      <input type="text" id="jenis_bantuan_belajar_lain" name="jenis_bantuan_belajar_lain" class="input-style" placeholder="Tuliskan jenis bantuan lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- KENYAMANAN BELAJAR -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Apakah kamu memiliki tempat belajar yang cukup nyaman di rumah/tempat tinggal?</label>
+                      <div class="grid grid-cols-3 gap-2">
+                        <label class="radio-card">
+                          <input type="radio" name="kenyamanan_belajar" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                          <span class="text-sm text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="kenyamanan_belajar" value="Sebagian" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Sebagian</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="kenyamanan_belajar" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Apakah kamu memiliki akses perangkat dan internet untuk mendukung pembelajaran?</label>
+                      <select id="akses_internet_perangkat" name="akses_internet_perangkat" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih akses perangkat/internet</option>
+                        <option value="Tidak ada">Tidak ada</option>
+                        <option value="Perangkat tersedia tetapi internet terbatas">Perangkat tersedia tetapi internet terbatas</option>
+                        <option value="Internet tersedia tetapi perangkat terbatas">Internet tersedia tetapi perangkat terbatas</option>
+                        <option value="Keduanya terbatas">Keduanya terbatas</option>
+                        <option value="Perangkat dan internet tersedia memadai">Perangkat dan internet tersedia memadai</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                      <div id="akses_internet_perangkat_lain_container" class="mt-2 hidden">
+                        <input type="text" id="akses_internet_perangkat_lain" name="akses_internet_perangkat_lain" class="input-style" placeholder="Tuliskan detail akses perangkat/internet lainnya..." />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- RENCANA SETELAH LULUS -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Rencana utama setelah lulus SMA</label>
+                      <select id="rencana_setelah_lulus" name="rencana_setelah_lulus" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih rencana setelah lulus</option>
+                        <option value="Bekerja">Bekerja</option>
+                        <option value="Kuliah">Kuliah</option>
+                        <option value="Wirausaha">Wirausaha</option>
+                        <option value="Magang dalam negeri">Magang dalam negeri</option>
+                        <option value="Magang luar negeri">Magang luar negeri</option>
+                        <option value="Belum tahu">Belum tahu</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                      <div id="rencana_setelah_lulus_lain_container" class="mt-2 hidden">
+                        <input type="text" id="rencana_setelah_lulus_lain" name="rencana_setelah_lulus_lain" class="input-style" placeholder="Tuliskan rencana lainnya..." />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Apakah kamu membutuhkan informasi atau bimbingan tentang pilihan karier, kuliah, magang, atau wirausaha?</label>
+                      <div class="grid grid-cols-3 gap-2">
+                        <label class="radio-card">
+                          <input type="radio" name="butuh_bimbingan_karier" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                          <span class="text-sm text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="butuh_bimbingan_karier" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Tidak</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="butuh_bimbingan_karier" value="Belum tahu" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Belum tahu</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- TEXTAREAS DREAMS -->
+                  <div class="mt-6 space-y-5">
+                    <div>
+                      <label class="form-label">Sebutkan jenis pekerjaan/profesi impianmu di masa depan, maksimal 5, beserta alasannya</label>
+                      <textarea id="pekerjaan_impian" name="pekerjaan_impian" class="textarea-style" placeholder="Tuliskan pekerjaan impian Anda beserta alasan..." required></textarea>
+                    </div>
+                    <div>
+                      <label class="form-label">Jika ingin kuliah, tuliskan jurusan/program studi yang kamu minati beserta alasannya</label>
+                      <textarea id="jurusan_diminati" name="jurusan_diminati" class="textarea-style" placeholder="Tuliskan nama jurusan/program studi yang Anda minati..." required></textarea>
+                    </div>
+                  </div>
+
+                  <!-- GADGET & SOCIAL MEDIA -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Berapa jam rata-rata yang kamu habiskan di depan layar (HP/Laptop/Gadget) sehari di luar jam sekolah?</label>
+                      <select id="durasi_layar" name="durasi_layar" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih rata-rata durasi gadget</option>
+                        <option value="Tidak mempunyai gawai">Tidak mempunyai gawai</option>
+                        <option value="Kurang dari 1 jam">Kurang dari 1 jam</option>
+                        <option value="1-3 Jam">1-3 Jam</option>
+                        <option value="3-5 Jam">3-5 Jam</option>
+                        <option value="Lebih dari 5 jam sehari">Lebih dari 5 jam sehari</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Apakah orang tua/wali memberikan aturan atau batasan penggunaan HP di rumah?</label>
+                      <select id="aturan_hp_rumah" name="aturan_hp_rumah" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih aturan penggunaan HP</option>
+                        <option value="Ya, sangat ketat (ada jam khusus atau HP disita saat jam tidur/belajar)">Ya, sangat ketat (HP disita saat jam tidur/belajar)</option>
+                        <option value="Ada aturan tetapi tidak ketat">Ada aturan tetapi tidak ketat</option>
+                        <option value="Tidak ada aturan sama sekali, bebas menggunakan kapan saja">Tidak ada aturan sama sekali, bebas menggunakan</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- APLIKASI DI HP -->
+                  <div class="mt-6">
+                    <label class="form-label">Aplikasi atau media sosial apa yang paling sering kamu gunakan sehari-hari? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="aplikasi_sering_digunakan" value="Tidak ada" class="app-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak ada</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="aplikasi_sering_digunakan" value="Aplikasi percakapan" class="app-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Aplikasi percakapan (WA/Line/dsb)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="aplikasi_sering_digunakan" value="Media sosial" class="app-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Media sosial (IG/TikTok/X/dsb)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="aplikasi_sering_digunakan" value="Game Online" class="app-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Game Online</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="aplikasi_sering_digunakan" value="Streaming video/musik" class="app-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Streaming video/musik (YT/Spotify)</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="aplikasi_sering_digunakan" value="Lainnya" class="app-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="aplikasi_sering_digunakan_lain_container" class="mt-3 hidden">
+                      <input type="text" id="aplikasi_sering_digunakan_lain" name="aplikasi_sering_digunakan_lain" class="input-style" placeholder="Tuliskan aplikasi lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- MAPELS (leftovers) -->
+                  <div class="mt-6 space-y-5">
+                    <div>
+                      <label class="form-label">Sebutkan mata pelajaran yang paling kamu senangi, maksimal 5, beserta alasannya</label>
+                      <textarea id="mapel_disenangi" name="mapel_disenangi" class="textarea-style" placeholder="Contoh: Matematika karena seru berhitung, Kimia karena suka eksperimen..." required></textarea>
+                    </div>
+                    <div>
+                      <label class="form-label">Sebutkan mata pelajaran yang menurutmu paling menantang/sulit, maksimal 5, beserta alasannya</label>
+                      <textarea id="mapel_menantang" name="mapel_menantang" class="textarea-style" placeholder="Contoh: Fisika karena rumit..." required></textarea>
+                    </div>
+                    <div>
+                      <label class="form-label">Sebutkan bakat atau keahlian menonjol yang kamu miliki</label>
+                      <textarea id="bakat_keahlian" name="bakat_keahlian" class="textarea-style" placeholder="Tuliskan bakat seni, olahraga, dll..." required></textarea>
+                    </div>
+                    <div>
+                      <label class="form-label">Sebutkan pengalaman kegiatan, lomba, organisasi, proyek, atau karya yang pernah kamu ikuti/buat, bila ada</label>
+                      <textarea id="pengalaman_siswa" name="pengalaman_siswa" class="textarea-style" placeholder="Tuliskan pengalaman organisasi OSIS, perlombaan, dll..."></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- C. KELUARGA -->
+                <div class="bg-white rounded-[32px] p-6 lg:p-8 soft-shadow border border-slate-100">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                    <span class="w-10 h-10 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center font-bold">C</span>
+                    <h2 class="text-lg font-extrabold text-slate-800">Latar Belakang Keluarga</h2>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label class="form-label">Dengan siapa kamu tinggal saat ini?</label>
+                      <select id="tinggal_dengan" name="tinggal_dengan" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih tempat tinggal saat ini</option>
+                        <option value="Orang tua lengkap">Orang tua lengkap</option>
+                        <option value="Ayah saja">Ayah saja</option>
+                        <option value="Ibu saja">Ibu saja</option>
+                        <option value="Kakek/nenek">Kakek/nenek</option>
+                        <option value="Saudara">Saudara</option>
+                        <option value="Wali">Wali</option>
+                        <option value="Kos/kontrakan sendiri">Kos/kontrakan sendiri</option>
+                        <option value="Asrama">Asrama</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                      <div id="tinggal_dengan_lain_container" class="mt-2 hidden">
+                        <input type="text" id="tinggal_dengan_lain" name="tinggal_dengan_lain" class="input-style" placeholder="Tuliskan tinggal dengan siapa..." />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Status keberadaan orang tua kandung</label>
+                      <select id="status_orang_tua" name="status_orang_tua" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih status orang tua</option>
+                        <option value="Kedua orang tua masih hidup">Kedua orang tua masih hidup</option>
+                        <option value="Ayah sudah meninggal">Ayah sudah meninggal</option>
+                        <option value="Ibu sudah meninggal">Ibu sudah meninggal</option>
+                        <option value="Keduanya sudah meninggal">Keduanya sudah meninggal</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Status tempat tinggal orang tua/wali saat ini</label>
+                      <select id="status_tinggal_orang_tua" name="status_tinggal_orang_tua" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih status tempat tinggal</option>
+                        <option value="Tinggal bersama">Tinggal bersama</option>
+                        <option value="Tidak tinggal serumah karena bekerja/merantau">Tidak tinggal serumah karena bekerja/merantau</option>
+                        <option value="Berpisah/bercerai">Berpisah/bercerai</option>
+                        <option value="Salah satu tidak diketahui keberadaannya">Salah satu tidak diketahui keberadaannya</option>
+                        <option value="Tidak ingin menjawab">Tidak ingin menjawab</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                      <div id="status_tinggal_orang_tua_lain_container" class="mt-2 hidden">
+                        <input type="text" id="status_tinggal_orang_tua_lain" name="status_tinggal_orang_tua_lain" class="input-style" placeholder="Tuliskan status tinggal lainnya..." />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Bagaimana pemenuhan kebutuhan belajar kamu saat ini?</label>
+                      <select id="pemenuhan_kebutuhan_belajar" name="pemenuhan_kebutuhan_belajar" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih kondisi pemenuhan belajar</option>
+                        <option value="Kebutuhan belajar terpenuhi dengan baik">Kebutuhan belajar terpenuhi dengan baik</option>
+                        <option value="Sebagian besar terpenuhi">Sebagian besar terpenuhi</option>
+                        <option value="Sebagian kecil terpenuhi">Sebagian kecil terpenuhi</option>
+                        <option value="Sering kesulitan memenuhi kebutuhan belajar">Sering kesulitan memenuhi kebutuhan belajar</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- PENDAMPING BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Siapa orang dewasa yang paling sering mendampingi atau memperhatikan kebutuhan sekolahmu? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Ayah" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Ayah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Ibu" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Ibu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Ayah dan ibu" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Ayah dan ibu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Kakek/nenek" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Kakek/nenek</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Kakak/saudara" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Kakak/saudara</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Wali/pengasuh" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Wali/pengasuh</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Guru/mentor" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Guru/mentor</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Tidak ada yang khusus" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak ada yang khusus</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pendamping_belajar" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="pendamping_belajar_lain_container" class="mt-3 hidden">
+                      <input type="text" id="pendamping_belajar_lain" name="pendamping_belajar_lain" class="input-style" placeholder="Tuliskan pendamping lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- TANGGUNG JAWAB RUMAH -->
+                  <div class="mt-6">
+                    <label class="form-label">Apakah kamu memiliki tanggung jawab rutin di rumah yang dapat mempengaruhi waktu belajar atau kehadiran di sekolah? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="tanggung_jawab_rumah" value="Tidak" class="tanggungjawab-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="tanggung_jawab_rumah" value="Membantu pekerjaan rumah" class="tanggungjawab-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Membantu pekerjaan rumah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="tanggung_jawab_rumah" value="Menjaga adik/anggota keluarga" class="tanggungjawab-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Menjaga adik/anggota keluarga</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="tanggung_jawab_rumah" value="Bekerja membantu keluarga" class="tanggungjawab-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bekerja membantu keluarga</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="tanggung_jawab_rumah" value="Merawat anggota keluarga" class="tanggungjawab-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Merawat anggota keluarga</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="tanggung_jawab_rumah" value="Lainnya" class="tanggungjawab-checkbox text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="tanggung_jawab_rumah_lain_container" class="mt-3 hidden">
+                      <input type="text" id="tanggung_jawab_rumah_lain" name="tanggung_jawab_rumah_lain" class="input-style" placeholder="Tuliskan tanggung jawab lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- FASILITAS BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Fasilitas belajar apa saja yang tersedia untukmu? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Tempat belajar" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tempat belajar</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Buku pelajaran" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Buku pelajaran</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Bahan bacaan tambahan" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bahan bacaan tambahan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="HP" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">HP</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Laptop/komputer" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Laptop/komputer</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Internet/paket data" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Internet/paket data</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Alat praktik sesuai jurusan" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Alat praktik jurusan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Transportasi ke sekolah" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Transportasi ke sekolah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Uang saku" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Uang saku</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="fasilitas_belajar" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="fasilitas_belajar_lain_container" class="mt-3 hidden">
+                      <input type="text" id="fasilitas_belajar_lain" name="fasilitas_belajar_lain" class="input-style" placeholder="Tuliskan fasilitas lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- BANTUAN PENDIDIKAN SMP -->
+                  <div class="mt-6">
+                    <label class="form-label">Apakah kamu pernah menerima bantuan pendidikan saat SMP/MTs/sederajat? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="Tidak ada" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak ada</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="PIP" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">PIP</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="Beasiswa daerah" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Beasiswa daerah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="Beasiswa prestasi" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Beasiswa prestasi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="Bantuan sekolah/yayasan" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Bantuan sekolah/yayasan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="Tidak tahu" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak tahu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bantuan_pendidikan" value="Lainnya" class="bantuan-pendidikan-cb text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="bantuan_pendidikan_lain_container" class="mt-3 hidden">
+                      <input type="text" id="bantuan_pendidikan_lain" name="bantuan_pendidikan_lain" class="input-style" placeholder="Tuliskan bantuan lainnya..." />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Apakah kamu membutuhkan informasi tentang bantuan pendidikan, beasiswa, atau dukungan pembiayaan sekolah?</label>
+                      <div class="grid grid-cols-3 gap-2">
+                        <label class="radio-card">
+                          <input type="radio" name="butuh_info_bantuan" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                          <span class="text-sm text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="butuh_info_bantuan" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Tidak</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="butuh_info_bantuan" value="Belum tahu" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Belum tahu</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Apakah orang tua/wali mendukung pilihan program keahlian atau rencana masa depanmu?</label>
+                      <select id="dukungan_orang_tua" name="dukungan_orang_tua" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih tingkat dukungan orang tua</option>
+                        <option value="Sangat mendukung">Sangat mendukung</option>
+                        <option value="Cukup mendukung">Cukup mendukung</option>
+                        <option value="Kurang mendukung">Kurang mendukung</option>
+                        <option value="Tidak mendukung">Tidak mendukung</option>
+                        <option value="Tidak tahu">Tidak tahu</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="mt-6">
+                    <label class="form-label">Apa harapan utama orang tua/wali setelah kamu lulus SMA?</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Bekerja" class="text-purple-600 focus:ring-purple-500" required />
+                        <span class="text-sm text-slate-600">Bekerja</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Kuliah" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Kuliah</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Wirausaha" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Wirausaha</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Magang dalam negeri" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Magang dalam negeri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Magang luar negeri" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Magang luar negeri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Tidak tahu" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Tidak tahu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="harapan_orang_tua" value="Lainnya" class="text-purple-600 focus:ring-purple-500" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="harapan_orang_tua_lain_container" class="mt-3 hidden">
+                      <input type="text" id="harapan_orang_tua_lain" name="harapan_orang_tua_lain" class="input-style" placeholder="Tuliskan harapan lainnya..." />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- D. KESEHATAN -->
+                <div class="bg-white rounded-[32px] p-6 lg:p-8 soft-shadow border border-slate-100">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                    <span class="w-10 h-10 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center font-bold">D</span>
+                    <h2 class="text-lg font-extrabold text-slate-800">Kesehatan</h2>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label class="form-label">Apakah kamu memiliki kondisi kesehatan khusus yang perlu diketahui sekolah?</label>
+                      <div class="grid grid-cols-2 gap-3">
+                        <label class="radio-card">
+                          <input type="radio" name="kesehatan_khusus" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                          <span class="text-sm text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="kesehatan_khusus" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                      <div id="kesehatan_khusus_detail_container" class="mt-3 hidden">
+                        <textarea id="kesehatan_khusus_detail" name="kesehatan_khusus_detail" class="textarea-style" placeholder="Sebutkan penyakit bawaan atau kondisi khusus Anda (asma, jantung, sesak napas, kejang, dll)..."></textarea>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Apakah kamu memiliki alergi terhadap makanan, obat, serangga, debu, dsb?</label>
+                      <div class="grid grid-cols-2 gap-3">
+                        <label class="radio-card">
+                          <input type="radio" name="alergi" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                          <span class="text-sm text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="alergi" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                      <div id="alergi_detail_container" class="mt-3 hidden">
+                        <textarea id="alergi_detail" name="alergi_detail" class="textarea-style" placeholder="Sebutkan hal yang harus dihindari dan tindakan penanganan cepat jika terjadi alergi..."></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                    <div>
+                      <label class="form-label text-xs">Sedang menjalani pengobatan jangka panjang?</label>
+                      <div class="grid grid-cols-2 gap-2">
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="pengobatan_panjang" value="Ya" required />
+                          <span class="text-xs text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="pengobatan_panjang" value="Tidak" />
+                          <span class="text-xs text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label text-xs">Ada pembatasan aktivitas fisik dari dokter?</label>
+                      <div class="grid grid-cols-2 gap-2">
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="pembatasan_fisik" value="Ya" required />
+                          <span class="text-xs text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="pembatasan_fisik" value="Tidak" />
+                          <span class="text-xs text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label text-xs">Pernah rawat inap/operasi 1 tahun terakhir?</label>
+                      <div class="grid grid-cols-2 gap-2">
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="rawat_rs" value="Ya" required />
+                          <span class="text-xs text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="rawat_rs" value="Tidak" />
+                          <span class="text-xs text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label text-xs">Pernah dapat rekomendasi psikolog/psikiater/BK?</label>
+                      <div class="grid grid-cols-2 gap-2">
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="rekomendasi_profesional" value="Ya" required />
+                          <span class="text-xs text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="radio" name="rekomendasi_profesional" value="Tidak" />
+                          <span class="text-xs text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Dalam 2 minggu terakhir, seberapa sering kamu merasa cemas, sedih, marah, atau tertekan?</label>
+                      <select id="tingkat_cemas" name="tingkat_cemas" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih tingkat kecemasan</option>
+                        <option value="Tidak pernah">Tidak pernah</option>
+                        <option value="Jarang">Jarang</option>
+                        <option value="Kadang-kadang">Kadang-kadang</option>
+                        <option value="Sering">Sering</option>
+                        <option value="Hampir setiap hari">Hampir setiap hari</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Jika menghadapi masalah, kepada siapa biasanya kamu bercerita?</label>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Tidak ada" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Tidak ada</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Orang tua/wali" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Orang tua/wali</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Saudara" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Saudara</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Teman" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Teman</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Guru" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Guru</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Guru BK/konselor" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Guru BK/Konselor</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Tokoh agama/komunitas" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Tokoh agama/komunitas</span>
+                        </label>
+                        <label class="radio-card py-2.5 px-3">
+                          <input type="checkbox" name="tempat_bercerita" value="Lainnya" class="cerita-checkbox" />
+                          <span class="text-xs text-slate-600">Lainnya</span>
+                        </label>
+                      </div>
+                      <div id="tempat_bercerita_lain_container" class="mt-2 hidden">
+                        <input type="text" id="tempat_bercerita_lain" name="tempat_bercerita_lain" class="input-style" placeholder="Tuliskan tempat bercerita lainnya..." />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- E. KARAKTERISTIK PERSONAL -->
+                <div class="bg-white rounded-[32px] p-6 lg:p-8 soft-shadow border border-slate-100">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                    <span class="w-10 h-10 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center font-bold">E</span>
+                    <h2 class="text-lg font-extrabold text-slate-800">Karakteristik Personal</h2>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label class="form-label">Kecenderungan dirimu dalam berinteraksi dengan orang lain</label>
+                      <select id="interaksi_sosial" name="interaksi_sosial" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih kecenderungan interaksi</option>
+                        <option value="Lebih nyaman sendiri/kelompok kecil">Lebih nyaman sendiri/kelompok kecil</option>
+                        <option value="Mudah bergaul dengan banyak orang">Mudah bergaul dengan banyak orang</option>
+                        <option value="Bergantung situasi">Bergantung situasi</option>
+                        <option value="Belum tahu">Belum tahu</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Bagaimana biasanya kamu beradaptasi di lingkungan baru?</label>
+                      <select id="adaptasi_lingkungan" name="adaptasi_lingkungan" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih cara adaptasi</option>
+                        <option value="Cepat menyesuaikan diri">Cepat menyesuaikan diri</option>
+                        <option value="Perlu waktu">Perlu waktu</option>
+                        <option value="Cenderung diam terlebih dahulu">Cenderung diam terlebih dahulu</option>
+                        <option value="Mudah cemas">Mudah cemas</option>
+                        <option value="Bergantung situasi">Bergantung situasi</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                      <div id="adaptasi_lingkungan_lain_container" class="mt-2 hidden">
+                        <input type="text" id="adaptasi_lingkungan_lain" name="adaptasi_lingkungan_lain" class="input-style" placeholder="Tuliskan cara adaptasi lainnya..." />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- TEXTAREAS CHARACTER -->
+                  <div class="mt-6 space-y-5">
+                    <div>
+                      <label class="form-label">Apa kelebihan atau kekuatan diri yang paling kamu rasakan?</label>
+                      <textarea id="kelebihan_diri" name="kelebihan_diri" class="textarea-style" placeholder="Tuliskan kelebihan diri Anda..." required></textarea>
+                    </div>
+                    <div>
+                      <label class="form-label">Apa hobi, minat, atau aktivitas yang paling kamu sukai?</label>
+                      <textarea id="hobi_minat" name="hobi_minat" class="textarea-style" placeholder="Tuliskan hobi atau aktivitas favorit Anda..." required></textarea>
+                    </div>
+                  </div>
+
+                  <!-- BIDANG DIKEMBANGKAN -->
+                  <div class="mt-6">
+                    <label class="form-label">Bidang apa yang ingin kamu kembangkan selama bersekolah di SMA? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Kemampuan akademik" />
+                        <span class="text-sm text-slate-600">Kemampuan akademik</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Kemampuan praktik kejuruan" />
+                        <span class="text-sm text-slate-600">Kemampuan praktik kejuruan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Komunikasi/public speaking" />
+                        <span class="text-sm text-slate-600">Komunikasi / Public Speaking</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Kepemimpinan" />
+                        <span class="text-sm text-slate-600">Kepemimpinan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Kerja sama tim" />
+                        <span class="text-sm text-slate-600">Kerja sama tim</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Kedisiplinan" />
+                        <span class="text-sm text-slate-600">Kedisiplinan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Manajemen waktu" />
+                        <span class="text-sm text-slate-600">Manajemen waktu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Percaya diri" />
+                        <span class="text-sm text-slate-600">Percaya diri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Keterampilan digital" />
+                        <span class="text-sm text-slate-600">Keterampilan digital</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Kewirausahaan" />
+                        <span class="text-sm text-slate-600">Kewirausahaan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="bidang_dikembangkan" value="Lainnya" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="bidang_dikembangkan_lain_container" class="mt-3 hidden">
+                      <input type="text" id="bidang_dikembangkan_lain" name="bidang_dikembangkan_lain" class="input-style" placeholder="Tuliskan bidang lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- EKSPRESI EMOSI -->
+                  <div class="mt-6">
+                    <label class="form-label">Saat marah, kecewa, atau tidak nyaman, bagaimana biasanya kamu mengekspresikannya? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Diam/menarik diri" />
+                        <span class="text-sm text-slate-600">Diam / menarik diri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Bercerita kepada orang lain" />
+                        <span class="text-sm text-slate-600">Bercerita kepada orang lain</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Menangis" />
+                        <span class="text-sm text-slate-600">Menangis</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Berbicara dengan nada tinggi" />
+                        <span class="text-sm text-slate-600">Berbicara nada tinggi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Menulis/mendengarkan musik/aktivitas lain" />
+                        <span class="text-sm text-slate-600">Menulis/Musik/Aktivitas lain</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Sulit mengendalikan emosi" />
+                        <span class="text-sm text-slate-600">Sulit mengendalikan emosi</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="ekspresi_emosi" value="Lainnya" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="ekspresi_emosi_lain_container" class="mt-3 hidden">
+                      <input type="text" id="ekspresi_emosi_lain" name="ekspresi_emosi_lain" class="input-style" placeholder="Tuliskan ekspresi lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- PERTEMANAN MUDAH -->
+                  <div class="mt-6">
+                    <label class="form-label">Dalam pertemanan, hal apa yang biasanya mudah bagimu? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Belum tahu" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Belum tahu</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Memulai percakapan" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Memulai percakapan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Bekerja sama" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Bekerja sama</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Mendengarkan orang lain" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Mendengarkan orang lain</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Memimpin kelompok" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Memimpin kelompok</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Membantu teman" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Membantu teman</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Menjaga rahasia/kepercayaan" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Menjaga rahasia/kepercayaan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_mudah" value="Lainnya" class="mudah-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="pertemanan_mudah_lain_container" class="mt-3 hidden">
+                      <input type="text" id="pertemanan_mudah_lain" name="pertemanan_mudah_lain" class="input-style" placeholder="Tuliskan lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- PERTEMANAN TANTANGAN -->
+                  <div class="mt-6">
+                    <label class="form-label">Dalam pertemanan, hal apa yang biasanya menantang bagimu? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Tidak ada" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Tidak ada</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Memulai percakapan" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Memulai percakapan</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Bergabung dengan kelompok baru" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Bergabung kelompok baru</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Menyampaikan pendapat" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Menyampaikan pendapat</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Mengelola konflik" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Mengelola konflik</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Menerima kritik" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Menerima kritik</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Percaya diri" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Percaya diri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="pertemanan_tantangan" value="Lainnya" class="tantangan-pertemanan-cb" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="pertemanan_tantangan_lain_container" class="mt-3 hidden">
+                      <input type="text" id="pertemanan_tantangan_lain" name="pertemanan_tantangan_lain" class="input-style" placeholder="Tuliskan lainnya..." />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                    <div>
+                      <label class="form-label">Apakah kamu memiliki teman dekat atau orang yang dikenal di sekolah ini?</label>
+                      <div class="grid grid-cols-2 gap-3">
+                        <label class="radio-card">
+                          <input type="radio" name="teman_dekat" value="Ya" class="text-purple-600 focus:ring-purple-500" required />
+                          <span class="text-sm text-slate-600">Ya</span>
+                        </label>
+                        <label class="radio-card">
+                          <input type="radio" name="teman_dekat" value="Tidak" class="text-purple-600 focus:ring-purple-500" />
+                          <span class="text-sm text-slate-600">Tidak</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="form-label">Seberapa mandiri kamu dalam mengatur jadwal belajar, tugas, dan kegiatan?</label>
+                      <select id="kemandirian_jadwal" name="kemandirian_jadwal" class="input-style" style="padding-left:14px;" required>
+                        <option value="" disabled selected>Pilih tingkat kemandirian</option>
+                        <option value="Belum mandiri">Belum mandiri</option>
+                        <option value="Masih sering diingatkan">Masih sering diingatkan</option>
+                        <option value="Cukup mandiri">Cukup mandiri</option>
+                        <option value="Mandiri">Mandiri</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- TEXTAREAS FEELINGS -->
+                  <div class="mt-6 space-y-5">
+                    <div>
+                      <label class="form-label">Apa yang biasanya membuatmu merasa nyaman dan bersemangat belajar?</label>
+                      <textarea id="nyaman_sekolah" name="nyaman_sekolah" class="textarea-style" placeholder="Sebutkan hal-hal pendukung kenyamanan belajar Anda..." required></textarea>
+                    </div>
+                    <div>
+                      <label class="form-label">Apa yang biasanya membuatmu merasa tidak nyaman, takut, atau sulit fokus di sekolah?</label>
+                      <textarea id="tidak_nyaman_sekolah" name="tidak_nyaman_sekolah" class="textarea-style" placeholder="Sebutkan kendala atau hal yang mengganggu kenyamanan belajar Anda..." required></textarea>
+                    </div>
+                  </div>
+
+                  <!-- TINDAKAN KESULITAN BELAJAR -->
+                  <div class="mt-6">
+                    <label class="form-label">Jika mengalami kesulitan belajar atau masalah di sekolah, apa yang biasanya kamu lakukan? <span class="font-normal text-slate-400 text-xs">(boleh pilih lebih dari satu jawaban)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Mencoba menyelesaikan sendiri" />
+                        <span class="text-sm text-slate-600">Mencoba menyelesaikan sendiri</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Bertanya kepada teman" />
+                        <span class="text-sm text-slate-600">Bertanya kepada teman</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Bertanya kepada guru" />
+                        <span class="text-sm text-slate-600">Bertanya kepada guru</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Bercerita kepada orang tua/wali" />
+                        <span class="text-sm text-slate-600">Bercerita kepada orang tua/wali</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Menghubungi guru BK/konselor" />
+                        <span class="text-sm text-slate-600">Menghubungi guru BK/konselor</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Cenderung diam/tidak bercerita" />
+                        <span class="text-sm text-slate-600">Cenderung diam/tidak bercerita</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="checkbox" name="kesulitan_belajar_tindakan" value="Lainnya" />
+                        <span class="text-sm text-slate-600">Lainnya</span>
+                      </label>
+                    </div>
+                    <div id="kesulitan_belajar_tindakan_lain_container" class="mt-3 hidden">
+                      <input type="text" id="kesulitan_belajar_tindakan_lain" name="kesulitan_belajar_tindakan_lain" class="input-style" placeholder="Tuliskan lainnya..." />
+                    </div>
+                  </div>
+
+                  <!-- PESAN UNTUK SEKOLAH -->
+                  <div class="mt-6">
+                    <label class="form-label">Apakah ada hal penting tentang dirimu yang ingin kamu sampaikan kepada wali kelas/guru BK agar sekolah dapat mendukungmu dengan lebih baik?</label>
+                    <textarea id="pesan_untuk_sekolah" name="pesan_untuk_sekolah" class="textarea-style" placeholder="Tuliskan pesan khusus, catatan keluarga, kendala pribadi, dsb..."></textarea>
+                  </div>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="flex justify-end items-center bg-white rounded-[32px] p-6 soft-shadow border border-slate-100">
+                  <button type="submit" class="btn-primary-custom">
+                    <i data-lucide="check" class="w-5 h-5"></i>
+                    <span>Simpan Jawaban</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // Toggle card styling on select
+        function updateCardStates() {
+          document.querySelectorAll('.radio-card').forEach(function(card) {
+            const input = card.querySelector('input[type="radio"], input[type="checkbox"]');
+            if (input && input.checked) {
+              card.classList.add('active-state');
+            } else {
+              card.classList.remove('active-state');
+            }
+          });
+        }
+        document.querySelectorAll('.radio-card input').forEach(function(input) {
+          input.addEventListener('change', updateCardStates);
+        });
+
+        // Toggles helpers
+        function wireToggle(selectorName, valToMatch, containerId, inputId) {
+          const inputs = document.querySelectorAll(`input[name="${selectorName}"]`);
+          const container = document.getElementById(containerId);
+          const input = document.getElementById(inputId);
+          inputs.forEach(function(el) {
+            el.addEventListener('change', function() {
+              const selected = document.querySelector(`input[name="${selectorName}"]:checked`);
+              if (selected && selected.value === valToMatch) {
+                container.classList.remove('hidden');
+                input.setAttribute('required', 'required');
+              } else {
+                container.classList.add('hidden');
+                input.removeAttribute('required');
+              }
+            });
+          });
+        }
+
+        function wireSelectToggle(selectId, valToMatch, containerId, inputId) {
+          const select = document.getElementById(selectId);
+          const container = document.getElementById(containerId);
+          const input = document.getElementById(inputId);
+          select.addEventListener('change', function() {
+            if (this.value === valToMatch) {
+              container.classList.remove('hidden');
+              input.setAttribute('required', 'required');
+            } else {
+              container.classList.add('hidden');
+              input.removeAttribute('required');
+            }
+          });
+        }
+
+        function wireCheckboxToggle(checkboxesName, valToMatch, containerId, inputId) {
+          const container = document.getElementById(containerId);
+          const input = document.getElementById(inputId);
+          document.addEventListener('change', function(e) {
+            if (e.target && e.target.name === checkboxesName) {
+              const matchEl = Array.from(document.querySelectorAll(`input[name="${checkboxesName}"]:checked`)).find(cb => cb.value === valToMatch);
+              if (matchEl) {
+                container.classList.remove('hidden');
+                input.setAttribute('required', 'required');
+              } else {
+                container.classList.add('hidden');
+                input.removeAttribute('required');
+              }
+            }
+          });
+        }
+
+        // Apply toggles
+        wireToggle('jalur_masuk', 'Lainnya', 'jalur_masuk_lain_container', 'jalur_masuk_lain');
+        wireToggle('bahasa_rumah', 'Lainnya', 'bahasa_rumah_lain_container', 'bahasa_rumah_lain');
+        wireToggle('alasan_masuk', 'Lainnya', 'alasan_masuk_lain_container', 'alasan_masuk_lain');
+        wireCheckboxToggle('kebiasaan_belajar', 'Lainnya', 'kebiasaan_belajar_lain_container', 'kebiasaan_belajar_lain');
+        wireCheckboxToggle('cara_belajar_efektif', 'Lainnya', 'cara_belajar_efektif_lain_container', 'cara_belajar_efektif_lain');
+        wireCheckboxToggle('kesulitan_belajar', 'Lainnya', 'kesulitan_belajar_lain_container', 'kesulitan_belajar_lain');
+        wireCheckboxToggle('jenis_bantuan_belajar', 'Lainnya', 'jenis_bantuan_belajar_lain_container', 'jenis_bantuan_belajar_lain');
+        wireSelectToggle('akses_internet_perangkat', 'Lainnya', 'akses_internet_perangkat_lain_container', 'akses_internet_perangkat_lain');
+        wireSelectToggle('rencana_setelah_lulus', 'Lainnya', 'rencana_setelah_lulus_lain_container', 'rencana_setelah_lulus_lain');
+        wireCheckboxToggle('aplikasi_sering_digunakan', 'Lainnya', 'aplikasi_sering_digunakan_lain_container', 'aplikasi_sering_digunakan_lain');
+        wireSelectToggle('tinggal_dengan', 'Lainnya', 'tinggal_dengan_lain_container', 'tinggal_dengan_lain');
+        wireSelectToggle('status_tinggal_orang_tua', 'Lainnya', 'status_tinggal_orang_tua_lain_container', 'status_tinggal_orang_tua_lain');
+        wireCheckboxToggle('pendamping_belajar', 'Lainnya', 'pendamping_belajar_lain_container', 'pendamping_belajar_lain');
+        wireCheckboxToggle('tanggung_jawab_rumah', 'Lainnya', 'tanggung_jawab_rumah_lain_container', 'tanggung_jawab_rumah_lain');
+        wireCheckboxToggle('fasilitas_belajar', 'Lainnya', 'fasilitas_belajar_lain_container', 'fasilitas_belajar_lain');
+        
+        wireCheckboxToggle('bantuan_pendidikan', 'Lainnya', 'bantuan_pendidikan_lain_container', 'bantuan_pendidikan_lain');
+        wireToggle('harapan_orang_tua', 'Lainnya', 'harapan_orang_tua_lain_container', 'harapan_orang_tua_lain');
+        wireToggle('kesehatan_khusus', 'Ya', 'kesehatan_khusus_detail_container', 'kesehatan_khusus_detail');
+        wireToggle('alergi', 'Ya', 'alergi_detail_container', 'alergi_detail');
+        wireCheckboxToggle('tempat_bercerita', 'Lainnya', 'tempat_bercerita_lain_container', 'tempat_bercerita_lain');
+        wireCheckboxToggle('bidang_dikembangkan', 'Lainnya', 'bidang_dikembangkan_lain_container', 'bidang_dikembangkan_lain');
+        wireToggle('adaptasi_lingkungan', 'Lainnya', 'adaptasi_lingkungan_lain_container', 'adaptasi_lingkungan_lain');
+        wireCheckboxToggle('ekspresi_emosi', 'Lainnya', 'ekspresi_emosi_lain_container', 'ekspresi_emosi_lain');
+        wireCheckboxToggle('pertemanan_mudah', 'Lainnya', 'pertemanan_mudah_lain_container', 'pertemanan_mudah_lain');
+        wireCheckboxToggle('pertemanan_tantangan', 'Lainnya', 'pertemanan_tantangan_lain_container', 'pertemanan_tantangan_lain');
+        wireCheckboxToggle('kesulitan_belajar_tindakan', 'Lainnya', 'kesulitan_belajar_tindakan_lain_container', 'kesulitan_belajar_tindakan_lain');
+
+        // Checkbox constraint logic: "Tidak" / "Tidak ada" resets others
+        function setupExclusion(checkboxesClass, noVal) {
+          const checkboxes = document.querySelectorAll('.' + checkboxesClass);
+          checkboxes.forEach(function(cb) {
+            cb.addEventListener('change', function() {
+              if (this.value === noVal && this.checked) {
+                checkboxes.forEach(function(o) { if (o.value !== noVal) o.checked = false; });
+              } else if (this.value !== noVal && this.checked) {
+                checkboxes.forEach(function(o) { if (o.value === noVal) o.checked = false; });
+              }
+              updateCardStates();
+            });
+          });
+        }
+        setupExclusion('disabilitas-checkbox', 'Tidak');
+        setupExclusion('kesulitan-checkbox', 'Tidak ada');
+
+        // Bantuan exclusion
+        const bantuanCheckboxes = document.querySelectorAll('.bantuan-checkbox');
+        bantuanCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Tidak memerlukan bantuan' && this.checked) {
+              bantuanCheckboxes.forEach(function(o) { if (o.value !== 'Tidak memerlukan bantuan') o.checked = false; });
+            } else if (this.value !== 'Tidak memerlukan bantuan' && this.checked) {
+              bantuanCheckboxes.forEach(function(o) { if (o.value === 'Tidak memerlukan bantuan') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // App exclusion
+        const appCheckboxes = document.querySelectorAll('.app-checkbox');
+        appCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Tidak ada' && this.checked) {
+              appCheckboxes.forEach(function(o) { if (o.value !== 'Tidak ada') o.checked = false; });
+            } else if (this.value !== 'Tidak ada' && this.checked) {
+              appCheckboxes.forEach(function(o) { if (o.value === 'Tidak ada') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // Tanggung jawab exclusion
+        const tjCheckboxes = document.querySelectorAll('.tanggungjawab-checkbox');
+        tjCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Tidak' && this.checked) {
+              tjCheckboxes.forEach(function(o) { if (o.value !== 'Tidak') o.checked = false; });
+            } else if (this.value !== 'Tidak' && this.checked) {
+              tjCheckboxes.forEach(function(o) { if (o.value === 'Tidak') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // Bantuan pendidikan exclusion
+        const bpCheckboxes = document.querySelectorAll('.bantuan-pendidikan-cb');
+        bpCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Tidak ada' && this.checked) {
+              bpCheckboxes.forEach(function(o) { if (o.value !== 'Tidak ada') o.checked = false; });
+            } else if (this.value !== 'Tidak ada' && this.checked) {
+              bpCheckboxes.forEach(function(o) { if (o.value === 'Tidak ada') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // Cerita exclusion
+        const ceritaCheckboxes = document.querySelectorAll('.cerita-checkbox');
+        ceritaCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Tidak ada' && this.checked) {
+              ceritaCheckboxes.forEach(function(o) { if (o.value !== 'Tidak ada') o.checked = false; });
+            } else if (this.value !== 'Tidak ada' && this.checked) {
+              ceritaCheckboxes.forEach(function(o) { if (o.value === 'Tidak ada') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // Mudah pertemanan exclusion
+        const mudahPtCheckboxes = document.querySelectorAll('.mudah-pertemanan-cb');
+        mudahPtCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Belum tahu' && this.checked) {
+              mudahPtCheckboxes.forEach(function(o) { if (o.value !== 'Belum tahu') o.checked = false; });
+            } else if (this.value !== 'Belum tahu' && this.checked) {
+              mudahPtCheckboxes.forEach(function(o) { if (o.value === 'Belum tahu') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // Tantangan pertemanan exclusion
+        const tantanganPtCheckboxes = document.querySelectorAll('.tantangan-pertemanan-cb');
+        tantanganPtCheckboxes.forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            if (this.value === 'Tidak ada' && this.checked) {
+              tantanganPtCheckboxes.forEach(function(o) { if (o.value !== 'Tidak ada') o.checked = false; });
+            } else if (this.value !== 'Tidak ada' && this.checked) {
+              tantanganPtCheckboxes.forEach(function(o) { if (o.value === 'Tidak ada') o.checked = false; });
+            }
+            updateCardStates();
+          });
+        });
+
+        // Form Submit
+        const form = document.getElementById('surveyForm');
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          // Validation checkboxes are checked
+          const disabilitas = Array.from(document.querySelectorAll('.disabilitas-checkbox:checked')).map(cb => cb.value);
+          if (disabilitas.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah minimal satu opsi disabilitas (pilih "Tidak" jika tidak ada)', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const kebiasaan_belajar = Array.from(document.querySelectorAll('input[name="kebiasaan_belajar"]:checked')).map(cb => cb.value);
+          if (kebiasaan_belajar.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah kebiasaan belajarmu di luar jam sekolah', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const cara_belajar_efektif = Array.from(document.querySelectorAll('input[name="cara_belajar_efektif"]:checked')).map(cb => cb.value);
+          if (cara_belajar_efektif.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah cara belajar yang membantumu memahami materi', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const kesulitan_belajar = Array.from(document.querySelectorAll('input[name="kesulitan_belajar"]:checked')).map(cb => cb.value);
+          if (kesulitan_belajar.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah hal yang menyulitkanmu saat pembelajaran', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const jenis_bantuan_belajar = Array.from(document.querySelectorAll('input[name="jenis_bantuan_belajar"]:checked')).map(cb => cb.value);
+          if (jenis_bantuan_belajar.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah bantuan belajar yang kamu perlukan', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const pendamping_belajar = Array.from(document.querySelectorAll('input[name="pendamping_belajar"]:checked')).map(cb => cb.value);
+          if (pendamping_belajar.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah pendamping belajar Anda di rumah', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const tanggung_jawab_rumah = Array.from(document.querySelectorAll('input[name="tanggung_jawab_rumah"]:checked')).map(cb => cb.value);
+          if (tanggung_jawab_rumah.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah tanggung jawab Anda di rumah', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const fasilitas_belajar = Array.from(document.querySelectorAll('input[name="fasilitas_belajar"]:checked')).map(cb => cb.value);
+          if (fasilitas_belajar.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah fasilitas belajar yang tersedia', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const bpList = Array.from(document.querySelectorAll('input[name="bantuan_pendidikan"]:checked')).map(cb => cb.value);
+          if (bpList.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah riwayat bantuan pendidikan saat SMP', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const ceritaList = Array.from(document.querySelectorAll('input[name="tempat_bercerita"]:checked')).map(cb => cb.value);
+          if (ceritaList.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah tempat Anda biasa bercerita', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const bidangList = Array.from(document.querySelectorAll('input[name="bidang_dikembangkan"]:checked')).map(cb => cb.value);
+          if (bidangList.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah bidang yang ingin dikembangkan di SMA', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const ekspresiList = Array.from(document.querySelectorAll('input[name="ekspresi_emosi"]:checked')).map(cb => cb.value);
+          if (ekspresiList.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah cara mengekspresikan emosi', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const mudahList = Array.from(document.querySelectorAll('input[name="pertemanan_mudah"]:checked')).map(cb => cb.value);
+          if (mudahList.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah hal yang mudah dalam pertemanan', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const tantanganList = Array.from(document.querySelectorAll('input[name="pertemanan_tantangan"]:checked')).map(cb => cb.value);
+          if (tantanganList.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah hal menantang dalam pertemanan', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const kesulitanTindakan = Array.from(document.querySelectorAll('input[name="kesulitan_belajar_tindakan"]:checked')).map(cb => cb.value);
+          if (kesulitanTindakan.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Belum Lengkap', text: 'Pilihlah tindakan saat kesulitan belajar', confirmButtonColor: '#7c3aed' });
+            return;
+          }
+
+          const payload = {
+            nama_panggilan: document.getElementById('nama_panggilan').value,
+            jalur_masuk: document.querySelector('input[name="jalur_masuk"]:checked')?.value || '',
+            jalur_masuk_lain: document.getElementById('jalur_masuk_lain').value,
+            disabilitas: disabilitas,
+            nomor_hp: document.getElementById('nomor_hp').value,
+            asal_sekolah: document.getElementById('asal_sekolah').value,
+            tahun_lulus: document.getElementById('tahun_lulus').value,
+            bahasa_rumah: document.querySelector('input[name="bahasa_rumah"]:checked')?.value || '',
+            bahasa_rumah_lain: document.getElementById('bahasa_rumah_lain').value,
+            sesuai_minat: document.querySelector('input[name="sesuai_minat"]:checked')?.value || '',
+            alasan_masuk: document.querySelector('input[name="alasan_masuk"]:checked')?.value || '',
+            alasan_masuk_lain: document.getElementById('alasan_masuk_lain').value,
+            perasaan_diterima: document.querySelector('input[name="perasaan_diterima"]:checked')?.value || '',
+            mapel_disenangi: document.getElementById('mapel_disenangi').value,
+            mapel_menantang: document.getElementById('mapel_menantang').value,
+            bakat_keahlian: document.getElementById('bakat_keahlian').value,
+            pengalaman_siswa: document.getElementById('pengalaman_siswa').value,
+            
+            ekskul_diminati: Array.from(document.querySelectorAll('input[name="ekskul_diminati"]:checked')).map(cb => cb.value),
+            kebiasaan_belajar: kebiasaan_belajar,
+            kebiasaan_belajar_lain: document.getElementById('kebiasaan_belajar_lain').value,
+            durasi_belajar: document.querySelector('input[name="durasi_belajar"]:checked')?.value || '',
+            cara_belajar_efektif: cara_belajar_efektif,
+            cara_belajar_efektif_lain: document.getElementById('cara_belajar_efektif_lain').value,
+            kesulitan_belajar: kesulitan_belajar,
+            kesulitan_belajar_lain: document.getElementById('kesulitan_belajar_lain').value,
+            butuh_bantuan_belajar: document.querySelector('input[name="butuh_bantuan_belajar"]:checked')?.value || '',
+            jenis_bantuan_belajar: jenis_bantuan_belajar,
+            jenis_bantuan_belajar_lain: document.getElementById('jenis_bantuan_belajar_lain').value,
+            kenyamanan_belajar: document.querySelector('input[name="kenyamanan_belajar"]:checked')?.value || '',
+            akses_internet_perangkat: document.getElementById('akses_internet_perangkat').value,
+            akses_internet_perangkat_lain: document.getElementById('akses_internet_perangkat_lain').value,
+            rencana_setelah_lulus: document.getElementById('rencana_setelah_lulus').value,
+            rencana_setelah_lulus_lain: document.getElementById('rencana_setelah_lulus_lain').value,
+            pekerjaan_impian: document.getElementById('pekerjaan_impian').value,
+            jurusan_diminati: document.getElementById('jurusan_diminati').value,
+            butuh_bimbingan_karier: document.querySelector('input[name="butuh_bimbingan_karier"]:checked')?.value || '',
+            durasi_layar: document.getElementById('durasi_layar').value,
+            aplikasi_sering_digunakan: Array.from(document.querySelectorAll('input[name="aplikasi_sering_digunakan"]:checked')).map(cb => cb.value),
+            aplikasi_sering_digunakan_lain: document.getElementById('aplikasi_sering_digunakan_lain').value,
+            aturan_hp_rumah: document.getElementById('aturan_hp_rumah').value,
+            tinggal_dengan: document.getElementById('tinggal_dengan').value,
+            tinggal_dengan_lain: document.getElementById('tinggal_dengan_lain').value,
+            pendamping_belajar: pendamping_belajar,
+            pendamping_belajar_lain: document.getElementById('pendamping_belajar_lain').value,
+            status_orang_tua: document.getElementById('status_orang_tua').value,
+            status_tinggal_orang_tua: document.getElementById('status_tinggal_orang_tua').value,
+            status_tinggal_orang_tua_lain: document.getElementById('status_tinggal_orang_tua_lain').value,
+            tanggung_jawab_rumah: tanggung_jawab_rumah,
+            tanggung_jawab_rumah_lain: document.getElementById('tanggung_jawab_rumah_lain').value,
+            pemenuhan_kebutuhan_belajar: document.getElementById('pemenuhan_kebutuhan_belajar').value,
+            fasilitas_belajar: fasilitas_belajar,
+            fasilitas_belajar_lain: document.getElementById('fasilitas_belajar_lain').value,
+
+            bantuan_pendidikan: bpList,
+            bantuan_pendidikan_lain: document.getElementById('bantuan_pendidikan_lain').value,
+            butuh_info_bantuan: document.querySelector('input[name="butuh_info_bantuan"]:checked')?.value || '',
+            harapan_orang_tua: document.querySelector('input[name="harapan_orang_tua"]:checked')?.value || '',
+            harapan_orang_tua_lain: document.getElementById('harapan_orang_tua_lain').value,
+            dukungan_orang_tua: document.getElementById('dukungan_orang_tua').value,
+            kesehatan_khusus: document.querySelector('input[name="kesehatan_khusus"]:checked')?.value || '',
+            kesehatan_khusus_detail: document.getElementById('kesehatan_khusus_detail').value,
+            alergi: document.querySelector('input[name="alergi"]:checked')?.value || '',
+            alergi_detail: document.getElementById('alergi_detail').value,
+            pengobatan_panjang: document.querySelector('input[name="pengobatan_panjang"]:checked')?.value || '',
+            pembatasan_fisik: document.querySelector('input[name="pembatasan_fisik"]:checked')?.value || '',
+            rawat_rs: document.querySelector('input[name="rawat_rs"]:checked')?.value || '',
+            tingkat_cemas: document.getElementById('tingkat_cemas').value,
+            tempat_bercerita: ceritaList,
+            tempat_bercerita_lain: document.getElementById('tempat_bercerita_lain').value,
+            rekomendasi_profesional: document.querySelector('input[name="rekomendasi_profesional"]:checked')?.value || '',
+            interaksi_sosial: document.getElementById('interaksi_sosial').value,
+            kelebihan_diri: document.getElementById('kelebihan_diri').value,
+            hobi_minat: document.getElementById('hobi_minat').value,
+            bidang_dikembangkan: bidangList,
+            bidang_dikembangkan_lain: document.getElementById('bidang_dikembangkan_lain').value,
+            adaptasi_lingkungan: document.getElementById('adaptasi_lingkungan').value,
+            adaptasi_lingkungan_lain: document.getElementById('adaptasi_lingkungan_lain').value,
+            ekspresi_emosi: ekspresiList,
+            ekspresi_emosi_lain: document.getElementById('ekspresi_emosi_lain').value,
+            pertemanan_mudah: mudahList,
+            pertemanan_mudah_lain: document.getElementById('pertemanan_mudah_lain').value,
+            pertemanan_tantangan: tantanganList,
+            pertemanan_tantangan_lain: document.getElementById('pertemanan_tantangan_lain').value,
+            teman_dekat: document.querySelector('input[name="teman_dekat"]:checked')?.value || '',
+            nyaman_sekolah: document.getElementById('nyaman_sekolah').value,
+            tidak_nyaman_sekolah: document.getElementById('tidak_nyaman_sekolah').value,
+            kemandirian_jadwal: document.getElementById('kemandirian_jadwal').value,
+            kesulitan_belajar_tindakan: kesulitanTindakan,
+            kesulitan_belajar_tindakan_lain: document.getElementById('kesulitan_belajar_tindakan_lain').value,
+            pesan_untuk_sekolah: document.getElementById('pesan_untuk_sekolah').value
+          };
+
+          Swal.fire({
+            title: 'Sedang menyimpan...',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          fetch('/api/survey/submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: data.message || 'Jawaban survei Anda berhasil disimpan!',
+                confirmButtonColor: '#7c3aed'
+              }).then(() => {
+                window.location.href = '/survey/review';
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: data.message || 'Terjadi kesalahan saat menyimpan data.',
+                confirmButtonColor: '#7c3aed'
+              });
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Kesalahan Sistem',
+              text: 'Gagal terhubung ke server. Silakan coba beberapa saat lagi.',
+              confirmButtonColor: '#7c3aed'
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

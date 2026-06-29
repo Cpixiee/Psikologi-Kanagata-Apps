@@ -215,6 +215,68 @@
         .badge-jurusan { display: none; }
         .access-btn span { display: none; }
       }
+      /* Actions Dropdown styling */
+      .action-dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      .dropdown-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 4px);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+        min-width: 160px;
+        padding: 6px;
+        display: none;
+      }
+      .dropdown-menu.show {
+        display: block;
+      }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 13.5px;
+        font-weight: 500;
+        color: #334155;
+        border-radius: 8px;
+        transition: background 0.15s, color 0.15s;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .dropdown-item:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .dropdown-item i {
+        font-size: 16px;
+      }
+
+      .btn-zip {
+        background: rgba(248, 250, 252, 0.8) !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 9px 18px !important;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 13.5px;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .btn-zip:hover {
+        background: #f1f5f9 !important;
+        border-color: #94a3b8 !important;
+        color: #0f172a !important;
+      }
     </style>
   </head>
  
@@ -341,6 +403,13 @@
             <select class="filter-select" id="selectJurusan">
               <option value="">Semua Jurusan</option>
             </select>
+          </div>
+
+          <!-- Actions Row -->
+          <div style="display: flex; justify-content: flex-end; margin-top: 12px; margin-bottom: 16px;">
+            <a href="/survey/zip" class="btn-zip" title="Unduh Semua Survei dalam ZIP">
+              <i class="ti ti-download"></i><span>Unduh Semua PDF (ZIP)</span>
+            </a>
           </div>
  
           <p class="section-label" id="countLabel">Menampilkan 0 dari 0 siswa</p>
@@ -540,9 +609,19 @@
               <p class="student-email"><i class="ti ti-mail"></i>${esc(s.email)}</p>
             </div>
             <div class="divider"></div>
-            <button class="access-btn" onclick="accessStudent(${s.id}, '${s.nama_lengkap.replace(/'/g, "\\'")}')">
-              <i class="ti ti-login"></i><span>Akses Akun</span>
-            </button>
+            <div class="action-dropdown">
+              <button class="access-btn flex items-center gap-1.5" onclick="toggleDropdown(this, event)">
+                <span>Aksi</span> <i class="ti ti-chevron-down" style="font-size:12px;"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a href="javascript:void(0)" class="dropdown-item" onclick="accessStudent(${s.id}, '${s.nama_lengkap.replace(/'/g, "\\'")}')">
+                  <i class="ti ti-login"></i> Akses Akun
+                </a>
+                <a href="/survey/pdf?student_id=${s.id}" target="_blank" class="dropdown-item">
+                  <i class="ti ti-download"></i> Unduh Survei
+                </a>
+              </div>
+            </div>
           `;
           container.appendChild(card);
         });
@@ -609,6 +688,22 @@
           }
         });
       }
+
+      function toggleDropdown(btn, event) {
+        event.stopPropagation();
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+          if (menu !== btn.nextElementSibling) {
+            menu.classList.remove('show');
+          }
+        });
+        btn.nextElementSibling.classList.toggle('show');
+      }
+
+      document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
+      });
 
       window.addEventListener("DOMContentLoaded", loadStudents);
     </script>

@@ -1,0 +1,138 @@
+<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catatan Survei - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body, html { font-family: 'Inter', 'Poppins', sans-serif; }
+      body { background: #f8fafc !important; }
+      .layout-wrapper > .layout-container, .layout-page { background: #f8fafc !important; }
+      .dp-page { padding: 24px 16px 36px; }
+      .soft-shadow { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04); }
+      .btn-primary-custom {
+        height: 52px;
+        padding: 0 36px;
+        border-radius: 16px;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .btn-primary-custom:hover {
+        background: #1e293b;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- SIDEBAR -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
+          <div class="ds-brand">
+            <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+            <div class="ds-brand-text">
+              <div class="name">PsychoWellness</div>
+              <div class="sub">AI Analytics System</div>
+            </div>
+          </div>
+          <nav class="ds-nav">
+            <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+            <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+            <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+            <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+            <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+            <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+            <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+                <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>
+            <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+          </nav>
+          <div class="ds-side-card">
+            <div class="label">Kelas</div>
+            <div class="value" id="sbKelasValue">-</div>
+          </div>
+          <div class="ds-side-card">
+            <div class="label">Jurusan</div>
+            <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+          </div>
+          <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+        </aside>
+
+        <div class="layout-page">
+          <div class="dp-page flex items-center justify-center min-h-[85vh]">
+            <div class="w-full max-w-3xl">
+              <section class="bg-white rounded-[32px] p-8 lg:p-14 soft-shadow border border-slate-100/80">
+                <h1 class="text-xl font-extrabold text-slate-800 text-center mb-8 tracking-wide uppercase">
+                  Catatan Penting Sebelum Mengisi Survei
+                </h1>
+                
+                <div class="bg-slate-50 border border-slate-100 rounded-[24px] p-6 lg:p-8 mb-10 text-slate-600 leading-relaxed text-[15px] space-y-4">
+                  <p>
+                    Isilah formulir ini sesuai dengan kondisi, minat, pengalaman belajar, dan kebutuhan dukungan yang kamu miliki. Informasi yang kamu sampaikan akan digunakan sekolah untuk mengenal karakteristik murid, memetakan minat dan kebutuhan belajar, serta menyiapkan pendampingan agar kamu dapat mengikuti pembelajaran di SMA dengan aman, nyaman, dan optimal.
+                  </p>
+                  
+                  <div class="border-t border-slate-200/60 pt-5 mt-5">
+                    <p class="font-bold text-slate-800 flex items-start gap-2">
+                      <i data-lucide="shield-check" class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"></i>
+                      <span>
+                        Catatan Keamanan Data: <span class="font-normal text-slate-500">Seluruh data yang diberikan bersifat rahasia (confidential) dan hanya digunakan untuk kepentingan layanan pendidikan, pendampingan, serta pengembangan diri murid di sekolah.</span>
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex justify-center">
+                  <a href="/survey/form" class="btn-primary-custom">
+                    <span>Lanjutkan ke Formulir</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                  </a>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
+  </body>
+</html>

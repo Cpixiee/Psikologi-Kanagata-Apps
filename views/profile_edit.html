@@ -134,19 +134,11 @@
         background: #fff;
         border-radius: 32px;
         padding: 28px;
+        border: 1px solid #f1f5f9;
       }
       @media (min-width: 1024px) { .pe-hero { padding: 36px; } }
       .pe-hero::after {
-        content: '';
-        position: absolute;
-        top: -120px;
-        right: -120px;
-        width: 360px;
-        height: 360px;
-        background: #ddd6fe;
-        opacity: 0.40;
-        border-radius: 999px;
-        filter: blur(40px);
+        display: none;
       }
       .pe-hero > * { position: relative; z-index: 1; }
       .avatar-wrap { position: relative; width: 150px; height: 150px; }
@@ -273,6 +265,7 @@
             <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
             <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
             <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/survey" class="student-only" hidden><i data-lucide="clipboard-check" class="ds-icon"></i> Survei Karakteristik</a>
             <a href="/profile" class="active"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
             <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
             <details class="ds-submenu">
@@ -458,6 +451,90 @@
                       <div class="field-wrap">
                         <span class="field-icon"><i data-lucide="calendar"></i></span>
                         <input type="date" id="fTanggalLahir" name="tanggal_lahir" class="input-style" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- IDENTITAS DETAIL SISWA -->
+                <section class="pe-card soft-shadow">
+                  <h2 class="section-title">
+                    <i data-lucide="contact"></i> Identitas Detail Siswa
+                  </h2>
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <label class="field-label">No. NIK</label>
+                      <div class="field-wrap">
+                        <span class="field-icon"><i data-lucide="id-card"></i></span>
+                        <input type="text" id="fNoNIK" name="no_nik" class="input-style" placeholder="Masukkan nomor NIK" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="field-label">No. KK</label>
+                      <div class="field-wrap">
+                        <span class="field-icon"><i data-lucide="file-text"></i></span>
+                        <input type="text" id="fNoKK" name="no_kk" class="input-style" placeholder="Masukkan nomor Kartu Keluarga" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="field-label">Nomor Akta Lahir</label>
+                      <div class="field-wrap">
+                        <span class="field-icon"><i data-lucide="scroll"></i></span>
+                        <input type="text" id="fNomorAktaLahir" name="nomor_akta_lahir" class="input-style" placeholder="Masukkan nomor akta lahir" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="field-label">Agama</label>
+                      <div class="field-wrap">
+                        <span class="field-icon"><i data-lucide="sparkles"></i></span>
+                        <select id="fAgama" name="agama" class="input-style">
+                          <option value="">Pilih Agama</option>
+                          <option value="Islam">Islam</option>
+                          <option value="Katolik">Katolik</option>
+                          <option value="Protestan">Protestan</option>
+                          <option value="Hindu">Hindu</option>
+                          <option value="Budha">Budha</option>
+                          <option value="Konghucu">Konghucu</option>
+                          <option value="Lainnya">Lainnya</option>
+                        </select>
+                        <span class="chev-icon"><i data-lucide="chevron-down"></i></span>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="field-label">Tempat Tinggal</label>
+                      <div class="field-wrap">
+                        <span class="field-icon"><i data-lucide="home"></i></span>
+                        <input type="text" id="fTempatTinggal" name="tempat_tinggal" class="input-style" placeholder="Masukkan tempat tinggal saat ini" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="field-label">Mode Transportasi</label>
+                      <div class="field-wrap">
+                        <span class="field-icon"><i data-lucide="car"></i></span>
+                        <input type="text" id="fModeTransportasi" name="mode_transportasi" class="input-style" placeholder="Contoh: Sepeda Motor, Bus, Jalan Kaki" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="field-label">Anak Ke</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="user"></i></span>
+                          <input type="number" id="fAnakKe" name="anak_ke" class="input-style" placeholder="Anak Ke" min="1" />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Dari Bersaudara</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="users"></i></span>
+                          <input type="number" id="fJumlahBersaudara" name="jumlah_bersaudara" class="input-style" placeholder="Jumlah bersaudara" min="1" />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-span-full">
+                      <label class="field-label">Riwayat Penyakit atau Kondisi Fisik Tertentu</label>
+                      <div class="field-wrap">
+                        <span class="field-icon tall"><i data-lucide="activity"></i></span>
+                        <textarea id="fRiwayatPenyakit" name="riwayat_penyakit" class="textarea-style" placeholder="Tuliskan riwayat penyakit atau kondisi fisik tertentu jika ada, atau '-' jika tidak ada"></textarea>
                       </div>
                     </div>
                   </div>
@@ -702,6 +779,15 @@
           $('#fTempatLahir').value = u.tempat_lahir || '';
           $('#fTanggalLahir').value = (u.tanggal_lahir || '').substring(0, 10);
           $('#fAlamat').value = u.alamat || '';
+          $('#fNoNIK').value = u.no_nik || '';
+          $('#fNoKK').value = u.no_kk || '';
+          $('#fNomorAktaLahir').value = u.nomor_akta_lahir || '';
+          setSelect($('#fAgama'), u.agama || '');
+          $('#fTempatTinggal').value = u.tempat_tinggal || '';
+          $('#fModeTransportasi').value = u.mode_transportasi || '';
+          $('#fAnakKe').value = u.anak_ke || '';
+          $('#fJumlahBersaudara').value = u.jumlah_bersaudara || '';
+          $('#fRiwayatPenyakit').value = u.riwayat_penyakit || '';
 
           savedKota = u.kota || '';
           savedKec = u.kecamatan || '';
@@ -739,6 +825,15 @@
             provinsi: $('#fProvinsi').value,
             kota: $('#fKota').value,
             kecamatan: $('#fKecamatan').value,
+            no_nik: $('#fNoNIK').value.trim(),
+            no_kk: $('#fNoKK').value.trim(),
+            nomor_akta_lahir: $('#fNomorAktaLahir').value.trim(),
+            agama: $('#fAgama').value,
+            tempat_tinggal: $('#fTempatTinggal').value.trim(),
+            mode_transportasi: $('#fModeTransportasi').value.trim(),
+            anak_ke: parseInt($('#fAnakKe').value) || 0,
+            jumlah_bersaudara: parseInt($('#fJumlahBersaudara').value) || 0,
+            riwayat_penyakit: $('#fRiwayatPenyakit').value.trim(),
             // Pertahankan field yang tidak diedit di sini supaya BE tidak menghapus.
             jenis_kelamin: $('#fJenisKelamin').value,
             kodepos: $('#fKodepos').value,

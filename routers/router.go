@@ -135,6 +135,14 @@ func init() {
 	beego.Router("/profile", &controllers.PageController{}, "get:ProfilePage")
 	beego.Router("/profile/edit", &controllers.PageController{}, "get:ProfileEditPage")
 	beego.Router("/hasil-tes", &controllers.PageController{}, "get:HasilTesPage")
+	
+	// Student Survey routes
+	beego.Router("/survey", &controllers.SurveyController{}, "get:IntroPage")
+	beego.Router("/survey/note", &controllers.SurveyController{}, "get:NotePage")
+	beego.Router("/survey/form", &controllers.SurveyController{}, "get:FormPage")
+	beego.Router("/survey/review", &controllers.SurveyController{}, "get:ReviewPage")
+	beego.Router("/survey/pdf", &controllers.SurveyController{}, "get:ExportPDF")
+	beego.Router("/survey/zip", &controllers.SurveyController{}, "get:ExportAllZIP")
 	beego.Router("/profile/ist", &controllers.PageController{}, "get:ProfileISTPage")
 	beego.Router("/profile/holland", &controllers.PageController{}, "get:ProfileHollandPage")
 	beego.Router("/profile/learning-style", &controllers.PageController{}, "get:ProfileLearningStylePage")
@@ -248,6 +256,9 @@ func init() {
 	beego.Router("/api/profile", &controllers.ProfileController{}, "get:GetProfile;put:UpdateProfile")
 	beego.Router("/api/profile/onboarding-status", &controllers.ProfileController{}, "get:OnboardingStatus")
 	beego.Router("/api/profile/onboarding", &controllers.ProfileController{}, "post:SaveOnboarding")
+	
+	// Student Survey API
+	beego.Router("/api/survey/submit", &controllers.SurveyController{}, "post:SubmitAPI")
 
 	// Proxy data wilayah Indonesia (mengatasi mixed-content & CORS pada sumber publik)
 	beego.Router("/api/wilayah/provinces", &controllers.WilayahController{}, "get:Provinces")

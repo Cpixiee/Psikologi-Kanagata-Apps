@@ -37,7 +37,8 @@
       .soft-shadow { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); }
 
       .gradient-bg {
-        background: linear-gradient(135deg, #ffffff 0%, #f3f0ff 100%);
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
       }
 
       .input-style {
@@ -142,14 +143,7 @@
 
       /* Hero decor */
       .hero-decor {
-        position: absolute;
-        bottom: -120px;
-        right: -100px;
-        width: 380px;
-        height: 380px;
-        background: #ddd6fe;
-        opacity: 0.35;
-        border-radius: 999px;
+        display: none;
       }
       .hero-img-wrap {
         width: 180px;
@@ -208,6 +202,7 @@
             <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
             <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
             <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/survey" class="student-only" hidden><i data-lucide="clipboard-check" class="ds-icon"></i> Survei Karakteristik</a>
             <a href="/profile" class="active"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
             <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
             <details class="ds-submenu">
@@ -337,6 +332,88 @@
                     </div>
                   </div>
 
+                  <!-- IDENTITAS DETIL SISWA -->
+                  <div class="col-span-full border-t border-slate-100 pt-6 mt-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <i data-lucide="contact" class="text-purple-600 w-5 h-5"></i> Identitas Detail Siswa
+                    </h3>
+                  </div>
+
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-5 col-span-full">
+                    <!-- KIRI DETAIL -->
+                    <div class="space-y-5">
+                      <div>
+                        <label class="field-label">No. NIK</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="id-card"></i></span>
+                          <input type="text" id="fNoNIK" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">No. KK</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="file-text"></i></span>
+                          <input type="text" id="fNoKK" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Nomor Akta Lahir</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="scroll"></i></span>
+                          <input type="text" id="fNomorAktaLahir" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Agama</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="sparkles"></i></span>
+                          <input type="text" id="fAgama" class="input-style" readonly />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- KANAN DETAIL -->
+                    <div class="space-y-5">
+                      <div>
+                        <label class="field-label">Tempat Tinggal</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="home"></i></span>
+                          <input type="text" id="fTempatTinggal" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Mode Transportasi</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="car"></i></span>
+                          <input type="text" id="fModeTransportasi" class="input-style" readonly />
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label class="field-label">Anak Ke</label>
+                          <div class="field-wrap">
+                            <span class="field-icon"><i data-lucide="user"></i></span>
+                            <input type="text" id="fAnakKe" class="input-style" readonly />
+                          </div>
+                        </div>
+                        <div>
+                          <label class="field-label">Dari Bersaudara</label>
+                          <div class="field-wrap">
+                            <span class="field-icon"><i data-lucide="users"></i></span>
+                            <input type="text" id="fJumlahBersaudara" class="input-style" readonly />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label class="field-label">Riwayat Penyakit atau Kondisi Fisik</label>
+                        <div class="field-wrap">
+                          <span class="field-icon"><i data-lucide="activity"></i></span>
+                          <input type="text" id="fRiwayatPenyakit" class="input-style" readonly />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- ALAMAT -->
                   <div class="mt-6">
                     <label class="field-label">Alamat</label>
@@ -381,7 +458,7 @@
           setTimeout(function () { t.classList.remove('show'); }, 2400);
         }
         function setReadonly(ro) {
-          ['#fNama','#fInstansi','#fNISN','#fJurusan','#fHp','#fEmail','#fKelas','#fTtl','#fAlamat'].forEach(function (sel) {
+          ['#fNama','#fInstansi','#fNISN','#fJurusan','#fHp','#fEmail','#fKelas','#fTtl','#fAlamat','#fNoNIK','#fNoKK','#fNomorAktaLahir','#fAgama','#fTempatTinggal','#fModeTransportasi','#fAnakKe','#fJumlahBersaudara','#fRiwayatPenyakit'].forEach(function (sel) {
             var el = $(sel);
             if (!el) return;
             if (ro) el.setAttribute('readonly','readonly');
@@ -407,6 +484,15 @@
             alamat: $('#fAlamat').value,
             tempatLahir: $('#fTempatLahir').value,
             tanggalLahir: $('#fTanggalLahir').value,
+            noNik: $('#fNoNIK').value,
+            noKk: $('#fNoKK').value,
+            nomorAktaLahir: $('#fNomorAktaLahir').value,
+            agama: $('#fAgama').value,
+            tempatTinggal: $('#fTempatTinggal').value,
+            modeTransportasi: $('#fModeTransportasi').value,
+            anakKe: $('#fAnakKe').value,
+            jumlahBersaudara: $('#fJumlahBersaudara').value,
+            riwayatPenyakit: $('#fRiwayatPenyakit').value,
           };
         }
         function restoreSnapshot() {
@@ -421,6 +507,15 @@
           $('#fAlamat').value = snapshot.alamat || '';
           $('#fTempatLahir').value = snapshot.tempatLahir || '';
           $('#fTanggalLahir').value = snapshot.tanggalLahir || '';
+          $('#fNoNIK').value = snapshot.noNik || '';
+          $('#fNoKK').value = snapshot.noKk || '';
+          $('#fNomorAktaLahir').value = snapshot.nomorAktaLahir || '';
+          $('#fAgama').value = snapshot.agama || '';
+          $('#fTempatTinggal').value = snapshot.tempatTinggal || '';
+          $('#fModeTransportasi').value = snapshot.modeTransportasi || '';
+          $('#fAnakKe').value = snapshot.anakKe || '';
+          $('#fJumlahBersaudara').value = snapshot.jumlahBersaudara || '';
+          $('#fRiwayatPenyakit').value = snapshot.riwayatPenyakit || '';
         }
 
         function populate(u) {
@@ -435,6 +530,15 @@
           $('#fAlamat').value = u.alamat || '';
           $('#fTempatLahir').value = u.tempat_lahir || '';
           $('#fTanggalLahir').value = u.tanggal_lahir || '';
+          $('#fNoNIK').value = u.no_nik || '';
+          $('#fNoKK').value = u.no_kk || '';
+          $('#fNomorAktaLahir').value = u.nomor_akta_lahir || '';
+          $('#fAgama').value = u.agama || '';
+          $('#fTempatTinggal').value = u.tempat_tinggal || '';
+          $('#fModeTransportasi').value = u.mode_transportasi || '';
+          $('#fAnakKe').value = u.anak_ke || '';
+          $('#fJumlahBersaudara').value = u.jumlah_bersaudara || '';
+          $('#fRiwayatPenyakit').value = u.riwayat_penyakit || '';
 
           var tgl = fmtTanggalID(u.tanggal_lahir);
           var ttl = '';
@@ -452,7 +556,7 @@
         }
 
         function parseTtl(value) {
-          // "Tempat, dd Bulan yyyy" â€" pisahkan koma terakhir
+          // "Tempat, dd Bulan yyyy" ï¿½" pisahkan koma terakhir
           if (!value) return { tempat: '', tanggal: '' };
           var idx = value.lastIndexOf(',');
           if (idx === -1) return { tempat: value.trim(), tanggal: '' };
@@ -481,6 +585,15 @@
             alamat: $('#fAlamat').value.trim(),
             tempat_lahir: ttl.tempat || $('#fTempatLahir').value,
             tanggal_lahir: ttl.tanggal || $('#fTanggalLahir').value,
+            no_nik: $('#fNoNIK').value.trim(),
+            no_kk: $('#fNoKK').value.trim(),
+            nomor_akta_lahir: $('#fNomorAktaLahir').value.trim(),
+            agama: $('#fAgama').value.trim(),
+            tempat_tinggal: $('#fTempatTinggal').value.trim(),
+            mode_transportasi: $('#fModeTransportasi').value.trim(),
+            anak_ke: parseInt($('#fAnakKe').value) || 0,
+            jumlah_bersaudara: parseInt($('#fJumlahBersaudara').value) || 0,
+            riwayat_penyakit: $('#fRiwayatPenyakit').value.trim(),
           };
           try {
             var res = await fetch('/api/profile', {

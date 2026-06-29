@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS student_surveys (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    nama_panggilan VARCHAR(100) NOT NULL DEFAULT '',
+    jalur_masuk VARCHAR(100) NOT NULL DEFAULT '',
+    jalur_masuk_lain VARCHAR(255) DEFAULT '',
+    disabilitas TEXT NOT NULL DEFAULT '',
+    nomor_hp VARCHAR(30) NOT NULL DEFAULT '',
+    asal_sekolah VARCHAR(255) NOT NULL DEFAULT '',
+    tahun_lulus VARCHAR(10) NOT NULL DEFAULT '',
+    bahasa_rumah VARCHAR(100) NOT NULL DEFAULT '',
+    bahasa_rumah_lain VARCHAR(255) DEFAULT '',
+    sesuai_minat VARCHAR(50) NOT NULL DEFAULT '',
+    alasan_masuk VARCHAR(100) NOT NULL DEFAULT '',
+    alasan_masuk_lain VARCHAR(255) DEFAULT '',
+    perasaan_diterima VARCHAR(50) NOT NULL DEFAULT '',
+    mapel_disenangi TEXT NOT NULL DEFAULT '',
+    mapel_menantang TEXT NOT NULL DEFAULT '',
+    bakat_keahlian TEXT NOT NULL DEFAULT '',
+    pengalaman_siswa TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

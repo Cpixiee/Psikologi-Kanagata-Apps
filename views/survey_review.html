@@ -1,0 +1,606 @@
+<!doctype html>
+<html
+  lang="id"
+  class="layout-menu-fixed layout-compact"
+  data-assets-path="/static/sneat/assets/"
+  data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Survei Karakteristik - Psychee Wellness</title>
+    <link rel="icon" type="image/png" href="/static/icons/icon_psikologi_kanagata.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/sidebar-modern.css" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body, html { font-family: 'Inter', 'Poppins', sans-serif; }
+      body { background: #f8fafc !important; }
+      .layout-wrapper > .layout-container, .layout-page { background: #f8fafc !important; }
+      .dp-page { padding: 24px 16px 36px; }
+      .card-premium {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 32px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .card-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.025);
+      }
+      .field-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+      }
+      .field-box:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        <!-- SIDEBAR -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu ds-sidebar"><div class="menu-inner d-none"></div>
+          <div class="ds-brand">
+            <img class="ds-brand-logo" src="/static/icons/icon_psikologi_kanagata.png" alt="PsychoWellness" />
+            <div class="ds-brand-text">
+              <div class="name">PsychoWellness</div>
+              <div class="sub">AI Analytics System</div>
+            </div>
+          </div>
+          <nav class="ds-nav">
+            <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+            <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+            <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+            <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+            <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+            <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+            <details class="ds-submenu">
+              <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/profile/edit"><i data-lucide="user-pen" class="ds-icon"></i> Edit Profil</a>
+                <a href="/settings#password"><i data-lucide="lock" class="ds-icon"></i> Ganti Password</a>
+                <a href="/settings/notifications"><i data-lucide="bell-ring" class="ds-icon"></i> Atur Notifikasi</a>
+              </div>
+            </details>
+            <details class="ds-submenu admin-only" hidden>
+              <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+              <div class="ds-subnav">
+                <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
+                <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+                <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
+                <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
+              </div>
+            </details>
+            <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+          </nav>
+          <div class="ds-side-card">
+            <div class="label">Kelas</div>
+            <div class="value" id="sbKelasValue">-</div>
+          </div>
+          <div class="ds-side-card">
+            <div class="label">Jurusan</div>
+            <div class="value" id="sbJurusanValue" style="font-size:14px;">-</div>
+          </div>
+          <div class="ds-footer">&copy; 2026 Psychee Wellness<br />All rights reserved.</div>
+        </aside>
+
+        <div class="layout-page">
+          <div class="dp-page w-full">
+            <div class="w-full mt-4">
+              <!-- HEADER -->
+              <div class="bg-white rounded-[24px] p-6 lg:p-8 shadow-sm border border-slate-200/80 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <div class="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+                    <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                    <span>Hasil Survei Karakteristik & Kebutuhan Murid</span>
+                  </div>
+                  <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Review Hasil Survei</h1>
+                  <p class="text-slate-500 text-sm mt-2">Menampilkan data pengenalan karakteristik dan pemetaan kebutuhan belajar siswa.</p>
+                </div>
+                {{if .CanDownloadPDF}}
+                <a href="/survey/pdf{{if .StudentId}}?student_id={{.StudentId}}{{end}}" target="_blank" class="bg-slate-900 text-white hover:bg-slate-800 transition-all font-bold px-6 py-3.5 rounded-2xl inline-flex items-center gap-2 shadow-sm hover:shadow active:scale-95 duration-200">
+                  <i data-lucide="download" class="w-5 h-5"></i>
+                  <span>Unduh PDF</span>
+                </a>
+                {{end}}
+              </div>
+
+              <!-- CONTENT -->
+              <div class="space-y-8 pb-12">
+                <!-- A. LATAR BELAKANG PERSONAL -->
+                <div class="card-premium">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-5 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                      <i data-lucide="user" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-extrabold text-slate-800">A. Latar Belakang Personal</h2>
+                      <p class="text-xs text-slate-400 mt-0.5">Informasi identitas pribadi dan profil dasar siswa.</p>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap</span>
+                      <span class="text-sm font-bold text-slate-800">{{.User.NamaLengkap}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Panggilan</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .Survey.NamaPanggilan}}{{.Survey.NamaPanggilan}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">NISN</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .User.NISN}}{{.User.NISN}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kelas</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .User.Kelas}}{{.User.Kelas}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jalur Masuk</span>
+                      <span class="text-sm font-medium text-slate-800">
+                        {{.Survey.JalurMasuk}}
+                        {{if eq .Survey.JalurMasuk "Lainnya"}} ({{.Survey.JalurMasukLain}}){{end}}
+                      </span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Disabilitas / Kebutuhan Khusus</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .Survey.Disabilitas}}{{.Survey.Disabilitas}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nomor HP</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .Survey.NomorHp}}{{.Survey.NomorHp}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Asal Sekolah SMP/MTs</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .Survey.AsalSekolah}}{{.Survey.AsalSekolah}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tahun Lulus SMP/MTs</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .Survey.TahunLulus}}{{.Survey.TahunLulus}}{{else}}-{{end}}</span>
+                    </div>
+                    <div class="field-box md:col-span-2 lg:col-span-3">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bahasa Komunikasi di Rumah</span>
+                      <span class="text-sm font-medium text-slate-800">
+                        {{.Survey.BahasaRumah}}
+                        {{if eq .Survey.BahasaRumah "Lainnya"}} ({{.Survey.BahasaRumahLain}}){{end}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- B. AKADEMIK & MINAT BELAJAR -->
+                <div class="card-premium">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-5 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                      <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-extrabold text-slate-800">B. Akademik & Minat Belajar</h2>
+                      <p class="text-xs text-slate-400 mt-0.5">Minat akademik, kebiasaan belajar, rencana karir, dan aktivitas belajar.</p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Masuk SMA Sesuai Minat</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.SesuaiMinat}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Perasaan Diterima di Sekolah</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.PerasaanDiterima}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Durasi Belajar Rata-rata</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.DurasiBelajar}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Memerlukan Bantuan Tambahan</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.ButuhBantuanBelajar}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tempat Belajar Nyaman di Rumah</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.KenyamananBelajar}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Butuh Bimbingan Karier/Kuliah</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.ButuhBimbinganKarier}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Durasi Depan Layar Gadget</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.DurasiLayar}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aturan HP di Rumah</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.AturanHpRumah}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pekerjaan/Profesi Impian</span>
+                      <span class="text-sm font-medium text-slate-800">{{if .Survey.PekerjaanImpian}}{{.Survey.PekerjaanImpian}}{{else}}-{{end}}</span>
+                    </div>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Alasan Masuk SMA Ini</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.AlasanMasuk}}
+                        {{if eq .Survey.AlasanMasuk "Lainnya"}} ({{.Survey.AlasanMasukLain}}){{end}}
+                      </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mata Pelajaran Paling Disenangi</span>
+                        <span class="text-sm text-slate-800 font-semibold">{{.Survey.MapelDisenangi}}</span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mata Pelajaran Paling Menantang</span>
+                        <span class="text-sm text-slate-800 font-semibold">{{.Survey.MapelMenantang}}</span>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bakat / Keahlian Menonjol</span>
+                        <span class="text-sm text-slate-800">{{if .Survey.BakatKeahlian}}{{.Survey.BakatKeahlian}}{{else}}-{{end}}</span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pengalaman Kegiatan/Lomba/Organisasi</span>
+                        <span class="text-sm text-slate-800">{{if .Survey.PengalamanSiswa}}{{.Survey.PengalamanSiswa}}{{else}}-{{end}}</span>
+                      </div>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ekstrakurikuler yang Diminati</span>
+                      <span class="text-sm text-slate-800">{{if .Survey.EkskulDiminati}}{{.Survey.EkskulDiminati}}{{else}}-{{end}}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kebiasaan Belajar di Luar Sekolah</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.KebiasaanBelajar}}
+                          {{if .Survey.KebiasaanBelajarLain}} ({{.Survey.KebiasaanBelajarLain}}){{end}}
+                        </span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cara Belajar Paling Membantu</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.CaraBelajarEfektif}}
+                          {{if .Survey.CaraBelajarEfektifLain}} ({{.Survey.CaraBelajarEfektifLain}}){{end}}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hal Paling Menyulitkan Saat Belajar</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.KesulitanBelajar}}
+                          {{if .Survey.KesulitanBelajarLain}} ({{.Survey.KesulitanBelajarLain}}){{end}}
+                        </span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jenis Bantuan Belajar yang Diperlukan</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.JenisBantuanBelajar}}
+                          {{if .Survey.JenisBantuanBelajarLain}} ({{.Survey.JenisBantuanBelajarLain}}){{end}}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Akses Perangkat & Internet</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.AksesInternetPerangkat}}
+                        {{if eq .Survey.AksesInternetPerangkat "Lainnya"}} ({{.Survey.AksesInternetPerangkatLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rencana Utama Setelah Lulus SMA</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.RencanaSetelahLulus}}
+                          {{if eq .Survey.RencanaSetelahLulus "Lainnya"}} ({{.Survey.RencanaSetelahLulusLain}}){{end}}
+                        </span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jurusan/Program Studi yang Diminati</span>
+                        <span class="text-sm text-slate-800">{{if .Survey.JurusanDiminati}}{{.Survey.JurusanDiminati}}{{else}}-{{end}}</span>
+                      </div>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aplikasi/Medsos Paling Sering Digunakan</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.AplikasiSeringDigunakan}}
+                        {{if .Survey.AplikasiSeringDigunakanLain}} ({{.Survey.AplikasiSeringDigunakanLain}}){{end}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- C. KELUARGA -->
+                <div class="card-premium">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-5 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                      <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-extrabold text-slate-800">C. Latar Belakang Keluarga</h2>
+                      <p class="text-xs text-slate-400 mt-0.5">Kondisi keluarga, pendamping belajar, tanggung jawab, dan fasilitas belajar di rumah.</p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tinggal Dengan Siapa Saat Ini</span>
+                      <span class="text-sm font-medium text-slate-800">
+                        {{.Survey.TinggalDengan}}
+                        {{if eq .Survey.TinggalDengan "Lainnya"}} ({{.Survey.TinggalDenganLain}}){{end}}
+                      </span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Keberadaan Orang Tua Kandung</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.StatusOrangTua}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Tempat Tinggal Orang Tua</span>
+                      <span class="text-sm font-medium text-slate-800">
+                        {{.Survey.StatusTinggalOrangTua}}
+                        {{if eq .Survey.StatusTinggalOrangTua "Lainnya"}} ({{.Survey.StatusTinggalOrangTuaLain}}){{end}}
+                      </span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pemenuhan Kebutuhan Belajar</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.PemenuhanKebutuhanBelajar}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Butuh Info Bantuan/Beasiswa</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.ButuhInfoBantuan}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dukungan Orang Tua Masa Depan</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.DukunganOrangTua}}</span>
+                    </div>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Orang Dewasa Pendamping/Perhati Sekolah</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.PendampingBelajar}}
+                        {{if .Survey.PendampingBelajarLain}} ({{.Survey.PendampingBelajarLain}}){{end}}
+                      </span>
+                    </div>
+                    
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tanggung Jawab Rutin di Rumah</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.TanggungJawabRumah}}
+                        {{if .Survey.TanggungJawabRumahLain}} ({{.Survey.TanggungJawabRumahLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Fasilitas Belajar yang Tersedia</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.FasilitasBelajar}}
+                        {{if .Survey.FasilitasBelajarLain}} ({{.Survey.FasilitasBelajarLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pernah Menerima Bantuan Pendidikan SMP</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.BantuanPendidikan}}
+                        {{if .Survey.BantuanPendidikanLain}} ({{.Survey.BantuanPendidikanLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Harapan Orang Tua Setelah Lulus SMA</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.HarapanOrangTua}}
+                        {{if eq .Survey.HarapanOrangTua "Lainnya"}} ({{.Survey.HarapanOrangTuaLain}}){{end}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- D. KESEHATAN -->
+                <div class="card-premium">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-5 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                      <i data-lucide="heart" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-extrabold text-slate-800">D. Kesehatan</h2>
+                      <p class="text-xs text-slate-400 mt-0.5">Riwayat kesehatan khusus, alergi, kondisi fisik, dan kesehatan mental emosional.</p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pengobatan Jangka Panjang</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.PengobatanPanjang}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pembatasan Aktivitas Fisik</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.PembatasanFisik}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pernah Dirawat/Operasi (1 Tahun)</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.RawatRs}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frekuensi Merasa Cemas/Sedih/Marah</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.TingkatCemas}}</span>
+                    </div>
+                    <div class="field-box md:col-span-2 lg:col-span-2">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rekomendasi/Pendampingan Profesional</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.RekomendasiProfesional}}</span>
+                    </div>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kondisi Kesehatan Perlu Diketahui Sekolah</span>
+                      <span class="text-sm text-slate-800 leading-relaxed">
+                        {{.Survey.KesehatanKhusus}}
+                        {{if eq .Survey.KesehatanKhusus "Ya"}}<br><span class="text-slate-500 text-xs font-semibold">Detail:</span> {{.Survey.KesehatanKhususDetail}}{{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Memiliki Alergi</span>
+                      <span class="text-sm text-slate-800 leading-relaxed">
+                        {{.Survey.Alergi}}
+                        {{if eq .Survey.Alergi "Ya"}}<br><span class="text-slate-500 text-xs font-semibold">Detail:</span> {{.Survey.AlergiDetail}}{{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tempat Bercerita / Meminta Bantuan</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.TempatBercerita}}
+                        {{if .Survey.TempatBerceritaLain}} ({{.Survey.TempatBerceritaLain}}){{end}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- E. KARAKTERISTIK PERSONAL -->
+                <div class="card-premium">
+                  <div class="flex items-center gap-3 border-b border-slate-100 pb-5 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                      <i data-lucide="smile" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-extrabold text-slate-800">E. Karakteristik Personal</h2>
+                      <p class="text-xs text-slate-400 mt-0.5">Interaksi sosial, kelebihan diri, gaya adaptasi, pertemanan, dan pesan untuk sekolah.</p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kecenderungan Berinteraksi</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.InteraksiSosial}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Memiliki Teman Dekat di SMA Ini</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.TemanDekat}}</span>
+                    </div>
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kemandirian Mengatur Jadwal/Tugas</span>
+                      <span class="text-sm font-medium text-slate-800">{{.Survey.KemandirianJadwal}}</span>
+                    </div>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Kelebihan / Kekuatan Diri</span>
+                      <span class="text-sm text-slate-800">{{if .Survey.KelebihanDiri}}{{.Survey.KelebihanDiri}}{{else}}-{{end}}</span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hobi, Minat, atau Aktivitas yang Disukai</span>
+                      <span class="text-sm text-slate-800">{{if .Survey.HobiMinat}}{{.Survey.HobiMinat}}{{else}}-{{end}}</span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bidang yang Ingin Dikembangkan di SMA</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.BidangDikembangkan}}
+                        {{if .Survey.BidangDikembangkanLain}} ({{.Survey.BidangDikembangkanLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cara Beradaptasi di Lingkungan Baru</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.AdaptasiLingkungan}}
+                        {{if eq .Survey.AdaptasiLingkungan "Lainnya"}} ({{.Survey.AdaptasiLingkunganLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cara Mengekspresikan Emosi</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.EkspresiEmosi}}
+                        {{if .Survey.EkspresiEmosiLain}} ({{.Survey.EkspresiEmosiLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hal yang Mudah dalam Pertemanan</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.PertemananMudah}}
+                          {{if .Survey.PertemananMudahLain}} ({{.Survey.PertemananMudahLain}}){{end}}
+                        </span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hal yang Menantang dalam Pertemanan</span>
+                        <span class="text-sm text-slate-800">
+                          {{.Survey.PertemananTantangan}}
+                          {{if .Survey.PertemananTantanganLain}} ({{.Survey.PertemananTantanganLain}}){{end}}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hal yang Membuat Nyaman & Semangat Belajar</span>
+                        <span class="text-sm text-slate-800 font-semibold">{{.Survey.NyamanSekolah}}</span>
+                      </div>
+                      <div class="field-box">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hal yang Membuat Tidak Nyaman & Sulit Fokus</span>
+                        <span class="text-sm text-slate-800 font-semibold">{{.Survey.TidakNyamanSekolah}}</span>
+                      </div>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tindakan Saat Kesulitan Belajar</span>
+                      <span class="text-sm text-slate-800">
+                        {{.Survey.KesulitanBelajarTindakan}}
+                        {{if .Survey.KesulitanBelajarTindakanLain}} ({{.Survey.KesulitanBelajarTindakanLain}}){{end}}
+                      </span>
+                    </div>
+
+                    <div class="field-box">
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pesan Penting untuk Wali Kelas / Guru BK</span>
+                      <span class="text-sm text-slate-800 font-semibold">{{if .Survey.PesanUntukSekolah}}{{.Survey.PesanUntukSekolah}}{{else}}-{{end}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/ds_sidebar.js?v=20260613_upd"></script>
+  </body>
+</html>

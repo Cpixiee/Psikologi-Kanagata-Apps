@@ -48,7 +48,7 @@ type aiChatRequest struct {
 
 const (
 	defaultGeminiKey   = ""
-	defaultGeminiModel = "gemini-flash-latest"
+	defaultGeminiModel = "gemini-1.5-flash"
 )
 
 func getGeminiModel() string {
@@ -58,8 +58,8 @@ func getGeminiModel() string {
 	} else if v, _ := beego.AppConfig.String("GEMINI_MODEL"); strings.TrimSpace(v) != "" {
 		m = strings.TrimSpace(v)
 	}
-	if m == "gemini-2.5-flash" {
-		m = "gemini-2.0-flash"
+	if m == "gemini-2.5-flash" || m == "gemini-2.0-flash" || strings.HasPrefix(m, "gemini-2.") {
+		m = "gemini-1.5-flash"
 	}
 	return m
 }

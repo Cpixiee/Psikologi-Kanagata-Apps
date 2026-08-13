@@ -90,10 +90,17 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 		return "", 400, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi di server. Silakan atur GEMINI_API_KEY pada file .env.docker")
 	}
 
-	model := getGeminiModel()
-
-	// 1. Coba REST API native Google Gemini (generateContent)
-	endpoint := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
+	primaryModel := getGeminiModel()
+	modelsToTry := []string{primaryModel, "gemini-1.5-flash", "gemini-flash-latest", "gemini-1.5-pro"}
+	uniqueModels := make([]string, 0, len(modelsToTry))
+	seen := make(map[string]bool)
+	for _, m := range modelsToTry {
+		m = strings.TrimSpace(m)
+		if m != "" && !seen[m] {
+			seen[m] = true
+			uniqueModels = append(uniqueModels, m)
+		}
+	}
 
 	type geminiPart struct {
 		Text string `json:"text"`
@@ -119,13 +126,11 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 			},
 		},
 	}
-
 	if strings.TrimSpace(systemHint) != "" {
 		reqBody.SystemInstruction = &geminiContent{
 			Parts: []geminiPart{{Text: systemHint}},
 		}
 	}
-
 	if expectJSON {
 		reqBody.GenerationConfig = &geminiGenConfig{
 			ResponseMimeType: "application/json",
@@ -133,42 +138,56 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 	}
 
 	payload, _ := json.Marshal(reqBody)
-	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(payload))
-	if err != nil {
-		return "", 500, fmt.Errorf("gagal membuat request Gemini: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
 	client := &http.Client{Timeout: 45 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", 502, fmt.Errorf("gagal menghubungi Gemini API: %v", err)
-	}
-	defer resp.Body.Close()
 
-	raw, _ := io.ReadAll(resp.Body)
+	var lastErr string
+	lastStatus := 500
 
-	if resp.StatusCode < 400 {
-		var gResp struct {
-			Candidates []struct {
-				Content struct {
-					Parts []struct {
-						Text string `json:"text"`
-					} `json:"parts"`
-				} `json:"content"`
-			} `json:"candidates"`
+	// 1. Coba REST API native Google Gemini (v1beta dan v1) dengan variasi model
+	apiVersions := []string{"v1beta", "v1"}
+	for _, apiVer := range apiVersions {
+		for _, modelName := range uniqueModels {
+			endpoint := fmt.Sprintf("https://generativelanguage.googleapis.com/%s/models/%s:generateContent?key=%s", apiVer, modelName, apiKey)
+			req, err := http.NewRequest("POST", endpoint, bytes.NewReader(payload))
+			if err != nil {
+				continue
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			if err != nil {
+				lastErr = err.Error()
+				lastStatus = 502
+				continue
+			}
+			raw, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+
+			if resp.StatusCode < 400 {
+				var gResp struct {
+					Candidates []struct {
+						Content struct {
+							Parts []struct {
+								Text string `json:"text"`
+							} `json:"parts"`
+						} `json:"content"`
+					} `json:"candidates"`
+				}
+				if err := json.Unmarshal(raw, &gResp); err == nil && len(gResp.Candidates) > 0 && len(gResp.Candidates[0].Content.Parts) > 0 {
+					text := strings.TrimSpace(gResp.Candidates[0].Content.Parts[0].Text)
+					text = strings.TrimPrefix(text, "```json")
+					text = strings.TrimPrefix(text, "```")
+					text = strings.TrimSuffix(text, "```")
+					return strings.TrimSpace(text), 200, nil
+				}
+			} else {
+				lastStatus = resp.StatusCode
+				lastErr = string(raw)
+			}
 		}
-		if err := json.Unmarshal(raw, &gResp); err == nil && len(gResp.Candidates) > 0 && len(gResp.Candidates[0].Content.Parts) > 0 {
-			text := strings.TrimSpace(gResp.Candidates[0].Content.Parts[0].Text)
-			text = strings.TrimPrefix(text, "```json")
-			text = strings.TrimPrefix(text, "```")
-			text = strings.TrimSuffix(text, "```")
-			return strings.TrimSpace(text), 200, nil
-		}
 	}
 
-	// 2. Fallback: Coba OpenAI-compatible Gemini endpoint jika REST native mengembalikan 4xx/5xx
+	// 2. Fallback: Coba OpenAI-compatible Gemini endpoint
 	oaiEndpoint := "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 	type chatMessage struct {
 		Role    string `json:"role"`
@@ -180,44 +199,46 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 	}
 	messages = append(messages, chatMessage{Role: "user", Content: userPrompt})
 
-	oaiBody := map[string]interface{}{
-		"model":    model,
-		"messages": messages,
-	}
-	if expectJSON {
-		oaiBody["response_format"] = map[string]string{"type": "json_object"}
-	}
+	for _, modelName := range uniqueModels {
+		oaiBody := map[string]interface{}{
+			"model":    modelName,
+			"messages": messages,
+		}
+		if expectJSON {
+			oaiBody["response_format"] = map[string]string{"type": "json_object"}
+		}
 
-	oaiPayload, _ := json.Marshal(oaiBody)
-	oaiReq, err := http.NewRequest("POST", oaiEndpoint, bytes.NewReader(oaiPayload))
-	if err == nil {
-		oaiReq.Header.Set("Content-Type", "application/json")
-		oaiReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-
-		oaiResp, err := client.Do(oaiReq)
+		oaiPayload, _ := json.Marshal(oaiBody)
+		oaiReq, err := http.NewRequest("POST", oaiEndpoint, bytes.NewReader(oaiPayload))
 		if err == nil {
-			defer oaiResp.Body.Close()
-			oaiRaw, _ := io.ReadAll(oaiResp.Body)
-			if oaiResp.StatusCode < 400 {
-				var oai struct {
-					Choices []struct {
-						Message struct {
-							Content string `json:"content"`
-						} `json:"message"`
-					} `json:"choices"`
-				}
-				if json.Unmarshal(oaiRaw, &oai) == nil && len(oai.Choices) > 0 {
-					text := strings.TrimSpace(oai.Choices[0].Message.Content)
-					text = strings.TrimPrefix(text, "```json")
-					text = strings.TrimPrefix(text, "```")
-					text = strings.TrimSuffix(text, "```")
-					return strings.TrimSpace(text), 200, nil
+			oaiReq.Header.Set("Content-Type", "application/json")
+			oaiReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+
+			oaiResp, err := client.Do(oaiReq)
+			if err == nil {
+				oaiRaw, _ := io.ReadAll(oaiResp.Body)
+				oaiResp.Body.Close()
+				if oaiResp.StatusCode < 400 {
+					var oai struct {
+						Choices []struct {
+							Message struct {
+								Content string `json:"content"`
+							} `json:"message"`
+						} `json:"choices"`
+					}
+					if json.Unmarshal(oaiRaw, &oai) == nil && len(oai.Choices) > 0 {
+						text := strings.TrimSpace(oai.Choices[0].Message.Content)
+						text = strings.TrimPrefix(text, "```json")
+						text = strings.TrimPrefix(text, "```")
+						text = strings.TrimSuffix(text, "```")
+						return strings.TrimSpace(text), 200, nil
+					}
 				}
 			}
 		}
 	}
 
-	// 3. Fallback: Coba Aivene default key jika key user mengalami error (sehingga AI selalu merespon)
+	// 3. Fallback: Coba Aivene default key (sehingga AI selalu merespon jika key user problem)
 	aiveneEndpoint := "https://api.aivene.com/v1/chat/completions"
 	aiveneKey := "isk-ZPadRJRiEkGNIN2YqflqgFiaazWaHGxSNjyKNKbI"
 	aiveneBody := map[string]interface{}{
@@ -234,8 +255,8 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 		aiveneReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", aiveneKey))
 		aiveneResp, err := client.Do(aiveneReq)
 		if err == nil {
-			defer aiveneResp.Body.Close()
 			aiveneRaw, _ := io.ReadAll(aiveneResp.Body)
+			aiveneResp.Body.Close()
 			if aiveneResp.StatusCode < 400 {
 				var oai struct {
 					Choices []struct {
@@ -255,12 +276,8 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 		}
 	}
 
-	statusCode := 500
-	if resp != nil {
-		statusCode = resp.StatusCode
-	}
-	fmt.Printf("[GEMINI API ERROR] Status %d: %s\n", statusCode, string(raw))
-	return "", statusCode, fmt.Errorf("gemini error (%d): %s", statusCode, string(raw))
+	fmt.Printf("[GEMINI API ERROR] Status %d: %s\n", lastStatus, lastErr)
+	return "", lastStatus, fmt.Errorf("gemini error (%d): %s", lastStatus, lastErr)
 }
 
 // TestSummary menerima { test_type, title, result } lalu meminta Gemini

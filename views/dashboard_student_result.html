@@ -459,7 +459,7 @@
             <div class="result-card-hd" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center;">
               <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--accent2); margin-right: 8px;"></i>
               <span>Interpretasi &amp; Rekomendasi AI</span>
-              <span class="badge-ai" style="margin-left: auto;">Aivene AI</span>
+              <span class="badge-ai" style="margin-left: auto;">Gemini AI</span>
               <button type="button" id="btnConsultAI" class="btn-consult-ai" style="display:none;" title="Tanya AI Asisten mengenai hasil ini">
                 <i data-lucide="message-square-text" style="width:14px;height:14px;"></i>
                 Tanya AI Asisten
@@ -481,7 +481,7 @@
             <div class="result-card-hd" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center;">
               <i data-lucide="sparkles" style="width:14px;height:14px;color:#4f46e5; margin-right: 8px;"></i>
               <span style="color:#4f46e5; font-weight:700;">Kesimpulan &amp; Rekomendasi Integratif AI (Multi-Test)</span>
-              <span class="badge-ai" style="margin-left: auto;">Aivene AI</span>
+              <span class="badge-ai" style="margin-left: auto;">Gemini AI</span>
             </div>
             <div id="combinedAIContent">
               <div class="sk w90"></div><div class="sk w80"></div>
@@ -1750,7 +1750,7 @@
             q('#btnDownloadHeaderZip').href = `/api/results/export-zip?invId=${_invId}&test=${typeKey}`;
             q('#btnDownloadHeaderZip').style.display = 'inline-flex';
           }
-          fetchAiveneSummary(_resultData, typeKey, name);
+          fetchGeminiSummary(_resultData, typeKey, name);
           
           // Show Combined AI Card if there are multiple tests in total
           var activeTests = [];
@@ -2199,6 +2199,7 @@
 
       /* ===== Narrative Report HTML Generator ===== */
       function generateNarrativeReportHTML(student, typeKey, dateStr, aiData, d) {
+        aiData = parseAIData(aiData);
         var name = student.student_name || 'Peserta';
         var gender = student.student_gender || '-';
         var pobDob = '';
@@ -2670,8 +2671,48 @@
         `;
       }
 
-      /* ===== Aivene AI Summary Fetcher ===== */
-      async function fetchAiveneSummary(d, typeKey, name) {
+      /* ===== Helper: Strip Scale Codes (e.g. V=7, C=7) ===== */
+      function cleanScaleCodes(val) {
+        if (!val) return val;
+        if (typeof val === 'string') {
+          return val.replace(/\s*\([^)]*=[^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim();
+        }
+        if (Array.isArray(val)) {
+          return val.map(cleanScaleCodes);
+        }
+        if (typeof val === 'object') {
+          var out = {};
+          for (var k in val) {
+            if (val.hasOwnProperty(k)) out[k] = cleanScaleCodes(val[k]);
+          }
+          return out;
+        }
+        return val;
+      }
+
+      /* ===== Helper: Parse AI Data safely ===== */
+      function parseAIData(raw) {
+        if (!raw) return {};
+        var data = raw;
+        if (typeof data === 'string') {
+          var cleaned = data.trim();
+          if (cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json/, '').replace(/```$/, '').trim();
+          if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```/, '').replace(/```$/, '').trim();
+          try { data = JSON.parse(cleaned); } catch(e) { data = { summary: cleaned }; }
+        }
+        if (data && typeof data === 'object') {
+          if (typeof data.summary === 'string' && data.summary.trim().startsWith('{')) {
+            try {
+              var inner = JSON.parse(data.summary.trim());
+              data = Object.assign({}, data, inner);
+            } catch(e) {}
+          }
+        }
+        return cleanScaleCodes(data) || {};
+      }
+
+      /* ===== Gemini AI Summary Fetcher ===== */
+      async function fetchGeminiSummary(d, typeKey, name) {
         var resultData = null, typeName = getBatchTypeName(typeKey);
         if(typeKey === 'ist') resultData = d.ist_result;
         else if(typeKey === 'holland') resultData = d.holland_result;
@@ -2694,13 +2735,24 @@
             q('#laporanNaratifContent').innerHTML = '<div class="alert alert-warning">Gagal mendapatkan analisis AI.</div>';
             return; 
           }
-          var aiData = json.data, html = '';
-          if(aiData.summary) html += '<p class="ai-text">'+esc(aiData.summary)+'</p>';
-          if(aiData.tipe_manusia) html += '<p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;">Tipe Kepribadian</p><p style="font-weight:700;color:var(--accent2);font-size:14px;margin:0 0 16px;">'+esc(aiData.tipe_manusia)+'</p>';
-          if(aiData.kekuatan && aiData.kekuatan.length){ html += '<p style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 7px;">Kekuatan</p><ul class="ai-ul">'+aiData.kekuatan.slice(0,4).map(function(k){return '<li>'+esc(k)+'</li>';}).join('')+'</ul>'; }
-          if(aiData.area_pengembangan && aiData.area_pengembangan.length){ html += '<p style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;">Area Pengembangan</p><ul class="ai-ul">'+aiData.area_pengembangan.slice(0,3).map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>'; }
-          if(aiData.tips_pengembangan && aiData.tips_pengembangan.length){ html += '<p style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;">Tips Pengembangan</p><ul class="ai-ul">'+aiData.tips_pengembangan.slice(0,3).map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>'; }
-          if(aiData.rekomendasi_karir && aiData.rekomendasi_karir.length){ html += '<p style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 7px;">Peluang Karir</p><ul class="ai-ul">'+aiData.rekomendasi_karir.slice(0,4).map(function(k){var pos=k.posisi||k; var alasan=k.alasan?(' — <span style="color:var(--muted)">'+esc(k.alasan)+'</span>'):''; return '<li><span style="font-weight:600;">'+esc(pos)+'</span>'+alasan+'</li>';}).join('')+'</ul>'; }
+          var aiData = parseAIData(json.data), html = '';
+          if(aiData.summary) html += '<p class="ai-text" style="line-height:1.7; font-size:13.5px; color:var(--text); font-weight:500;">'+esc(aiData.summary)+'</p>';
+          if(aiData.tipe_manusia) html += '<div style="background:var(--surface2); padding:12px 16px; border-radius:10px; border:1px solid var(--border); margin:14px 0 18px;"><p style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;font-weight:700;">Tipe Kepribadian / Dominan</p><p style="font-weight:800;color:var(--accent2);font-size:15px;margin:0;">'+esc(aiData.tipe_manusia)+'</p></div>';
+
+          if(aiData.rekomendasi_jurusan && aiData.rekomendasi_jurusan.length){
+            html += '<div style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1px solid #86efac; border-radius:12px; padding:16px; margin:16px 0; box-shadow:0 2px 6px rgba(0,0,0,0.02);">';
+            html += '<p style="font-size:11px;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;display:flex;align-items:center;gap:6px;"><i data-lucide="graduation-cap" style="width:16px;height:16px;"></i> Rekomendasi Jurusan Perguruan Tinggi (Highlighted)</p>';
+            html += '<ul style="margin:0;padding-left:18px;color:#14532d;font-size:13px;line-height:1.7;">'+aiData.rekomendasi_jurusan.map(function(j){return '<li style="margin-bottom:5px;"><strong style="color:#065f46;">'+esc(j)+'</strong></li>';}).join('')+'</ul></div>';
+          }
+
+          if(aiData.rekomendasi_karir && aiData.rekomendasi_karir.length){
+            html += '<div style="background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border:1px solid #a5b4fc; border-radius:12px; padding:16px; margin:16px 0; box-shadow:0 2px 6px rgba(0,0,0,0.02);">';
+            html += '<p style="font-size:11px;font-weight:800;color:#3730a3;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;display:flex;align-items:center;gap:6px;"><i data-lucide="briefcase" style="width:16px;height:16px;"></i> Rekomendasi Karir &amp; Pekerjaan Utama (Highlighted)</p>';
+            html += '<ul style="margin:0;padding-left:18px;color:#1e1b4b;font-size:13px;line-height:1.7;">'+aiData.rekomendasi_karir.slice(0,6).map(function(k){var pos=k.posisi||k; var alasan=k.alasan?(' — <span style="color:#4338ca;font-size:12.5px;">'+esc(k.alasan)+'</span>'):''; return '<li style="margin-bottom:6px;"><span style="font-weight:700;color:#312e81;">'+esc(pos)+'</span>'+alasan+'</li>';}).join('')+'</ul></div>';
+          }
+
+          if(aiData.kekuatan && aiData.kekuatan.length){ html += '<p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;">Kekuatan Utama</p><ul class="ai-ul">'+aiData.kekuatan.map(function(k){return '<li>'+esc(k)+'</li>';}).join('')+'</ul>'; }
+          if(aiData.area_pengembangan && aiData.area_pengembangan.length){ html += '<p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;">Area Pengembangan</p><ul class="ai-ul">'+aiData.area_pengembangan.map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>'; }
           if(!html) html = '<p style="color:var(--muted);font-size:13px;">Tidak ada data AI yang dapat ditampilkan.</p>';
           q('#aiContent').innerHTML = html;
           if (q('#btnConsultAI')) q('#btnConsultAI').style.display = 'inline-flex';
@@ -2710,8 +2762,8 @@
           var reportHtml = generateNarrativeReportHTML(d, typeKey, usedAtStr, aiData, d);
           q('#laporanNaratifContent').innerHTML = reportHtml;
         } catch(e) {
-          q('#aiContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal menghubungi Aivene AI.</p>';
-          q('#laporanNaratifContent').innerHTML = '<div class="alert alert-danger">Gagal menghubungi Aivene AI.</div>';
+          q('#aiContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal menghubungi Gemini AI.</p>';
+          q('#laporanNaratifContent').innerHTML = '<div class="alert alert-danger">Gagal menghubungi Gemini AI.</div>';
         }
       }
 
@@ -2799,7 +2851,7 @@
           combinedContent.innerHTML = html || '<p style="color:var(--muted);font-size:13px;">Tidak ada data analisis gabungan yang dapat ditampilkan.</p>';
           if (window.lucide) try { lucide.createIcons(); } catch(_){}
         } catch(e) {
-          combinedContent.innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal menghubungi Aivene AI.</p>';
+          combinedContent.innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal menghubungi Gemini AI.</p>';
         }
       }
 

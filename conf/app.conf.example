@@ -45,6 +45,6 @@ admin_password = admin123
 # Public URL (optional)
 BASE_URL = http://localhost:8086
 
-# Google Gemini API key (untuk fitur AI ringkasan & chat)
-# Dapat juga diset lewat env GEMINI_API_KEY.
-GEMINI_API_KEY =
+# Google Gemini API configuration
+GEMINI_API_KEY = your_gemini_api_key_here
+GEMINI_MODEL = gemini-2.5-flash

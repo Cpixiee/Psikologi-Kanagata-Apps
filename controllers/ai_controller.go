@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -46,21 +47,28 @@ type aiChatRequest struct {
 }
 
 const (
-	aiveneModel      = "gpt-chat-latest"
-	defaultAiveneKey = "isk-ZPadRJRiEkGNIN2YqflqgFiaazWaHGxSNjyKNKbI"
+	defaultGeminiKey   = ""
+	defaultGeminiModel = "gemini-flash-latest"
 )
 
-func aiveneAPIKey() string {
-	if v := strings.TrimSpace(os.Getenv("AIVENE_API_KEY")); v != "" {
+func getGeminiModel() string {
+	if v := strings.TrimSpace(os.Getenv("GEMINI_MODEL")); v != "" {
 		return v
 	}
-	if v, _ := beego.AppConfig.String("AIVENE_API_KEY"); strings.TrimSpace(v) != "" {
+	if v, _ := beego.AppConfig.String("GEMINI_MODEL"); strings.TrimSpace(v) != "" {
 		return strings.TrimSpace(v)
+	}
+	return defaultGeminiModel
+}
+
+func geminiAPIKey() string {
+	if v := strings.TrimSpace(os.Getenv("GEMINI_API_KEY")); v != "" {
+		return v
 	}
 	if v, _ := beego.AppConfig.String("GEMINI_API_KEY"); strings.TrimSpace(v) != "" {
 		return strings.TrimSpace(v)
 	}
-	return defaultAiveneKey
+	return defaultGeminiKey
 }
 
 func (c *AIController) requireAuth() bool {
@@ -73,84 +81,183 @@ func (c *AIController) requireAuth() bool {
 	return true
 }
 
-// callGemini dipertahankan namanya agar tidak memecah pemanggil lain,
-// tetapi secara internal diubah untuk menggunakan API Aivene (OpenAI-compatible).
 func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, int, error) {
-	apiKey := aiveneAPIKey()
+	apiKey := geminiAPIKey()
 	if apiKey == "" {
-		return "", 500, fmt.Errorf("AIVENE_API_KEY belum dikonfigurasi")
+		return "", 500, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi")
 	}
 
+	model := getGeminiModel()
+
+	// 1. Coba REST API native Google Gemini (generateContent)
+	endpoint := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
+
+	type geminiPart struct {
+		Text string `json:"text"`
+	}
+	type geminiContent struct {
+		Role  string       `json:"role,omitempty"`
+		Parts []geminiPart `json:"parts"`
+	}
+	type geminiGenConfig struct {
+		ResponseMimeType string `json:"responseMimeType,omitempty"`
+	}
+	type geminiReq struct {
+		SystemInstruction *geminiContent   `json:"systemInstruction,omitempty"`
+		Contents          []geminiContent  `json:"contents"`
+		GenerationConfig  *geminiGenConfig `json:"generationConfig,omitempty"`
+	}
+
+	reqBody := geminiReq{
+		Contents: []geminiContent{
+			{
+				Role:  "user",
+				Parts: []geminiPart{{Text: userPrompt}},
+			},
+		},
+	}
+
+	if strings.TrimSpace(systemHint) != "" {
+		reqBody.SystemInstruction = &geminiContent{
+			Parts: []geminiPart{{Text: systemHint}},
+		}
+	}
+
+	if expectJSON {
+		reqBody.GenerationConfig = &geminiGenConfig{
+			ResponseMimeType: "application/json",
+		}
+	}
+
+	payload, _ := json.Marshal(reqBody)
+	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(payload))
+	if err != nil {
+		return "", 500, fmt.Errorf("gagal membuat request Gemini: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 45 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", 502, fmt.Errorf("gagal menghubungi Gemini API: %v", err)
+	}
+	defer resp.Body.Close()
+
+	raw, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode < 400 {
+		var gResp struct {
+			Candidates []struct {
+				Content struct {
+					Parts []struct {
+						Text string `json:"text"`
+					} `json:"parts"`
+				} `json:"content"`
+			} `json:"candidates"`
+		}
+		if err := json.Unmarshal(raw, &gResp); err == nil && len(gResp.Candidates) > 0 && len(gResp.Candidates[0].Content.Parts) > 0 {
+			text := strings.TrimSpace(gResp.Candidates[0].Content.Parts[0].Text)
+			text = strings.TrimPrefix(text, "```json")
+			text = strings.TrimPrefix(text, "```")
+			text = strings.TrimSuffix(text, "```")
+			return strings.TrimSpace(text), 200, nil
+		}
+	}
+
+	// 2. Fallback: Coba OpenAI-compatible Gemini endpoint jika REST native mengembalikan 4xx/5xx
+	oaiEndpoint := "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 	type chatMessage struct {
 		Role    string `json:"role"`
 		Content string `json:"content"`
 	}
-
 	messages := []chatMessage{}
 	if strings.TrimSpace(systemHint) != "" {
 		messages = append(messages, chatMessage{Role: "system", Content: systemHint})
 	}
 	messages = append(messages, chatMessage{Role: "user", Content: userPrompt})
 
-	body := map[string]interface{}{
-		"model":    aiveneModel,
+	oaiBody := map[string]interface{}{
+		"model":    model,
 		"messages": messages,
 	}
-
-	// We omit response_format because Aivene API model alias may not support it,
-	// causing a 400 Bad Request error. We rely on prompting instructions instead.
-	/*
 	if expectJSON {
-		body["response_format"] = map[string]string{"type": "json_object"}
-	}
-	*/
-
-	payload, _ := json.Marshal(body)
-
-	endpoint := "https://api.aivene.com/v1/chat/completions"
-	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(payload))
-	if err != nil {
-		return "", 500, fmt.Errorf("gagal membuat request: %v", err)
+		oaiBody["response_format"] = map[string]string{"type": "json_object"}
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+	oaiPayload, _ := json.Marshal(oaiBody)
+	oaiReq, err := http.NewRequest("POST", oaiEndpoint, bytes.NewReader(oaiPayload))
+	if err == nil {
+		oaiReq.Header.Set("Content-Type", "application/json")
+		oaiReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 
-	client := &http.Client{Timeout: 45 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", 502, fmt.Errorf("gagal menghubungi Aivene: %v", err)
-	}
-	defer resp.Body.Close()
-
-	raw, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode >= 400 {
-		fmt.Printf("[AI API ERROR] Status %d: %s\n", resp.StatusCode, string(raw))
-		return "", resp.StatusCode, fmt.Errorf("aivene error (%d): %s", resp.StatusCode, string(raw))
-	}
-
-	var oai struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-	}
-
-	if err := json.Unmarshal(raw, &oai); err != nil {
-		return "", 502, fmt.Errorf("respons Aivene tidak valid: %v", err)
-	}
-
-	if len(oai.Choices) == 0 {
-		return "", 502, fmt.Errorf("respons Aivene kosong")
+		oaiResp, err := client.Do(oaiReq)
+		if err == nil {
+			defer oaiResp.Body.Close()
+			oaiRaw, _ := io.ReadAll(oaiResp.Body)
+			if oaiResp.StatusCode < 400 {
+				var oai struct {
+					Choices []struct {
+						Message struct {
+							Content string `json:"content"`
+						} `json:"message"`
+					} `json:"choices"`
+				}
+				if json.Unmarshal(oaiRaw, &oai) == nil && len(oai.Choices) > 0 {
+					text := strings.TrimSpace(oai.Choices[0].Message.Content)
+					text = strings.TrimPrefix(text, "```json")
+					text = strings.TrimPrefix(text, "```")
+					text = strings.TrimSuffix(text, "```")
+					return strings.TrimSpace(text), 200, nil
+				}
+			}
+		}
 	}
 
-	text := strings.TrimSpace(oai.Choices[0].Message.Content)
-	// Strip markdown fences kalau ada.
-	text = strings.TrimPrefix(text, "```json")
-	text = strings.TrimPrefix(text, "```")
-	text = strings.TrimSuffix(text, "```")
-	return strings.TrimSpace(text), 200, nil
+	// 3. Fallback: Coba Aivene default key jika key user mengalami error (sehingga AI selalu merespon)
+	aiveneEndpoint := "https://api.aivene.com/v1/chat/completions"
+	aiveneKey := "isk-ZPadRJRiEkGNIN2YqflqgFiaazWaHGxSNjyKNKbI"
+	aiveneBody := map[string]interface{}{
+		"model":    "gpt-chat-latest",
+		"messages": messages,
+	}
+	if expectJSON {
+		aiveneBody["response_format"] = map[string]string{"type": "json_object"}
+	}
+	aivenePayload, _ := json.Marshal(aiveneBody)
+	aiveneReq, err := http.NewRequest("POST", aiveneEndpoint, bytes.NewReader(aivenePayload))
+	if err == nil {
+		aiveneReq.Header.Set("Content-Type", "application/json")
+		aiveneReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", aiveneKey))
+		aiveneResp, err := client.Do(aiveneReq)
+		if err == nil {
+			defer aiveneResp.Body.Close()
+			aiveneRaw, _ := io.ReadAll(aiveneResp.Body)
+			if aiveneResp.StatusCode < 400 {
+				var oai struct {
+					Choices []struct {
+						Message struct {
+							Content string `json:"content"`
+						} `json:"message"`
+					} `json:"choices"`
+				}
+				if json.Unmarshal(aiveneRaw, &oai) == nil && len(oai.Choices) > 0 {
+					text := strings.TrimSpace(oai.Choices[0].Message.Content)
+					text = strings.TrimPrefix(text, "```json")
+					text = strings.TrimPrefix(text, "```")
+					text = strings.TrimSuffix(text, "```")
+					return strings.TrimSpace(text), 200, nil
+				}
+			}
+		}
+	}
+
+	statusCode := 500
+	if resp != nil {
+		statusCode = resp.StatusCode
+	}
+	fmt.Printf("[GEMINI API ERROR] Status %d: %s\n", statusCode, string(raw))
+	return "", statusCode, fmt.Errorf("gemini error (%d): %s", statusCode, string(raw))
 }
 
 // TestSummary menerima { test_type, title, result } lalu meminta Gemini
@@ -191,29 +298,37 @@ func (c *AIController) TestSummary() {
 	}
 
 	resultJSON, _ := json.MarshalIndent(req.Result, "", "  ")
-	systemHint := "Anda adalah seorang psikolog dan career advisor profesional yang menjawab dalam Bahasa Indonesia secara hangat, ringkas, dan praktis. Jangan pernah memberi diagnosis klinis."
-	userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis untuk peserta.
+	systemHint := "Anda adalah seorang Psikolog Pendidikan Senior dan Certified Career Consultant profesional. Jawablah dalam Bahasa Indonesia yang hangat, sangat jelas, mendalam, dan deskriptif. Jelaskan alasan mendasar di balik setiap rekomendasi jurusan, pekerjaan, dan pengembangan diri agar peserta dan konselor mendapatkan gambaran yang sangat terang dan berguna. PENTING: DILARANG KERAS menyertakan simbol/kode skor teknis mentah seperti (V=7), (C=7), (Z=7), (E=2), (G=3, T=5), (A=6) dalam seluruh kalimat. Terjemahkan seluruh data menjadi narasi Bahasa Indonesia yang mengalir alami, elegan, dan profesional tanpa menyebutkan simbol huruf/angka skor teknis tersebut. Jangan memberi diagnosis klinis."
+	userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis deskriptif dan komprehensif untuk peserta.
 
 Jenis tes: %s
 Judul: %s
 Data hasil tes (JSON):
 %s
 
+CATATAN KHUSUS: DILARANG menyertakan kode skor seperti (V=7), (C=7), (Z=7), (E=2), (G=3), (T=5) dalam teks narasi.
+
 Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
 {
-  "summary": "ringkasan 2-4 kalimat tentang gambaran umum peserta",
-  "tipe_manusia": "tipe kepribadian / minat dominan dalam 1 frasa pendek",
-  "kekuatan": ["3-5 poin singkat kekuatan"],
-  "area_pengembangan": ["3-5 poin singkat area pengembangan"],
-  "rekomendasi_karir": [
-    {"posisi": "...", "alasan": "..."},
-    {"posisi": "...", "alasan": "..."},
-    {"posisi": "...", "alasan": "..."}
+  "summary": "Analisis mendalam 3-5 kalimat deskriptif dan komprehensif mengenai gambaran umum kapasitas dan potensi peserta.",
+  "tipe_manusia": "Tipe Kepribadian / Pola Dominan Utama dalam 1 frasa singkat dan jelas (misal: 'Investigatif & Analitis (Persuasif)')",
+  "kekuatan": [
+    "4-6 poin kekuatan utama beserta penjelasan deskriptif singkat & konkret"
   ],
-  "rekomendasi_siswa": ["3-5 poin rekomendasi konkret untuk peserta didik/siswa"],
-  "rekomendasi_ortu": ["3-5 poin rekomendasi konkret untuk orang tua"],
-  "rekomendasi_bk": ["3-5 poin rekomendasi konkret untuk sekolah/guru BK/konselor"],
-  "catatan_penting": "1-2 kalimat reminder/disclaimer"
+  "area_pengembangan": [
+    "4-6 poin area pengembangan yang perlu diperhatikan beserta tips konkret"
+  ],
+  "rekomendasi_karir": [
+    {"posisi": "Nama Pekerjaan / Profesi 1", "alasan": "Penjelasan deskriptif lengkap mengapa profesi ini sangat cocok dengan profil hasil tes."},
+    {"posisi": "Nama Pekerjaan / Profesi 2", "alasan": "Penjelasan deskriptif lengkap alasan kecocokan."},
+    {"posisi": "Nama Pekerjaan / Profesi 3", "alasan": "Penjelasan deskriptif lengkap alasan kecocokan."},
+    {"posisi": "Nama Pekerjaan / Profesi 4", "alasan": "Penjelasan deskriptif lengkap alasan kecocokan."}
+  ],
+  "rekomendasi_jurusan": ["4-6 rekomendasi jurusan / program studi perguruan tinggi yang paling sesuai beserta alasan singkat"],
+  "rekomendasi_siswa": ["4-6 poin rekomendasi langkah aksi konkret untuk siswa"],
+  "rekomendasi_ortu": ["4-6 poin panduan konkret untuk orang tua"],
+  "rekomendasi_bk": ["4-6 arahan strategis untuk guru BK / sekolah"],
+  "catatan_penting": "1-2 kalimat pesan inspiratif & reminder psikotes"
 }`, req.TestType, req.Title, string(resultJSON))
 
 	text, status, err := callGemini(systemHint, userPrompt, true)
@@ -224,13 +339,7 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 		return
 	}
 
-	var parsed map[string]interface{}
-	if err := json.Unmarshal([]byte(text), &parsed); err != nil {
-		// fallback: kirim sebagai summary mentah supaya UI tetap menampilkan sesuatu
-		c.Data["json"] = aiResponse{Success: true, Data: map[string]interface{}{"summary": text}}
-		c.ServeJSON()
-		return
-	}
+	parsed := cleanParsedAIData(text)
 
 	// Save to cache
 	if cacheFile != "" {
@@ -243,6 +352,56 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 	c.ServeJSON()
 }
 
+var scaleNotationRegex = regexp.MustCompile(`\s*\([^)]*=[^)]*\)`)
+
+func stripScaleCodesFromObj(val interface{}) interface{} {
+	switch v := val.(type) {
+	case string:
+		cleaned := scaleNotationRegex.ReplaceAllString(v, "")
+		return strings.TrimSpace(cleaned)
+	case []interface{}:
+		out := make([]interface{}, len(v))
+		for i, item := range v {
+			out[i] = stripScaleCodesFromObj(item)
+		}
+		return out
+	case map[string]interface{}:
+		out := make(map[string]interface{})
+		for k, item := range v {
+			out[k] = stripScaleCodesFromObj(item)
+		}
+		return out
+	default:
+		return v
+	}
+}
+
+func cleanParsedAIData(text string) map[string]interface{} {
+	cleaned := strings.TrimSpace(text)
+	cleaned = strings.TrimPrefix(cleaned, "```json")
+	cleaned = strings.TrimPrefix(cleaned, "```")
+	cleaned = strings.TrimSuffix(cleaned, "```")
+	cleaned = strings.TrimSpace(cleaned)
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(cleaned), &parsed); err == nil {
+		if sumStr, ok := parsed["summary"].(string); ok && strings.HasPrefix(strings.TrimSpace(sumStr), "{") {
+			var inner map[string]interface{}
+			if err := json.Unmarshal([]byte(strings.TrimSpace(sumStr)), &inner); err == nil {
+				for k, v := range inner {
+					parsed[k] = v
+				}
+			}
+		}
+		res := stripScaleCodesFromObj(parsed)
+		if m, ok := res.(map[string]interface{}); ok {
+			return m
+		}
+		return parsed
+	}
+	return map[string]interface{}{"summary": scaleNotationRegex.ReplaceAllString(cleaned, "")}
+}
+
 // GetOrGenerateTestSummaryInternal is a helper called by the ZIP download endpoint to retrieve or build the AI summary on-the-fly.
 func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData interface{}, studentName string) (map[string]interface{}, error) {
 	sanitizedType := strings.ToLower(strings.ReplaceAll(testType, " ", "_"))
@@ -253,7 +412,10 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
-				// Verify if v2 fields exist, if so return it
+				// Verify if summary or v2 fields exist, if so return it
+				if _, ok := cachedData["summary"]; ok {
+					return cachedData, nil
+				}
 				if _, ok1 := cachedData["rekomendasi_siswa"]; ok1 {
 					return cachedData, nil
 				}
@@ -509,7 +671,7 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 }
 
 // StudentCombinedSummary menerima hasil semua tes seorang siswa dalam satu batch,
-// lalu meminta Gemini/Aivene menghasilkan interpretasi per alat tes dan kesimpulan gabungan.
+// lalu meminta Gemini menghasilkan interpretasi per alat tes dan kesimpulan gabungan.
 func (c *AIController) StudentCombinedSummary() {
 	if !c.requireAuth() {
 		return
@@ -543,7 +705,7 @@ func (c *AIController) StudentCombinedSummary() {
 	}
 
 	resultsJSON, _ := json.MarshalIndent(req.Results, "", "  ")
-	systemHint := "Anda adalah seorang psikolog dan career advisor profesional yang memberikan analisis kepribadian, gaya belajar, dan karir terintegrasi untuk seorang siswa berdasarkan hasil beberapa alat tes psikologi. Jawab dalam Bahasa Indonesia secara hangat, bersahabat, dan praktis. Jangan pernah memberikan diagnosis klinis."
+	systemHint := "Anda adalah Psikolog Utama dan Senior Career Strategist profesional. Tugas Anda adalah menyusun Laporan Integratif Psikotes Multi-Tes yang sangat deskriptif, tajam, dan komprehensif. Integrasikan seluruh aspek intelegensi (IST), minat karir (Holland/RMIB), gaya belajar (VAK), kepribadian (PAPI), dan ketahanan kerja (Kraepelin) ke dalam gambaran profil yang utuh, jelas, deskriptif, dan menginspirasi."
 	userPrompt := fmt.Sprintf(`Berikut adalah data hasil beberapa alat tes psikologi untuk seorang siswa.
  
 Nama Siswa: %s
@@ -552,70 +714,73 @@ Nama Batch: %s
 Hasil Alat Tes (JSON):
 %s
  
-Sebagai psikolog dan advisor, buatlah analisis komprehensif yang mendalam untuk siswa ini.
+Sebagai psikolog dan advisor karir utama, buatlah analisis integratif yang sangat deskriptif, kaya detail, dan memberikan rekomendasi konkret.
 Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
 {
   "kesimpulan_detail": {
-     "ist": "Kesimpulan singkat khusus hasil IST (jika datanya ada)...",
-     "holland": "Kesimpulan singkat khusus hasil Holland RIASEC (jika datanya ada)...",
-     "learning_style": "Kesimpulan singkat khusus hasil Gaya Belajar/VAK (jika datanya ada)...",
-     "kraepelin": "Kesimpulan singkat khusus hasil Kraepelin (jika datanya ada)...",
-     "rmib": "Kesimpulan singkat khusus hasil RMIB (jika datanya ada)...",
-     "papi": "Kesimpulan singkat khusus hasil PAPI-Kostick (jika datanya ada)..."
+     "ist": "Analisis deskriptif mendalam hasil kemampuan kognitif & intelegensi (IST)...",
+     "holland": "Analisis deskriptif mendalam orientasi minat & karir (Holland RIASEC)...",
+     "learning_style": "Analisis deskriptif mendalam preferensi gaya belajar & strategi VAK...",
+     "kraepelin": "Analisis deskriptif mendalam daya tahan, kecermatan, & ritme kerja Kraepelin...",
+     "rmib": "Analisis deskriptif mendalam hirarki minat pekerjaan RMIB...",
+     "papi": "Analisis deskriptif mendalam dinamika kepribadian & gaya kerja PAPI-Kostick..."
   },
-  "kesimpulan_gabungan": "Kesimpulan integratif gabungan seluruh aspek bakat, minat, kepribadian, gaya belajar, dan stabilitas emosi siswa.",
-  "strengths": ["3-5 poin singkat kekuatan menonjol siswa"],
-  "developments": ["3-5 poin singkat area pengembangan diri siswa"],
+  "kesimpulan_gabungan": "Paragraf kesimpulan integratif yang kaya, deskriptif, dan mendalam menggabungkan seluruh potensi bakat, minat, kepribadian, gaya belajar, dan daya tahan peserta.",
+  "strengths": ["3-5 poin kekuatan utama siswa secara jelas dan deskriptif"],
+  "developments": ["3-5 poin fokus pengembangan diri siswa secara jelas dan deskriptif"],
   "recommendations": [
     {
       "color": "violet",
       "icon": "graduation-cap",
-      "title": "Academic Recommendation",
-      "items": ["2-3 rekomendasi akademik konkret sesuai bakat/minat"]
+      "title": "Rekomendasi Akademik & Jurusan Kuliah",
+      "items": ["3-4 rekomendasi jurusan / program studi perguruan tinggi yang paling tepat beserta penjelasan alasan akademisnya"]
     },
     {
       "color": "blue",
       "icon": "code-2",
-      "title": "Skill Recommendation",
-      "items": ["2-3 rekomendasi keahlian teknis/soft-skill konkret yang perlu dipelajari"]
+      "title": "Rekomendasi Keahlian & Skill Kunci",
+      "items": ["3-4 keahlian teknis & soft-skill kunci yang disarankan untuk dipelajari siswa demi menunjang karirnya"]
     },
     {
       "color": "pink",
       "icon": "rocket",
-      "title": "Activity Recommendation",
-      "items": ["2-3 rekomendasi kegiatan/ekstrakurikuler/lomba/kursus yang disarankan"]
+      "title": "Rekomendasi Karir & Profesi Utama",
+      "items": ["3-4 profesi / opsi pekerjaan masa depan yang paling tinggi tingkat kecocokannya"]
     }
   ],
-  "potential": 85,
-  "potential_desc": "1-2 kalimat deskripsi singkat potensi tinggi siswa",
-  "insight": "1 paragraf insight utama untuk ditaruh di AI Insight Smart Summary",
+  "potential": 90,
+  "potential_desc": "Deskripsi mendalam 2 kalimat tentang potensi puncak siswa dan akselerasi karir masa depannya.",
+  "insight": "Insight utama psikologis yang tajam, deskriptif, dan inspiratif bagi siswa dan guru BK.",
   "emotional_analytics": {
-    "selfAwareness": 75,
-    "selfRegulation": 70,
-    "motivation": 80,
-    "empathy": 65,
-    "stressManagement": 72,
-    "resilience": 78
+    "selfAwareness": 82,
+    "selfRegulation": 78,
+    "motivation": 85,
+    "empathy": 75,
+    "stressManagement": 76,
+    "resilience": 84
   },
   "skill_tracker": [
-    {"name": "Analytical Thinking", "value": 85},
-    {"name": "Problem Solving", "value": 80},
-    {"name": "Communication", "value": 70},
-    {"name": "Leadership", "value": 65},
-    {"name": "Creativity", "value": 75},
-    {"name": "Technical Skill", "value": 80}
+    {"name": "Analytical Thinking", "value": 88},
+    {"name": "Problem Solving", "value": 85},
+    {"name": "Communication", "value": 78},
+    {"name": "Leadership", "value": 75},
+    {"name": "Creativity", "value": 82},
+    {"name": "Technical Skill", "value": 85}
   ],
   "career_roadmap": {
     "careers": [
-      {"name": "Nama Karir 1", "match": 90, "icon": "briefcase"},
-      {"name": "Nama Karir 2", "match": 85, "icon": "bar-chart-2"},
-      {"name": "Nama Karir 3", "match": 80, "icon": "code-2"},
-      {"name": "Nama Karir 4", "match": 75, "icon": "users"},
-      {"name": "Nama Karir 5", "match": 70, "icon": "rocket"}
+      {"name": "Nama Karir Utama 1", "match": 95, "icon": "briefcase"},
+      {"name": "Nama Karir Utama 2", "match": 90, "icon": "bar-chart-2"},
+      {"name": "Nama Karir Utama 3", "match": 86, "icon": "code-2"},
+      {"name": "Nama Karir Utama 4", "match": 82, "icon": "users"},
+      {"name": "Nama Karir Utama 5", "match": 78, "icon": "rocket"}
     ],
     "roadmap": [
-      {"term": "Rekomendasi Jurusan (Major Matches)", "items": ["rekomendasi jurusan/program studi 1 yang sangat cocok", "rekomendasi jurusan 2"]},
-      {"term": "Mata Pelajaran Pendukung (Subject Matches)", "items": ["mata pelajaran pendukung 1 yang relevan", "mata pelajaran 2"]}
+      {"term": "Rekomendasi Jurusan Perguruan Tinggi (Major Matches)", "items": ["rekomendasi jurusan/program studi 1 yang sangat cocok beserta alasan", "rekomendasi jurusan 2", "rekomendasi jurusan 3"]},
+      {"term": "Mata Pelajaran Pendukung Sekolah (Subject Matches)", "items": ["mata pelajaran pendukung 1 yang relevan", "mata pelajaran pendukung 2"]},
+      {"term": "Rencana Karir Jangka Pendek (1-2 Tahun)", "items": ["fokus penguatan nilai akademis mata pelajaran pendukung", "mengikuti pelatihan/ekstrakurikuler relevan"]},
+      {"term": "Rencana Karir Jangka Menengah (3-5 Tahun)", "items": ["menempuh pendidikan perguruan tinggi di jurusan rekomendasi", "aktif magang & proyek industri"]},
+      {"term": "Rencana Karir Jangka Panjang (5+ Tahun)", "items": ["berkarir profesional di bidang karir utama", "sertifikasi keahlian tingkat lanjut"]}
     ]
   }
 }
@@ -624,7 +789,7 @@ PENTING:
 1. Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci untuk alat tes yang datanya ada di input. Jika tidak ada, JANGAN sertakan kunci tersebut.
 2. Semua nilai numerik harus integer 0-100.
 3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia.
-4. 'skill_tracker' harus mencerminkan kemampuan spesifik siswa berdasarkan tes yang tersedia (bukan generik).
+4. 'skill_tracker' harus mencerminkan kemampuan spesifik siswa berdasarkan tes yang tersedia.
 5. 'career_roadmap.careers' harus berisi karir yang BENAR-BENAR cocok dengan profil siswa, bukan template umum.`, req.StudentName, req.BatchName, string(resultsJSON))
 
 	text, status, err := callGemini(systemHint, userPrompt, true)

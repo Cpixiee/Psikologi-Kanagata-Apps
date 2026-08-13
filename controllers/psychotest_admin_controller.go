@@ -141,7 +141,11 @@ func (c *PsychotestAdminController) ListBatches() {
 	}
 
 	if roleStr == string(models.RoleSekolah) {
-		qs = qs.Filter("Sekolah", sekolahStr)
+		cond := orm.NewCondition().
+			Or("Sekolah", sekolahStr).
+			Or("Sekolah", "").
+			Or("Name__icontains", "demo")
+		qs = qs.SetCond(cond)
 	}
 
 	var batches []models.TestBatch
@@ -238,7 +242,8 @@ func (c *PsychotestAdminController) GetBatchDetail() {
 		return
 	}
 
-	if sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolah) {
+	isDemo := strings.Contains(strings.ToLower(batch.Name), "demo") || batch.Sekolah == ""
+	if sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolah) && !isDemo {
 		c.Ctx.Output.SetStatus(403)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
@@ -638,7 +643,8 @@ func (c *PsychotestAdminController) ListInvitations() {
 		c.ServeJSON()
 		return
 	}
-	if sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolah) {
+	isDemo := strings.Contains(strings.ToLower(batch.Name), "demo") || batch.Sekolah == ""
+	if sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolah) && !isDemo {
 		c.Ctx.Output.SetStatus(403)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
@@ -983,7 +989,8 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		c.ServeJSON()
 		return
 	}
-	if sekolahFilter != "" && !strings.EqualFold(batch.Sekolah, sekolahFilter) {
+	isDemo := strings.Contains(strings.ToLower(batch.Name), "demo") || batch.Sekolah == ""
+	if sekolahFilter != "" && !strings.EqualFold(batch.Sekolah, sekolahFilter) && !isDemo {
 		c.Ctx.Output.SetStatus(403)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
@@ -1008,7 +1015,9 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		return
 	}
 
-	invitations = filterInvitationsBySchool(invitations, sekolahFilter)
+	if !isDemo {
+		invitations = filterInvitationsBySchool(invitations, sekolahFilter)
+	}
 
 	// Fetch all school teachers to map teacher_id to teacher_name
 	var teachers []models.SchoolTeacher
@@ -3266,181 +3275,214 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 		_ = o.Read(&batch)
 	}
 
-	// Resolve "keseluruhan" or empty to the first completed test tool in batch
-	if testType == "keseluruhan" || testType == "" {
-		resolved := false
+	// Determine which test types we should export
+	var testTypesToExport []string
+	isKeseluruhan := testType == "keseluruhan" || testType == ""
+
+	if isKeseluruhan {
 		if batch.EnableIST {
 			var res models.ISTResult
 			if o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
-				testType = "ist"
-				resolved = true
+				testTypesToExport = append(testTypesToExport, "ist")
 			}
 		}
-		if !resolved && batch.EnableHolland {
+		if batch.EnableHolland {
 			var res models.HollandResult
 			if o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
-				testType = "holland"
-				resolved = true
+				testTypesToExport = append(testTypesToExport, "holland")
 			}
 		}
-		if !resolved && batch.EnableLearningStyle {
+		if batch.EnableLearningStyle {
 			var res models.LearningStyleResult
 			if o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
-				testType = "learning_style"
-				resolved = true
+				testTypesToExport = append(testTypesToExport, "learning_style")
 			}
 		}
-		if !resolved && batch.EnableRMIB {
+		if batch.EnableRMIB {
 			var res models.RMIBResult
 			if o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
-				testType = "rmib"
-				resolved = true
+				testTypesToExport = append(testTypesToExport, "rmib")
 			}
 		}
-		if !resolved && batch.EnablePAPI {
+		if batch.EnablePAPI {
 			var res models.PAPIResult
 			if o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
-				testType = "papi"
-				resolved = true
+				testTypesToExport = append(testTypesToExport, "papi")
 			}
 		}
-		if !resolved && batch.EnableKraepelin {
+		if batch.EnableKraepelin {
 			var res models.KraepelinAttempt
 			if o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&res) == nil && res.Id > 0 {
-				testType = "kraepelin"
-				resolved = true
+				testTypesToExport = append(testTypesToExport, "kraepelin")
 			}
 		}
 
 		// Fallback to first enabled if none completed yet
-		if !resolved {
+		if len(testTypesToExport) == 0 {
 			if batch.EnableIST {
-				testType = "ist"
+				testTypesToExport = append(testTypesToExport, "ist")
 			} else if batch.EnableHolland {
-				testType = "holland"
+				testTypesToExport = append(testTypesToExport, "holland")
 			} else if batch.EnableLearningStyle {
-				testType = "learning_style"
+				testTypesToExport = append(testTypesToExport, "learning_style")
 			} else if batch.EnableRMIB {
-				testType = "rmib"
+				testTypesToExport = append(testTypesToExport, "rmib")
 			} else if batch.EnablePAPI {
-				testType = "papi"
+				testTypesToExport = append(testTypesToExport, "papi")
 			} else if batch.EnableKraepelin {
-				testType = "kraepelin"
+				testTypesToExport = append(testTypesToExport, "kraepelin")
 			} else {
-				testType = "ist"
+				testTypesToExport = append(testTypesToExport, "ist")
 			}
 		}
+	} else {
+		testTypesToExport = []string{testType}
 	}
 
-	// 3. Retrieve specific result & Excel bytes
-	var excelBytes []byte
-	var resultData interface{}
-	var friendlyTestName string
+	// 6. Build ZIP archive
+	zipBuf := new(bytes.Buffer)
+	zw := zip.NewWriter(zipBuf)
 
-	switch testType {
-	case "ist":
-		friendlyTestName = "IST"
-		var res models.ISTResult
-		err = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res)
-		if err != nil || res.Id == 0 {
-			writeErr(404, "Hasil IST belum tersedia")
-			return
-		}
-		// Recalculate/ensure standard scores if needed
-		age := 0
-		if user.TanggalLahir != nil {
-			age = utils.AgeYears(*user.TanggalLahir, time.Now())
-		}
-		if age > 0 {
-			if updatedRes, err := utils.EnsureISTStandardAndIQScores(o, &res, age); err == nil && updatedRes != nil {
-				res = *updatedRes
-			}
-		}
-		resultData = res
-		excelBytes, err = buildISTResultXLSX(o, &batch, &inv, &user)
-	case "holland":
-		friendlyTestName = "Holland"
-		var res models.HollandResult
-		err = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
-		if err != nil || res.Id == 0 {
-			writeErr(404, "Hasil Holland belum tersedia")
-			return
-		}
-		resultData = res
-		excelBytes, err = buildHollandResultXLSX(o, &batch, &inv, &user)
-	case "learning_style", "vak":
-		friendlyTestName = "Gaya_Belajar"
-		var res models.LearningStyleResult
-		err = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
-		if err != nil || res.Id == 0 {
-			writeErr(404, "Hasil Gaya Belajar belum tersedia")
-			return
-		}
-		resultData = res
-		excelBytes, err = buildLearningStyleResultXLSX(o, &batch, &inv, &user)
-	case "kraepelin":
-		friendlyTestName = "Kraepelin"
-		var res models.KraepelinAttempt
-		err = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&res)
-		if err != nil || res.Id == 0 {
-			writeErr(404, "Hasil Kraepelin belum tersedia")
-			return
-		}
-		resultData = res
-		excelBytes, err = buildKraepelinResultXLSX(o, &batch, &inv, &user)
-	case "rmib":
-		friendlyTestName = "RMIB"
-		var res models.RMIBResult
-		err = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&res)
-		if err != nil || res.Id == 0 {
-			writeErr(404, "Hasil RMIB belum tersedia")
-			return
-		}
-		resultData = res
-		excelBytes, err = buildRMIBResultXLSX(o, &batch, &inv, &user)
-	case "papi":
-		friendlyTestName = "PAPI"
-		var res models.PAPIResult
-		err = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&res)
-		if err != nil || res.Id == 0 {
-			writeErr(404, "Hasil PAPI belum tersedia")
-			return
-		}
-		resultData = res
-		excelBytes, err = buildPAPIResultXLSX(o, &batch, &inv, &user)
-	default:
-		writeErr(400, "Tipe alat tes tidak dikenali")
-		return
-	}
-
-	if err != nil || len(excelBytes) == 0 {
-		writeErr(500, fmt.Sprintf("Gagal menyusun laporan excel: %v", err))
-		return
-	}
-
-	// 4. Retrieve or generate AI Summary
 	studentRealName := user.NamaLengkap
 	if studentRealName == "" {
 		studentRealName = strings.Split(inv.Email, "@")[0]
 	}
-	summaryData, err := GetOrGenerateTestSummaryInternal(o, friendlyTestName, resultData, studentRealName)
-	if err != nil {
-		logs.Error("Single export: failed to fetch AI summary: %v", err)
-		summaryData = map[string]interface{}{
-			"summary":           "Laporan hasil evaluasi psikologis.",
-			"kekuatan":          []interface{}{"Mandiri", "Disiplin"},
-			"area_pengembangan": []interface{}{"Perlu mengoptimalkan komunikasi interpersonal"},
-			"rekomendasi_siswa": []interface{}{"Pertahankan motivasi belajar"},
-			"rekomendasi_ortu":  []interface{}{"Dukung minat karir anak"},
-			"rekomendasi_bk":    []interface{}{"Bimbing pilihan studi karir anak"},
-		}
+	studentSafe := sanitizeFilename(studentRealName)
+	if studentSafe == "" {
+		studentSafe = fmt.Sprintf("Siswa_%d", inv.Id)
 	}
 
-	// 5. Generate Professional PDF
-	pdfBytes, err := c.generateProfessionalPDFReport(o, &inv, &user, &batch, friendlyTestName, summaryData, resultData)
-	if err != nil {
-		writeErr(500, fmt.Sprintf("Gagal menyusun laporan PDF: %v", err))
-		return
+	var firstFriendlyName string
+
+	for _, tType := range testTypesToExport {
+		var excelBytes []byte
+		var resultData interface{}
+		var friendlyTestName string
+		var fetchErr error
+
+		switch tType {
+		case "ist":
+			friendlyTestName = "IST"
+			var res models.ISTResult
+			fetchErr = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res)
+			if fetchErr == nil && res.Id > 0 {
+				age := 0
+				if user.TanggalLahir != nil {
+					age = utils.AgeYears(*user.TanggalLahir, time.Now())
+				}
+				if age > 0 {
+					if updatedRes, err := utils.EnsureISTStandardAndIQScores(o, &res, age); err == nil && updatedRes != nil {
+						res = *updatedRes
+					}
+				}
+				resultData = res
+				excelBytes, fetchErr = buildISTResultXLSX(o, &batch, &inv, &user)
+			}
+		case "holland":
+			friendlyTestName = "Holland"
+			var res models.HollandResult
+			fetchErr = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
+			if fetchErr == nil && res.Id > 0 {
+				resultData = res
+				excelBytes, fetchErr = buildHollandResultXLSX(o, &batch, &inv, &user)
+			}
+		case "learning_style", "vak":
+			friendlyTestName = "Gaya_Belajar"
+			var res models.LearningStyleResult
+			fetchErr = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
+			if fetchErr == nil && res.Id > 0 {
+				resultData = res
+				excelBytes, fetchErr = buildLearningStyleResultXLSX(o, &batch, &inv, &user)
+			}
+		case "kraepelin":
+			friendlyTestName = "Kraepelin"
+			var res models.KraepelinAttempt
+			fetchErr = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&res)
+			if fetchErr == nil && res.Id > 0 {
+				resultData = res
+				excelBytes, fetchErr = buildKraepelinResultXLSX(o, &batch, &inv, &user)
+			}
+		case "rmib":
+			friendlyTestName = "RMIB"
+			var res models.RMIBResult
+			fetchErr = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&res)
+			if fetchErr == nil && res.Id > 0 {
+				resultData = res
+				excelBytes, fetchErr = buildRMIBResultXLSX(o, &batch, &inv, &user)
+			}
+		case "papi":
+			friendlyTestName = "PAPI"
+			var res models.PAPIResult
+			fetchErr = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&res)
+			if fetchErr == nil && res.Id > 0 {
+				resultData = res
+				excelBytes, fetchErr = buildPAPIResultXLSX(o, &batch, &inv, &user)
+			}
+		default:
+			if !isKeseluruhan {
+				writeErr(400, "Tipe alat tes tidak dikenali")
+				return
+			}
+			continue
+		}
+
+		if firstFriendlyName == "" {
+			firstFriendlyName = friendlyTestName
+		}
+
+		if fetchErr != nil {
+			if !isKeseluruhan {
+				writeErr(404, fmt.Sprintf("Hasil %s belum tersedia", friendlyTestName))
+				return
+			}
+			continue
+		}
+
+		if len(excelBytes) == 0 {
+			if !isKeseluruhan {
+				writeErr(500, fmt.Sprintf("Gagal menyusun laporan excel untuk %s", friendlyTestName))
+				return
+			}
+			continue
+		}
+
+		// Retrieve or generate AI Summary
+		summaryData, sumErr := GetOrGenerateTestSummaryInternal(o, friendlyTestName, resultData, studentRealName)
+		if sumErr != nil {
+			logs.Error("Single export: failed to fetch AI summary for %s: %v", friendlyTestName, sumErr)
+			summaryData = map[string]interface{}{
+				"summary":           "Laporan hasil evaluasi psikologis.",
+				"kekuatan":          []interface{}{"Mandiri", "Disiplin"},
+				"area_pengembangan": []interface{}{"Perlu mengoptimalkan komunikasi interpersonal"},
+				"rekomendasi_siswa": []interface{}{"Pertahankan motivasi belajar"},
+				"rekomendasi_ortu":  []interface{}{"Dukung minat karir anak"},
+				"rekomendasi_bk":    []interface{}{"Bimbing pilihan studi karir anak"},
+			}
+		}
+
+		// Generate Professional PDF
+		pdfBytes, pdfErr := c.generateProfessionalPDFReport(o, &inv, &user, &batch, friendlyTestName, summaryData, resultData)
+		if pdfErr != nil {
+			if !isKeseluruhan {
+				writeErr(500, fmt.Sprintf("Gagal menyusun laporan PDF untuk %s: %v", friendlyTestName, pdfErr))
+				return
+			}
+			continue
+		}
+
+		// Add PDF file inside ZIP
+		pdfName := fmt.Sprintf("Laporan_Hasil_%s_%s.pdf", friendlyTestName, studentSafe)
+		wPdf, err := zw.Create(pdfName)
+		if err == nil {
+			_, _ = wPdf.Write(pdfBytes)
+		}
+
+		// Add Excel file inside ZIP
+		xlsxName := fmt.Sprintf("Psikogram_Hasil_%s_%s.xlsx", friendlyTestName, studentSafe)
+		wXlsx, err := zw.Create(xlsxName)
+		if err == nil {
+			_, _ = wXlsx.Write(excelBytes)
+		}
 	}
 
 	// 5b. Generate Comprehensive PDF
@@ -3448,32 +3490,6 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 	if err != nil {
 		logs.Error("Single export: failed to generate comprehensive PDF: %v", err)
 	}
-
-	// 6. Build ZIP archive containing three files
-	zipBuf := new(bytes.Buffer)
-	zw := zip.NewWriter(zipBuf)
-
-	studentSafe := sanitizeFilename(studentRealName)
-	if studentSafe == "" {
-		studentSafe = fmt.Sprintf("Siswa_%d", inv.Id)
-	}
-
-	pdfName := fmt.Sprintf("Laporan_Hasil_%s_%s.pdf", friendlyTestName, studentSafe)
-	wPdf, err := zw.Create(pdfName)
-	if err != nil {
-		writeErr(500, "Gagal membuat file PDF dalam ZIP")
-		return
-	}
-	_, _ = wPdf.Write(pdfBytes)
-
-	xlsxName := fmt.Sprintf("Psikogram_Hasil_%s_%s.xlsx", friendlyTestName, studentSafe)
-	wXlsx, err := zw.Create(xlsxName)
-	if err != nil {
-		writeErr(500, "Gagal membuat file Excel dalam ZIP")
-		return
-	}
-	_, _ = wXlsx.Write(excelBytes)
-
 	if len(comprehensivePdfBytes) > 0 {
 		compPdfName := fmt.Sprintf("Laporan_Keseluruhan_Hasil_Asesmen_%s.pdf", studentSafe)
 		wCompPdf, err := zw.Create(compPdfName)
@@ -3485,7 +3501,12 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 	_ = zw.Close()
 
 	// 7. Write ZIP response
-	zipName := fmt.Sprintf("%s_%s_Lengkap.zip", studentSafe, friendlyTestName)
+	var zipName string
+	if isKeseluruhan {
+		zipName = fmt.Sprintf("%s_Hasil_Lengkap.zip", studentSafe)
+	} else {
+		zipName = fmt.Sprintf("%s_%s_Lengkap.zip", studentSafe, firstFriendlyName)
+	}
 	c.Ctx.Output.Header("Content-Type", "application/zip")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+zipName+"\"")
 	_, _ = c.Ctx.ResponseWriter.Write(zipBuf.Bytes())
@@ -4426,12 +4447,12 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.AddPage()
 		// Watermark background
 		pdf.SetAlpha(0.03, "Normal")
-		pdf.Image("static/icons/icon_psikologi_kanagata.png", 40, 80, 130, 130, false, "", 0, "")
+		pdf.Image("static/icons/icon_psikologi_kanagata.png", 40, 85, 130, 0, false, "", 0, "")
 		pdf.SetAlpha(1.0, "Normal")
 		
 		// Page Header (on Page 2+)
 		if pdf.PageNo() > 1 {
-			pdf.Image("static/icons/icon_psikologi_kanagata.png", 95, 8, 16, 16, false, "", 0, "")
+			pdf.Image("static/icons/icon_psikologi_kanagata.png", 97, 8, 16, 0, false, "", 0, "")
 			pdf.SetY(25)
 			pdf.SetTextColor(0, 0, 0)
 			pdf.SetFont("Arial", "B", 9)
@@ -4444,7 +4465,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 	addNewPage()
 
 	// Title block on Page 1
-	pdf.Image("static/icons/icon_psikologi_kanagata.png", 91, 10, 28, 28, false, "", 0, "")
+	pdf.Image("static/icons/icon_psikologi_kanagata.png", 91, 10, 28, 0, false, "", 0, "")
 	pdf.SetY(39)
 	pdf.SetFont("Arial", "B", 12)
 	pdf.CellFormat(0, 5, "KANAGATA INSTITUTE", "", 1, "C", false, 0, "")

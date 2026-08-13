@@ -1199,11 +1199,14 @@
               <td class="text-center"><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
               <td class="text-center text-nowrap">
                 <div class="d-inline-flex flex-wrap gap-1 justify-content-center">
+                  <a href="/dashboard/student-result?token=${inv.token}" target="_blank" class="btn btn-sm btn-outline-primary" title="Buka Laporan Hasil & Rekomendasi AI">
+                    <i class="bx bx-sparkles"></i> Hasil AI
+                  </a>
                   <button type="button" class="btn btn-sm btn-outline-warning" onclick="sendInvitationCode(${inv.id})" title="Kirim kode tes via email/WhatsApp sesuai pengaturan batch">
                     <i class="bx bx-paper-plane"></i> Kirim Code
                   </button>
                   <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadInvitation(${inv.id})">
-                    <i class="bx bx-download"></i> Download
+                    <i class="bx bx-download"></i> Download ZIP
                   </button>
                   ${rmibDetailBtn}
                 </div>

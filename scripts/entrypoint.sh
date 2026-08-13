@@ -46,6 +46,9 @@ ADMIN_EMAIL="${ADMIN_EMAIL:-admin@psikologi.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
 BASE_URL="${BASE_URL:-http://localhost:8086}"
 
+GEMINI_API_KEY="${GEMINI_API_KEY:-}"
+GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+
 update_ini "httpport" "$APP_HTTP_PORT"
 update_ini "runmode" "$APP_RUNMODE"
 update_ini "db_host" "$DB_HOST"
@@ -63,6 +66,12 @@ update_ini "FROM_NAME" "$FROM_NAME"
 update_ini "admin_email" "$ADMIN_EMAIL"
 update_ini "admin_password" "$ADMIN_PASSWORD"
 update_ini "BASE_URL" "$BASE_URL"
+if [ -n "$GEMINI_API_KEY" ]; then
+  update_ini "GEMINI_API_KEY" "$GEMINI_API_KEY"
+fi
+if [ -n "$GEMINI_MODEL" ]; then
+  update_ini "GEMINI_MODEL" "$GEMINI_MODEL"
+fi
 update_ini "StaticDir" "/static:static"
 
 if [ "${AUTO_MIGRATE:-true}" = "true" ]; then

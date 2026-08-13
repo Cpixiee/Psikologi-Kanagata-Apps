@@ -83,8 +83,8 @@ func (c *AIController) requireAuth() bool {
 
 func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, int, error) {
 	apiKey := geminiAPIKey()
-	if apiKey == "" {
-		return "", 500, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi")
+	if apiKey == "" || apiKey == "your_gemini_api_key_here" {
+		return "", 400, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi di server. Silakan atur GEMINI_API_KEY pada file .env.docker")
 	}
 
 	model := getGeminiModel()

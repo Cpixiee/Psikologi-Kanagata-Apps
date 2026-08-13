@@ -52,13 +52,16 @@ const (
 )
 
 func getGeminiModel() string {
+	m := defaultGeminiModel
 	if v := strings.TrimSpace(os.Getenv("GEMINI_MODEL")); v != "" {
-		return v
+		m = v
+	} else if v, _ := beego.AppConfig.String("GEMINI_MODEL"); strings.TrimSpace(v) != "" {
+		m = strings.TrimSpace(v)
 	}
-	if v, _ := beego.AppConfig.String("GEMINI_MODEL"); strings.TrimSpace(v) != "" {
-		return strings.TrimSpace(v)
+	if m == "gemini-2.5-flash" {
+		m = "gemini-2.0-flash"
 	}
-	return defaultGeminiModel
+	return m
 }
 
 func geminiAPIKey() string {

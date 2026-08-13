@@ -47,7 +47,10 @@ ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
 BASE_URL="${BASE_URL:-http://localhost:8086}"
 
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
-GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.0-flash}"
+if [ "$GEMINI_MODEL" = "gemini-2.5-flash" ]; then
+  GEMINI_MODEL="gemini-2.0-flash"
+fi
 
 update_ini "httpport" "$APP_HTTP_PORT"
 update_ini "runmode" "$APP_RUNMODE"

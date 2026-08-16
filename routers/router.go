@@ -163,6 +163,7 @@ func init() {
 	// Admin: kelola akun sekolah
 	beego.Router("/admin/schools", &controllers.PageController{}, "get:AdminSchoolsPage")
 	beego.Router("/admin/schools/add", &controllers.PageController{}, "get:AdminSchoolsAddPage")
+	beego.Router("/admin/schools/edit/:id", &controllers.PageController{}, "get:AdminSchoolsEditPage")
 
 	// Psychotest client routes (peserta)
 	beego.Router("/test", &controllers.PsychotestClientController{}, "get:TokenPage")
@@ -299,7 +300,7 @@ func init() {
 	beego.Router("/api/admin/users/search", &controllers.AdminUserController{}, "get:Search")
 	// Admin: CRUD akun sekolah & daftar guru
 	beego.Router("/api/admin/schools", &controllers.AdminSchoolController{}, "get:List;post:Create")
-	beego.Router("/api/admin/schools/:id", &controllers.AdminSchoolController{}, "get:Detail;delete:Delete")
+	beego.Router("/api/admin/schools/:id", &controllers.AdminSchoolController{}, "get:Detail;put:Update;delete:Delete")
 	// Endpoint khusus akun sekolah: melihat daftar guru mereka sendiri
 	beego.Router("/api/schools/my-teachers", &controllers.AdminSchoolController{}, "get:MyTeachers")
 	beego.Router("/api/schools/students", &controllers.AdminSchoolController{}, "get:ListStudents")

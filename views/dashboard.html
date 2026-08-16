@@ -692,8 +692,13 @@
           <!-- Emotional Analytics -->
           <div class="ds-card" id="cardEmotional">
             <div class="ds-card-header">
-              <div class="ds-card-title"><i data-lucide="heart" class="icon"></i> Emotional Analytics</div>
-              <a href="/profile" class="ds-card-action">View Detail</a>
+              <div class="ds-card-title d-flex align-items-center flex-wrap gap-1">
+                <i data-lucide="heart" class="icon"></i> Emotional Analytics
+                <span class="badge bg-light text-secondary border ms-1" style="font-size: 0.7rem; font-weight: 500;" title="Sumber Data: Tes PAPI Kostick &amp; Survei Karakteristik">
+                  <i data-lucide="info" style="width:11px;height:11px;"></i> PAPI &amp; Survei
+                </span>
+              </div>
+              <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold ds-card-action" data-bs-toggle="modal" data-bs-target="#modalEmotionalAnalyticsDetail">View Detail</button>
             </div>
             <div class="ds-gauge-grid">
               <div class="ds-gauge" id="gSelfAware">
@@ -738,7 +743,7 @@
           <div class="ds-card" id="cardSkillTracker">
             <div class="ds-card-header">
               <div class="ds-card-title"><i data-lucide="bar-chart-2" class="icon"></i> Skill Tracker</div>
-              <a href="/profile" class="ds-card-action">View All</a>
+              <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold ds-card-action" data-bs-toggle="modal" data-bs-target="#modalSkillTrackerDetail">View All</button>
             </div>
             <div class="ds-skill-list" id="skillList"></div>
             <div class="ds-skill-total">
@@ -754,8 +759,8 @@
           <!-- Career Roadmap -->
           <div class="ds-card" id="cardCareerRoadmap">
             <div class="ds-card-header">
-              <div class="ds-card-title"><i data-lucide="briefcase" class="icon"></i> Career & Major Recommendation</div>
-              <a href="/profile/holland" class="ds-card-action">View Detail</a>
+              <div class="ds-card-title"><i data-lucide="briefcase" class="icon"></i> Career &amp; Major Recommendation</div>
+              <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold ds-card-action" data-bs-toggle="modal" data-bs-target="#modalCareerRecommendationDetail">View Detail</button>
             </div>
             <div class="ds-career-grid">
               <div>
@@ -763,7 +768,7 @@
                 <div class="ds-career-list" id="careerList"></div>
               </div>
               <div>
-                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Major & Subject Matches</div>
+                <div style="font-size: 11px; color: var(--ds-muted); text-transform: uppercase; margin-bottom: 6px;">Major &amp; Subject Matches</div>
                 <div class="ds-roadmap" id="careerTimeline"></div>
               </div>
             </div>
@@ -773,7 +778,7 @@
           <div class="ds-card col-span-3" id="cardAiRecommendation">
             <div class="ds-card-header">
               <div class="ds-card-title"><i data-lucide="sparkles" class="icon"></i> AI Recommendation</div>
-              <a href="/profile" class="ds-card-action">View All</a>
+              <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold ds-card-action" data-bs-toggle="modal" data-bs-target="#modalAiRecommendationDetail">View All</button>
             </div>
             <div class="ds-rec-list" id="aiRecList"></div>
           </div>
@@ -913,6 +918,163 @@
             <button type="button" class="btn btn-primary w-100" id="ob_btnSimpanMulai">
               <i class="bx bx-save me-1"></i>Simpan &amp; Mulai Test
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POP-UP DETAIL MODALS ==================== -->
+    <!-- Modal 1: Emotional Analytics Detail -->
+    <div class="modal fade" id="modalEmotionalAnalyticsDetail" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header text-white" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);">
+            <h5 class="modal-title text-white font-weight-bold d-flex align-items-center gap-2">
+              <i data-lucide="heart"></i> Emotional Analytics Detail &amp; Sumber Data
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="alert border-0 shadow-sm mb-4" style="background: #eff6ff; border-left: 4px solid #3b82f6 !important;">
+              <div class="d-flex align-items-start gap-2">
+                <i data-lucide="info" class="text-primary mt-1" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <div style="font-size: 0.88rem; color: #1e3a8a;">
+                  <strong>Sumber Data Analisis Emosional:</strong>
+                  <p class="mb-0 mt-1">
+                    Indikator Emotional Analytics ini dianalisis secara objektif berdasarkan gabungan data <strong>Tes PAPI Kostick</strong> (Dinamika Emosi, Stabilitas, &amp; Regulasi Kerja) serta <strong>Survei Karakteristik Siswa</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <h6 class="fw-bold text-dark mb-3">Rincian 6 Dimensi Emosional &amp; Psikologis:</h6>
+            <div class="ds-gauge-grid mb-4" id="modalEmotionalGrid"></div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="p-3 rounded border bg-light">
+                  <h6 class="fw-bold mb-2 text-primary d-flex align-items-center gap-1">
+                    <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Emotional Status
+                  </h6>
+                  <div id="modalEmoStatusDesc" style="font-size: 0.85rem; color: #334155;">
+                    Stabilitas emosi siswa berada dalam kategori umum yang mendukung penyesuaian diri di sekolah.
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 rounded border bg-light">
+                  <h6 class="fw-bold mb-2 text-warning d-flex align-items-center gap-1">
+                    <i data-lucide="flame" style="width:16px;height:16px;"></i> Burnout Risk
+                  </h6>
+                  <div id="modalBurnoutDesc" style="font-size: 0.85rem; color: #334155;">
+                    Tingkat risiko kejenuhan belajar dan rekomendasi pengelolaan beban tugas.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: Skill Tracker Detail -->
+    <div class="modal fade" id="modalSkillTrackerDetail" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header text-white" style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);">
+            <h5 class="modal-title text-white font-weight-bold d-flex align-items-center gap-2">
+              <i data-lucide="bar-chart-2"></i> Skill Tracker &amp; Pemetaan Kompetensi Detail
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="alert border-0 shadow-sm mb-4" style="background: #f0fdf4; border-left: 4px solid #10b981 !important;">
+              <div class="d-flex align-items-start gap-2">
+                <i data-lucide="award" class="text-success mt-1" style="width:20px;height:20px;flex-shrink:0;"></i>
+                <div style="font-size: 0.88rem; color: #064e3b;">
+                  <strong>Sumber Data Pemetaan Skill:</strong>
+                  <p class="mb-0 mt-1">
+                    Kombinasi skor subtes <strong>IST (Kecerdasan Kognitif &amp; Problem Solving)</strong> dengan tipe minat kepribadian kerja <strong>Holland RIASEC</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="ds-skill-list mb-4" id="modalSkillList"></div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 3: Career & Major Recommendation Detail -->
+    <div class="modal fade" id="modalCareerRecommendationDetail" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header text-white" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);">
+            <h5 class="modal-title text-white font-weight-bold d-flex align-items-center gap-2">
+              <i data-lucide="briefcase"></i> Career &amp; Major Recommendation Detail
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="alert border-0 shadow-sm mb-4" style="background: #f5f3ff; border-left: 4px solid #8b5cf6 !important;">
+              <div style="font-size: 0.88rem; color: #4c1d95;">
+                <strong>Integrasi Data AI Recommendation:</strong>
+                <p class="mb-2 mt-1">
+                  Rekomendasi karir dan jurusan disintesis dari <strong>Alat Tes Psikologi (IST, Holland, RMIB)</strong>, dipadukan dengan <strong>Mata Pelajaran Favorit</strong> serta <strong>Cita-Cita / Jurusan Pilihan Siswa</strong>.
+                </p>
+                <div class="row g-2 mt-2 pt-2 border-top border-purple-200">
+                  <div class="col-md-6">
+                    <span class="fw-bold d-block text-purple-900" style="font-size:0.8rem;"><i data-lucide="book-open" style="width:14px;height:14px;" class="me-1"></i> Mapel Disukai Siswa:</span>
+                    <span id="modalPreferredSubjectsDisplay" class="badge bg-white text-purple-700 border mt-1" style="font-size:0.82rem;">-</span>
+                  </div>
+                  <div class="col-md-6">
+                    <span class="fw-bold d-block text-purple-900" style="font-size:0.8rem;"><i data-lucide="target" style="width:14px;height:14px;" class="me-1"></i> Cita-Cita / Target Karir Siswa:</span>
+                    <span id="modalTargetCareersDisplay" class="badge bg-white text-purple-700 border mt-1" style="font-size:0.82rem;">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h6 class="fw-bold text-uppercase text-muted" style="font-size: 11px;">Career Matches (% Kecocokan Profesi)</h6>
+                <div class="ds-career-list" id="modalCareerList"></div>
+              </div>
+              <div class="col-md-6">
+                <h6 class="fw-bold text-uppercase text-muted" style="font-size: 11px;">Major &amp; Subject Matches (Rekomendasi Jurusan)</h6>
+                <div class="ds-roadmap" id="modalCareerTimeline"></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 4: AI Recommendation Detail -->
+    <div class="modal fade" id="modalAiRecommendationDetail" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header text-white" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+            <h5 class="modal-title text-white font-weight-bold d-flex align-items-center gap-2">
+              <i data-lucide="sparkles"></i> AI Smart Summary &amp; Action Plan Detail
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="ds-rec-list mb-4" id="modalAiRecList"></div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
           </div>
         </div>
       </div>

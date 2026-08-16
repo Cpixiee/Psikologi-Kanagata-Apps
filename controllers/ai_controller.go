@@ -788,6 +788,8 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
     {"name": "Technical Skill", "value": 85}
   ],
   "career_roadmap": {
+    "preferred_subjects": ["Mapel Favorit Disukai Siswa yang diekstrak dari data tes/profil"],
+    "student_target_careers": ["Cita-Cita / Jurusan Impian Siswa yang ditulis di tes Holland/profil"],
     "careers": [
       {"name": "Nama Karir Utama 1", "match": 95, "icon": "briefcase"},
       {"name": "Nama Karir Utama 2", "match": 90, "icon": "bar-chart-2"},
@@ -808,9 +810,9 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 PENTING:
 1. Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci untuk alat tes yang datanya ada di input. Jika tidak ada, JANGAN sertakan kunci tersebut.
 2. Semua nilai numerik harus integer 0-100.
-3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia.
+3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia (Tes PAPI Kostick & Survei).
 4. 'skill_tracker' harus mencerminkan kemampuan spesifik siswa berdasarkan tes yang tersedia.
-5. 'career_roadmap.careers' harus berisi karir yang BENAR-BENAR cocok dengan profil siswa, bukan template umum.`, req.StudentName, req.BatchName, string(resultsJSON))
+5. 'career_roadmap.careers' dan 'roadmap' HARUS menyelaraskan bakat (IST), minat (Holland/RMIB), serta membaca dan mempertimbangkan mata pelajaran favorit disukai siswa dan cita-cita/jurusan impian yang sudah ditulis siswa di Holland/profil.`, req.StudentName, req.BatchName, string(resultsJSON))
 
 	text, status, err := callGemini(systemHint, userPrompt, true)
 	if err != nil {
@@ -942,6 +944,8 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
     {"name": "Technical Skill", "value": 80}
   ],
   "career_roadmap": {
+    "preferred_subjects": ["Mapel Favorit Disukai Siswa yang diekstrak dari data tes/profil"],
+    "student_target_careers": ["Cita-Cita / Jurusan Impian Siswa yang ditulis di tes Holland/profil"],
     "careers": [
       {"name": "Nama Karir 1", "match": 90, "icon": "briefcase"},
       {"name": "Nama Karir 2", "match": 85, "icon": "bar-chart-2"},
@@ -959,9 +963,9 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 PENTING:
 1. Di dalam objek 'kesimpulan_detail', HANYA sertakan kunci untuk alat tes yang datanya ada di input. Jika tidak ada, JANGAN sertakan kunci tersebut.
 2. Semua nilai numerik harus integer 0-100.
-3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia.
+3. 'emotional_analytics' harus mencerminkan kondisi emosi dan kepribadian siswa berdasarkan data tes yang tersedia (Tes PAPI Kostick & Survei).
 4. 'skill_tracker' harus mencerminkan kemampuan spesifik siswa berdasarkan tes yang tersedia (bukan generik).
-5. 'career_roadmap.careers' harus berisi karir yang BENAR-BENAR cocok dengan profil siswa, bukan template umum.`, studentName, batchName, string(resultsJSON))
+5. 'career_roadmap.careers' dan 'roadmap' HARUS menyelaraskan bakat (IST), minat (Holland/RMIB), serta membaca dan mempertimbangkan mata pelajaran favorit disukai siswa dan cita-cita/jurusan impian yang sudah ditulis siswa di Holland/profil.`, studentName, batchName, string(resultsJSON))
 
 	text, _, err := callGemini(systemHint, userPrompt, true)
 	if err != nil {

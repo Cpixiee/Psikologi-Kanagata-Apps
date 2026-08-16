@@ -324,10 +324,11 @@
     const palette = ["#22c55e", "#3b82f6", "#8b5cf6", "#f59e0b", "#14b8a6", "#ec4899"];
     map.forEach((m, i) => {
       const node = $(m[0]);
-      if (!node) return;
-      setRing(node.querySelector(".ring"), m[2], palette[i]);
-      const d = node.querySelector(".desc");
-      if (d) { d.textContent = descLabel(m[2]); d.className = "desc " + descClass(m[2]); }
+      if (node) {
+        setRing(node.querySelector(".ring"), m[2], palette[i]);
+        const d = node.querySelector(".desc");
+        if (d) { d.textContent = descLabel(m[2]); d.className = "desc " + descClass(m[2]); }
+      }
     });
 
     const stable = $("#emoStable");
@@ -336,6 +337,10 @@
       const lab = avg >= 70 ? "Stable" : (avg >= 50 ? "Moderate" : "Unstable");
       const cls = avg >= 70 ? "good" : (avg >= 50 ? "warn" : "bad");
       stable.innerHTML = '<span>Emotional Status</span><span class="v ' + cls + '">● ' + lab + "</span>";
+      const modalEmo = $("#modalEmoStatusDesc");
+      if (modalEmo) {
+        modalEmo.innerHTML = 'Kategori: <strong class="text-' + (cls === 'good' ? 'success' : cls === 'warn' ? 'warning' : 'danger') + '">' + lab + ' (' + Math.round(avg) + '/100)</strong><br/><small class="text-muted mt-1 d-block">Siswa memiliki tingkat kestabilan emosi dan penyesuaian sosial yang ' + (avg >= 70 ? 'sangat memadai' : 'cukup baik, membutuhkan penguatan regulasi diri saat tertekan') + '.</small>';
+      }
     }
     const burn = $("#emoBurnout");
     if (burn) {
@@ -343,14 +348,32 @@
       const lab = risk >= 60 ? "High" : (risk >= 35 ? "Medium" : "Low");
       const cls = risk >= 60 ? "bad" : (risk >= 35 ? "warn" : "good");
       burn.innerHTML = '<span>Burnout Risk</span><span class="v ' + cls + '">↓ ' + lab + "</span>";
+      const modalBurn = $("#modalBurnoutDesc");
+      if (modalBurn) {
+        modalBurn.innerHTML = 'Tingkat Risiko: <strong class="text-' + (cls === 'good' ? 'success' : cls === 'warn' ? 'warning' : 'danger') + '">' + lab + ' Risk (' + Math.round(risk) + '%)</strong><br/><small class="text-muted mt-1 d-block">' + (risk >= 60 ? 'Perlu perhatian khusus Guru BK untuk pendampingan manajemen stres.' : 'Beban kerja dan stres akademik siswa dalam kisaran wajar.') + '</small>';
+      }
+    }
+
+    // Populate modal emotional grid
+    const mGrid = $("#modalEmotionalGrid");
+    if (mGrid) {
+      mGrid.innerHTML = "";
+      map.forEach((m, i) => {
+        const gaugeEl = el("div", { class: "ds-gauge" });
+        gaugeEl.innerHTML = '<div class="label">' + m[1] + '</div><div class="ring"><span class="num">' + m[2] + '</span></div><div class="desc ' + descClass(m[2]) + '">' + descLabel(m[2]) + '</div>';
+        setRing(gaugeEl.querySelector(".ring"), m[2], palette[i]);
+        mGrid.appendChild(gaugeEl);
+      });
     }
   }
 
   // ============== Render: Skill Tracker ==============
   function renderSkills(ctx) {
     const list = $("#skillList");
-    if (!list) return;
-    list.innerHTML = "";
+    const modalList = $("#modalSkillList");
+    if (list) list.innerHTML = "";
+    if (modalList) modalList.innerHTML = "";
+
     const colors = ["", "violet", "green", "amber", "teal", "pink"];
     ctx.skills.forEach((s, i) => {
       const row = el("div", { class: "ds-skill-row " + (colors[i % colors.length]) });
@@ -359,7 +382,9 @@
       const bar = el("div", { class: "bar" });
       bar.appendChild(el("span", { style: "width:" + s.value + "%" }));
       row.appendChild(bar);
-      list.appendChild(row);
+
+      if (list) list.appendChild(row.cloneNode(true));
+      if (modalList) modalList.appendChild(row);
     });
     setText("#skillTotal", ctx.skillTotal);
     setText("#skillTotalLabel", ctx.skillTotalLabel);
@@ -368,8 +393,10 @@
   // ============== Render: Career Roadmap ==============
   function renderCareer(ctx) {
     const list = $("#careerList");
-    if (!list) return;
-    list.innerHTML = "";
+    const modalList = $("#modalCareerList");
+    if (list) list.innerHTML = "";
+    if (modalList) modalList.innerHTML = "";
+
     ctx.careers.forEach((c) => {
       const row = document.createElement("div");
       row.className = "ds-career-row";
@@ -377,28 +404,43 @@
         + '<span class="nm"></span>'
         + '<span class="pct">' + c.match + "%</span>";
       row.querySelector(".nm").textContent = c.name;
-      list.appendChild(row);
+
+      if (list) list.appendChild(row.cloneNode(true));
+      if (modalList) modalList.appendChild(row);
     });
 
     const tl = $("#careerTimeline");
-    if (tl) {
-      tl.innerHTML = "";
-      ctx.roadmap.forEach((r) => {
-        const itm = el("div", { class: "ds-roadmap-item" });
-        itm.appendChild(el("h5", null, r.term));
-        const ul = el("ul");
-        r.items.forEach((i) => ul.appendChild(el("li", null, i)));
-        itm.appendChild(ul);
-        tl.appendChild(itm);
-      });
+    const modalTl = $("#modalCareerTimeline");
+    if (tl) tl.innerHTML = "";
+    if (modalTl) modalTl.innerHTML = "";
+
+    ctx.roadmap.forEach((r) => {
+      const itm = el("div", { class: "ds-roadmap-item" });
+      itm.appendChild(el("h5", null, r.term));
+      const ul = el("ul");
+      r.items.forEach((i) => ul.appendChild(el("li", null, i)));
+      itm.appendChild(ul);
+
+      if (tl) tl.appendChild(itm.cloneNode(true));
+      if (modalTl) modalTl.appendChild(itm);
+    });
+
+    // Populate preferred subjects & target careers displays in modal
+    if (ctx.preferredSubjects) {
+      setText("#modalPreferredSubjectsDisplay", Array.isArray(ctx.preferredSubjects) ? ctx.preferredSubjects.join(", ") : ctx.preferredSubjects);
+    }
+    if (ctx.targetCareers) {
+      setText("#modalTargetCareersDisplay", Array.isArray(ctx.targetCareers) ? ctx.targetCareers.join(", ") : ctx.targetCareers);
     }
   }
 
   // ============== Render: AI Recommendation ==============
   function renderAIRec(ctx) {
     const list = $("#aiRecList");
-    if (!list) return;
-    list.innerHTML = "";
+    const modalList = $("#modalAiRecList");
+    if (list) list.innerHTML = "";
+    if (modalList) modalList.innerHTML = "";
+
     ctx.recommendations.forEach((r) => {
       const item = document.createElement("div");
       item.className = "ds-rec-item " + r.color;
@@ -415,7 +457,9 @@
         + '<ul>' + itemsHtml + '</ul>'
         + '</div>'
         + '<i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--ds-muted);align-self:center;"></i>';
-      list.appendChild(item);
+
+      if (list) list.appendChild(item.cloneNode(true));
+      if (modalList) modalList.appendChild(item);
     });
   }
 

@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
     <script src="/static/sneat/assets/js/config.js"></script>
+    <script src="/static/js/schools_data.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
       .page-card {
@@ -202,13 +203,27 @@
                         <div class="row">
                           <div class="col-md-6">
                             <div class="mb-3">
-                              <label class="form-label" for="batchSekolah">Sekolah Pilihan (Untuk Filter BK)</label>
-                              <select id="batchSekolah" class="form-select" required>
-                                <option value="" disabled selected>Memuat sekolah...</option>
+                              <label class="form-label" for="batchJenisSekolah">Jenis Sekolah</label>
+                              <select id="batchJenisSekolah" class="form-select">
+                                <option value="">-- Pilih Jenis Sekolah --</option>
+                                <option value="SMA NEGERI">SMA NEGERI</option>
+                                <option value="SMA SWASTA">SMA SWASTA</option>
+                                <option value="SMK NEGERI">SMK NEGERI</option>
+                                <option value="SMK SWASTA">SMK SWASTA</option>
+                                <option value="SMP NEGERI">SMP NEGERI</option>
+                                <option value="SMP SWASTA">SMP SWASTA</option>
                               </select>
                             </div>
                           </div>
                           <div class="col-md-6">
+                            <div class="mb-3">
+                              <label class="form-label" for="batchSekolah">Sekolah Pilihan (Untuk Filter BK)</label>
+                              <select id="batchSekolah" class="form-select" required disabled>
+                                <option value="" disabled selected>-- Pilih Jenis Sekolah dahulu --</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
                             <div class="mb-3">
                               <label class="form-label">Tujuan Pemeriksaan</label>
                               <select id="purposeCategory" class="form-select mb-2">
@@ -415,25 +430,19 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-      async function loadSchools() {
-        try {
-          const res = await fetch('/api/admin/schools');
-          if (!res.ok) throw new Error('Gagal memuat daftar sekolah');
-          const data = await res.json();
-          if (data.success && data.data && data.data.sekolah_list) {
-            const select = document.getElementById('batchSekolah');
-            select.innerHTML = '<option value="" disabled selected>Pilih Sekolah</option>';
-            data.data.sekolah_list.forEach(sch => {
-              const opt = document.createElement('option');
-              opt.value = sch;
-              opt.textContent = sch;
-              select.appendChild(opt);
-            });
-          }
-        } catch (err) {
-          console.error(err);
-          const select = document.getElementById('batchSekolah');
-          select.innerHTML = '<option value="" disabled>Gagal memuat sekolah</option>';
+      function loadSchools() {
+        if (window.initSchoolSelector) {
+          window.initSchoolSelector('batchJenisSekolah', 'batchSekolah');
+        }
+        const catEl = document.getElementById('batchJenisSekolah');
+        const jnjEl = document.getElementById('batchJenjangSekolah');
+        if (catEl && jnjEl) {
+          catEl.addEventListener('change', function () {
+            const val = catEl.value;
+            if (val.startsWith('SMA')) jnjEl.value = 'SMA';
+            else if (val.startsWith('SMK')) jnjEl.value = 'SMK';
+            else if (val.startsWith('SMP')) jnjEl.value = 'SMP';
+          });
         }
       }
 

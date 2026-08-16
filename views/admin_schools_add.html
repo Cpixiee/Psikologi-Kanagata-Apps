@@ -16,8 +16,9 @@
     <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260615_v3" />
     <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
     <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
-    <script src="/static/sneat/assets/js/config.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="/static/css/dashboard_integrated.css" />
+    <script src="/static/js/schools_data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
       .teacher-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; background: #fafbff; position: relative; }
       .teacher-card .tc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
@@ -116,14 +117,28 @@
                 </div>
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <label class="form-label" for="sekolah">Asal Sekolah (Filter Siswa)</label>
-                    <select id="sekolah" class="form-select" required>
-                      <option value="">Pilih sekolah&hellip;</option>
+                    <label class="form-label" for="jenisSekolahSelect">Jenis Sekolah <span class="text-danger">*</span></label>
+                    <select id="jenisSekolahSelect" class="form-select" required>
+                      <option value="">-- Pilih Jenis Sekolah --</option>
+                      <option value="SMA NEGERI">SMA NEGERI</option>
+                      <option value="SMA SWASTA">SMA SWASTA</option>
+                      <option value="SMK NEGERI">SMK NEGERI</option>
+                      <option value="SMK SWASTA">SMK SWASTA</option>
+                      <option value="SMP NEGERI">SMP NEGERI</option>
+                      <option value="SMP SWASTA">SMP SWASTA</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="sekolah">Asal Sekolah (Filter Siswa) <span class="text-danger">*</span></label>
+                    <select id="sekolah" class="form-select" required disabled>
+                      <option value="">-- Pilih Jenis Sekolah dahulu --</option>
                     </select>
                     <small class="text-muted">Akun ini hanya bisa melihat siswa dari sekolah yang dipilih.</small>
                   </div>
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label" for="password">Password</label>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 mb-3">
+                    <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
                     <input id="password" type="text" class="form-control" minlength="6" placeholder="Minimal 6 karakter" required />
                     <small class="text-muted">Password ini juga dipakai oleh semua guru sekolah ini.</small>
                   </div>
@@ -281,19 +296,20 @@
         }
       }
 
-      async function loadSekolahOptions() {
-        try {
-          const res = await fetch('/api/admin/schools');
-          const data = await res.json();
-          if (!data.success) return;
-          const list = (data.data && data.data.sekolah_list) || [];
-          const sel = document.getElementById('sekolah');
-          list.forEach(function (s) {
-            const opt = document.createElement('option');
-            opt.value = s; opt.textContent = s;
-            sel.appendChild(opt);
+      function loadSekolahOptions() {
+        if (window.initSchoolSelector) {
+          window.initSchoolSelector('jenisSekolahSelect', 'sekolah', 'alamat');
+        }
+        const catEl = document.getElementById('jenisSekolahSelect');
+        const jnjEl = document.getElementById('jenjangSekolah');
+        if (catEl && jnjEl) {
+          catEl.addEventListener('change', function () {
+            const val = catEl.value;
+            if (val.startsWith('SMA')) jnjEl.value = 'SMA';
+            else if (val.startsWith('SMK')) jnjEl.value = 'SMK';
+            else if (val.startsWith('SMP')) jnjEl.value = 'SMP';
           });
-        } catch (e) {}
+        }
       }
 
       (function () {

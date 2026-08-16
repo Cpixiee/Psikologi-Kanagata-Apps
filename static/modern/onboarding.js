@@ -90,7 +90,9 @@
     const d = data.data;
     if (d.nisn) document.getElementById("ob_nisn").value = d.nisn;
     if (d.nip) document.getElementById("ob_nip").value = d.nip;
-    if (d.sekolah) {
+    if (window.initSchoolSelector) {
+      window.initSchoolSelector("ob_jenis_sekolah", "ob_sekolah", "ob_alamat", d.sekolah || "");
+    } else if (d.sekolah) {
       const sk = document.getElementById("ob_sekolah");
       if (sk) sk.value = d.sekolah;
     }

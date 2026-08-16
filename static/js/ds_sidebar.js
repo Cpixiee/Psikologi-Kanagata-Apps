@@ -213,10 +213,15 @@
         // Dynamic menu visibility based on role
         var nav = document.querySelector('.ds-sidebar .ds-nav');
         if (nav) {
-          var isStudent = role === "siswa";
+          // Remove AI Asisten & Data Profile links everywhere
+          nav.querySelectorAll('a[href="/ai"], a[href="/profile"]').forEach(function (el) {
+            el.remove();
+          });
+
+          var isStudent = role === "siswa" || !role;
           var isStaff = role === "sekolah" || role === "admin";
 
-          nav.querySelectorAll('.sekolah-or-admin-only').forEach(function (el) {
+          nav.querySelectorAll('.sekolah-or-admin-only, .admin-only, .strict-admin-only').forEach(function (el) {
             if (isStaff) {
               el.hidden = false;
               el.removeAttribute("hidden");
@@ -238,11 +243,6 @@
               el.setAttribute("hidden", "");
               el.style.setProperty("display", "none", "important");
             }
-          });
-
-          // Handle AI Asisten link removal if any remaining
-          nav.querySelectorAll('a[href="/ai"]').forEach(function (el) {
-            el.remove();
           });
 
           autoActive();

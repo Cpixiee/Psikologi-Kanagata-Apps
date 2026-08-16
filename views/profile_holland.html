@@ -250,6 +250,68 @@
                               <canvas id="hollandChart"></canvas>
                             </div>
                           </div>
+
+                          <!-- Smart Summary Holland RIASEC -->
+                          <div class="card shadow-sm mt-4 border-start border-4 border-success text-start">
+                            <div class="card-body">
+                              <h6 class="text-success fw-bold mb-2"><i class="bx bx-star me-1"></i> Smart Summary Holland RIASEC</h6>
+                              <p class="mb-0 text-dark" style="font-size: 0.95rem; line-height: 1.6;">
+                                Berdasarkan Hasil Test Holland Riasec, Kamu adalah seseorang dengan tipe kepribadian <strong id="hollandSummaryCode">-</strong> dengan <strong id="hollandSummaryDominant">-</strong> sebagai kepribadian dominan, kamu dengan tipe <span id="hollandSummaryTypeDesc">-</span>.
+                              </p>
+                            </div>
+                          </div>
+
+                          <!-- Penjabaran Dimensi RIASEC -->
+                          <div class="card shadow-sm mt-3 text-start mb-2">
+                            <div class="card-header bg-light">
+                              <h6 class="mb-0 text-dark fw-bold"><i class="bx bx-book-open me-1"></i> Penjabaran Dimensi Kepribadian RIASEC</h6>
+                            </div>
+                            <div class="card-body p-0">
+                              <div class="table-responsive">
+                                <table class="table table-sm table-striped mb-0">
+                                  <thead class="table-light">
+                                    <tr>
+                                      <th style="width: 10%;">Kode</th>
+                                      <th style="width: 20%;">Dimensi</th>
+                                      <th>Karakteristik &amp; Minat Karir</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td><span class="badge bg-label-danger fw-bold">R</span></td>
+                                      <td><strong>Realistic</strong></td>
+                                      <td>Aktivitas fisik, praktis, teknis, alat/mesin, dan outdoor. Suka bekerja dengan benda nyata, mekanika, dan alam.</td>
+                                    </tr>
+                                    <tr>
+                                      <td><span class="badge bg-label-info fw-bold">I</span></td>
+                                      <td><strong>Investigative</strong></td>
+                                      <td>Berpikir analitis, ilmiah, dan memecahkan masalah kompleks. Menyukai riset, logika, dan eksplorasi ide.</td>
+                                    </tr>
+                                    <tr>
+                                      <td><span class="badge bg-label-warning fw-bold">A</span></td>
+                                      <td><strong>Artistic</strong></td>
+                                      <td>Ekspresif, kreatif, dan imajinatif. Menyukai desain, seni, musik, sastra, dan bekerja tanpa aturan kaku.</td>
+                                    </tr>
+                                    <tr>
+                                      <td><span class="badge bg-label-success fw-bold">S</span></td>
+                                      <td><strong>Social</strong></td>
+                                      <td>Menolong, mengajar, dan membimbing orang lain. Menyukai interaksi sosial, komunikasi, dan pelayanan publik.</td>
+                                    </tr>
+                                    <tr>
+                                      <td><span class="badge bg-label-primary fw-bold">E</span></td>
+                                      <td><strong>Enterprising</strong></td>
+                                      <td>Kepemimpinan, persuasi, dan kewirausahaan. Menyukai negosiasi, manajemen, bisnis, dan pencapaian target.</td>
+                                    </tr>
+                                    <tr>
+                                      <td><span class="badge bg-label-secondary fw-bold">C</span></td>
+                                      <td><strong>Conventional</strong></td>
+                                      <td>Terstruktur, rapi, teliti, dan terorganisir. Menyukai data, dokumen, administrasi, manajemen file, dan aturan.</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -505,6 +567,25 @@
         document.getElementById('hollandCode').textContent = topCodes.length ? topCodes.join('') : (hollandData.code || '-');
         document.getElementById('hollandTotalTests').textContent = totalTests > 0 ? `${totalTests} tes selesai` : '-';
         renderTopBadges(topCodes);
+
+        const riasecMap = {
+          'R': { name: 'Realistic', desc: 'cenderung suka aktivitas fisik, teknis, praktis, dan konkret. Kamu memiliki rasa ingin tahu yang tinggi tentang sains, benda-benda nyata, mekanika, serta karir teknis.' },
+          'I': { name: 'Investigative', desc: 'cenderung analitis, ilmiah, dan suka memecahkan masalah kompleks. Kamu memiliki ketertarikan tinggi pada riset, eksplorasi ide, dan pemikiran berstruktur.' },
+          'A': { name: 'Artistic', desc: 'cenderung ekspresif, imajinatif, dan menyukai kebebasan dalam berkreasi. Kamu unggul dalam seni, desain, sastra, komunikasi visual, dan kreativitas mandiri.' },
+          'S': { name: 'Social', desc: 'cenderung hangat, empatik, dan suka membantu, membimbing, atau mengajar orang lain. Kamu cocok untuk bidang pelayanan publik, konseling, dan pembinaan.' },
+          'E': { name: 'Enterprising', desc: 'cenderung komunikatif, berjiwa pemimpin, persuasif, dan berorientasi pada pencapaian target. Kamu berbakat dalam bisnis, manajemen, dan kewirausahaan.' },
+          'C': { name: 'Conventional', desc: 'cenderung terstruktur, rapi, teliti, dan mengutamakan ketepatan data. Kamu cocok dalam administrasi, pengelolaan dokumen, keuangan, dan sistem informasi.' }
+        };
+        const topCodeStr = topCodes.length ? topCodes.join('') : (hollandData.code || '-');
+        const top1Code = topCodes[0] || 'R';
+        const top1Info = riasecMap[top1Code] || riasecMap['R'];
+
+        const summaryCodeEl = document.getElementById('hollandSummaryCode');
+        const summaryDominantEl = document.getElementById('hollandSummaryDominant');
+        const summaryDescEl = document.getElementById('hollandSummaryTypeDesc');
+        if (summaryCodeEl) summaryCodeEl.textContent = topCodeStr;
+        if (summaryDominantEl) summaryDominantEl.textContent = top1Info.name + " (" + top1Code + ")";
+        if (summaryDescEl) summaryDescEl.textContent = top1Info.desc;
 
         const ctx = document.getElementById('hollandChart');
         if (ctx) {

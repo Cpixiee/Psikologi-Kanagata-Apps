@@ -17,7 +17,7 @@
 (function () {
   "use strict";
 
-  const kelasList = ["X", "XI", "XII"];
+  const kelasList = ["VII", "VIII", "IX", "X", "XI", "XII"];
 
   // Catatan: code dipakai sebagai value yang disimpan ke DB supaya ringkas
   // dan seragam. Label = teks yang ditampilkan di option. description =

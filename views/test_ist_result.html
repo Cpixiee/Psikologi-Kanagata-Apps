@@ -10,6 +10,22 @@
   </head>
   <body class="bg-light">
     <div class="container-xxl py-5">
+      <div class="mb-3">
+        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+          <i class="bx bx-arrow-back me-1"></i> Kembali ke Dashboard
+        </a>
+      </div>
+
+      <!-- Smart Summary IST -->
+      <div class="card shadow-sm mb-4 border-start border-4 border-primary">
+        <div class="card-body">
+          <h6 class="text-primary fw-bold mb-2"><i class="bx bx-brain me-1"></i> Smart Summary IST</h6>
+          <p class="mb-0 text-dark" style="font-size: 0.95rem; line-height: 1.6;">
+            Berdasarkan Hasil Test IST, Kamu adalah seseorang yang memiliki IQ sebesar <strong>{{.Result.IQ}}</strong> (<strong>{{.Result.IQCategory}}</strong>) dengan dominan Intelligent <strong><span id="istTopSubtests">memuat...</span></strong>.
+          </p>
+        </div>
+      </div>
+
       <div class="row g-4">
         <div class="col-lg-4">
           <div class="card shadow-sm h-100">
@@ -39,6 +55,37 @@
               <canvas id="istRadarChart" height="220"></canvas>
             </div>
           </div>
+
+          <!-- Keterangan Subtest IST -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+              <h6 class="mb-0 text-dark fw-bold"><i class="bx bx-list-ul me-1"></i> Keterangan Subtest IST</h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 15%;">Kode</th>
+                      <th>Deskripsi Subtest</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><span class="badge bg-label-primary">SE</span></td><td>Berpikir logis &amp; Praktis</td></tr>
+                    <tr><td><span class="badge bg-label-primary">WA</span></td><td>Memahami arti kata dan bahasa</td></tr>
+                    <tr><td><span class="badge bg-label-primary">AN</span></td><td>Fleksibilitas berpikir</td></tr>
+                    <tr><td><span class="badge bg-label-primary">GE</span></td><td>Kemampuan membentuk konsep dan abstraksi verbal</td></tr>
+                    <tr><td><span class="badge bg-label-primary">RA</span></td><td>Penalaran dan kemampuan berhitung praktis</td></tr>
+                    <tr><td><span class="badge bg-label-primary">ZR</span></td><td>Berpikir logis menggunakan angka</td></tr>
+                    <tr><td><span class="badge bg-label-primary">FA</span></td><td>Imajinasi ruang dan kemampuan visualisasi 2D</td></tr>
+                    <tr><td><span class="badge bg-label-primary">WU</span></td><td>Memahami struktur ruang dan bentuk 3D</td></tr>
+                    <tr><td><span class="badge bg-label-primary">ME</span></td><td>Daya ingat dan konsentrasi jangka pendek</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <div class="card shadow-sm">
             <div class="card-header">
               <h6 class="mb-0">Psikogram Ringkas</h6>
@@ -88,7 +135,23 @@
           {{index .StdScores 6}},
           {{index .StdScores 7}},
           {{index .StdScores 8}},
-        ];
+        const subtestNames = {
+          "SE": "SE (Berpikir logis & Praktis)",
+          "WA": "WA (Memahami arti kata & bahasa)",
+          "AN": "AN (Fleksibilitas berpikir)",
+          "GE": "GE (Kemampuan membentuk konsep & abstraksi verbal)",
+          "RA": "RA (Penalaran & berhitung praktis)",
+          "ZR": "ZR (Berpikir logis menggunakan angka)",
+          "FA": "FA (Imajinasi ruang & visualisasi 2D)",
+          "WU": "WU (Memahami struktur ruang & 3D)",
+          "ME": "ME (Daya ingat & konsentrasi)"
+        };
+        const subtestPairs = labels.map((lbl, idx) => ({ code: lbl, name: subtestNames[lbl] || lbl, score: dataValues[idx] || 0 }));
+        subtestPairs.sort((a, b) => b.score - a.score);
+        const top2Text = subtestPairs.slice(0, 2).map(p => p.name).join(" & ");
+        const el = document.getElementById("istTopSubtests");
+        if (el) el.textContent = top2Text || "-";
+
         new Chart(ctx, {
           type: 'radar',
           data: {

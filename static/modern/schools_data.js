@@ -5136,6 +5136,21 @@ window.initSchoolSelector = function(categorySelectEl, schoolSelectEl, addressIn
     "SMP SWASTA"
   ];
 
+  // Inject search box if missing
+  let searchInput = (schEl.previousElementSibling && schEl.previousElementSibling.classList.contains('school-search-input')) 
+    ? schEl.previousElementSibling 
+    : null;
+
+  if (!searchInput) {
+    searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'form-control form-control-sm mb-1 school-search-input';
+    searchInput.placeholder = '🔍 Ketik nama / alamat sekolah untuk mencari...';
+    searchInput.style.fontSize = '0.85rem';
+    searchInput.style.display = 'none';
+    schEl.parentNode.insertBefore(searchInput, schEl);
+  }
+
   // Isi opsi Jenis Sekolah jika belum terisi
   if (catEl.options.length <= 1) {
     catEl.innerHTML = '<option value="">-- Pilih Jenis Sekolah --</option>';
@@ -5151,11 +5166,20 @@ window.initSchoolSelector = function(categorySelectEl, schoolSelectEl, addressIn
     schEl.innerHTML = '<option value="">-- Pilih Nama Sekolah --</option>';
     if (!selectedCategory || !window.SCHOOLS_DATA || !window.SCHOOLS_DATA[selectedCategory]) {
       schEl.disabled = true;
+      if (searchInput) searchInput.style.display = 'none';
       return;
     }
     schEl.disabled = false;
+    if (searchInput) searchInput.style.display = 'block';
+
     const schools = window.SCHOOLS_DATA[selectedCategory];
+    const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+    let count = 0;
     schools.forEach(s => {
+      const fullText = (s.name + ' ' + (s.address || '')).toLowerCase();
+      if (query && !fullText.includes(query)) return;
+
       const opt = document.createElement('option');
       opt.value = s.name;
       opt.textContent = s.address ? `${s.name} - ${s.address}` : s.name;
@@ -5164,10 +5188,26 @@ window.initSchoolSelector = function(categorySelectEl, schoolSelectEl, addressIn
         opt.selected = true;
       }
       schEl.appendChild(opt);
+      count++;
+    });
+
+    if (count === 0 && query) {
+      const emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent = `Tidak ditemukan sekolah dengan kata kunci "${query}"`;
+      emptyOpt.disabled = true;
+      schEl.appendChild(emptyOpt);
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      updateSchools(catEl.value);
     });
   }
 
   catEl.addEventListener('change', function() {
+    if (searchInput) searchInput.value = '';
     updateSchools(catEl.value);
   });
 

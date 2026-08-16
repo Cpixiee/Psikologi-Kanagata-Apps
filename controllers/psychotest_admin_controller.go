@@ -2137,9 +2137,24 @@ func buildISTResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestIn
 		return nil, fmt.Errorf("nil invitation")
 	}
 
-	// Load answers via raw SQL join (lebih robust daripada RelatedSel)
+	// 1. Fetch IST Result record
+	var res models.ISTResult
+	err := o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).One(&res)
+
+	// Ensure IQ & Standard Scores if user TanggalLahir is known
+	age := 0
+	if user != nil && user.TanggalLahir != nil {
+		age = utils.AgeYears(*user.TanggalLahir, time.Now())
+	}
+	if err == nil && res.Id > 0 && age > 0 {
+		if updatedRes, uErr := utils.EnsureISTStandardAndIQScores(o, &res, age); uErr == nil && updatedRes != nil {
+			res = *updatedRes
+		}
+	}
+
+	// Load raw answers for sheet 2 / backup calculation
 	var rows []istAnswerExportRow
-	_, err := o.Raw(`
+	_, _ = o.Raw(`
 		SELECT q.number, a.answer_option, a.is_correct, s.code AS subtest_code
 		FROM ist_answers a
 		JOIN ist_questions q ON q.id = a.question_id
@@ -2147,12 +2162,9 @@ func buildISTResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestIn
 		WHERE a.invitation_id = ?
 		ORDER BY q.number
 	`, inv.Id).QueryRows(&rows)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IST answers: %v", err)
-	}
 
-	answersByNumber := make(map[int]string)   // global number 1..176 -> A-E
-	rawBySubtest := make(map[string]int)      // SE/WA/... -> raw score
+	answersByNumber := make(map[int]string)
+	rawBySubtest := make(map[string]int)
 	for _, r := range rows {
 		answersByNumber[r.Number] = strings.ToUpper(strings.TrimSpace(r.Answer))
 		code := normalizeISTSubtestCodeForExport(r.SubtestRaw)
@@ -2161,198 +2173,449 @@ func buildISTResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestIn
 		}
 	}
 
-	age := 0
-	if user != nil && user.TanggalLahir != nil {
-		age = utils.AgeYears(*user.TanggalLahir, time.Now())
-	}
-
+	// Extract participant identity
 	nama := ""
-	email := ""
-	dob := ""
-	gender := ""
+	email := inv.Email
+	dob := "-"
+	tempatLahir := "-"
+	gender := "-"
+	nisnOrNip := "-"
+	sekolah := "-"
+	kelas := "-"
+	jurusan := "-"
+
 	if user != nil {
-		nama = user.NamaLengkap
-		email = user.Email
+		if user.NamaLengkap != "" {
+			nama = user.NamaLengkap
+		}
+		if user.Email != "" {
+			email = user.Email
+		}
+		if user.TempatLahir != "" {
+			tempatLahir = user.TempatLahir
+		}
 		if user.TanggalLahir != nil {
 			dob = user.TanggalLahir.Format("2006-01-02")
 		}
 		if string(user.JenisKelamin) != "" {
 			gender = string(user.JenisKelamin)
 		}
-	}
-	if email == "" {
-		email = inv.Email
+		if strings.TrimSpace(user.NISN) != "" {
+			nisnOrNip = user.NISN
+		} else if strings.TrimSpace(user.NIP) != "" {
+			nisnOrNip = user.NIP
+		}
+		if user.Sekolah != "" {
+			sekolah = user.Sekolah
+		}
+		if user.Kelas != "" {
+			kelas = user.Kelas
+		}
+		if user.Jurusan != "" {
+			jurusan = user.Jurusan
+		}
 	}
 
-	// Workbook
+	ttl := tempatLahir
+	if dob != "-" {
+		ttl = fmt.Sprintf("%s, %s", tempatLahir, dob)
+	}
+
+	// Create Excel File
 	f := excelize.NewFile()
-	sheet := "IST"
-	f.SetSheetName(f.GetSheetName(0), sheet)
+	sheet1 := "Psikogram IST"
+	f.SetSheetName(f.GetSheetName(0), sheet1)
 
-	// Styles
-	border := []excelize.Border{
-		{Type: "left", Color: "000000", Style: 1},
-		{Type: "right", Color: "000000", Style: 1},
-		{Type: "top", Color: "000000", Style: 1},
-		{Type: "bottom", Color: "000000", Style: 1},
+	// Define styles & colors
+	borderThin := []excelize.Border{
+		{Type: "left", Color: "D0D0D0", Style: 1},
+		{Type: "right", Color: "D0D0D0", Style: 1},
+		{Type: "top", Color: "D0D0D0", Style: 1},
+		{Type: "bottom", Color: "D0D0D0", Style: 1},
 	}
+	borderHeader := []excelize.Border{
+		{Type: "left", Color: "4682B4", Style: 1},
+		{Type: "right", Color: "4682B4", Style: 1},
+		{Type: "top", Color: "4682B4", Style: 1},
+		{Type: "bottom", Color: "4682B4", Style: 1},
+	}
+
 	styleTitle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 14},
+		Font:      &excelize.Font{Bold: true, Size: 14, Color: "1E293B"},
 		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
 	})
-	styleHeader, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 11},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-		Border:    border,
+	styleSectionHeader, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 11, Color: "1E3A8A"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"EFF6FF"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "left", Vertical: "center"},
+		Border:    borderHeader,
 	})
-	styleCell, _ := f.NewStyle(&excelize.Style{
+	styleTableHeaderGroup, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 10, Color: "1E293B"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"F1F5F9"}, Pattern: 1},
 		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-		Border:    border,
+		Border:    borderThin,
 	})
-	styleLabel, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 11},
+	styleTableHeaderSub, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 9, Color: "475569"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"F8FAFC"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+		Border:    borderThin,
+	})
+	styleCellLeft, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Size: 9, Color: "334155"},
+		Alignment: &excelize.Alignment{Horizontal: "left", Vertical: "center", WrapText: true},
+		Border:    borderThin,
+	})
+	styleCellCenter, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Size: 10, Color: "0F172A"},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+		Border:    borderThin,
+	})
+	styleCheckmark, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 12, Color: "2563EB"},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+		Border:    borderThin,
+	})
+	styleLabelBold, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 10, Color: "334155"},
+		Alignment: &excelize.Alignment{Horizontal: "left", Vertical: "center"},
+	})
+	styleValue, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Size: 10, Color: "0F172A"},
 		Alignment: &excelize.Alignment{Horizontal: "left", Vertical: "center"},
 	})
 
-	// Title
-	_ = f.SetCellValue(sheet, "A1", "LEMBAR JAWABAN I.S.T.")
-	_ = f.MergeCell(sheet, "A1", "N1")
-	_ = f.SetRowHeight(sheet, 1, 22)
-	_ = f.SetCellStyle(sheet, "A1", "A1", styleTitle)
+	// Set Column Widths
+	_ = f.SetColWidth(sheet1, "A", "A", 5)   // NO
+	_ = f.SetColWidth(sheet1, "B", "B", 28)  // ASPEK PSIKOLOGIS
+	_ = f.SetColWidth(sheet1, "C", "C", 55)  // URAIAN
+	_ = f.SetColWidth(sheet1, "D", "D", 14)  // KURANG SEKALI
+	_ = f.SetColWidth(sheet1, "E", "E", 14)  // KURANG
+	_ = f.SetColWidth(sheet1, "F", "F", 14)  // CUKUP
+	_ = f.SetColWidth(sheet1, "G", "G", 14)  // CUKUP BAIK
+	_ = f.SetColWidth(sheet1, "H", "H", 14)  // BAIK
+	_ = f.SetColWidth(sheet1, "I", "I", 14)  // BAIK SEKALI
 
-	// Identity block (simple)
-	_ = f.SetCellValue(sheet, "A3", "Nomor")
-	_ = f.SetCellStyle(sheet, "A3", "A3", styleLabel)
-	_ = f.SetCellValue(sheet, "B3", ":")
-	_ = f.SetCellValue(sheet, "C3", inv.Id)
-	_ = f.SetCellValue(sheet, "E3", "L / P")
-	_ = f.SetCellStyle(sheet, "E3", "E3", styleLabel)
-	_ = f.SetCellValue(sheet, "F3", ":")
-	_ = f.SetCellValue(sheet, "G3", gender)
+	// 1. Judul
+	_ = f.SetCellValue(sheet1, "A1", "LAPORAN PSIKOGRAM HASIL TES IST (INTELLIGENZ STRUKTUR TEST)")
+	_ = f.MergeCell(sheet1, "A1", "I1")
+	_ = f.SetRowHeight(sheet1, 1, 25)
+	_ = f.SetCellStyle(sheet1, "A1", "I1", styleTitle)
 
-	_ = f.SetCellValue(sheet, "A4", "Nama")
-	_ = f.SetCellStyle(sheet, "A4", "A4", styleLabel)
-	_ = f.SetCellValue(sheet, "B4", ":")
-	_ = f.SetCellValue(sheet, "C4", nama)
+	// 2. Data Identitas Peserta
+	_ = f.SetCellValue(sheet1, "A3", "DATA PESERTA TES")
+	_ = f.MergeCell(sheet1, "A3", "I3")
+	_ = f.SetCellStyle(sheet1, "A3", "I3", styleSectionHeader)
 
-	_ = f.SetCellValue(sheet, "A5", "Tempat Tanggal Lahir")
-	_ = f.SetCellStyle(sheet, "A5", "A5", styleLabel)
-	_ = f.SetCellValue(sheet, "B5", ":")
-	_ = f.SetCellValue(sheet, "C5", dob)
-	_ = f.SetCellValue(sheet, "E5", "Usia")
-	_ = f.SetCellStyle(sheet, "E5", "E5", styleLabel)
-	_ = f.SetCellValue(sheet, "F5", ":")
-	_ = f.SetCellValue(sheet, "G5", fmt.Sprintf("%d Thn", age))
-
-	_ = f.SetCellValue(sheet, "A6", "Pendidikan Terakhir")
-	_ = f.SetCellStyle(sheet, "A6", "A6", styleLabel)
-	_ = f.SetCellValue(sheet, "B6", ":")
-
-	purpose := ""
-	if batch != nil {
-		purpose = batch.PurposeDetail
+	identities := []struct {
+		r int
+		l1, v1, l2, v2 string
+	}{
+		{4, "Nama Lengkap", nama, "NISN / NIP", nisnOrNip},
+		{5, "Tempat, Tgl Lahir", ttl, "Usia", fmt.Sprintf("%d Tahun", age)},
+		{6, "Jenis Kelamin", gender, "Kelas / Jurusan", fmt.Sprintf("%s / %s", kelas, jurusan)},
+		{7, "Sekolah / Institusi", sekolah, "Tanggal Tes", inv.CreatedAt.Format("2006-01-02")},
+		{8, "Email / Kontak", email, "-", "-"},
 	}
-	_ = f.SetCellValue(sheet, "A7", "Tujuan Pemeriksaan")
-	_ = f.SetCellStyle(sheet, "A7", "A7", styleLabel)
-	_ = f.SetCellValue(sheet, "B7", ":")
-	_ = f.SetCellValue(sheet, "C7", purpose)
+	for _, iden := range identities {
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", iden.r), iden.l1)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", iden.r), ":")
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", iden.r), iden.v1)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("F%d", iden.r), iden.l2)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("G%d", iden.r), ":")
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("H%d", iden.r), iden.v2)
 
-	_ = f.SetCellValue(sheet, "A8", "Tanggal Pemeriksaan")
-	_ = f.SetCellStyle(sheet, "A8", "A8", styleLabel)
-	_ = f.SetCellValue(sheet, "B8", ":")
-	_ = f.SetCellValue(sheet, "C8", inv.CreatedAt.Format("2006-01-02"))
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", iden.r), fmt.Sprintf("A%d", iden.r), styleLabelBold)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("C%d", iden.r), fmt.Sprintf("C%d", iden.r), styleValue)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("F%d", iden.r), fmt.Sprintf("F%d", iden.r), styleLabelBold)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("H%d", iden.r), fmt.Sprintf("H%d", iden.r), styleValue)
+	}
 
-	// NISN/NIP, Kelas, Jurusan di kolom kanan (slot kosong E:G)
-	idVal := ""
-	idLabel := "NISN"
-	if user != nil {
-		idVal = strings.TrimSpace(user.NISN)
-		if idVal == "" && strings.TrimSpace(user.NIP) != "" {
-			idVal = user.NIP
-			idLabel = "NIP"
+	// 3. Ringkasan Kapasitas Intelektual (IQ)
+	_ = f.SetCellValue(sheet1, "A9", "I. RINGKASAN KAPASITAS INTELEKTUAL (IQ)")
+	_ = f.MergeCell(sheet1, "A9", "I9")
+	_ = f.SetCellStyle(sheet1, "A9", "I9", styleSectionHeader)
+
+	totalRW := res.RawSE + res.RawWA + res.RawAN + res.RawGE + res.RawRA + res.RawZA + res.RawFA + res.RawWU + res.RawME
+	iqCat := res.IQCategory
+	if iqCat == "" {
+		iqCat = "-"
+	}
+
+	_ = f.SetCellValue(sheet1, "A10", "IQ (Skala IST)")
+	_ = f.SetCellValue(sheet1, "B10", ":")
+	_ = f.SetCellValue(sheet1, "C10", fmt.Sprintf("%d (%s)", res.IQ, iqCat))
+	_ = f.SetCellValue(sheet1, "F10", "Total Skor Standar (SW)")
+	_ = f.SetCellValue(sheet1, "G10", ":")
+	_ = f.SetCellValue(sheet1, "H10", res.TotalStandardScore)
+
+	_ = f.SetCellValue(sheet1, "A11", "Total Raw Score (RW)")
+	_ = f.SetCellValue(sheet1, "B11", ":")
+	_ = f.SetCellValue(sheet1, "C11", totalRW)
+	_ = f.SetCellValue(sheet1, "F11", "Kategori IQ")
+	_ = f.SetCellValue(sheet1, "G11", ":")
+	_ = f.SetCellValue(sheet1, "H11", iqCat)
+
+	_ = f.SetCellStyle(sheet1, "A10", "A11", styleLabelBold)
+	_ = f.SetCellStyle(sheet1, "C10", "C11", styleValue)
+	_ = f.SetCellStyle(sheet1, "F10", "F11", styleLabelBold)
+	_ = f.SetCellStyle(sheet1, "H10", "H11", styleValue)
+
+	// 4. II. PSIKOGRAM
+	_ = f.SetCellValue(sheet1, "A13", "II. PSIKOGRAM")
+	_ = f.MergeCell(sheet1, "A13", "I13")
+	_ = f.SetCellStyle(sheet1, "A13", "I13", styleSectionHeader)
+
+	// Header Psikogram (Row 14-17)
+	_ = f.SetCellValue(sheet1, "A14", "NO")
+	_ = f.MergeCell(sheet1, "A14", "A17")
+	_ = f.SetCellValue(sheet1, "B14", "ASPEK PSIKOLOGIS")
+	_ = f.MergeCell(sheet1, "B14", "B17")
+	_ = f.SetCellValue(sheet1, "C14", "URAIAN")
+	_ = f.MergeCell(sheet1, "C14", "C17")
+
+	_ = f.SetCellValue(sheet1, "D14", "KATEGORI")
+	_ = f.MergeCell(sheet1, "D14", "I14")
+
+	_ = f.SetCellValue(sheet1, "D15", "KURANG")
+	_ = f.MergeCell(sheet1, "D15", "E15")
+	_ = f.SetCellValue(sheet1, "F15", "CUKUP")
+	_ = f.MergeCell(sheet1, "F15", "G15")
+	_ = f.SetCellValue(sheet1, "H15", "BAIK")
+	_ = f.MergeCell(sheet1, "H15", "I15")
+
+	_ = f.SetCellValue(sheet1, "D16", "KURANG SEKALI")
+	_ = f.SetCellValue(sheet1, "E16", "KURANG")
+	_ = f.SetCellValue(sheet1, "F16", "CUKUP")
+	_ = f.SetCellValue(sheet1, "G16", "CUKUP BAIK")
+	_ = f.SetCellValue(sheet1, "H16", "BAIK")
+	_ = f.SetCellValue(sheet1, "I16", "BAIK SEKALI")
+
+	_ = f.SetCellValue(sheet1, "D17", "1")
+	_ = f.SetCellValue(sheet1, "E17", "2")
+	_ = f.SetCellValue(sheet1, "F17", "3")
+	_ = f.SetCellValue(sheet1, "G17", "4")
+	_ = f.SetCellValue(sheet1, "H17", "5")
+	_ = f.SetCellValue(sheet1, "I17", "6")
+
+	// Apply header styles
+	_ = f.SetCellStyle(sheet1, "A14", "I14", styleTableHeaderGroup)
+	_ = f.SetCellStyle(sheet1, "A15", "I15", styleTableHeaderGroup)
+	_ = f.SetCellStyle(sheet1, "A16", "I16", styleTableHeaderSub)
+	_ = f.SetCellStyle(sheet1, "A17", "I17", styleTableHeaderSub)
+
+	// Section A Row
+	_ = f.SetCellValue(sheet1, "A18", "A. KECERDASAN UMUM (Skala IST)")
+	_ = f.MergeCell(sheet1, "A18", "I18")
+	_ = f.SetCellStyle(sheet1, "A18", "I18", styleSectionHeader)
+
+	_ = f.SetCellValue(sheet1, "A19", "")
+	_ = f.SetCellValue(sheet1, "B19", fmt.Sprintf("IQ = %d -- %s", res.IQ, iqCat))
+	_ = f.MergeCell(sheet1, "B19", "C19")
+	_ = f.SetCellStyle(sheet1, "A19", "I19", styleCellLeft)
+
+	// Section B Row
+	_ = f.SetCellValue(sheet1, "A20", "B. KEMAMPUAN KHUSUS")
+	_ = f.MergeCell(sheet1, "A20", "I20")
+	_ = f.SetCellStyle(sheet1, "A20", "I20", styleSectionHeader)
+
+	// Helper average
+	avg := func(vals ...int) int {
+		sum := 0
+		n := 0
+		for _, v := range vals {
+			if v > 0 {
+				sum += v
+				n++
+			}
 		}
-		if idVal == "" {
-			idLabel = "NISN/NIP"
+		if n == 0 {
+			return 0
 		}
+		return sum / n
 	}
-	_ = f.SetCellValue(sheet, "E4", idLabel)
-	_ = f.SetCellStyle(sheet, "E4", "E4", styleLabel)
-	_ = f.SetCellValue(sheet, "F4", ":")
-	_ = f.SetCellValue(sheet, "G4", idVal)
 
-	kelas := ""
-	jurusan := ""
-	if user != nil {
-		kelas = user.Kelas
-		jurusan = user.Jurusan
+	type aspectDef struct {
+		no      int
+		nama    string
+		uraian  string
+		scoreSW int
 	}
-	_ = f.SetCellValue(sheet, "E6", "Kelas")
-	_ = f.SetCellStyle(sheet, "E6", "E6", styleLabel)
-	_ = f.SetCellValue(sheet, "F6", ":")
-	_ = f.SetCellValue(sheet, "G6", kelas)
 
-	_ = f.SetCellValue(sheet, "E7", "Jurusan")
-	_ = f.SetCellStyle(sheet, "E7", "E7", styleLabel)
-	_ = f.SetCellValue(sheet, "F7", ":")
-	_ = f.SetCellValue(sheet, "G7", jurusan)
+	aspects := []aspectDef{
+		{1, "Penalaran Konkret", "Kemampuan berpikir praktis, sesuai kenyataan dan mengambil keputusan secara mandiri berdasarkan data maupun situasi serta kondisi yang ada.", avg(res.StdSE, res.StdGE)},
+		{2, "Penalaran Verbal", "Kemampuan berpikir logis dalam penggunaan bahasa terkait informasi yang pernah diterima.", avg(res.StdSE, res.StdWA, res.StdGE)},
+		{3, "Fleksibilitas Berpikir", "Kemampuan mengalihkan perhatian, beradaptasi, dan mencari sudut pandang baru dalam pemecahan masalah.", res.StdAN},
+		{4, "Kemampuan Berpikir Abstrak", "Kemampuan membentuk konsep, abstraksi verbal, dan menemukan prinsip dasar dari suatu masalah.", res.StdGE},
+		{5, "Penalaran Praktis & Berhitung", "Kemampuan bernalar logis secara praktis menggunakan angka dan hitungan matematis.", res.StdRA},
+		{6, "Penalaran Numerik", "Kemampuan berpikir logis menggunakan hubungan antar angka dan pola kuantitatif.", res.StdZA},
+		{7, "Visualisasi Ruang 2D", "Kemampuan membayangkan, mengolah, dan memvisualisasikan bentuk bidang dua dimensi.", res.StdFA},
+		{8, "Orientasi Ruang 3D", "Kemampuan memahami struktur, volume, dan rotasi bentuk tiga dimensi.", res.StdWU},
+		{9, "Daya Ingat & Konsentrasi", "Kemampuan mengingat kata/informasi jangka pendek serta mempertahankan konsentrasi.", res.StdME},
+	}
 
-	// Column widths (approx)
-	_ = f.SetColWidth(sheet, "A", "N", 11)
-	_ = f.SetColWidth(sheet, "A", "A", 6)  // No
-	_ = f.SetColWidth(sheet, "B", "B", 3)  // :
-	_ = f.SetColWidth(sheet, "C", "D", 22) // value
+	colNames := []string{"D", "E", "F", "G", "H", "I"}
+	startRow := 21
 
-	// Helper for blocks
-	writeBlock := func(colNo, colAns int, topRow int, title string, startNum, endNum int, subtestCode string) {
-		colNoName, _ := excelize.ColumnNumberToName(colNo)
-		colAnsName, _ := excelize.ColumnNumberToName(colAns)
-		topLeft := fmt.Sprintf("%s%d", colNoName, topRow)
-		topRight := fmt.Sprintf("%s%d", colAnsName, topRow)
-		_ = f.MergeCell(sheet, topLeft, topRight)
-		_ = f.SetCellValue(sheet, topLeft, title)
-		_ = f.SetCellStyle(sheet, topLeft, topRight, styleHeader)
+	for _, asp := range aspects {
+		r := startRow
+		_ = f.SetRowHeight(sheet1, r, 28)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", r), asp.no)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", r), asp.nama)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", r), asp.uraian)
 
-		// Header row
-		hRow := topRow + 1
-		_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", colNoName, hRow), "No.")
-		_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", colAnsName, hRow), "Jawaban")
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", colNoName, hRow), fmt.Sprintf("%s%d", colAnsName, hRow), styleHeader)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", r), fmt.Sprintf("A%d", r), styleCellCenter)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("B%d", r), fmt.Sprintf("B%d", r), styleLabelBold)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("C%d", r), fmt.Sprintf("C%d", r), styleCellLeft)
 
-		// Data rows
-		r := hRow + 1
-		for n := startNum; n <= endNum; n++ {
-			_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", colNoName, r), n)
-			_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", colAnsName, r), answersByNumber[n])
-			_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", colNoName, r), fmt.Sprintf("%s%d", colAnsName, r), styleCell)
-			r++
+		catIdx := psychogramCatIdxFromSW(asp.scoreSW)
+		for idx, col := range colNames {
+			cellRef := fmt.Sprintf("%s%d", col, r)
+			if idx == catIdx {
+				_ = f.SetCellValue(sheet1, cellRef, "✓")
+				_ = f.SetCellStyle(sheet1, cellRef, cellRef, styleCheckmark)
+			} else {
+				_ = f.SetCellValue(sheet1, cellRef, "")
+				_ = f.SetCellStyle(sheet1, cellRef, cellRef, styleCellCenter)
+			}
+		}
+		startRow++
+	}
+
+	// 5. Smart Summary IST (Row 31)
+	sumRow := startRow + 1
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", sumRow), "SMART SUMMARY IST")
+	_ = f.MergeCell(sheet1, fmt.Sprintf("A%d", sumRow), fmt.Sprintf("I%d", sumRow))
+	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", sumRow), fmt.Sprintf("I%d", sumRow), styleSectionHeader)
+
+	type subPair struct {
+		name  string
+		score int
+	}
+	subPairs := []subPair{
+		{"SE (Berpikir logis & Praktis)", res.StdSE},
+		{"WA (Memahami arti kata & bahasa)", res.StdWA},
+		{"AN (Fleksibilitas berpikir)", res.StdAN},
+		{"GE (Kemampuan membentuk konsep & abstraksi verbal)", res.StdGE},
+		{"RA (Penalaran & berhitung praktis)", res.StdRA},
+		{"ZR (Berpikir logis menggunakan angka)", res.StdZA},
+		{"FA (Imajinasi ruang & visualisasi 2D)", res.StdFA},
+		{"WU (Memahami struktur ruang & 3D)", res.StdWU},
+		{"ME (Daya ingat & konsentrasi)", res.StdME},
+	}
+	sort.Slice(subPairs, func(i, j int) bool {
+		return subPairs[i].score > subPairs[j].score
+	})
+	top2Text := fmt.Sprintf("%s & %s", subPairs[0].name, subPairs[1].name)
+
+	smartSummaryText := fmt.Sprintf("Berdasarkan Hasil Test IST, Kamu adalah seseorang yang memiliki IQ sebesar %d (%s) dengan dominan Intelligent %s.", res.IQ, iqCat, top2Text)
+
+	sumTextRow := sumRow + 1
+	_ = f.SetRowHeight(sheet1, sumTextRow, 30)
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", sumTextRow), smartSummaryText)
+	_ = f.MergeCell(sheet1, fmt.Sprintf("A%d", sumTextRow), fmt.Sprintf("I%d", sumTextRow))
+	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", sumTextRow), fmt.Sprintf("I%d", sumTextRow), styleCellLeft)
+
+	// 6. Detail Skor Subtes (Row 35)
+	tblRow := sumTextRow + 2
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", tblRow), "III. RINGKASAN SKOR PER SUBTES IST")
+	_ = f.MergeCell(sheet1, fmt.Sprintf("A%d", tblRow), fmt.Sprintf("I%d", tblRow))
+	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", tblRow), fmt.Sprintf("I%d", tblRow), styleSectionHeader)
+
+	hRow := tblRow + 1
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", hRow), "No")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", hRow), "Kode Subtes")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", hRow), "Nama Subtes")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("D%d", hRow), "Raw Score (RW)")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("E%d", hRow), "Skor Standar (SW)")
+	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", hRow), fmt.Sprintf("E%d", hRow), styleTableHeaderGroup)
+
+	subDefs := []struct {
+		no   int
+		code string
+		nama string
+		rw   int
+		sw   int
+	}{
+		{1, "SE", "Berpikir logis & Praktis", res.RawSE, res.StdSE},
+		{2, "WA", "Memahami arti kata dan bahasa", res.RawWA, res.StdWA},
+		{3, "AN", "Fleksibilitas berpikir", res.RawAN, res.StdAN},
+		{4, "GE", "Kemampuan membentuk konsep dan abstraksi", res.RawGE, res.StdGE},
+		{5, "RA", "Penalaran dan kemampuan berhitung", res.RawRA, res.StdRA},
+		{6, "ZR", "Berpikir logis menggunakan angka", res.RawZA, res.StdZA},
+		{7, "FA", "Imajinasi ruang dan visualisasi 2D", res.RawFA, res.StdFA},
+		{8, "WU", "Memahami struktur ruang dan bentuk 3D", res.RawWU, res.StdWU},
+		{9, "ME", "Daya ingat dan konsentrasi", res.RawME, res.StdME},
+	}
+
+	curR := hRow + 1
+	for _, sd := range subDefs {
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", curR), sd.no)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", curR), sd.code)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", curR), sd.nama)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("D%d", curR), sd.rw)
+		_ = f.SetCellValue(sheet1, fmt.Sprintf("E%d", curR), sd.sw)
+
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", curR), fmt.Sprintf("B%d", curR), styleCellCenter)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("C%d", curR), fmt.Sprintf("C%d", curR), styleCellLeft)
+		_ = f.SetCellStyle(sheet1, fmt.Sprintf("D%d", curR), fmt.Sprintf("E%d", curR), styleCellCenter)
+		curR++
+	}
+
+	// Total Row
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", curR), "")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", curR), "TOTAL")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", curR), "Total Skor")
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("D%d", curR), totalRW)
+	_ = f.SetCellValue(sheet1, fmt.Sprintf("E%d", curR), res.TotalStandardScore)
+	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", curR), fmt.Sprintf("E%d", curR), styleTableHeaderGroup)
+
+	// 7. Sheet 2 (Jawaban Detail)
+	if len(answersByNumber) > 0 {
+		sheet2 := "Jawaban Subtes"
+		_, _ = f.NewSheet(sheet2)
+		_ = f.SetCellValue(sheet2, "A1", "LEMBAR JAWABAN SUBTES IST")
+		_ = f.SetCellStyle(sheet2, "A1", "A1", styleTitle)
+
+		writeBlock := func(colNo, colAns int, topRow int, title string, startNum, endNum int, subtestCode string) {
+			colNoName, _ := excelize.ColumnNumberToName(colNo)
+			colAnsName, _ := excelize.ColumnNumberToName(colAns)
+			topLeft := fmt.Sprintf("%s%d", colNoName, topRow)
+			topRight := fmt.Sprintf("%s%d", colAnsName, topRow)
+			_ = f.MergeCell(sheet2, topLeft, topRight)
+			_ = f.SetCellValue(sheet2, topLeft, title)
+			_ = f.SetCellStyle(sheet2, topLeft, topRight, styleTableHeaderGroup)
+
+			hR := topRow + 1
+			_ = f.SetCellValue(sheet2, fmt.Sprintf("%s%d", colNoName, hR), "No.")
+			_ = f.SetCellValue(sheet2, fmt.Sprintf("%s%d", colAnsName, hR), "Jawaban")
+			_ = f.SetCellStyle(sheet2, fmt.Sprintf("%s%d", colNoName, hR), fmt.Sprintf("%s%d", colAnsName, hR), styleTableHeaderSub)
+
+			r := hR + 1
+			for n := startNum; n <= endNum; n++ {
+				_ = f.SetCellValue(sheet2, fmt.Sprintf("%s%d", colNoName, r), n)
+				_ = f.SetCellValue(sheet2, fmt.Sprintf("%s%d", colAnsName, r), answersByNumber[n])
+				_ = f.SetCellStyle(sheet2, fmt.Sprintf("%s%d", colNoName, r), fmt.Sprintf("%s%d", colAnsName, r), styleCellCenter)
+				r++
+			}
+
+			_ = f.SetCellValue(sheet2, fmt.Sprintf("%s%d", colNoName, r), "RW")
+			_ = f.SetCellValue(sheet2, fmt.Sprintf("%s%d", colAnsName, r), rawBySubtest[subtestCode])
+			_ = f.SetCellStyle(sheet2, fmt.Sprintf("%s%d", colNoName, r), fmt.Sprintf("%s%d", colAnsName, r), styleTableHeaderSub)
 		}
 
-		// RW row
-		_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", colNoName, r), "RW")
-		_ = f.SetCellValue(sheet, fmt.Sprintf("%s%d", colAnsName, r), rawBySubtest[subtestCode])
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", colNoName, r), fmt.Sprintf("%s%d", colAnsName, r), styleCell)
+		writeBlock(1, 2, 3, "SUBTES 1 (SE)", 1, 20, "SE")
+		writeBlock(4, 5, 3, "SUBTES 2 (WA)", 21, 40, "WA")
+		writeBlock(7, 8, 3, "SUBTES 3 (AN)", 41, 60, "AN")
+		writeBlock(10, 11, 3, "SUBTES 4 (GE)", 61, 76, "GE")
+
+		writeBlock(1, 2, 28, "SUBTES 5 (RA)", 77, 96, "RA")
+		writeBlock(4, 5, 28, "SUBTES 6 (ZR)", 97, 116, "ZR")
+		writeBlock(7, 8, 28, "SUBTES 7 (FA)", 117, 136, "FA")
+		writeBlock(10, 11, 28, "SUBTES 8 (WU)", 137, 156, "WU")
+		writeBlock(13, 14, 28, "SUBTES 9 (ME)", 157, 176, "ME")
 	}
-
-	// Top blocks (SUBTES 1-4)
-	writeBlock(1, 2, 10, "SUBTES 1", 1, 20, "SE")
-	writeBlock(4, 5, 10, "SUBTES 2", 21, 40, "WA")
-	writeBlock(7, 8, 10, "SUBTES 3", 41, 60, "AN")
-	writeBlock(10, 11, 10, "SUBTES 4", 61, 76, "GE")
-
-	// Bottom blocks (SUBTES 5-9)
-	writeBlock(1, 2, 35, "SUBTES 5", 77, 96, "RA")
-	writeBlock(4, 5, 35, "SUBTES 6", 97, 116, "ZR")
-	writeBlock(7, 8, 35, "SUBTES 7", 117, 136, "FA")
-	writeBlock(10, 11, 35, "SUBTES 8", 137, 156, "WU")
-	writeBlock(13, 14, 35, "SUBTES 9", 157, 176, "ME")
-
-	// If no answers at all, still return a valid xlsx (user can see empty)
-	_ = f.SetCellValue(sheet, "A4", "Nama")
-	_ = f.SetCellValue(sheet, "C4", nama)
-	_ = f.SetCellValue(sheet, "A9", "Email")
-	_ = f.SetCellStyle(sheet, "A9", "A9", styleLabel)
-	_ = f.SetCellValue(sheet, "B9", ":")
-	_ = f.SetCellValue(sheet, "C9", email)
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {

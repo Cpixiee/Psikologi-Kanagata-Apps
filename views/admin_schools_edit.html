@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Edit Akun Sekolah — Psychee Wellness</title>
+    <meta name="description" content="Edit akun sekolah dan daftar guru" />
+
+    <link rel="icon" type="image/x-icon" href="/static/sneat/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/static/sneat/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="/static/sneat/assets/css/demo.css" />
+    <link rel="stylesheet" href="/static/modern/sneat_sidebar_dashboard.css?v=20260614_white" />
+    <link rel="stylesheet" href="/static/modern/dashboard_integrated.css?v=20260615_v3" />
+    <link rel="stylesheet" href="/static/modern/ds_sidebar.css?v=20260614_white" />
+    <script src="/static/sneat/assets/vendor/js/helpers.js"></script>
+    <link rel="stylesheet" href="/static/css/dashboard_integrated.css" />
+    <script src="/static/js/schools_data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+      .teacher-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; background: #fafbff; position: relative; }
+      .teacher-card .tc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+      .teacher-card .tc-head h6 { margin: 0; font-weight: 600; color: #4f46e5; }
+    </style>
+  </head>
+  <body>
+    <div class="ds-shell">
+      <aside class="ds-sidebar">
+        <div class="ds-brand">
+          <div class="ds-brand-logo"><i data-lucide="brain-circuit"></i></div>
+          <div class="ds-brand-text">PsycheeWellness<span>AI Analytics System</span></div>
+        </div>
+        <nav class="ds-menu">
+          <div class="ds-menu-label">Main Menu</div>
+          <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
+          <details class="ds-submenu sekolah-or-admin-only" hidden>
+            <summary class="ds-submenu-title">
+              <span class="ds-submenu-left"><i data-lucide="school" class="ds-icon"></i> Daftar Sekolah</span>
+              <i data-lucide="chevron-down" class="ds-chevron"></i>
+            </summary>
+            <div class="ds-submenu-list">
+              <a href="/dashboard/batches">Daftar Batch</a>
+              <a href="/dashboard/students">Daftar Siswa</a>
+            </div>
+          </details>
+          <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
+          <details class="ds-submenu">
+            <summary class="ds-submenu-title">
+              <span class="ds-submenu-left"><i data-lucide="settings" class="ds-icon"></i> Pengaturan</span>
+              <i data-lucide="chevron-down" class="ds-chevron"></i>
+            </summary>
+            <div class="ds-submenu-list">
+              <a href="/settings">Profil Saya</a>
+              <a href="/settings/notifications">Notifikasi & Privasi</a>
+            </div>
+          </details>
+
+          <div class="ds-menu-label admin-only" hidden>Administrator</div>
+          <details class="ds-submenu admin-only" open hidden>
+            <summary class="ds-submenu-title">
+              <span class="ds-submenu-left"><i data-lucide="shield" class="ds-icon"></i> Admin</span>
+              <i data-lucide="chevron-down" class="ds-chevron"></i>
+            </summary>
+            <div class="ds-submenu-list">
+              <a href="/admin/psychotest">Dashboard Admin</a>
+              <a href="/admin/psychotest/batches/add">Tambah Batch</a>
+              <a href="/admin/schools" class="active">Akun Sekolah</a>
+            </div>
+          </details>
+        </nav>
+        <div class="ds-sidebar-footer">
+          <a href="#" id="ds-logout-btn"><i data-lucide="log-out" class="ds-icon"></i> Logout</a>
+        </div>
+      </aside>
+
+      <div class="ds-main">
+        <header class="ds-topbar">
+          <div class="ds-topbar-left">
+            <button type="button" class="ds-toggle-btn" id="dsToggleBtn" aria-label="Toggle Sidebar"><i data-lucide="menu"></i></button>
+            <div class="ds-page-title">
+              <h1>Edit Akun Sekolah</h1>
+              <p>Perbarui informasi akun sekolah beserta daftar guru terdaftar</p>
+            </div>
+          </div>
+          <div class="ds-topbar-right">
+            <div class="ds-userpill">
+              <button class="ds-userpill-btn" id="ds-userpill-btn" type="button" aria-expanded="false">
+                <img id="topUserAvatar" src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff&bold=true" alt="Avatar" class="ds-userpill-img" />
+                <div class="ds-userpill-info">
+                  <span class="ds-userpill-name" id="topUserName">Loading...</span>
+                  <span class="ds-userpill-role" id="topUserRole">Administrator</span>
+                </div>
+                <i data-lucide="chevron-down" class="ds-userpill-arrow"></i>
+              </button>
+              <div class="ds-userpill-menu" id="ds-userpill-menu" hidden>
+                <a href="/settings" class="ds-userpill-item"><i data-lucide="user"></i> Profil Saya</a>
+                <div class="ds-userpill-divider"></div>
+                <a href="#" id="ds-logout-btn-2" class="ds-userpill-item text-danger"><i data-lucide="log-out"></i> Logout</a>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="ds-content">
+          <div class="mb-3">
+            <a href="/admin/schools" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back"></i> Kembali ke Daftar Sekolah</a>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Form Edit Akun Sekolah</h5>
+              <small class="text-muted">Perbarui field yang perlu diubah</small>
+            </div>
+            <div class="card-body">
+              <form id="formEditSchool" onsubmit="handleFormSubmit(event)">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="namaLengkap">Nama Akun Sekolah <span class="text-danger">*</span></label>
+                    <input id="namaLengkap" type="text" class="form-control" placeholder="Contoh: SMKN 22 Jakarta - BK" required />
+                    <small class="text-muted">Nama ini akan tampil sebagai identitas profil saat akun sekolah login.</small>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="email">Email Login Sekolah <span class="text-danger">*</span></label>
+                    <input id="email" type="email" class="form-control" placeholder="operator.smkn22@example.com" required />
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="jenisSekolahSelect">Jenis Sekolah <span class="text-danger">*</span></label>
+                    <select id="jenisSekolahSelect" class="form-select" required>
+                      <option value="">-- Pilih Jenis Sekolah --</option>
+                      <option value="SMA NEGERI">SMA NEGERI</option>
+                      <option value="SMA SWASTA">SMA SWASTA</option>
+                      <option value="SMK NEGERI">SMK NEGERI</option>
+                      <option value="SMK SWASTA">SMK SWASTA</option>
+                      <option value="SMP NEGERI">SMP NEGERI</option>
+                      <option value="SMP SWASTA">SMP SWASTA</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label" for="sekolah">Asal Sekolah (Filter Siswa) <span class="text-danger">*</span></label>
+                    <select id="sekolah" class="form-select" required disabled>
+                      <option value="">-- Pilih Jenis Sekolah dahulu --</option>
+                    </select>
+                    <small class="text-muted">Akun ini hanya bisa melihat siswa dari sekolah yang dipilih.</small>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 mb-3">
+                    <label class="form-label" for="password">Password (Kosongkan jika tidak diubah)</label>
+                    <input id="password" type="text" class="form-control" minlength="6" placeholder="Kosongkan jika tidak ingin mengubah password" />
+                    <small class="text-muted">Jika diisi, password baru akan menggantikan password lama.</small>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label" for="npsn">NPSN (Nomor Pokok Sekolah Nasional)</label>
+                    <input id="npsn" type="text" class="form-control" placeholder="Contoh: 20101234" />
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label" for="jenjangSekolah">Jenjang Sekolah</label>
+                    <select id="jenjangSekolah" class="form-select">
+                      <option value="">Pilih Jenjang&hellip;</option>
+                      <option value="SD">SD / MI</option>
+                      <option value="SMP">SMP / MTs</option>
+                      <option value="SMA">SMA / MA</option>
+                      <option value="SMK">SMK</option>
+                      <option value="Perguruan Tinggi">Perguruan Tinggi / Umum</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="form-label" for="alamat">Alamat Sekolah</label>
+                    <input id="alamat" type="text" class="form-control" placeholder="Alamat lengkap sekolah" />
+                  </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h5 class="mb-0">Daftar Guru Terdaftar</h5>
+                    <small class="text-muted">Guru-guru ini memiliki akses login sesuai email mereka.</small>
+                  </div>
+                  <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTeacher()"><i class="bx bx-plus"></i> Tambah Baris Guru</button>
+                </div>
+
+                <div id="teacherContainer"></div>
+
+                <div class="mt-4">
+                  <button type="submit" class="btn btn-primary me-2"><i class="bx bx-save"></i> Simpan Perubahan</button>
+                  <a href="/admin/schools" class="btn btn-outline-secondary">Batal</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/static/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/static/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      let teacherIndex = 0;
+      let schoolId = 0;
+
+      function getSchoolIdFromUrl() {
+        const parts = window.location.pathname.split('/');
+        return parseInt(parts[parts.length - 1]) || 0;
+      }
+
+      function addTeacher(data = {}) {
+        teacherIndex++;
+        const id = 'teacher_' + teacherIndex;
+        const container = document.getElementById('teacherContainer');
+        const div = document.createElement('div');
+        div.className = 'teacher-card';
+        div.id = id;
+        div.innerHTML = `
+          <div class="tc-head">
+            <h6>Guru #${teacherIndex}</h6>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeTeacher('${id}')"><i class="bx bx-trash"></i> Hapus</button>
+          </div>
+          <div class="row">
+            <div class="col-md-3 mb-2">
+              <label class="form-label text-muted small">Nama Guru <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-sm t-nama" placeholder="Nama Guru" value="${data.nama || ''}" required />
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label text-muted small">Email Guru <span class="text-danger">*</span></label>
+              <input type="email" class="form-control form-control-sm t-email" placeholder="guru@example.com" value="${data.email || ''}" required />
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label text-muted small">Kelas / Peran</label>
+              <input type="text" class="form-control form-control-sm t-kelas" placeholder="Contoh: Guru BK / Wali Kelas X" value="${data.kelas || ''}" />
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label text-muted small">Jenis Kelamin</label>
+              <select class="form-select form-select-sm t-gender">
+                <option value="L" ${data.jenis_kelamin === 'L' ? 'selected' : ''}>Laki-laki</option>
+                <option value="P" ${data.jenis_kelamin === 'P' ? 'selected' : ''}>Perempuan</option>
+              </select>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+
+      function removeTeacher(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
+
+      function collectTeachers() {
+        const list = [];
+        document.querySelectorAll('.teacher-card').forEach(card => {
+          const nama = card.querySelector('.t-nama').value.trim();
+          const email = card.querySelector('.t-email').value.trim();
+          const kelas = card.querySelector('.t-kelas').value.trim();
+          const gender = card.querySelector('.t-gender').value;
+          if (nama || email) {
+            list.push({ nama: nama, email: email, kelas: kelas, jenis_kelamin: gender });
+          }
+        });
+        return list;
+      }
+
+      async function handleFormSubmit(e) {
+        e.preventDefault();
+        const payload = {
+          nama_lengkap: (document.getElementById('namaLengkap').value || '').trim(),
+          email: (document.getElementById('email').value || '').trim(),
+          sekolah: (document.getElementById('sekolah').value || '').trim(),
+          password: (document.getElementById('password').value || '').trim(),
+          npsn: (document.getElementById('npsn').value || '').trim(),
+          alamat: (document.getElementById('alamat').value || '').trim(),
+          jenjang_sekolah: (document.getElementById('jenjangSekolah').value || '').trim(),
+          teachers: collectTeachers()
+        };
+        try {
+          const res = await fetch('/api/admin/schools/' + schoolId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || 'Gagal memperbarui');
+          await Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Akun sekolah berhasil diperbarui', timer: 1500, showConfirmButton: false });
+          window.location.href = '/admin/schools';
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+        }
+      }
+
+      async function loadSchoolDetail() {
+        schoolId = getSchoolIdFromUrl();
+        if (!schoolId) {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'ID Sekolah tidak valid' }).then(() => {
+            window.location.href = '/admin/schools';
+          });
+          return;
+        }
+        try {
+          const res = await fetch('/api/admin/schools/' + schoolId);
+          const data = await res.json();
+          if (!res.ok || !data.success || !data.data) throw new Error(data.message || 'Gagal memuat data');
+          
+          const s = data.data;
+          document.getElementById('namaLengkap').value = s.nama_lengkap || '';
+          document.getElementById('email').value = s.email || '';
+          document.getElementById('npsn').value = s.npsn || '';
+          document.getElementById('jenjangSekolah').value = s.jenjang_sekolah || '';
+          document.getElementById('alamat').value = s.alamat || '';
+
+          if (window.initSchoolSelector) {
+            window.initSchoolSelector('jenisSekolahSelect', 'sekolah', 'alamat', s.sekolah || '');
+          }
+
+          const catEl = document.getElementById('jenisSekolahSelect');
+          const jnjEl = document.getElementById('jenjangSekolah');
+          if (catEl && jnjEl) {
+            catEl.addEventListener('change', function () {
+              const val = catEl.value;
+              if (val.startsWith('SMA')) jnjEl.value = 'SMA';
+              else if (val.startsWith('SMK')) jnjEl.value = 'SMK';
+              else if (val.startsWith('SMP')) jnjEl.value = 'SMP';
+            });
+          }
+
+          const teachers = s.teachers || [];
+          if (teachers.length > 0) {
+            teachers.forEach(t => addTeacher(t));
+          } else {
+            addTeacher();
+          }
+
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message }).then(() => {
+            window.location.href = '/admin/schools';
+          });
+        }
+      }
+
+      (function () {
+        function setupUserpill() {
+          var btn = document.getElementById('ds-userpill-btn');
+          var menu = document.getElementById('ds-userpill-menu');
+          if (!btn || !menu) return;
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = !menu.hasAttribute('hidden');
+            if (open) menu.setAttribute('hidden', ''); else menu.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', String(!open));
+          });
+          document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== btn) {
+              menu.setAttribute('hidden', '');
+              btn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+        async function loadUserProfile() {
+          try {
+            var res = await fetch('/api/profile');
+            if (!res.ok) { if (res.status === 401) window.location.href = '/login'; return; }
+            var data = await res.json();
+            if (!data.success || !data.data) return;
+            var u = data.data;
+            var name = u.nama_lengkap || 'Admin';
+            document.getElementById('topUserName').textContent = name;
+            document.getElementById('topUserRole').textContent = (u.role && u.role !== 'siswa') ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Siswa';
+            var av = document.getElementById('topUserAvatar');
+            if (av) av.src = u.foto_profil ? '/static/uploads/profiles/' + u.foto_profil : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4f46e5&color=fff&bold=true';
+          } catch (e) { console.error(e); }
+        }
+        async function handleLogout(e) {
+          if (e) e.preventDefault();
+          try { var r = await (await fetch('/api/auth/logout', { method: 'POST' })).json(); if (r.success) window.location.href = '/login'; }
+          catch (_) { window.location.href = '/login'; }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+          setupUserpill();
+          loadUserProfile();
+          var lo = document.getElementById('ds-logout-btn');
+          var lo2 = document.getElementById('ds-logout-btn-2');
+          if (lo) lo.addEventListener('click', handleLogout);
+          if (lo2) lo2.addEventListener('click', handleLogout);
+
+          loadSchoolDetail();
+        });
+      })();
+    </script>
+  </body>
+</html>

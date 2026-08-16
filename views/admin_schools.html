@@ -153,6 +153,9 @@
             '<td>' + escapeHtml(s.alamat || '-') + '</td>' +
             '<td class="text-center">' + (s.teacher_count || 0) + '</td>' +
             '<td class="text-center">' +
+              '<a href="/admin/schools/edit/' + s.id + '" class="btn btn-sm btn-outline-primary me-1">' +
+                '<i class="bx bx-edit-alt"></i> Edit' +
+              '</a>' +
               '<button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSchool(' + s.id + ', \'' + (s.nama_lengkap || '').replace(/'/g, "\\'") + '\')">' +
                 '<i class="bx bx-trash"></i> Hapus' +
               '</button>' +

@@ -191,6 +191,12 @@ func (c *PageController) AdminSchoolsAddPage() {
 	c.TplName = "admin_schools_add.html"
 }
 
+// @router /admin/schools/edit/:id [get]
+// Form edit akun sekolah beserta daftar guru.
+func (c *PageController) AdminSchoolsEditPage() {
+	c.TplName = "admin_schools_edit.html"
+}
+
 // @router /profile/holland/start [get]
 // Sub-page di dalam profile untuk memulai / melanjutkan Holland.
 func (c *PageController) ProfileHollandStartPage() {

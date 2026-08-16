@@ -313,6 +313,193 @@ func (c *AdminSchoolController) Create() {
 	c.ServeJSON()
 }
 
+// @router /api/admin/schools/:id [put]
+// Update akun sekolah beserta daftar guru.
+func (c *AdminSchoolController) Update() {
+	if !c.requireAdmin() {
+		return
+	}
+	id, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if id <= 0 {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = schoolResponse{Success: false, Message: "ID tidak valid"}
+		c.ServeJSON()
+		return
+	}
+	var req schoolUpsertRequest
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Payload tidak valid"}
+		c.ServeJSON()
+		return
+	}
+	req.NamaLengkap = strings.TrimSpace(req.NamaLengkap)
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
+	req.Sekolah = strings.TrimSpace(req.Sekolah)
+	req.Password = strings.TrimSpace(req.Password)
+	req.NPSN = strings.TrimSpace(req.NPSN)
+	req.Alamat = strings.TrimSpace(req.Alamat)
+	req.JenjangSekolah = strings.TrimSpace(req.JenjangSekolah)
+
+	if req.NamaLengkap == "" || req.Email == "" || req.Sekolah == "" {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Nama, email, dan sekolah wajib diisi"}
+		c.ServeJSON()
+		return
+	}
+	if !models.IsValidSekolah(req.Sekolah) {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Sekolah tidak valid"}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	existingSchool := models.User{Id: id}
+	if err := o.Read(&existingSchool); err != nil || existingSchool.Role != models.RoleSekolah {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Sekolah tidak ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	if req.Email != existingSchool.Email {
+		if cnt, _ := o.QueryTable(new(models.User)).Filter("Email", req.Email).Exclude("Id", id).Count(); cnt > 0 {
+			c.Ctx.Output.SetStatus(409)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Email sudah dipakai user lain"}
+			c.ServeJSON()
+			return
+		}
+		if cnt, _ := o.QueryTable(new(models.SchoolTeacher)).Filter("Email", req.Email).Count(); cnt > 0 {
+			c.Ctx.Output.SetStatus(409)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Email sudah dipakai guru lain"}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	cleanTeachers := make([]models.SchoolTeacher, 0, len(req.Teachers))
+	seenEmail := map[string]bool{req.Email: true}
+	for _, t := range req.Teachers {
+		nama := strings.TrimSpace(t.Nama)
+		kelas := strings.TrimSpace(t.Kelas)
+		email := strings.ToLower(strings.TrimSpace(t.Email))
+		if nama == "" && kelas == "" && email == "" {
+			continue
+		}
+		if nama == "" || email == "" {
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Nama dan email guru wajib diisi"}
+			c.ServeJSON()
+			return
+		}
+		if seenEmail[email] {
+			c.Ctx.Output.SetStatus(409)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Email guru duplikat: " + email}
+			c.ServeJSON()
+			return
+		}
+		seenEmail[email] = true
+		if cnt, _ := o.QueryTable(new(models.User)).Filter("Email", email).Exclude("Id", id).Count(); cnt > 0 {
+			c.Ctx.Output.SetStatus(409)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Email guru sudah dipakai user lain: " + email}
+			c.ServeJSON()
+			return
+		}
+		if cnt, _ := o.QueryTable(new(models.SchoolTeacher)).Filter("Email", email).Exclude("SchoolId", id).Count(); cnt > 0 {
+			c.Ctx.Output.SetStatus(409)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Email guru sudah dipakai guru sekolah lain: " + email}
+			c.ServeJSON()
+			return
+		}
+		cleanTeachers = append(cleanTeachers, models.SchoolTeacher{
+			SchoolId:     id,
+			Nama:         nama,
+			Kelas:        kelas,
+			Email:        email,
+			JenisKelamin: strings.TrimSpace(t.JenisKelamin),
+		})
+	}
+
+	tx, err := o.Begin()
+	if err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Gagal memulai transaksi"}
+		c.ServeJSON()
+		return
+	}
+
+	existingSchool.NamaLengkap = req.NamaLengkap
+	existingSchool.Email = req.Email
+	existingSchool.Sekolah = req.Sekolah
+	existingSchool.NPSN = req.NPSN
+	existingSchool.Alamat = req.Alamat
+	existingSchool.JenjangSekolah = req.JenjangSekolah
+
+	if req.Password != "" {
+		if len(req.Password) < 6 {
+			_ = tx.Rollback()
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Password minimal 6 karakter"}
+			c.ServeJSON()
+			return
+		}
+		existingSchool.Password = req.Password
+		if err := existingSchool.HashPassword(); err != nil {
+			_ = tx.Rollback()
+			c.Ctx.Output.SetStatus(500)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Gagal mengamankan password"}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	cols := []string{"nama_lengkap", "email", "sekolah", "npsn", "alamat", "jenjang_sekolah"}
+	if req.Password != "" {
+		cols = append(cols, "password")
+	}
+
+	if _, err := tx.Update(&existingSchool, cols...); err != nil {
+		_ = tx.Rollback()
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Gagal mengupdate akun sekolah: " + err.Error()}
+		c.ServeJSON()
+		return
+	}
+
+	if _, err := tx.QueryTable(new(models.SchoolTeacher)).Filter("SchoolId", id).Delete(); err != nil {
+		_ = tx.Rollback()
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Gagal mengupdate guru: " + err.Error()}
+		c.ServeJSON()
+		return
+	}
+
+	for i := range cleanTeachers {
+		if _, err := tx.Insert(&cleanTeachers[i]); err != nil {
+			_ = tx.Rollback()
+			c.Ctx.Output.SetStatus(500)
+			c.Data["json"] = schoolResponse{Success: false, Message: "Gagal menyimpan guru: " + err.Error()}
+			c.ServeJSON()
+			return
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = schoolResponse{Success: false, Message: "Gagal commit transaksi"}
+		c.ServeJSON()
+		return
+	}
+
+	c.Data["json"] = schoolResponse{
+		Success: true,
+		Message: "Akun sekolah berhasil diperbarui",
+		Data:    map[string]interface{}{"id": existingSchool.Id},
+	}
+	c.ServeJSON()
+}
+
 // @router /api/admin/schools/:id [delete]
 // Hapus akun sekolah (cascade akan menghapus guru-nya juga).
 func (c *AdminSchoolController) Delete() {

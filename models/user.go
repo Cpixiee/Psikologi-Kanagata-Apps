@@ -64,6 +64,9 @@ type User struct {
 	Password     string    `orm:"size(255)" json:"-"`
 	Role         Role      `orm:"size(20)" json:"role"`
 
+	NPSN              string `orm:"column(npsn);size(50);null" json:"npsn"`
+	JenjangSekolah    string `orm:"column(jenjang_sekolah);size(50);null" json:"jenjang_sekolah"`
+
 	// === Onboarding & data tambahan untuk header alat tes ===
 	NISN              string `orm:"column(nisn);size(20)" json:"nisn"`
 	NIP               string `orm:"column(nip);size(30)" json:"nip"`

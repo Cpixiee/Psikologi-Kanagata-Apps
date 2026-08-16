@@ -271,6 +271,7 @@ func (c *PsychotestAdminController) CreateBatch() {
 		Institution     string `json:"institution"`
 		TahunAjaran     string `json:"tahun_ajaran"`
 		Sekolah         string `json:"sekolah"`
+		JenjangSekolah  string `json:"jenjang_sekolah"`
 		Kelas           string `json:"kelas"`
 		Jurusan         string `json:"jurusan"`
 		EnableIST       bool   `json:"enable_ist"`
@@ -350,6 +351,7 @@ func (c *PsychotestAdminController) CreateBatch() {
 		Institution:     payload.Institution,
 		TahunAjaran:     payload.TahunAjaran,
 		Sekolah:         payload.Sekolah,
+		JenjangSekolah:  payload.JenjangSekolah,
 		Kelas:           payload.Kelas,
 		Jurusan:         payload.Jurusan,
 		EnableIST:       payload.EnableIST,

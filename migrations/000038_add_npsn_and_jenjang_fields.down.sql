@@ -1,0 +1,3 @@
+ALTER TABLE users DROP COLUMN IF EXISTS npsn;
+ALTER TABLE users DROP COLUMN IF EXISTS jenjang_sekolah;
+ALTER TABLE test_batches DROP COLUMN IF EXISTS jenjang_sekolah;

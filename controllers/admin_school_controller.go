@@ -26,12 +26,15 @@ type schoolTeacherInput struct {
 }
 
 type schoolUpsertRequest struct {
-	NamaLengkap  string               `json:"nama_lengkap"`
-	Email        string               `json:"email"`
-	Sekolah      string               `json:"sekolah"`
-	Password     string               `json:"password"`
-	JenisKelamin string               `json:"jenis_kelamin"`
-	Teachers     []schoolTeacherInput `json:"teachers"`
+	NamaLengkap    string               `json:"nama_lengkap"`
+	Email          string               `json:"email"`
+	Sekolah        string               `json:"sekolah"`
+	Password       string               `json:"password"`
+	NPSN           string               `json:"npsn"`
+	Alamat         string               `json:"alamat"`
+	JenjangSekolah string               `json:"jenjang_sekolah"`
+	JenisKelamin   string               `json:"jenis_kelamin"`
+	Teachers       []schoolTeacherInput `json:"teachers"`
 }
 
 type schoolResponse struct {
@@ -72,21 +75,27 @@ func (c *AdminSchoolController) List() {
 	}
 
 	type schoolItem struct {
-		Id           int    `json:"id"`
-		NamaLengkap  string `json:"nama_lengkap"`
-		Email        string `json:"email"`
-		Sekolah      string `json:"sekolah"`
-		TeacherCount int    `json:"teacher_count"`
+		Id             int    `json:"id"`
+		NamaLengkap    string `json:"nama_lengkap"`
+		Email          string `json:"email"`
+		Sekolah        string `json:"sekolah"`
+		NPSN           string `json:"npsn"`
+		Alamat         string `json:"alamat"`
+		JenjangSekolah string `json:"jenjang_sekolah"`
+		TeacherCount   int    `json:"teacher_count"`
 	}
 	items := make([]schoolItem, 0, len(schools))
 	for _, s := range schools {
 		cnt, _ := o.QueryTable(new(models.SchoolTeacher)).Filter("SchoolId", s.Id).Count()
 		items = append(items, schoolItem{
-			Id:           s.Id,
-			NamaLengkap:  s.NamaLengkap,
-			Email:        s.Email,
-			Sekolah:      s.Sekolah,
-			TeacherCount: int(cnt),
+			Id:             s.Id,
+			NamaLengkap:    s.NamaLengkap,
+			Email:          s.Email,
+			Sekolah:        s.Sekolah,
+			NPSN:           s.NPSN,
+			Alamat:         s.Alamat,
+			JenjangSekolah: s.JenjangSekolah,
+			TeacherCount:   int(cnt),
 		})
 	}
 
@@ -126,12 +135,15 @@ func (c *AdminSchoolController) Detail() {
 	c.Data["json"] = schoolResponse{
 		Success: true,
 		Data: map[string]interface{}{
-			"id":           school.Id,
-			"nama_lengkap": school.NamaLengkap,
-			"email":        school.Email,
-			"sekolah":      school.Sekolah,
-			"teachers":     teachers,
-			"sekolah_list": models.SekolahList,
+			"id":              school.Id,
+			"nama_lengkap":    school.NamaLengkap,
+			"email":           school.Email,
+			"sekolah":         school.Sekolah,
+			"npsn":            school.NPSN,
+			"alamat":          school.Alamat,
+			"jenjang_sekolah": school.JenjangSekolah,
+			"teachers":        teachers,
+			"sekolah_list":    models.SekolahList,
 		},
 	}
 	c.ServeJSON()
@@ -154,6 +166,9 @@ func (c *AdminSchoolController) Create() {
 	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
 	req.Sekolah = strings.TrimSpace(req.Sekolah)
 	req.Password = strings.TrimSpace(req.Password)
+	req.NPSN = strings.TrimSpace(req.NPSN)
+	req.Alamat = strings.TrimSpace(req.Alamat)
+	req.JenjangSekolah = strings.TrimSpace(req.JenjangSekolah)
 	req.JenisKelamin = strings.TrimSpace(req.JenisKelamin)
 
 	if req.NamaLengkap == "" || req.Email == "" || req.Sekolah == "" || req.Password == "" {
@@ -245,6 +260,9 @@ func (c *AdminSchoolController) Create() {
 		NamaLengkap:      req.NamaLengkap,
 		Email:            req.Email,
 		Sekolah:          req.Sekolah,
+		NPSN:             req.NPSN,
+		Alamat:           req.Alamat,
+		JenjangSekolah:   req.JenjangSekolah,
 		Password:         req.Password,
 		Role:             models.RoleSekolah,
 		ProfileCompleted: true,

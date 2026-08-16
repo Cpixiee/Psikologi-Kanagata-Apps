@@ -38,6 +38,7 @@ type TestBatch struct {
 	Institution     string    `orm:"size(255)" json:"institution"`
 	TahunAjaran     string    `orm:"column(tahun_ajaran);size(50);null" json:"tahun_ajaran"`
 	Sekolah         string    `orm:"column(sekolah);size(100);null" json:"sekolah"`
+	JenjangSekolah  string    `orm:"column(jenjang_sekolah);size(50);null" json:"jenjang_sekolah"`
 	Kelas           string    `orm:"column(kelas);size(20);null" json:"kelas"`
 	Jurusan         string    `orm:"column(jurusan);size(100);null" json:"jurusan"`
 	EnableIST       bool      `orm:"column(enable_ist);default(true)" json:"enable_ist"`

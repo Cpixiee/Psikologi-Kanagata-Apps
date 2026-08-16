@@ -1,12 +1,11 @@
-// Menampilkan menu admin di sidebar (elemen ber-class .admin-only) untuk
-// role 'admin' dan 'sekolah'. Untuk role 'sekolah', elemen tertentu yang
-// hanya boleh diakses admin (ber-class .strict-admin-only, mis. link
-// "Tambah Batch", link "Akun Sekolah", tombol create batch) tetap disembunyikan.
+// Menampilkan menu admin & sekolah di sidebar berdasarkan role user.
 // Berlaku untuk semua halaman yang memuat skrip ini.
 (function () {
   function applyRole(role) {
     var canSeeAdmin = role === "admin" || role === "sekolah";
     var isStrictAdmin = role === "admin";
+    var isStudent = role === "siswa";
+
     document.querySelectorAll(".admin-only").forEach(function (el) {
       if (canSeeAdmin) {
         el.hidden = false;
@@ -38,22 +37,35 @@
         el.classList.add("d-none");
       }
     });
+    document.querySelectorAll(".student-only").forEach(function (el) {
+      if (isStudent) {
+        el.hidden = false;
+        el.removeAttribute("hidden");
+        el.style.setProperty("display", "", "important");
+      } else {
+        el.hidden = true;
+        el.setAttribute("hidden", "");
+        el.style.setProperty("display", "none", "important");
+      }
+    });
   }
 
   function init() {
-    // Terapkan role yang dicache agar tidak ada flicker.
     try {
       var cached = sessionStorage.getItem("user_role");
       if (cached) applyRole(cached);
     } catch (e) {}
 
-    // Refresh dari API supaya tetap akurat.
     fetch("/api/profile")
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
-        if (d && d.success && d.data && typeof d.data.role === "string") {
-          try { sessionStorage.setItem("user_role", d.data.role); } catch (e) {}
-          applyRole(d.data.role);
+        if (d && d.success && d.data) {
+          var u = d.data.user || d.data;
+          var role = typeof d.data.role === "string" ? d.data.role : (u.role || "");
+          if (role) {
+            try { sessionStorage.setItem("user_role", role); } catch (e) {}
+            applyRole(role);
+          }
         }
       })
       .catch(function () {});

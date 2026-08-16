@@ -210,62 +210,43 @@
           }
         }
 
-        // Dynamic "Daftar Siswa" link injection
+        // Dynamic menu visibility based on role
         var nav = document.querySelector('.ds-sidebar .ds-nav');
         if (nav) {
-          var hasStudentsLink = nav.querySelector('a[href="/dashboard/students"]');
-          if (role === "sekolah" || role === "admin") {
-            if (!hasStudentsLink) {
-              var dashboardLink = nav.querySelector('a[href="/dashboard"]');
-              if (dashboardLink) {
-                var studentListLink = document.createElement('a');
-                studentListLink.href = '/dashboard/students';
-                studentListLink.innerHTML = '<i data-lucide="users" class="ds-icon"></i> Daftar Siswa';
-                dashboardLink.parentNode.insertBefore(studentListLink, dashboardLink.nextSibling);
-                
-                // Recompute active link and init lucide
-                autoActive();
-                initLucide();
-              }
-            } else {
-              hasStudentsLink.hidden = false;
-              hasStudentsLink.removeAttribute("hidden");
-              hasStudentsLink.style.setProperty("display", "", "important");
-            }
-          } else {
-            if (hasStudentsLink) {
-              hasStudentsLink.hidden = true;
-              hasStudentsLink.setAttribute("hidden", "");
-              hasStudentsLink.style.setProperty("display", "none", "important");
-            }
-          }
+          var isStudent = role === "siswa";
+          var isStaff = role === "sekolah" || role === "admin";
 
-          // Handle "Survei Karakteristik" link (static class or dynamic fallback)
-          var surveyLinkEl = nav.querySelector('a.student-only') || nav.querySelector('a[href="/survey"]');
-          if (role === "siswa") {
-            if (surveyLinkEl) {
-              surveyLinkEl.hidden = false;
-              surveyLinkEl.removeAttribute("hidden");
-              surveyLinkEl.style.setProperty("display", "", "important");
+          nav.querySelectorAll('.sekolah-or-admin-only').forEach(function (el) {
+            if (isStaff) {
+              el.hidden = false;
+              el.removeAttribute("hidden");
+              el.style.setProperty("display", "", "important");
             } else {
-              var insertRef = nav.querySelector('a[href="/hasil-tes"]') || nav.querySelector('a[href="/test"]');
-              if (insertRef) {
-                var surveyLink = document.createElement('a');
-                surveyLink.href = '/survey';
-                surveyLink.className = 'student-only';
-                surveyLink.innerHTML = '<i data-lucide="clipboard-check" class="ds-icon"></i> Survei Karakteristik';
-                insertRef.parentNode.insertBefore(surveyLink, insertRef.nextSibling);
-                initLucide();
-              }
+              el.hidden = true;
+              el.setAttribute("hidden", "");
+              el.style.setProperty("display", "none", "important");
             }
-          } else {
-            if (surveyLinkEl) {
-              surveyLinkEl.hidden = true;
-              surveyLinkEl.setAttribute("hidden", "");
-              surveyLinkEl.style.setProperty("display", "none", "important");
+          });
+
+          nav.querySelectorAll('.student-only').forEach(function (el) {
+            if (isStudent) {
+              el.hidden = false;
+              el.removeAttribute("hidden");
+              el.style.setProperty("display", "", "important");
+            } else {
+              el.hidden = true;
+              el.setAttribute("hidden", "");
+              el.style.setProperty("display", "none", "important");
             }
-          }
+          });
+
+          // Handle AI Asisten link removal if any remaining
+          nav.querySelectorAll('a[href="/ai"]').forEach(function (el) {
+            el.remove();
+          });
+
           autoActive();
+          initLucide();
         }
 
         // Impersonation ribbon & logout modification

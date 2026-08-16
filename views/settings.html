@@ -73,12 +73,17 @@
   </div>
   <nav class="ds-nav">
     <a href="/dashboard"><i data-lucide="layout-dashboard" class="ds-icon"></i> Dashboard</a>
-    <a href="/dashboard/students" class="sekolah-or-admin-only" hidden><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
-    <a href="/ai" class="admin-only" hidden><i data-lucide="message-square" class="ds-icon"></i> AI Asisten</a>
-    <a href="/test"><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
-    <a href="/hasil-tes"><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
+    <details class="ds-submenu sekolah-or-admin-only" hidden>
+      <summary><i data-lucide="school" class="ds-icon"></i> Daftar Sekolah <i data-lucide="chevron-down" class="ds-caret"></i></summary>
+      <div class="ds-subnav">
+        <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
+        <a href="/dashboard/students"><i data-lucide="users" class="ds-icon"></i> Daftar Siswa</a>
+      </div>
+    </details>
+    <a href="/test" class="student-only" hidden><i data-lucide="clipboard-list" class="ds-icon"></i> Tes Psikologi</a>
+    <a href="/hasil-tes" class="student-only" hidden><i data-lucide="bar-chart-3" class="ds-icon"></i> Hasil Tes</a>
     <a href="/survey" class="student-only" hidden><i data-lucide="clipboard-check" class="ds-icon"></i> Survei Karakteristik</a>
-    <a href="/profile"><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
+    <a href="/profile" class="student-only" hidden><i data-lucide="user" class="ds-icon"></i> Data Profile</a>
     <a href="/notifications"><i data-lucide="bell" class="ds-icon"></i> Notifikasi</a>
     <details class="ds-submenu">
               <summary><i data-lucide="settings" class="ds-icon"></i> Pengaturan <i data-lucide="chevron-down" class="ds-caret"></i></summary>
@@ -92,7 +97,6 @@
       <summary><i data-lucide="shield" class="ds-icon"></i> Admin <i data-lucide="chevron-down" class="ds-caret"></i></summary>
       <div class="ds-subnav">
         <a href="/admin/psychotest"><i data-lucide="layout-grid" class="ds-icon"></i> Dashboard Admin</a>
-        <a href="/admin/psychotest/batches"><i data-lucide="folder-open" class="ds-icon"></i> Daftar Batch</a>
         <a href="/admin/psychotest/batches/add" class="strict-admin-only"><i data-lucide="plus-circle" class="ds-icon"></i> Tambah Batch</a>
               <a href="/admin/schools" class="strict-admin-only"><i data-lucide="school" class="ds-icon"></i> Akun Sekolah</a>
       </div>

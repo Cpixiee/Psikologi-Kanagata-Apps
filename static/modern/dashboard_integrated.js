@@ -867,7 +867,12 @@
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;
       const kelas = b.kelas || "";
       const jurusan = b.jurusan || "";
-      const subtitle = [kelas ? "Kelas " + kelas : "", jurusan].filter(Boolean).join(" \u2022 ") || b.institution || "-";
+      var batchTitle = b.name || b.tahun_ajaran || "-";
+      var subList = [];
+      if (b.name && b.tahun_ajaran) subList.push(b.tahun_ajaran);
+      if (kelas) subList.push("Kelas " + kelas);
+      if (jurusan) subList.push(jurusan);
+      const subtitle = subList.join(" • ") || b.institution || "-";
 
       const card = document.createElement("div");
       card.className = "batch-card";
@@ -895,7 +900,7 @@
           '</div>' +
         '</div>';
 
-      card.querySelector(".batch-card-title-text").textContent = b.tahun_ajaran || b.name || "-";
+      card.querySelector(".batch-card-title-text").textContent = batchTitle;
       card.querySelector(".batch-card-subtitle-text").textContent = subtitle;
 
       card.addEventListener("click", function() {

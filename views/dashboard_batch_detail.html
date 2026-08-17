@@ -1087,8 +1087,13 @@
           var typeKey = getBatchType(b);
           var typeName = getBatchTypeName(typeKey);
           var kelas = b.kelas ? 'Kelas ' + b.kelas : '';
-          var meta = [b.tahun_ajaran || b.name || '', kelas, b.jurusan || ''].filter(Boolean).join(' • ');
-          q('#batchHeaderName').textContent = b.tahun_ajaran || b.name || 'Batch Tes';
+          var batchTitle = b.name || b.tahun_ajaran || 'Batch Tes';
+          var metaList = [];
+          if (b.name && b.tahun_ajaran) metaList.push(b.tahun_ajaran);
+          if (kelas) metaList.push(kelas);
+          if (b.jurusan) metaList.push(b.jurusan);
+          var meta = metaList.join(' • ') || b.institution || '';
+          q('#batchHeaderName').textContent = batchTitle;
           q('#batchHeaderBadge').textContent = typeName;
           q('#batchHeaderMeta').textContent = meta;
         } catch(e) { console.error(e); }

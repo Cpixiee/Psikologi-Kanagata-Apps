@@ -111,7 +111,7 @@
                       <h5 class="mb-1">Hasil Tes Kraepelin</h5>
                       <p class="mb-0 text-muted">Yang ditampilkan: total benar/salah/kosong dan grafik 40 raw data.</p>
                     </div>
-                    <button class="btn btn-outline-primary btn-sm" id="kraepelinViewBtn" style="display:none;" onclick="showKraepelinDetail()"><i class="bx bx-show me-1"></i> Lihat Detail</button>
+                    <a class="btn btn-outline-primary btn-sm" id="downloadBtn" style="display:none;"><i class="bx bx-download me-1"></i> Unduh Laporan Lengkap (ZIP)</a>
                   </div>
                 </div>
 
@@ -177,30 +177,6 @@
     <script src="/static/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
     <script src="/static/sneat/assets/vendor/js/menu.js"></script>
     <script src="/static/sneat/assets/js/main.js"></script>
-
-    <!-- Kraepelin Detail Modal -->
-    <div class="modal fade" id="kraepelinDetailModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-          <div class="modal-header border-bottom px-4 py-3">
-            <div>
-              <h5 class="modal-title fw-bold" style="margin: 0;">Detail Hasil Tes Kraepelin</h5>
-              <p class="text-muted mb-0 font-size-12" style="font-size: 12.5px;">Laporan evaluasi kecepatan, ketelitian, ketahanan, dan konsentrasi kerja Kraepelin.</p>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body p-4" id="kraepelinDetailModalBody">
-            <!-- Rendered dynamically -->
-          </div>
-          <div class="modal-footer border-top justify-content-start px-4 py-3">
-            <a id="modalDownloadBtn" class="btn btn-primary d-inline-flex align-items-center justify-content-center" style="font-weight: 600; border-radius: 8px; padding: 10px 20px; gap: 8px;" href="#" target="_blank">
-              <i class="bx bx-download" style="font-size: 1.15rem;"></i>
-              <span>Unduh Laporan Lengkap (ZIP)</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <script>
       let lineChart = null;
@@ -272,15 +248,13 @@
         document.getElementById('mCorrect').textContent = Number(k.total_correct || 0);
         document.getElementById('mErrors').textContent = Number(k.total_errors || 0);
         document.getElementById('mSkipped').textContent = Number(k.total_skipped || 0);
-        const viewBtn = document.getElementById('kraepelinViewBtn');
-        if (viewBtn) {
-          if (window.currentUser && window.currentUser.role === 'siswa' && !window.currentUser.is_impersonated) {
-            viewBtn.style.display = 'none';
-          } else {
-            viewBtn.style.display = 'inline-block';
-          }
+        const btn = document.getElementById('downloadBtn');
+        if (window.currentUser && window.currentUser.role === 'siswa' && !window.currentUser.is_impersonated) {
+          btn.style.display = 'none';
+        } else {
+          btn.style.display = 'inline-block';
+          btn.href = `/api/results/export-zip?invId=${encodeURIComponent(k.invitation_id)}&test=keseluruhan`;
         }
-        window.lastKraepelinData = k;
 
         const counts = Array.isArray(k.correct_counts) ? k.correct_counts : [];
         const safeCounts = (counts.length === 40) ? counts : Array.from({length: 40}, () => 0);
@@ -289,98 +263,6 @@
         if (k.invitation_id) {
           loadCombinedSummaryInTab(k.invitation_id, 'kraepelinKeseluruhanContent');
         }
-      }
-
-      function showKraepelinDetail() {
-        if (!window.lastKraepelinData) return;
-        const k = window.lastKraepelinData;
-        const invId = k.invitation_id || '';
-
-        const modalEl = document.getElementById('kraepelinDetailModal');
-        if (!modalEl) return;
-
-        const downloadLink = document.getElementById('modalDownloadBtn');
-        if (downloadLink && invId) {
-          downloadLink.href = `/api/results/export-zip?invId=${encodeURIComponent(invId)}&test=keseluruhan`;
-        }
-
-        const modalBody = document.getElementById('kraepelinDetailModalBody');
-        modalBody.innerHTML = `
-          <div class="row g-3 mb-4">
-            <div class="col-md-4">
-              <div class="metric text-center p-3" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
-                <div class="k text-muted font-size-12 fw-bold text-uppercase" style="font-size:11px; letter-spacing:0.05em;">Total Benar (Kecepatan)</div>
-                <div class="v text-primary fw-bold" style="font-size:28px;">${Number(k.total_correct || 0)}</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="metric text-center p-3" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
-                <div class="k text-muted font-size-12 fw-bold text-uppercase" style="font-size:11px; letter-spacing:0.05em;">Total Salah (Ketelitian)</div>
-                <div class="v text-danger fw-bold" style="font-size:28px;">${Number(k.total_errors || 0)}</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="metric text-center p-3" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
-                <div class="k text-muted font-size-12 fw-bold text-uppercase" style="font-size:11px; letter-spacing:0.05em;">Total Kosong (Ketahanan)</div>
-                <div class="v text-warning fw-bold" style="font-size:28px;">${Number(k.total_skipped || 0)}</div>
-              </div>
-            </div>
-          </div>
-          <div class="card p-3 mb-4" style="border-radius:12px; border:1px solid #e2e8f0;">
-            <h6 class="fw-bold mb-3"><i class="bx bx-bar-chart-alt-2 me-1 text-primary"></i> Grafik Performansi (40 Lajur Kraepelin)</h6>
-            <div style="height: 250px; position: relative;">
-              <canvas id="modalKraepelinChart"></canvas>
-            </div>
-          </div>
-          <div class="card p-3" style="border-radius:12px; border:1px solid #e2e8f0;">
-            <h6 class="fw-bold mb-2"><i class="bx bx-sparkles me-1 text-primary"></i> Laporan Keseluruhan &amp; Evaluasi Kraepelin</h6>
-            <div id="modalKraepelinSummary">
-              <div class="text-center py-3">
-                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                <span class="ms-2 text-muted">Memuat laporan naratif AI...</span>
-              </div>
-            </div>
-          </div>
-        `;
-
-        const bsModal = new bootstrap.Modal(modalEl);
-        bsModal.show();
-
-        setTimeout(() => {
-          const ctx = document.getElementById('modalKraepelinChart');
-          if (ctx) {
-            const counts = Array.isArray(k.correct_counts) ? k.correct_counts : [];
-            const safeCounts = (counts.length === 40) ? counts : Array.from({length: 40}, () => 0);
-            new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels: Array.from({length: 40}, (_, i) => i + 1),
-                datasets: [{
-                  label: 'Jawaban Benar',
-                  data: safeCounts,
-                  borderColor: '#6366f1',
-                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                  fill: true,
-                  tension: 0.3,
-                  pointRadius: 2
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: { beginAtZero: true, ticks: { precision: 0 } },
-                  x: { grid: { display: false } }
-                },
-                plugins: { legend: { display: false } }
-              }
-            });
-          }
-
-          if (invId) {
-            loadCombinedSummaryInTab(invId, 'modalKraepelinSummary');
-          }
-        }, 300);
       }
 
       document.addEventListener('DOMContentLoaded', async function () {

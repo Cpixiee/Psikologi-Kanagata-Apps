@@ -1273,15 +1273,19 @@
 
         if (testKey === 'ist') {
           var keys = ['SE','WA','AN','GE','RA','ZA','FA','WU','ME'];
-          var lbls = ['Common Sense','Verbal','Analogi','Konseptual','Logika Mat.','Numerikal','Figural','Spasial','Memori'];
+          var lbls = ['Common Sense (SE)','Verbal (WA)','Analogi (AN)','Konseptual (GE)','Logika Mat. (RA)','Numerikal (ZA)','Figural (FA)','Spasial (WU)','Memori (ME)'];
           var sums = keys.map(function(){return 0;}), cnt = 0;
+          var totalIQ = 0;
           done.forEach(function(r){
             if (!r.ist_result||!r.ist_result.id) return; cnt++;
             var ist=r.ist_result;
+            totalIQ += (ist.iq || 0);
             [ist.raw_se,ist.raw_wa,ist.raw_an,ist.raw_ge,ist.raw_ra,ist.raw_za,ist.raw_fa,ist.raw_wu,ist.raw_me].forEach(function(v,i){sums[i]+=(v||0);});
           });
           var avgs=cnt>0?sums.map(function(s){return Math.round(s/cnt);}):sums;
-          q('#summaryChartLabel_' + testKey).textContent='Rata-rata Raw Score IST (n='+cnt+')';
+          var avgIQ = cnt>0?Math.round(totalIQ/cnt):0;
+          q('#summaryChartLabel_' + testKey).textContent='Rata-rata Raw Score IST (n='+cnt+') — Avg IQ: ' + avgIQ;
+          var istColors = ['#6366f1', '#06b6d4', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316'];
           chartCfg={
             type:'bar',
             data:{
@@ -1289,10 +1293,10 @@
               datasets:[{
                 label:'Avg Raw',
                 data:avgs,
-                backgroundColor:'rgba(71, 85, 105, 0.8)',
-                borderColor:'#475569',
+                backgroundColor:istColors,
+                borderColor:istColors,
                 borderWidth:1.5,
-                borderRadius:4
+                borderRadius:6
               }]
             },
             options:BAR_OPTIONS
@@ -1307,7 +1311,7 @@
           });
           var havgs=hcnt>0?hsums.map(function(s){return Math.round(s/hcnt);}):hsums;
           q('#summaryChartLabel_' + testKey).textContent='Rata-rata Skor Holland RIASEC (n='+hcnt+')';
-          var hcolors = ['rgba(71,85,105,0.8)', 'rgba(13,148,136,0.8)', 'rgba(59,130,246,0.8)', 'rgba(5,150,105,0.8)', 'rgba(217,119,6,0.8)', 'rgba(219,39,119,0.8)'];
+          var hcolors = ['#475569', '#0d9488', '#3b82f6', '#10b981', '#f59e0b', '#db2777'];
           chartCfg={
             type:'bar',
             data:{
@@ -1316,9 +1320,9 @@
                 label:'Avg',
                 data:havgs,
                 backgroundColor:hcolors,
-                borderColor:hcolors.map(function(c){return c.replace('0.8','1.0');}),
+                borderColor:hcolors,
                 borderWidth:1.5,
-                borderRadius:4
+                borderRadius:6
               }]
             },
             options:BAR_OPTIONS
@@ -1334,7 +1338,7 @@
           });
           var lavg=lcnt>0?ls.map(function(s){return Math.round(s/lcnt);}):ls;
           q('#summaryChartLabel_' + testKey).textContent='Rata-rata Skor Gaya Belajar (n='+lcnt+')';
-          var lcolors = ['rgba(71,85,105,0.8)', 'rgba(217,119,6,0.8)', 'rgba(5,150,105,0.8)'];
+          var lcolors = ['#3b82f6', '#f59e0b', '#10b981'];
           chartCfg={
             type:'bar',
             data:{
@@ -1343,9 +1347,9 @@
                 label:'Avg',
                 data:lavg,
                 backgroundColor:lcolors,
-                borderColor:lcolors.map(function(c){return c.replace('0.8','1.0');}),
+                borderColor:lcolors,
                 borderWidth:1.5,
-                borderRadius:4
+                borderRadius:6
               }]
             },
             options:BAR_OPTIONS
@@ -1356,25 +1360,26 @@
           done.forEach(function(r){if(!r.rmib_result||!r.rmib_result.id)return;rcnt++;var d=r.rmib_result.dominant_category||'—';rc[d]=(rc[d]||0)+1;});
           var rL=Object.keys(rc),rD=rL.map(function(k){return rc[k];});
           q('#summaryChartLabel_' + testKey).textContent='Distribusi Minat Dominan RMIB (n='+rcnt+')';
+          var rmibColors = ['#6366f1', '#06b6d4', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#a855f7', '#0284c7', '#e11d48'];
           chartCfg={
             type:'doughnut',
             data:{
               labels:rL,
               datasets:[{
                 data:rD,
-                backgroundColor:MODERN_PALETTE
+                backgroundColor:rmibColors
               }]
             },
             options:{
               responsive:true,
               maintainAspectRatio:false,
-              cutout:'70%',
+              cutout:'65%',
               plugins:{
                 legend:{
                   position:'bottom',
                   labels:{
                     usePointStyle:true,
-                    padding:16,
+                    padding:14,
                     font:{family:"'Inter', sans-serif",size:11,weight:600}
                   }
                 }
@@ -1387,25 +1392,26 @@
           done.forEach(function(r){if(!r.papi_result||!r.papi_result.id)return;pcnt++;var d=r.papi_result.dominant_category||'—';pc[d]=(pc[d]||0)+1;});
           var pL=Object.keys(pc),pD=pL.map(function(k){return pc[k];});
           q('#summaryChartLabel_' + testKey).textContent='Distribusi Tipe Dominan PAPI-Kostick (n='+pcnt+')';
+          var papiColors = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#06b6d4', '#f97316', '#a855f7'];
           chartCfg={
             type:'doughnut',
             data:{
               labels:pL,
               datasets:[{
                 data:pD,
-                backgroundColor:MODERN_PALETTE
+                backgroundColor:papiColors
               }]
             },
             options:{
               responsive:true,
               maintainAspectRatio:false,
-              cutout:'70%',
+              cutout:'65%',
               plugins:{
                 legend:{
                   position:'bottom',
                   labels:{
                     usePointStyle:true,
-                    padding:16,
+                    padding:14,
                     font:{family:"'Inter', sans-serif",size:11,weight:600}
                   }
                 }
@@ -1418,7 +1424,7 @@
           done.forEach(function(r){if(!r.kraepelin_attempt||!r.kraepelin_attempt.id||r.kraepelin_attempt.status!=='finished')return;kcnt++;kC+=(r.kraepelin_attempt.total_correct||0);kE+=(r.kraepelin_attempt.total_errors||0);kS+=(r.kraepelin_attempt.total_skipped||0);});
           if(kcnt>0){kC=Math.round(kC/kcnt);kE=Math.round(kE/kcnt);kS=Math.round(kS/kcnt);}
           q('#summaryChartLabel_' + testKey).textContent='Rata-rata Skor Performansi Kraepelin (n='+kcnt+')';
-          var krcolors = ['rgba(5,150,105,0.8)', 'rgba(239,68,68,0.8)', 'rgba(217,119,6,0.8)'];
+          var krcolors = ['#10b981', '#ef4444', '#f59e0b'];
           chartCfg={
             type:'bar',
             data:{
@@ -1427,9 +1433,9 @@
                 label:'Avg',
                 data:[kC,kE,kS],
                 backgroundColor:krcolors,
-                borderColor:krcolors.map(function(c){return c.replace('0.8','1.0');}),
+                borderColor:krcolors,
                 borderWidth:1.5,
-                borderRadius:4
+                borderRadius:6
               }]
             },
             options:BAR_OPTIONS
@@ -1519,14 +1525,120 @@
           });
           q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
 
-          // Build top performers
-          var allRanked = done.map(function(r) {
-            return { name: getStudentName(r), score: getStudentScore(r, testKey), result: r };
-          }).sort(function(a,b){ return b.score - a.score; });
-
+          // Build top performers / top category percentage distribution
           var topPerf = q('#topPerformers_' + testKey);
-          if (allRanked.length > 0) {
-            topPerf.style.display = '';
+          topPerf.style.display = '';
+
+          if (testKey === 'ist') {
+            // IST Explanation & Avg IQ
+            var istDict = {
+              'SE': { name: 'Satuansuchen', label: 'Penalaran Verbal & Logika Bahasa' },
+              'WA': { name: 'Wortauswahl', label: 'Kosa Kata & Fleksibilitas Berpikir' },
+              'AN': { name: 'Analogien', label: 'Analogi & Hubungan Kata' },
+              'GE': { name: 'Gemeinsamkeiten', label: 'Konseptual Abstrak & Generalisasi' },
+              'RA': { name: 'Rechenaufgaben', label: 'Berhitung Matematika Praktis' },
+              'ZA': { name: 'Zahlenreihen', label: 'Logika Deret Angka' },
+              'FA': { name: 'Figurenauswahl', label: 'Spasial 2D & Integrasi Visual' },
+              'WU': { name: 'Würfelaufgaben', label: 'Rotasi Ruang 3D' },
+              'ME': { name: 'Merkaufgaben', label: 'Daya Ingat & Memori Jangka Pendek' }
+            };
+            var totalIQAll = 0, countIQ = 0;
+            var subSums = {SE:0,WA:0,AN:0,GE:0,RA:0,ZA:0,FA:0,WU:0,ME:0};
+            done.forEach(function(r) {
+              if (r.ist_result && r.ist_result.iq) {
+                totalIQAll += r.ist_result.iq;
+                countIQ++;
+                subSums.SE += (r.ist_result.raw_se || 0);
+                subSums.WA += (r.ist_result.raw_wa || 0);
+                subSums.AN += (r.ist_result.raw_an || 0);
+                subSums.GE += (r.ist_result.raw_ge || 0);
+                subSums.RA += (r.ist_result.raw_ra || 0);
+                subSums.ZA += (r.ist_result.raw_za || 0);
+                subSums.FA += (r.ist_result.raw_fa || 0);
+                subSums.WU += (r.ist_result.raw_wu || 0);
+                subSums.ME += (r.ist_result.raw_me || 0);
+              }
+            });
+            var avgIQVal = countIQ > 0 ? Math.round(totalIQAll / countIQ) : 0;
+            var iqCatText = 'Rata-rata';
+            if (avgIQVal > 120) iqCatText = 'Sangat Tinggi / Superior';
+            else if (avgIQVal >= 110) iqCatText = 'Tinggi / Rata-rata Atas';
+            else if (avgIQVal >= 90) iqCatText = 'Rata-rata';
+            else iqCatText = 'Rata-rata Bawah';
+
+            var maxSubKey = 'SE', maxSubVal = -1;
+            Object.keys(subSums).forEach(function(k) {
+              if (subSums[k] > maxSubVal) { maxSubVal = subSums[k]; maxSubKey = k; }
+            });
+            var subInfo = istDict[maxSubKey] || { name: maxSubKey, label: 'Dominan Intelegensi' };
+
+            var istHtml = '<div class="perf-title"><i data-lucide="brain-circuit" style="width:14px;height:14px;color:#4f46e5;"></i> Rata-rata IQ & Dominan Intelegensi Kelas</div>';
+            istHtml += '<div style="background:linear-gradient(135deg,#e0e7ff 0%,#ede9fe 100%); border:1px solid #c7d2fe; border-radius:10px; padding:12px; margin-bottom:10px;">';
+            istHtml += '  <div style="display:flex; justify-content:space-between; align-items:center;">';
+            istHtml += '    <span style="font-size:12.5px; font-weight:700; color:#3730a3;">Rata-rata IQ Kelas</span>';
+            istHtml += '    <span style="background:#4338ca; color:#fff; font-weight:800; font-size:13px; padding:3px 10px; border-radius:12px;">IQ: ' + avgIQVal + ' (' + iqCatText + ')</span>';
+            istHtml += '  </div>';
+            istHtml += '  <div style="font-size:12px; color:#1e1b4b; margin-top:8px; line-height:1.5;">';
+            istHtml += '    <b>Subtes Dominan Rata-rata:</b> <span style="background:#4f46e5; color:#fff; font-weight:700; padding:1px 6px; border-radius:4px; font-size:11px;">' + maxSubKey + '</span> <b>' + subInfo.name + '</b> — <i>' + subInfo.label + '</i>';
+            istHtml += '  </div>';
+            istHtml += '</div>';
+            istHtml += '<div style="font-size:11px; color:#64748b; line-height:1.4; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">';
+            istHtml += '  <b>Panduan Subtes IST:</b> SE (Penalaran Verbal), WA (Kosa Kata), AN (Analogi), GE (Konseptual Abstrak), RA (Matematika), ZA (Deret Angka), FA (Spasial 2D), WU (Rotasi 3D), ME (Memori Daya Ingat).';
+            istHtml += '</div>';
+            topPerf.innerHTML = istHtml;
+
+          } else if (testKey === 'holland' || testKey === 'learning_style' || testKey === 'rmib' || testKey === 'papi') {
+            // TOP CATEGORY PERCENTAGE DISTRIBUTION
+            var catFreq = {};
+            var totalStudentsWithResult = 0;
+
+            done.forEach(function(r) {
+              var cat = 'Lainnya';
+              if (testKey === 'holland' && r.holland_result && r.holland_result.code) {
+                cat = r.holland_result.code;
+              } else if (testKey === 'learning_style' && r.learning_style_result) {
+                var lsRes = r.learning_style_result;
+                var maxScore = Math.max(lsRes.score_visual||0, lsRes.score_auditory||0, lsRes.score_kinesthetic||0);
+                if (maxScore === lsRes.score_visual) cat = 'Visual';
+                else if (maxScore === lsRes.score_auditory) cat = 'Auditori';
+                else cat = 'Kinestetik';
+              } else if (testKey === 'rmib' && r.rmib_result && r.rmib_result.dominant_category) {
+                cat = r.rmib_result.dominant_category;
+              } else if (testKey === 'papi' && r.papi_result && r.papi_result.dominant_category) {
+                cat = r.papi_result.dominant_category;
+              }
+              catFreq[cat] = (catFreq[cat] || 0) + 1;
+              totalStudentsWithResult++;
+            });
+
+            var sortedCats = Object.keys(catFreq).map(function(k) {
+              return { code: k, count: catFreq[k], pct: totalStudentsWithResult > 0 ? Math.round((catFreq[k] / totalStudentsWithResult) * 100) : 0 };
+            }).sort(function(a,b){ return b.count - a.count; });
+
+            var titleText = 'Top Kategori Minat — Persentase Kelas';
+            if (testKey === 'learning_style') titleText = 'Top Gaya Belajar Dominan — Persentase Kelas';
+            if (testKey === 'rmib') titleText = 'Top Kategori Minat RMIB — Persentase Kelas';
+            if (testKey === 'papi') titleText = 'Top Tipe Kepribadian PAPI — Persentase Kelas';
+
+            var catHtml = '<div class="perf-title"><i data-lucide="pie-chart" style="width:13px;height:13px;color:#4f46e5;"></i> ' + titleText + '</div><div class="perf-list">';
+            var badgeColors = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#db2777'];
+            sortedCats.slice(0, 4).forEach(function(item, idx) {
+              var color = badgeColors[idx % badgeColors.length];
+              catHtml += '<div class="perf-item" style="padding:6px 10px;">' +
+                '<div class="perf-item-rank" style="background:' + color + '; color:#fff; font-weight:700;">' + (idx + 1) + '</div>' +
+                '<span class="perf-item-name" style="font-weight:700; color:#1e293b;">' + esc(item.code) + '</span>' +
+                '<span class="perf-item-score" style="background:#e0e7ff; color:#3730a3; font-weight:800; font-size:12px;">' + item.pct + '% (' + item.count + ' siswa)</span>' +
+              '</div>';
+            });
+            catHtml += '</div>';
+            topPerf.innerHTML = catHtml;
+
+          } else {
+            // Default top performers for Kraepelin
+            var allRanked = done.map(function(r) {
+              return { name: getStudentName(r), score: getStudentScore(r, testKey), result: r };
+            }).sort(function(a,b){ return b.score - a.score; });
+
             var rankClasses = ['gold', 'silver', 'bronze'];
             var topN = allRanked.slice(0, Math.min(3, allRanked.length));
             var topHtml = '<div class="perf-title"><i data-lucide="trophy" style="width:13px;height:13px;color:#d97706;"></i> Top Performer — Skor Tertinggi</div><div class="perf-list">';

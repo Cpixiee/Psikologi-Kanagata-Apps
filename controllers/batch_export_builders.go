@@ -384,7 +384,7 @@ func buildKraepelinResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.
 	_ = f.SetColWidth(sheet, "D", "D", 14)
 
 	_ = f.MergeCell(sheet, "A1", "D1")
-	_ = f.SetCellValue(sheet, "A1", "HASIL TES KRAEPELIN (PAULI)")
+	_ = f.SetCellValue(sheet, "A1", "HASIL TES KRAEPELIN")
 	_ = f.SetCellStyle(sheet, "A1", "D1", styleTitle)
 	_ = f.SetRowHeight(sheet, 1, 26)
 

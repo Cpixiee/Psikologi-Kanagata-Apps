@@ -1081,8 +1081,16 @@
           if (!data.success || !data.data) return;
           var b = data.data;
           _batchData = b;
-          var typeKey = getBatchType(b);
-          var typeName = getBatchTypeName(typeKey);
+          var activeKeys = getActiveTests(b);
+          var badgeText = '';
+          if (activeKeys.length > 1) {
+            var activeNames = activeKeys.map(function(k) { return getBatchTypeName(k); });
+            badgeText = activeKeys.length + ' Tes Psikotes (' + activeNames.join(', ') + ')';
+          } else if (activeKeys.length === 1) {
+            badgeText = getBatchTypeName(activeKeys[0]);
+          } else {
+            badgeText = 'Batch Tes';
+          }
           var kelas = b.kelas ? 'Kelas ' + b.kelas : '';
           var batchTitle = b.name || b.tahun_ajaran || 'Batch Tes';
           var metaList = [];
@@ -1091,7 +1099,7 @@
           if (b.jurusan) metaList.push(b.jurusan);
           var meta = metaList.join(' • ') || b.institution || '';
           q('#batchHeaderName').textContent = batchTitle;
-          q('#batchHeaderBadge').textContent = typeName;
+          q('#batchHeaderBadge').textContent = badgeText;
           q('#batchHeaderMeta').textContent = meta;
         } catch(e) { console.error(e); }
       }
@@ -1531,6 +1539,10 @@
           var topPerf = q('#topPerformers_' + testKey);
           topPerf.style.display = '';
 
+          var allRanked = done.map(function(r) {
+            return { name: getStudentName(r), score: getStudentScore(r, testKey), result: r };
+          }).sort(function(a,b){ return b.score - a.score; });
+
           if (testKey === 'ist') {
             // IST Explanation & Avg IQ
             var istDict = {
@@ -1637,10 +1649,6 @@
 
           } else {
             // Default top performers for Kraepelin
-            var allRanked = done.map(function(r) {
-              return { name: getStudentName(r), score: getStudentScore(r, testKey), result: r };
-            }).sort(function(a,b){ return b.score - a.score; });
-
             var rankClasses = ['gold', 'silver', 'bronze'];
             var topN = allRanked.slice(0, Math.min(3, allRanked.length));
             var topHtml = '<div class="perf-title"><i data-lucide="trophy" style="width:13px;height:13px;color:#d97706;"></i> Top Performer — Skor Tertinggi</div><div class="perf-list">';

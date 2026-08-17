@@ -68,7 +68,7 @@ func geminiAPIKey() string {
 	} else if v, _ := beego.AppConfig.String("GEMINI_API_KEY"); strings.TrimSpace(v) != "" {
 		key = strings.TrimSpace(v)
 	}
-	if key == "" || key == "your_gemini_api_key_here" || strings.HasPrefix(key, "AQ.") {
+	if key == "" || key == "your_gemini_api_key_here" {
 		return ""
 	}
 	return key
@@ -87,7 +87,7 @@ func (c *AIController) requireAuth() bool {
 func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, int, error) {
 	apiKey := geminiAPIKey()
 	if apiKey == "" {
-		return "", 400, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi dengan Kunci Google AI Studio (AIzaSy...) pada file .env.docker")
+		return "", 400, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi pada file .env.docker")
 	}
 
 	primaryModel := getGeminiModel()

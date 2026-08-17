@@ -48,9 +48,6 @@ BASE_URL="${BASE_URL:-https://psikotes.kanagata.co.id}"
 
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 GEMINI_MODEL="${GEMINI_MODEL:-gemini-1.5-flash}"
-case "$GEMINI_MODEL" in
-  gemini-2.*) GEMINI_MODEL="gemini-1.5-flash" ;;
-esac
 
 update_ini "httpport" "$APP_HTTP_PORT"
 update_ini "runmode" "$APP_RUNMODE"

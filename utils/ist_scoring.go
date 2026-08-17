@@ -107,19 +107,26 @@ func GetIQCategory(iq int) string {
 }
 
 func normalizeNormAge(age int) int {
-	if age <= 12 {
+	switch {
+	case age <= 12:
 		return 12
-	}
-	if age == 13 {
+	case age == 13:
 		return 13
-	}
-	if age >= 46 && age <= 50 {
+	case age == 14:
+		return 14
+	case age == 15 || age == 16:
+		return 15
+	case age == 17:
+		return 17
+	case age >= 18 && age <= 20:
+		return 18
+	case age >= 46 && age <= 50:
 		return 45
-	}
-	if age > 60 {
+	case age > 60:
 		return 60
+	default:
+		return age
 	}
-	return age
 }
 
 // totalSWFromSumRW implements the JUMLAH (TOTAL) RW->SW table from the user's screenshot.
@@ -139,6 +146,28 @@ func totalSWFromSumRW(normAge int, sumRW int) (int, bool) {
 			{121, 133}, {111, 128}, {101, 122}, {91, 117}, {81, 111},
 			{71, 106}, {61, 100}, {51, 94}, {41, 89}, {31, 83},
 			{21, 78}, {11, 72}, {1, 67},
+		},
+		"14": {
+			{131, 134}, {121, 129}, {111, 124}, {101, 118}, {91, 113},
+			{81, 108}, {71, 103}, {61, 97}, {51, 92}, {41, 87},
+			{31, 82}, {21, 76}, {11, 71}, {1, 66},
+		},
+		"15": {
+			{141, 134}, {131, 129}, {121, 124}, {111, 119}, {101, 114},
+			{91, 109}, {81, 104}, {71, 99}, {61, 94}, {51, 89},
+			{41, 84}, {31, 79}, {21, 74}, {11, 69}, {1, 64},
+		},
+		"17": {
+			{171, 138}, {161, 133}, {151, 129}, {141, 125}, {131, 120},
+			{121, 116}, {111, 112}, {101, 107}, {91, 103}, {81, 99},
+			{71, 94}, {61, 90}, {51, 86}, {41, 80}, {31, 77},
+			{21, 73}, {11, 68}, {1, 63},
+		},
+		"18": {
+			{171, 135}, {161, 131}, {151, 127}, {141, 123}, {131, 118},
+			{121, 114}, {111, 110}, {101, 106}, {91, 102}, {81, 98},
+			{71, 93}, {61, 89}, {51, 85}, {41, 81}, {31, 77},
+			{21, 73}, {11, 68}, {1, 64},
 		},
 		"21-25": {
 			{171, 132}, {161, 128}, {151, 124}, {141, 120}, {131, 117}, {121, 113}, {111, 109}, {101, 105},
@@ -171,6 +200,14 @@ func totalSWFromSumRW(normAge int, sumRW int) (int, bool) {
 		key = "12"
 	case normAge == 13:
 		key = "13"
+	case normAge == 14:
+		key = "14"
+	case normAge == 15 || normAge == 16:
+		key = "15"
+	case normAge == 17:
+		key = "17"
+	case normAge >= 18 && normAge <= 20:
+		key = "18"
 	case normAge >= 21 && normAge <= 25:
 		key = "21-25"
 	case normAge >= 26 && normAge <= 30:
@@ -184,7 +221,7 @@ func totalSWFromSumRW(normAge int, sumRW int) (int, bool) {
 	case normAge >= 51 && normAge <= 60:
 		key = "51-60"
 	default:
-		key = "12"
+		key = "18"
 	}
 	bs := table[key]
 	if sumRW <= 0 {

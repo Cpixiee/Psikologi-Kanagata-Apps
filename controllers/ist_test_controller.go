@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -932,14 +931,7 @@ func (c *ISTTestController) SubmitSubtestAPI() {
 	}
 
 	if code == "GE" {
-		raw := int(math.Round(float64(gePoints) / 1.6))
-		if raw < 0 {
-			raw = 0
-		}
-		if raw > 20 {
-			raw = 20
-		}
-		rawScore = raw
+		rawScore = utils.ConvertGEPointsToRW(gePoints)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -1303,14 +1295,7 @@ func (c *ISTTestController) DevAutoFill() {
 		}
 
 		if code == "GE" {
-			raw := int(math.Round(float64(gePoints) / 1.6))
-			if raw < 0 {
-				raw = 0
-			}
-			if raw > 20 {
-				raw = 20
-			}
-			rawScore = raw
+			rawScore = utils.ConvertGEPointsToRW(gePoints)
 		}
 
 		// Update raw score di result
@@ -2207,14 +2192,7 @@ func (c *ISTTestController) AutoCompleteAllSubtestsAPI() {
 			_, _ = o.Insert(&istAns)
 		}
 		if code == "GE" {
-			raw := int(math.Round(float64(gePoints) / 1.6))
-			if raw < 0 {
-				raw = 0
-			}
-			if raw > 20 {
-				raw = 20
-			}
-			rawScore = raw
+			rawScore = utils.ConvertGEPointsToRW(gePoints)
 		}
 
 		// Update ISTResult dengan raw score

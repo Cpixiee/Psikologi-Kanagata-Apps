@@ -39,12 +39,85 @@ func normSubtestTryCodes(code string) []string {
 // - usia 46-50 tahun: gunakan norma 41-45
 // Catatan: kita mengembalikan "representative age" yang berada di range target
 // supaya query (AgeMin__lte, AgeMax__gte) tetap match.
+// ConvertGEPointsToRW mengonversi jumlah poin item GE (0-32) menjadi Raw Score (RW: 1-20)
+// berdasarkan tabel konversi resmi subtes GE.
+func ConvertGEPointsToRW(pts int) int {
+	switch {
+	case pts >= 31: // >31 (32)
+		return 20
+	case pts == 30:
+		return 19
+	case pts == 29:
+		return 18
+	case pts == 28:
+		return 17
+	case pts == 27:
+		return 16
+	case pts >= 25: // 25-26
+		return 15
+	case pts >= 23: // 23-24
+		return 14
+	case pts >= 21: // 21-22
+		return 13
+	case pts >= 19: // 19-20
+		return 12
+	case pts >= 17: // 17-18
+		return 11
+	case pts >= 15: // 15-16
+		return 10
+	case pts >= 13: // 13-14
+		return 9
+	case pts >= 11: // 11-12
+		return 8
+	case pts >= 9:  // 9-10
+		return 7
+	case pts >= 7:  // 7-8
+		return 6
+	case pts >= 5:  // 5-6
+		return 5
+	case pts == 4:
+		return 4
+	case pts == 3:
+		return 3
+	case pts == 2:
+		return 2
+	default: // <= 1
+		return 1
+	}
+}
+
+// GetIQCategory mengembalikan deskripsi kategori IQ sesuai standar tabel laporan naratif IST.
+func GetIQCategory(iq int) string {
+	switch {
+	case iq >= 130:
+		return "Very Superior / Sangat Cerdas"
+	case iq >= 120:
+		return "Superior / Cerdas"
+	case iq >= 110:
+		return "High Average / Di atas rata-rata"
+	case iq >= 90:
+		return "Average / Rata - rata"
+	case iq >= 80:
+		return "Low Average / Di bawah rata-rata"
+	case iq >= 70:
+		return "Borderline / Lambat"
+	default:
+		return "Intellectual Deficient / Disabilitas Intelektual"
+	}
+}
+
 func normalizeNormAge(age int) int {
-	if age <= 20 {
-		return 21
+	if age <= 12 {
+		return 12
+	}
+	if age == 13 {
+		return 13
 	}
 	if age >= 46 && age <= 50 {
 		return 45
+	}
+	if age > 60 {
+		return 60
 	}
 	return age
 }
@@ -56,9 +129,17 @@ func totalSWFromSumRW(normAge int, sumRW int) (int, bool) {
 		min int
 		sw  int
 	}
-	// Buckets use "min RW" (lower bound). Example: 161-170 => min=161.
-	// Lookup rule: pick the bucket with the largest min <= sumRW.
 	table := map[string][]bucket{
+		"12": {
+			{121, 139}, {111, 133}, {101, 127}, {91, 121}, {81, 115},
+			{71, 109}, {61, 104}, {51, 98}, {41, 92}, {31, 86},
+			{21, 80}, {11, 74}, {1, 68},
+		},
+		"13": {
+			{121, 133}, {111, 128}, {101, 122}, {91, 117}, {81, 111},
+			{71, 106}, {61, 100}, {51, 94}, {41, 89}, {31, 83},
+			{21, 78}, {11, 72}, {1, 67},
+		},
 		"21-25": {
 			{171, 132}, {161, 128}, {151, 124}, {141, 120}, {131, 117}, {121, 113}, {111, 109}, {101, 105},
 			{91, 101}, {81, 97}, {71, 93}, {61, 90}, {51, 86}, {41, 82}, {31, 78}, {21, 74}, {11, 70}, {1, 67},
@@ -86,6 +167,10 @@ func totalSWFromSumRW(normAge int, sumRW int) (int, bool) {
 	}
 	key := ""
 	switch {
+	case normAge <= 12:
+		key = "12"
+	case normAge == 13:
+		key = "13"
 	case normAge >= 21 && normAge <= 25:
 		key = "21-25"
 	case normAge >= 26 && normAge <= 30:
@@ -99,7 +184,7 @@ func totalSWFromSumRW(normAge int, sumRW int) (int, bool) {
 	case normAge >= 51 && normAge <= 60:
 		key = "51-60"
 	default:
-		return 0, false
+		key = "12"
 	}
 	bs := table[key]
 	if sumRW <= 0 {
@@ -364,10 +449,12 @@ func EnsureISTStandardAndIQScores(o orm.Ormer, res *models.ISTResult, age int) (
 			if err3 == nil && fallbackNorm.Id != 0 {
 				res.IQ = fallbackNorm.IQ
 				res.IQCategory = fallbackNorm.Category
-			} else {
-				// Biarkan IQ tetap 0 sebagai indikator bahwa perhitungan tidak lengkap
 			}
 		}
+	}
+
+	if res.IQ > 0 {
+		res.IQCategory = GetIQCategory(res.IQ)
 	}
 
 	return res, nil

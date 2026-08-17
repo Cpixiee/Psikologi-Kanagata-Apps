@@ -1,0 +1,72 @@
+ws,age_min,age_max,iq,category
+# Universal IST NORMA IQ Table (WS -> IQ)
+140,12,60,160,Very Superior / Sangat Cerdas
+138,12,60,157,Very Superior / Sangat Cerdas
+136,12,60,154,Very Superior / Sangat Cerdas
+134,12,60,151,Very Superior / Sangat Cerdas
+132,12,60,145,Very Superior / Sangat Cerdas
+129,12,60,143,Very Superior / Sangat Cerdas
+128,12,60,142,Very Superior / Sangat Cerdas
+127,12,60,140,Very Superior / Sangat Cerdas
+126,12,60,139,Very Superior / Sangat Cerdas
+125,12,60,137,Very Superior / Sangat Cerdas
+124,12,60,136,Very Superior / Sangat Cerdas
+123,12,60,134,Very Superior / Sangat Cerdas
+122,12,60,133,Very Superior / Sangat Cerdas
+121,12,60,131,Very Superior / Sangat Cerdas
+120,12,60,130,Very Superior / Sangat Cerdas
+119,12,60,128,Superior / Cerdas
+118,12,60,127,Superior / Cerdas
+117,12,60,125,Superior / Cerdas
+116,12,60,124,Superior / Cerdas
+115,12,60,122,Superior / Cerdas
+114,12,60,121,Superior / Cerdas
+113,12,60,120,Superior / Cerdas
+112,12,60,118,High Average / Di atas rata-rata
+111,12,60,116,High Average / Di atas rata-rata
+110,12,60,115,High Average / Di atas rata-rata
+109,12,60,113,High Average / Di atas rata-rata
+108,12,60,112,High Average / Di atas rata-rata
+107,12,60,110,High Average / Di atas rata-rata
+106,12,60,109,Average / Rata - rata
+105,12,60,107,Average / Rata - rata
+104,12,60,106,Average / Rata - rata
+103,12,60,104,Average / Rata - rata
+102,12,60,103,Average / Rata - rata
+101,12,60,101,Average / Rata - rata
+100,12,60,100,Average / Rata - rata
+99,12,60,98,Average / Rata - rata
+98,12,60,97,Average / Rata - rata
+97,12,60,96,Average / Rata - rata
+96,12,60,94,Average / Rata - rata
+95,12,60,92,Average / Rata - rata
+94,12,60,91,Average / Rata - rata
+93,12,60,90,Average / Rata - rata
+92,12,60,88,Low Average / Di bawah rata-rata
+91,12,60,87,Low Average / Di bawah rata-rata
+90,12,60,85,Low Average / Di bawah rata-rata
+89,12,60,84,Low Average / Di bawah rata-rata
+88,12,60,82,Low Average / Di bawah rata-rata
+87,12,60,81,Low Average / Di bawah rata-rata
+86,12,60,79,Borderline / Lambat
+85,12,60,78,Borderline / Lambat
+84,12,60,76,Borderline / Lambat
+83,12,60,75,Borderline / Lambat
+82,12,60,73,Borderline / Lambat
+81,12,60,71,Borderline / Lambat
+80,12,60,70,Borderline / Lambat
+79,12,60,68,Intellectual Deficient / Disabilitas Intelektual
+78,12,60,67,Intellectual Deficient / Disabilitas Intelektual
+77,12,60,66,Intellectual Deficient / Disabilitas Intelektual
+76,12,60,64,Intellectual Deficient / Disabilitas Intelektual
+75,12,60,62,Intellectual Deficient / Disabilitas Intelektual
+74,12,60,61,Intellectual Deficient / Disabilitas Intelektual
+73,12,60,59,Intellectual Deficient / Disabilitas Intelektual
+72,12,60,58,Intellectual Deficient / Disabilitas Intelektual
+70,12,60,55,Intellectual Deficient / Disabilitas Intelektual
+68,12,60,52,Intellectual Deficient / Disabilitas Intelektual
+66,12,60,49,Intellectual Deficient / Disabilitas Intelektual
+64,12,60,46,Intellectual Deficient / Disabilitas Intelektual
+62,12,60,43,Intellectual Deficient / Disabilitas Intelektual
+60,12,60,40,Intellectual Deficient / Disabilitas Intelektual
+58,12,60,37,Intellectual Deficient / Disabilitas Intelektual

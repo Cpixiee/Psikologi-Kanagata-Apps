@@ -304,17 +304,24 @@ func (c *AIController) TestSummary() {
 	}
 
 	// Caching logic
-	cacheKey := getCacheHash(req.Result)
+	var cacheKey string
+	if len(req.AllResults) > 0 {
+		cacheKey = getCacheHash(req.AllResults)
+	} else {
+		cacheKey = getCacheHash(req.Result)
+	}
 	var cacheFile string
 	if cacheKey != "" {
 		sanitizedType := strings.ToLower(strings.ReplaceAll(req.TestType, " ", "_"))
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v2_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v4_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
-				c.Data["json"] = aiResponse{Success: true, Data: cachedData}
-				c.ServeJSON()
-				return
+				if sum, ok := cachedData["summary"].(string); ok && !strings.Contains(sum, "Holland RIASEC (Nurdin Putra — Holland RIASEC)") {
+					c.Data["json"] = aiResponse{Success: true, Data: cachedData}
+					c.ServeJSON()
+					return
+				}
 			}
 		}
 	}
@@ -433,7 +440,7 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 	cacheKey := getCacheHash(resultData)
 	var cacheFile string
 	if cacheKey != "" {
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v2_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v4_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -1002,12 +1009,24 @@ func init() {
 func generateFallbackTestSummary(testType, title string, result interface{}, allResults map[string]interface{}) map[string]interface{} {
 	var completedNames []string
 	if len(allResults) > 0 {
-		if r, ok := allResults["ist"]; ok && r != nil { completedNames = append(completedNames, "IST (Intelegensi)") }
-		if r, ok := allResults["holland"]; ok && r != nil { completedNames = append(completedNames, "Holland RIASEC") }
-		if r, ok := allResults["learning_style"]; ok && r != nil { completedNames = append(completedNames, "Gaya Belajar VAK") }
-		if r, ok := allResults["kraepelin"]; ok && r != nil { completedNames = append(completedNames, "Kraepelin") }
-		if r, ok := allResults["rmib"]; ok && r != nil { completedNames = append(completedNames, "RMIB") }
-		if r, ok := allResults["papi"]; ok && r != nil { completedNames = append(completedNames, "PAPI-Kostick") }
+		if r, ok := allResults["ist"]; ok && r != nil {
+			if m, ok2 := r.(map[string]interface{}); ok2 && len(m) > 0 { completedNames = append(completedNames, "IST (Intelegensi)") }
+		}
+		if r, ok := allResults["holland"]; ok && r != nil {
+			if m, ok2 := r.(map[string]interface{}); ok2 && len(m) > 0 { completedNames = append(completedNames, "Holland RIASEC") }
+		}
+		if r, ok := allResults["learning_style"]; ok && r != nil {
+			if m, ok2 := r.(map[string]interface{}); ok2 && len(m) > 0 { completedNames = append(completedNames, "Gaya Belajar VAK") }
+		}
+		if r, ok := allResults["kraepelin"]; ok && r != nil {
+			if m, ok2 := r.(map[string]interface{}); ok2 && len(m) > 0 { completedNames = append(completedNames, "Kraepelin") }
+		}
+		if r, ok := allResults["rmib"]; ok && r != nil {
+			if m, ok2 := r.(map[string]interface{}); ok2 && len(m) > 0 { completedNames = append(completedNames, "RMIB") }
+		}
+		if r, ok := allResults["papi"]; ok && r != nil {
+			if m, ok2 := r.(map[string]interface{}); ok2 && len(m) > 0 { completedNames = append(completedNames, "PAPI-Kostick") }
+		}
 	}
 
 	summaryText := ""

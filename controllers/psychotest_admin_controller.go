@@ -4625,9 +4625,20 @@ func parseArrayOrString(val interface{}) []string {
 	case []string:
 		return v
 	case string:
-		return []string{v}
 	}
 	return nil
+}
+
+func getSubtestConclusionFromCombined(combinedSummary map[string]interface{}, key string) string {
+	if combinedSummary == nil {
+		return ""
+	}
+	details, ok := combinedSummary["kesimpulan_detail"].(map[string]interface{})
+	if !ok || details == nil {
+		return ""
+	}
+	concl, _ := details[key].(string)
+	return concl
 }
 
 // generateComprehensivePDFReport renders a multi-page, comprehensive report of all test tools completed in a batch.
@@ -4927,7 +4938,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.SetFont("Arial", "B", 9)
 		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 		pdf.SetFont("Arial", "", 8.5)
-		istConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["ist"].(string)
+		istConcl := getSubtestConclusionFromCombined(combinedSummary, "ist")
 		if istConcl == "" {
 			istConcl, _ = istSummary["summary"].(string)
 		}
@@ -4999,7 +5010,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.SetFont("Arial", "B", 9)
 		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 		pdf.SetFont("Arial", "", 8.5)
-		hollandConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["holland"].(string)
+		hollandConcl := getSubtestConclusionFromCombined(combinedSummary, "holland")
 		if hollandConcl == "" {
 			hollandConcl, _ = hollandSummary["summary"].(string)
 		}
@@ -5062,7 +5073,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.SetFont("Arial", "B", 9)
 		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 		pdf.SetFont("Arial", "", 8.5)
-		vakConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["learning_style"].(string)
+		vakConcl := getSubtestConclusionFromCombined(combinedSummary, "learning_style")
 		if vakConcl == "" {
 			vakConcl, _ = vakSummary["summary"].(string)
 		}
@@ -5163,7 +5174,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.SetFont("Arial", "B", 9)
 		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 		pdf.SetFont("Arial", "", 8.5)
-		rmibConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["rmib"].(string)
+		rmibConcl := getSubtestConclusionFromCombined(combinedSummary, "rmib")
 		if rmibConcl == "" {
 			rmibConcl, _ = rmibSummary["summary"].(string)
 		}
@@ -5253,7 +5264,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.SetFont("Arial", "B", 9)
 		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 		pdf.SetFont("Arial", "", 8.5)
-		papiConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["papi"].(string)
+		papiConcl := getSubtestConclusionFromCombined(combinedSummary, "papi")
 		if papiConcl == "" {
 			papiConcl, _ = papiSummary["summary"].(string)
 		}
@@ -5318,7 +5329,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		pdf.SetFont("Arial", "B", 9)
 		pdf.CellFormat(0, 5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 		pdf.SetFont("Arial", "", 8.5)
-		kraepelinConcl, _ := combinedSummary["kesimpulan_detail"].(map[string]interface{})["kraepelin"].(string)
+		kraepelinConcl := getSubtestConclusionFromCombined(combinedSummary, "kraepelin")
 		if kraepelinConcl == "" {
 			kraepelinConcl, _ = kraepelinSummary["summary"].(string)
 		}

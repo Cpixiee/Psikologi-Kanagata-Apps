@@ -141,11 +141,12 @@ func (c *PsychotestAdminController) ListBatches() {
 	}
 
 	if roleStr == string(models.RoleSekolah) {
-		cond := orm.NewCondition().
-			Or("Sekolah", sekolahStr).
-			Or("Sekolah", "").
-			Or("Name__icontains", "demo")
-		qs = qs.SetCond(cond)
+		if sekolahStr != "" {
+			cond := orm.NewCondition().
+				Or("Sekolah", sekolahStr).
+				Or("Institution", sekolahStr)
+			qs = qs.SetCond(cond)
+		}
 	}
 
 	var batches []models.TestBatch

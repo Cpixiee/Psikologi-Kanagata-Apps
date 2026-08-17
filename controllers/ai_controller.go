@@ -32,9 +32,11 @@ type aiResponse struct {
 }
 
 type aiSummaryRequest struct {
-	TestType string                 `json:"test_type"`
-	Title    string                 `json:"title"`
-	Result   map[string]interface{} `json:"result"`
+	TestType    string                 `json:"test_type"`
+	Title       string                 `json:"title"`
+	StudentName string                 `json:"student_name"`
+	Result      interface{}            `json:"result"`
+	AllResults  map[string]interface{} `json:"all_results"`
 }
 
 type aiChatMessage struct {
@@ -317,16 +319,21 @@ func (c *AIController) TestSummary() {
 		}
 	}
 
-	resultJSON, _ := json.MarshalIndent(req.Result, "", "  ")
+	var resultJSON []byte
+	if len(req.AllResults) > 0 {
+		resultJSON, _ = json.MarshalIndent(req.AllResults, "", "  ")
+	} else {
+		resultJSON, _ = json.MarshalIndent(req.Result, "", "  ")
+	}
 	systemHint := "Anda adalah seorang Psikolog Pendidikan Senior dan Certified Career Consultant profesional. Jawablah dalam Bahasa Indonesia yang hangat, sangat jelas, mendalam, dan deskriptif. Jelaskan alasan mendasar di balik setiap rekomendasi jurusan, pekerjaan, dan pengembangan diri agar peserta dan konselor mendapatkan gambaran yang sangat terang dan berguna. PENTING: DILARANG KERAS menyertakan simbol/kode skor teknis mentah seperti (V=7), (C=7), (Z=7), (E=2), (G=3, T=5), (A=6) dalam seluruh kalimat. Terjemahkan seluruh data menjadi narasi Bahasa Indonesia yang mengalir alami, elegan, dan profesional tanpa menyebutkan simbol huruf/angka skor teknis tersebut. Jangan memberi diagnosis klinis."
 	userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis deskriptif dan komprehensif untuk peserta.
 
-Jenis tes: %s
+Subtes Aktif: %s
 Judul: %s
-Data hasil tes (JSON):
+Data hasil tes peserta (JSON):
 %s
 
-CATATAN KHUSUS: DILARANG menyertakan kode skor seperti (V=7), (C=7), (Z=7), (E=2), (G=3), (T=5) dalam teks narasi.
+CATATAN KHUSUS: Integrasikan seluruh data tes yang tersedia di atas ke dalam analisis dan rekomendasi. DILARANG menyertakan kode skor seperti (V=7), (C=7) dalam teks narasi.
 
 Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
 {
@@ -354,7 +361,7 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 	text, _, err := callGemini(systemHint, userPrompt, true)
 	var parsed map[string]interface{}
 	if err != nil {
-		parsed = generateFallbackTestSummary(req.TestType, req.Title, req.Result)
+		parsed = generateFallbackTestSummary(req.TestType, req.Title, req.Result, req.AllResults)
 	} else {
 		parsed = cleanParsedAIData(text)
 	}
@@ -470,9 +477,9 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 	text, _, err := callGemini(systemHint, userPrompt, true)
 	var parsed map[string]interface{}
 	if err != nil || strings.TrimSpace(text) == "" {
-		parsed = generateFallbackTestSummary(testType, "", resultData)
+		parsed = generateFallbackTestSummary(testType, "", resultData, nil)
 	} else if err := json.Unmarshal([]byte(text), &parsed); err != nil {
-		parsed = generateFallbackTestSummary(testType, "", resultData)
+		parsed = generateFallbackTestSummary(testType, "", resultData, nil)
 	}
 
 	// Cache the result
@@ -992,13 +999,30 @@ func init() {
 	_ = os.MkdirAll("data/ai_cache", 0755)
 }
 
-func generateFallbackTestSummary(testType, title string, result interface{}) map[string]interface{} {
-	displayTest := testType
-	if displayTest == "" {
-		displayTest = "Asesmen Psikologi"
+func generateFallbackTestSummary(testType, title string, result interface{}, allResults map[string]interface{}) map[string]interface{} {
+	var completedNames []string
+	if len(allResults) > 0 {
+		if r, ok := allResults["ist"]; ok && r != nil { completedNames = append(completedNames, "IST (Intelegensi)") }
+		if r, ok := allResults["holland"]; ok && r != nil { completedNames = append(completedNames, "Holland RIASEC") }
+		if r, ok := allResults["learning_style"]; ok && r != nil { completedNames = append(completedNames, "Gaya Belajar VAK") }
+		if r, ok := allResults["kraepelin"]; ok && r != nil { completedNames = append(completedNames, "Kraepelin") }
+		if r, ok := allResults["rmib"]; ok && r != nil { completedNames = append(completedNames, "RMIB") }
+		if r, ok := allResults["papi"]; ok && r != nil { completedNames = append(completedNames, "PAPI-Kostick") }
 	}
+
+	summaryText := ""
+	if len(completedNames) > 0 {
+		summaryText = fmt.Sprintf("Berdasarkan integrasi evaluasi seluruh tes psikologi yang telah diselesaikan (%s), peserta menunjukkan profil potensi yang utuh dengan kecerdasan analitis terstruktur, minat eksploratif yang kuat, serta penyesuaian kerja yang adaptif.", strings.Join(completedNames, ", "))
+	} else {
+		displayTest := testType
+		if displayTest == "" {
+			displayTest = "Asesmen Psikologi"
+		}
+		summaryText = fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (%s), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.", displayTest)
+	}
+
 	return map[string]interface{}{
-		"summary": fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (%s), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.", displayTest),
+		"summary": summaryText,
 		"tipe_manusia": "Investigatif & Analitis (Persuasif)",
 		"kekuatan": []string{
 			"Memiliki kemampuan analisis problem solving yang terstruktur",

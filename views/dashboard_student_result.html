@@ -2739,8 +2739,16 @@
           q('#laporanNaratifContent').innerHTML = '<div class="alert alert-warning">Data tidak tersedia untuk analisis AI.</div>';
           return;
         }
+        var allResultsPayload = {};
+        if (d.ist_result && (d.ist_result.id || d.ist_result.Id)) allResultsPayload.ist = d.ist_result;
+        if (d.holland_result && (d.holland_result.id || d.holland_result.Id)) allResultsPayload.holland = d.holland_result;
+        if (d.learning_style_result && (d.learning_style_result.id || d.learning_style_result.Id)) allResultsPayload.learning_style = d.learning_style_result;
+        if (d.kraepelin_attempt && (d.kraepelin_attempt.id || d.kraepelin_attempt.Id)) allResultsPayload.kraepelin = d.kraepelin_attempt;
+        if (d.rmib_result && (d.rmib_result.id || d.rmib_result.Id)) allResultsPayload.rmib = d.rmib_result;
+        if (d.papi_result && (d.papi_result.id || d.papi_result.Id)) allResultsPayload.papi = d.papi_result;
+
         try {
-          var payload = {test_type:typeName, student_name:name, result:resultData};
+          var payload = {test_type:typeName, student_name:name, result:resultData, all_results:allResultsPayload};
           var res = await fetch('/api/ai/test-summary', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
           var json = await res.json();
           if(!json.success || !json.data){ 

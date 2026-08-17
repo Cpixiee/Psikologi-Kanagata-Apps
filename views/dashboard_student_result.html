@@ -2772,6 +2772,16 @@
             html += '<ul style="margin:0;padding-left:18px;color:#1e1b4b;font-size:13px;line-height:1.7;">'+aiData.rekomendasi_karir.slice(0,6).map(function(k){var pos=k.posisi||k; var alasan=k.alasan?(' — <span style="color:#4338ca;font-size:12.5px;">'+esc(k.alasan)+'</span>'):''; return '<li style="margin-bottom:6px;"><span style="font-weight:700;color:#312e81;">'+esc(pos)+'</span>'+alasan+'</li>';}).join('')+'</ul></div>';
           }
 
+          var matpelList = aiData.rekomendasi_mata_pelajaran || [
+            "Informatika & Pemrograman Dasar",
+            "Matematika Lanjut & Analisis Data",
+            "Fisika / Sains Terapan",
+            "Bahasa Inggris Komunikasi & Literasi Digital"
+          ];
+          html += '<div style="background:linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border:1px solid #fed7aa; border-radius:12px; padding:16px; margin:16px 0; box-shadow:0 2px 6px rgba(0,0,0,0.02);">';
+          html += '<p style="font-size:11px;font-weight:800;color:#c2410c;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;display:flex;align-items:center;gap:6px;"><i data-lucide="book-open" style="width:16px;height:16px;"></i> Rekomendasi Mata Pelajaran (Highlighted)</p>';
+          html += '<ul style="margin:0;padding-left:18px;color:#7c2d12;font-size:13px;line-height:1.7;">'+matpelList.map(function(m){var text=typeof m==='object'?(m.nama||m.matpel||m.posisi||JSON.stringify(m)):m; return '<li style="margin-bottom:4px;"><span style="font-weight:700;color:#9a3412;">'+esc(text)+'</span></li>';}).join('')+'</ul></div>';
+
           if(aiData.kekuatan && aiData.kekuatan.length){ html += '<p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;">Kekuatan Utama</p><ul class="ai-ul">'+aiData.kekuatan.map(function(k){return '<li>'+esc(k)+'</li>';}).join('')+'</ul>'; }
           if(aiData.area_pengembangan && aiData.area_pengembangan.length){ html += '<p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;">Area Pengembangan</p><ul class="ai-ul">'+aiData.area_pengembangan.map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>'; }
           if(!html) html = '<p style="color:var(--muted);font-size:13px;">Tidak ada data AI yang dapat ditampilkan.</p>';

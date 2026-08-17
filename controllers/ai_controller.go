@@ -862,7 +862,7 @@ func GetOrGenerateCombinedSummaryInternal(studentName string, batchName string, 
 	cacheKey := getCacheHash(req)
 	var cacheFile string
 	if cacheKey != "" {
-		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_v2_%s.json", cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/student_combined_v3_%s.json", cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -1066,6 +1066,12 @@ func generateFallbackTestSummary(testType, title string, result interface{}, all
 			"Psikologi / Manajemen SDM",
 			"Teknik Industri / Manajemen Operasional",
 		},
+		"rekomendasi_mata_pelajaran": []string{
+			"Informatika & Pemrograman Dasar",
+			"Matematika Lanjut & Analisis Data",
+			"Fisika / Sains Terapan",
+			"Bahasa Inggris Komunikasi & Literasi Digital",
+		},
 		"rekomendasi_siswa": []string{
 			"Ikuti proyek berbasis tim untuk mengasah kolaborasi.",
 			"Tingkatkan literasi digital dan keterampilan problem-solving secara berkala.",
@@ -1093,6 +1099,7 @@ func generateFallbackStudentCombinedSummary(studentName, batchName string, resul
 			"holland":        "Minat dominan berorientasi pada tipe Investigatif dan Realistis, dengan daya observasi dan analisis pemecahan masalah yang tinggi.",
 			"learning_style": "Gaya belajar gabungan Visual dan Kinestetik, peserta paling efektif menyerap informasi melalui demonstrasi visual dan praktik langsung.",
 			"kraepelin":      "Kecepatan dan ketelitian kerja menunjukkan stabilitas ritme yang konsisten dengan daya tahan tugas yang baik.",
+			"rmib":           "Orientasi minat pekerjaan RMIB menunjukkan kecenderungan kuat pada bidang teknis, analisis persuasif, serta kegiatan praktis yang terstruktur.",
 			"papi":           "Dinamika kepribadian mencerminkan komitmen tinggi terhadap tugas, kerja sama tim yang kooperatif, serta penyesuaian diri yang fleksibel.",
 		},
 		"kesimpulan_gabungan": fmt.Sprintf("Secara keseluruhan, %s memiliki profil potensi kognitif dan minat yang saling mendukung. Kombinasi daya nalar analitis, kecermatan kerja, serta minat eksploratif memberikan pondasi kuat untuk pengembangan karir di bidang profesional dan teknologi.", studentName),

@@ -128,6 +128,8 @@
                 <h5 class="mb-0">{{.GroupTitle}}</h5>
               </div>
               <div class="text-end">
+                <div class="text-muted extra-small" style="font-size:11px;">Sisa Waktu Kelompok</div>
+                <div class="fw-bold text-danger fs-5 mb-1" id="rmibTimerLabel">02:00</div>
                 <div class="rmib-saving-pill" id="rmibSaveStatus">Tersimpan otomatis</div>
               </div>
             </div>
@@ -147,7 +149,7 @@
 
             <div class="alert alert-info mb-3">
               Berikan ranking <strong>1</strong> (paling Anda senangi) sampai <strong>12</strong> (paling tidak Anda senangi).
-              Setiap angka hanya boleh dipakai sekali.
+              Setiap angka hanya boleh dipakai sekali. Waktu pengerjaan tiap kelompok: <strong>2 menit</strong>.
             </div>
 
             <div id="rmibStatus" class="mb-3" style="display:none;"></div>
@@ -158,30 +160,30 @@
                   <thead>
                     <tr>
                       <th style="width: 50px;" class="text-center">No</th>
-                      <th>Aktivitas</th>
-                      <th style="width: 130px;" class="text-center">Ranking</th>
+                      <th>Aktivitas / Pekerjaan</th>
+                      <th style="width: 140px;" class="text-center">Ranking (1-12)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {{range $idx, $item := .Items}}
-                    <tr class="rmib-row" data-qid="{{$item.ID}}" id="rmibRow_{{$item.ID}}">
-                      <td class="text-center">{{$item.ItemOrder}}</td>
-                      <td>{{$item.QuestionText}}</td>
+                    {{range .Items}}
+                    <tr class="rmib-row" data-qid="{{.QuestionId}}">
+                      <td class="text-center fw-semibold">{{.ItemOrder}}</td>
+                      <td>{{.QuestionText}}</td>
                       <td class="text-center">
-                        <select class="form-select rmib-rank-select" name="q_{{$item.ID}}" data-qid="{{$item.ID}}">
-                          <option value="">-</option>
-                          <option value="1"{{if eq $item.SelectedRank 1}} selected{{end}}>1</option>
-                          <option value="2"{{if eq $item.SelectedRank 2}} selected{{end}}>2</option>
-                          <option value="3"{{if eq $item.SelectedRank 3}} selected{{end}}>3</option>
-                          <option value="4"{{if eq $item.SelectedRank 4}} selected{{end}}>4</option>
-                          <option value="5"{{if eq $item.SelectedRank 5}} selected{{end}}>5</option>
-                          <option value="6"{{if eq $item.SelectedRank 6}} selected{{end}}>6</option>
-                          <option value="7"{{if eq $item.SelectedRank 7}} selected{{end}}>7</option>
-                          <option value="8"{{if eq $item.SelectedRank 8}} selected{{end}}>8</option>
-                          <option value="9"{{if eq $item.SelectedRank 9}} selected{{end}}>9</option>
-                          <option value="10"{{if eq $item.SelectedRank 10}} selected{{end}}>10</option>
-                          <option value="11"{{if eq $item.SelectedRank 11}} selected{{end}}>11</option>
-                          <option value="12"{{if eq $item.SelectedRank 12}} selected{{end}}>12</option>
+                        <select class="form-select form-select-sm rmib-rank-select" data-qid="{{.QuestionId}}">
+                          <option value="">-- Pilih --</option>
+                          <option value="1" {{if eq .SelectedRank 1}}selected{{end}}>1 (Paling disukai)</option>
+                          <option value="2" {{if eq .SelectedRank 2}}selected{{end}}>2</option>
+                          <option value="3" {{if eq .SelectedRank 3}}selected{{end}}>3</option>
+                          <option value="4" {{if eq .SelectedRank 4}}selected{{end}}>4</option>
+                          <option value="5" {{if eq .SelectedRank 5}}selected{{end}}>5</option>
+                          <option value="6" {{if eq .SelectedRank 6}}selected{{end}}>6</option>
+                          <option value="7" {{if eq .SelectedRank 7}}selected{{end}}>7</option>
+                          <option value="8" {{if eq .SelectedRank 8}}selected{{end}}>8</option>
+                          <option value="9" {{if eq .SelectedRank 9}}selected{{end}}>9</option>
+                          <option value="10" {{if eq .SelectedRank 10}}selected{{end}}>10</option>
+                          <option value="11" {{if eq .SelectedRank 11}}selected{{end}}>11</option>
+                          <option value="12" {{if eq .SelectedRank 12}}selected{{end}}>12 (Paling tidak disukai)</option>
                         </select>
                       </td>
                     </tr>
@@ -190,29 +192,30 @@
                 </table>
               </div>
             </form>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <div>
+                {{if .PrevGroup}}
+                <a href="/test/rmib/group/{{.PrevGroup}}" class="btn btn-outline-secondary btn-sm">
+                  &laquo; Kembali
+                </a>
+                {{end}}
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                {{if .IsDev}}
+                <button type="button" id="rmibBtnFillDev" class="btn btn-warning btn-sm" title="Mode development: isi ranking acak unik 1-12">
+                  Isi Acak (DEV)
+                </button>
+                <button type="button" id="rmibBtnFillAllDev" class="btn btn-danger btn-sm" title="Mode development: isi semua kelompok dengan acak lalu submit final">
+                  Auto Selesai Semua (DEV)
+                </button>
+                {{end}}
+                <button type="button" id="rmibBtnNext" class="btn btn-primary">
+                  {{if .NextGroup}}Next &raquo;{{else}}Selesai & Submit Final &raquo;{{end}}
+                </button>
+              </div>
+            </div>
             {{end}}
-          </div>
-          <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-              {{if .PrevGroup}}
-              <a href="/test/rmib/group/{{.PrevGroup}}" class="btn btn-outline-secondary">
-                &laquo; Previous
-              </a>
-              {{end}}
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-              {{if .IsDev}}
-              <button type="button" id="rmibBtnFillDev" class="btn btn-warning btn-sm" title="Mode development: isi ranking acak unik 1-12">
-                Isi Acak (DEV)
-              </button>
-              <button type="button" id="rmibBtnFillAllDev" class="btn btn-danger btn-sm" title="Mode development: isi semua kelompok dengan acak lalu submit final">
-                Auto Selesai Semua (DEV)
-              </button>
-              {{end}}
-              <button type="button" id="rmibBtnNext" class="btn btn-primary">
-                {{if .NextGroup}}Next &raquo;{{else}}Lanjut ke Ringkasan &raquo;{{end}}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -240,6 +243,25 @@
         if (progressBar) {
           progressBar.style.width = progressBar.getAttribute('data-progress') + '%';
         }
+
+        // Timer 2 Menit (120 Detik) per Kelompok RMIB
+        var groupSecondsLeft = 120;
+        var timerEl = document.getElementById('rmibTimerLabel');
+        function pad2(n) { return n < 10 ? '0' + n : String(n); }
+        var timerInterval = setInterval(function () {
+          groupSecondsLeft--;
+          if (timerEl) {
+            var m = Math.floor(groupSecondsLeft / 60);
+            var s = groupSecondsLeft % 60;
+            timerEl.textContent = pad2(m) + ':' + pad2(s);
+          }
+          if (groupSecondsLeft <= 0) {
+            clearInterval(timerInterval);
+            if (btnNext && !btnNext.disabled) {
+              btnNext.click();
+            }
+          }
+        }, 1000);
 
         var selects = form.querySelectorAll('.rmib-rank-select');
         var debounceMap = {};

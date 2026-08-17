@@ -275,6 +275,10 @@
                               <label class="form-label" for="batchJurusan">Jurusan</label>
                               <select id="batchJurusan" class="form-select" required>
                                 <option value="" disabled selected>Pilih Jurusan</option>
+                                <option value="Umum / Belum ada Penjurusan (Kelas X)">Umum / Belum Penjurusan (Kelas X)</option>
+                                <option value="MIPA / IPA">MIPA / IPA</option>
+                                <option value="IPS">IPS</option>
+                                <option value="Bahasa">Bahasa & Budaya</option>
                                 <option value="RPL">Rekayasa Perangkat Lunak (RPL)</option>
                                 <option value="TKJ">Teknik Komputer dan Jaringan (TKJ)</option>
                                 <option value="MM">Multimedia (MM)</option>
@@ -292,6 +296,7 @@
                                 <option value="TBSM">Teknik Bisnis Sepeda Motor (TBSM)</option>
                                 <option value="Lainnya">Lainnya</option>
                               </select>
+                              <input type="text" id="batchJurusanCustom" class="form-control mt-2 d-none" placeholder="Ketik nama jurusan secara manual..." />
                             </div>
                           </div>
                         </div>
@@ -502,6 +507,20 @@
             renormalizeOrders();
           }
         });
+
+        // Event listener jurusan custom
+        const jurSelect = document.getElementById('batchJurusan');
+        const jurCustom = document.getElementById('batchJurusanCustom');
+        if (jurSelect && jurCustom) {
+          jurSelect.addEventListener('change', function () {
+            if (this.value === 'Lainnya') {
+              jurCustom.classList.remove('d-none');
+              jurCustom.focus();
+            } else {
+              jurCustom.classList.add('d-none');
+            }
+          });
+        }
       });
 
       async function handleCreateBatch(event) {
@@ -530,6 +549,12 @@
         const testOrderStr = testOrders.map(t => t.key).join(',');
 
         const sekolahValue = document.getElementById('batchSekolah').value;
+        let selectedJurusan = document.getElementById('batchJurusan').value;
+        if (selectedJurusan === 'Lainnya') {
+          const customVal = (document.getElementById('batchJurusanCustom').value || '').trim();
+          selectedJurusan = customVal || 'Lainnya';
+        }
+
         const payload = {
           name: document.getElementById('batchName').value,
           institution: sekolahValue,
@@ -537,7 +562,7 @@
           sekolah: sekolahValue,
           jenjang_sekolah: document.getElementById('batchJenjang') ? document.getElementById('batchJenjang').value : '',
           kelas: document.getElementById('batchKelas').value,
-          jurusan: document.getElementById('batchJurusan').value,
+          jurusan: selectedJurusan,
           enable_ist: testOrders.some(t => t.key === 'ist'),
           enable_holland: testOrders.some(t => t.key === 'holland'),
           enable_learning_style: testOrders.some(t => t.key === 'learning_style'),

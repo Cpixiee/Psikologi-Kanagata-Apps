@@ -515,9 +515,13 @@ func (c *RMIBTestController) SubmitGroupAPI() {
 		return
 	}
 
-	next := "/test/rmib/summary"
+	next := "/test/rmib/finish"
 	if groupNum < rmibTotalGroups {
 		next = fmt.Sprintf("/test/rmib/group/%d", groupNum+1)
+	} else {
+		if nextURL, err := c.finalizeRMIB(inv, user, session); err == nil && nextURL != "" {
+			next = nextURL
+		}
 	}
 	c.Data["json"] = map[string]interface{}{
 		"success":       true,

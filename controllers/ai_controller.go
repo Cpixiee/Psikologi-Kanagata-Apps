@@ -993,8 +993,12 @@ func init() {
 }
 
 func generateFallbackTestSummary(testType, title string, result interface{}) map[string]interface{} {
+	displayTest := testType
+	if displayTest == "" {
+		displayTest = "Asesmen Psikologi"
+	}
 	return map[string]interface{}{
-		"summary": fmt.Sprintf("Berdasarkan hasil %s (%s), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas pemikiran logis dan keterampilan intuitif.", testType, title),
+		"summary": fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (%s), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.", displayTest),
 		"tipe_manusia": "Investigatif & Analitis (Persuasif)",
 		"kekuatan": []string{
 			"Memiliki kemampuan analisis problem solving yang terstruktur",

@@ -2740,7 +2740,7 @@
           return;
         }
         try {
-          var payload = {test_type:typeName, title:name+' — '+typeName, result:resultData};
+          var payload = {test_type:typeName, student_name:name, result:resultData};
           var res = await fetch('/api/ai/test-summary', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
           var json = await res.json();
           if(!json.success || !json.data){ 

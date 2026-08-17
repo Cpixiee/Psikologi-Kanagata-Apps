@@ -100,6 +100,24 @@
     if (d.tanggal_lahir) document.getElementById("ob_tanggal_lahir").value = d.tanggal_lahir;
     if (d.alamat) document.getElementById("ob_alamat").value = d.alamat;
 
+    const tglInput = document.getElementById("ob_tanggal_lahir");
+    const updateUsiaBadge = () => {
+      const b = document.getElementById("ob_usiaBadge");
+      if (!b || !tglInput || !tglInput.value) { if (b) b.textContent = ""; return; }
+      const dob = new Date(tglInput.value);
+      if (isNaN(dob.getTime())) { b.textContent = ""; return; }
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      b.textContent = age >= 0 ? "(Usia: " + age + " Tahun)" : "";
+    };
+    if (tglInput) {
+      tglInput.addEventListener("change", updateUsiaBadge);
+      tglInput.addEventListener("input", updateUsiaBadge);
+      updateUsiaBadge();
+    }
+
     // Populate enum kelas & jurusan (pakai helper shared).
     if (window.AppEnums) {
       window.AppEnums.populateKelasSelect(

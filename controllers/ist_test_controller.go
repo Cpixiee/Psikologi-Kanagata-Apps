@@ -692,11 +692,45 @@ func (c *ISTTestController) SubtestPage() {
 	// Jangan filter berdasarkan nomor, karena SE no 1-2 adalah soal asli.
 	questions = filterISTDummyQuestions(questions)
 
+	// Pengacakan soal untuk subtes RA dan ZR/ZA sesuai ketentuan
+	if sub.Code == "RA" || sub.Code == "ZR" || sub.Code == "ZA" {
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(questions), func(i, j int) {
+			questions[i], questions[j] = questions[j], questions[i]
+		})
+	}
+
+	// Durasi resmi per subtest IST (menit):
+	// SE: 6m, WA: 6m, AN: 7m, GE: 8m, RA: 10m, ZR: 10m, FA: 7m, WU: 9m, ME: 6m (dengan 3m hafalan)
+	timerMinutes := 6
+	switch sub.Code {
+	case "SE":
+		timerMinutes = 6
+	case "WA":
+		timerMinutes = 6
+	case "AN":
+		timerMinutes = 7
+	case "GE":
+		timerMinutes = 8
+	case "RA":
+		timerMinutes = 10
+	case "ZR", "ZA":
+		timerMinutes = 10
+	case "FA":
+		timerMinutes = 7
+	case "WU":
+		timerMinutes = 9
+	case "ME":
+		timerMinutes = 6
+	default:
+		timerMinutes = 6
+	}
+
 	c.Data["Subtest"] = sub
 	c.Data["Questions"] = questions
 	c.Data["Invitation"] = inv
 	c.Data["User"] = user
-	c.Data["TimerMinutes"] = 20 // 20 menit per subtest (final)
+	c.Data["TimerMinutes"] = timerMinutes
 	c.Data["IsDev"] = strings.EqualFold(beego.BConfig.RunMode, "dev")
 	c.TplName = "test_ist_subtest.html"
 }

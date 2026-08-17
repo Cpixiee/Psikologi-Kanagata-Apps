@@ -446,7 +446,7 @@
                       </div>
                     </div>
                     <div>
-                      <label class="field-label">Tanggal Lahir</label>
+                      <label class="field-label">Tanggal Lahir <span id="fUsiaBadge" class="badge bg-primary text-white ms-1" style="font-size: 0.75rem;"></span></label>
                       <div class="field-wrap">
                         <span class="field-icon"><i data-lucide="calendar"></i></span>
                         <input type="date" id="fTanggalLahir" name="tanggal_lahir" class="input-style" />
@@ -777,6 +777,24 @@
           setSelect($('#fJurusan'), u.jurusan || '');
           $('#fTempatLahir').value = u.tempat_lahir || '';
           $('#fTanggalLahir').value = (u.tanggal_lahir || '').substring(0, 10);
+          const updateFUsia = () => {
+            const b = $('#fUsiaBadge');
+            const inp = $('#fTanggalLahir');
+            if (!b || !inp || !inp.value) { if (b) b.textContent = ""; return; }
+            const dob = new Date(inp.value);
+            if (isNaN(dob.getTime())) { b.textContent = ""; return; }
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+            b.textContent = age >= 0 ? "(Usia: " + age + " Tahun)" : "";
+          };
+          const fInp = $('#fTanggalLahir');
+          if (fInp) {
+            fInp.addEventListener('change', updateFUsia);
+            fInp.addEventListener('input', updateFUsia);
+            updateFUsia();
+          }
           $('#fAlamat').value = u.alamat || '';
           $('#fNoNIK').value = u.no_nik || '';
           $('#fNoKK').value = u.no_kk || '';

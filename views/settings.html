@@ -360,7 +360,7 @@
                             <input class="form-control" type="text" id="settTempatLahir" name="tempat_lahir" maxlength="100" placeholder="Contoh: Jakarta" />
                           </div>
                           <div class="col-md-6">
-                            <label for="settTanggalLahir" class="form-label">Tanggal Lahir</label>
+                            <label for="settTanggalLahir" class="form-label">Tanggal Lahir <span id="settUsiaBadge" class="badge bg-primary text-white ms-1" style="font-size: 0.75rem;"></span></label>
                             <input class="form-control" type="date" id="settTanggalLahir" name="tanggal_lahir" />
                           </div>
 
@@ -716,6 +716,24 @@
                 const dStr = (user.tanggal_lahir + '').slice(0, 10);
                 setVal('settTanggalLahir', dStr);
               } catch (_) {}
+            }
+            const updateSettUsia = () => {
+              const b = document.getElementById("settUsiaBadge");
+              const inp = document.getElementById("settTanggalLahir");
+              if (!b || !inp || !inp.value) { if (b) b.textContent = ""; return; }
+              const dob = new Date(inp.value);
+              if (isNaN(dob.getTime())) { b.textContent = ""; return; }
+              const today = new Date();
+              let age = today.getFullYear() - dob.getFullYear();
+              const m = today.getMonth() - dob.getMonth();
+              if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+              b.textContent = age >= 0 ? "(Usia: " + age + " Tahun)" : "";
+            };
+            const sInp = document.getElementById("settTanggalLahir");
+            if (sInp) {
+              sInp.addEventListener("change", updateSettUsia);
+              sInp.addEventListener("input", updateSettUsia);
+              updateSettUsia();
             }
             setVal('settAlamat', user.alamat);
             // Cascading wilayah (sekali setup); kalau sudah pernah dipanggil, idempotent karena cache.

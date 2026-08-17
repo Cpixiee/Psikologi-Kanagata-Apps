@@ -819,8 +819,10 @@
             var g = groupOf[code];
             var entry = parsed[code] || { score: 0 };
             var score = Math.max(0, Math.min(9, entry.score || 0));
+            var isReversed = (code === 'Z' || code === 'K');
             for (var n = 0; n <= 9; n++) {
-              var r = rNumIn + (n / 9) * (rNumOut - rNumIn);
+              var rFrac = isReversed ? ((9 - n) / 9) : (n / 9);
+              var r = rNumIn + rFrac * (rNumOut - rNumIn);
               var pos = polar(r, seg.mid);
               if (n === score) {
                 s += '<circle cx="' + pos[0] + '" cy="' + pos[1] + '" r="12" fill="' + g.color + '" stroke="#fff" stroke-width="1.5"/>';

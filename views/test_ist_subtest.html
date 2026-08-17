@@ -54,9 +54,39 @@
           <span class="badge bg-warning" id="timerDisplay">20:00</span>
         </div>
         <div class="card-body">
-          {{if .Error}}
-          <div class="alert alert-danger">{{.Error}}</div>
-          {{else}}
+          {{if eq .Subtest.Code "ME"}}
+          <div id="meMemorizeContainer" class="p-4 border rounded bg-white shadow-sm mb-4">
+            <div class="alert alert-danger text-center fw-bold fs-5 mb-3" style="background-color:#fef2f2; color:#dc2626; border:2px solid #ef4444;">
+              🛑 FASE MENGHAFAL KATA-KATA (3 MENIT) — Sisa Waktu: <span id="meMemorizeTimer" class="badge bg-danger fs-6 ms-1">03:00</span>
+            </div>
+            <p class="text-muted text-center mb-3">
+              Hafalkan kata-kata yang terdapat dalam tabel kelompok berikut ini selama 3 menit. Setelah waktu menghafal habis, lembar ini akan tertutup otomatis dan Anda dapat mengerjakan soal di bawah.
+            </p>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered ist-memory-table text-center mb-0">
+                <thead>
+                  <tr class="bg-primary text-white">
+                    <th>BUNGA</th>
+                    <th>BUAH</th>
+                    <th>PERKAKAS</th>
+                    <th>BURUNG</th>
+                    <th>KESENIAN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Soka</td><td>Zaitun</td><td>Cangkul</td><td>Elang</td><td>Gamelan</td></tr>
+                  <tr><td>Laba</td><td>Semangka</td><td>Jarum</td><td>Itik</td><td>Opera</td></tr>
+                  <tr><td>Flamboyan</td><td>Pir</td><td>Kikir</td><td>Kakatua</td><td>Ukiran</td></tr>
+                  <tr><td>Yasmis</td><td>Sawo</td><td>Palu</td><td>Nuri</td><td>Quintet</td></tr>
+                  <tr><td>Dahlia</td><td>Nanas</td><td>Wajan</td><td>Walet</td><td>Arca</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <button type="button" id="btnStartMeQuestions" class="btn btn-success w-100 fw-bold py-2">
+              <i class="bx bx-play-circle me-1"></i> Saya Sudah Selesai Menghafal — Mulai Kerjakan Soal
+            </button>
+          </div>
+          {{end}}
           <form id="formSubtest" data-code="{{.Subtest.Code}}" data-timer-minutes="{{.TimerMinutes}}">
             {{range $i, $q := .Questions}}
             <div class="mb-4 p-3 border rounded question-block" id="qnum_{{$q.Number}}" data-qid="{{$q.Id}}" data-number="{{$q.Number}}">
@@ -137,7 +167,7 @@
         const form = document.getElementById('formSubtest');
         if (!form) return;
         const code = form.dataset.code;
-        const timerMinutes = parseInt(form.dataset.timerMinutes, 10) || 20;
+        const timerMinutes = parseInt(form.dataset.timerMinutes, 10) || 6;
         let secondsLeft = timerMinutes * 60;
         const el = document.getElementById('timerDisplay');
 
@@ -155,7 +185,41 @@
           secondsLeft--;
           setTimeout(tick, 1000);
         }
-        tick();
+
+        // Subtest ME: Fase Menghafal 3 Menit terlebih dahulu
+        if (code === 'ME') {
+          const memContainer = document.getElementById('meMemorizeContainer');
+          const btnStart = document.getElementById('btnStartMeQuestions');
+          const memTimerEl = document.getElementById('meMemorizeTimer');
+          if (memContainer && form) {
+            form.style.display = 'none';
+            let memSecs = 180;
+            let memInterval = setInterval(function () {
+              const mm = Math.floor(memSecs / 60);
+              const ss = memSecs % 60;
+              if (memTimerEl) memTimerEl.textContent = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+              if (memSecs <= 0) {
+                startMeQuestionPhase();
+              }
+              memSecs--;
+            }, 1000);
+
+            function startMeQuestionPhase() {
+              if (memInterval) clearInterval(memInterval);
+              memContainer.style.display = 'none';
+              form.style.display = 'block';
+              tick();
+            }
+
+            if (btnStart) {
+              btnStart.addEventListener('click', startMeQuestionPhase);
+            }
+          } else {
+            tick();
+          }
+        } else {
+          tick();
+        }
 
         function collectAnswers() {
           const ans = {};

@@ -66,7 +66,7 @@ var papiCategoryGroup = map[string]string{
 }
 
 const papiTotalItems = 90
-const papiTimeLimitMinutes = 60
+const papiTimeLimitMinutes = 30
 
 func (c *PAPITestController) mustGetSessionInvitation() (*models.TestInvitation, *models.User, bool) {
 	userIDAny := c.GetSession("user_id")

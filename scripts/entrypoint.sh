@@ -44,7 +44,7 @@ FROM_NAME="${FROM_NAME:-Psychee Wellness}"
 # Harus selaras dengan seeds/admin_seeder.go (DefaultString fallback)
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@psikologi.local}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
-BASE_URL="${BASE_URL:-http://localhost:8086}"
+BASE_URL="${BASE_URL:-https://psikotes.kanagata.co.id}"
 
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 GEMINI_MODEL="${GEMINI_MODEL:-gemini-1.5-flash}"
@@ -69,6 +69,7 @@ update_ini "FROM_NAME" "$FROM_NAME"
 update_ini "admin_email" "$ADMIN_EMAIL"
 update_ini "admin_password" "$ADMIN_PASSWORD"
 update_ini "BASE_URL" "$BASE_URL"
+update_ini "app_url" "$BASE_URL"
 if [ -n "$GEMINI_API_KEY" ]; then
   update_ini "GEMINI_API_KEY" "$GEMINI_API_KEY"
 fi

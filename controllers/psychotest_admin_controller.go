@@ -700,8 +700,8 @@ func sendInvitationAnnouncementEmail(batch *models.TestBatch, displayName, email
 	}()
 
 	config := utils.GetEmailConfig()
-	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
-	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
+	appURL := utils.GetAppBaseURL()
+	link := fmt.Sprintf("%s/test", appURL)
 
 	subject := fmt.Sprintf("Undangan Tes Psikologi - %s", batch.Name)
 	body := fmt.Sprintf(`<!DOCTYPE html>
@@ -752,8 +752,8 @@ func sendInvitationCodeEmail(batch *models.TestBatch, displayName, email string,
 
 	config := utils.GetEmailConfig()
 
-	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
-	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
+	appURL := utils.GetAppBaseURL()
+	link := fmt.Sprintf("%s/test?token=%s", appURL, inv.Token)
 
 	subject := fmt.Sprintf("Kode Tes Psikologi - %s", batch.Name)
 
@@ -876,8 +876,8 @@ func sendInvitationAnnouncementWA(batch *models.TestBatch, displayName, phone st
 	}()
 
 	cfg := utils.GetWhatsAppConfig()
-	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
-	link := fmt.Sprintf("%s/test", strings.TrimRight(appURL, "/"))
+	appURL := utils.GetAppBaseURL()
+	link := fmt.Sprintf("%s/test", appURL)
 
 	msg := fmt.Sprintf(
 		"Halo %s,\n\nAnda diundang mengikuti tes psikologi:\n• Batch: %s\n• Institusi: %s\n• Tipe Tes: %s\n\n"+
@@ -900,8 +900,8 @@ func sendInvitationCodeWA(batch *models.TestBatch, displayName, phone string, in
 	}()
 
 	cfg := utils.GetWhatsAppConfig()
-	appURL := beego.AppConfig.DefaultString("app_url", "http://localhost:112")
-	link := fmt.Sprintf("%s/test?token=%s", strings.TrimRight(appURL, "/"), inv.Token)
+	appURL := utils.GetAppBaseURL()
+	link := fmt.Sprintf("%s/test?token=%s", appURL, inv.Token)
 
 	msg := fmt.Sprintf(
 		"Halo %s,\n\nBerikut kode akses Tes Psikologi - %s:\n\n*KODE: %s*\n\n"+

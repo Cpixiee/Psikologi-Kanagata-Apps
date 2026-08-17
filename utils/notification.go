@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
-	beego "github.com/beego/beego/v2/server/web"
 )
 
 // NotificationType represents the type of notification
@@ -231,9 +230,5 @@ func generateVerificationToken() string {
 }
 
 func getBaseURL() string {
-	// Get from app.conf atau gunakan default ke port Beego (8080)
-	// Disarankan set BASE_URL di app.conf, misal:
-	// BASE_URL = http://localhost:8080
-	baseURL := beego.AppConfig.DefaultString("BASE_URL", "http://localhost:8080")
-	return baseURL
+	return GetAppBaseURL()
 }

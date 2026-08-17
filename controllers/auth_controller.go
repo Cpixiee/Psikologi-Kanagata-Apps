@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"psikologi_apps/models"
@@ -516,8 +517,8 @@ func getGoogleOAuthConfig() *oauth2.Config {
 	clientID, _ := beego.AppConfig.String("GOOGLE_CLIENT_ID")
 	clientSecret, _ := beego.AppConfig.String("GOOGLE_CLIENT_SECRET")
 	redirectURL, _ := beego.AppConfig.String("GOOGLE_REDIRECT_URL")
-	if strings.TrimSpace(redirectURL) == "" {
-		redirectURL = "http://localhost:112/api/auth/google/callback"
+	if strings.TrimSpace(redirectURL) == "" || strings.Contains(redirectURL, "localhost:112") {
+		redirectURL = fmt.Sprintf("%s/api/auth/google/callback", utils.GetAppBaseURL())
 	}
 
 	return &oauth2.Config{

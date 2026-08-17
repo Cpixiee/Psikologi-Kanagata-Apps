@@ -1067,6 +1067,9 @@
         q('#tabStudents').style.display = tab === 'students' ? '' : 'none';
         q('#tabSummaryBtn').classList.toggle('active', tab === 'summary');
         q('#tabStudentsBtn').classList.toggle('active', tab === 'students');
+        if (tab === 'students') {
+          renderStudentGrid(_allResults);
+        }
         if (window.lucide) try { lucide.createIcons(); } catch(_){}
       };
 

@@ -1191,8 +1191,8 @@ func generateFallbackAIChatReply(userMsg string) string {
 	if strings.Contains(msg, "hallo") || strings.Contains(msg, "halo") || strings.Contains(msg, "hi") || strings.Contains(msg, "hai") || strings.Contains(msg, "selamat") {
 		return "Halo! Saya adalah AI Asisten Bimbingan Karir & Konseling Psychee Wellness. Ada yang bisa saya bantu terkait hasil tes psikologi, pilihan jurusan, atau pengembangan minat dan bakat Anda?"
 	}
-	if strings.Contains(msg, "metode") || strings.Contains(msg, "pembelajaran") || strings.Contains(msg, "belajar") || strings.Contains(msg, "pendekatan") {
-		return "Untuk penguatan metode pembelajaran, disarankan menggunakan pendekatan interaktif (Project-Based Learning) yang memadukan materi visual dan latihan praktik langsung. Hal ini sesuai dengan profil gaya belajar dan daya tangkap peserta."
+	if strings.Contains(msg, "pelajar") || strings.Contains(msg, "pelajr") || strings.Contains(msg, "mapel") || strings.Contains(msg, "matpel") || strings.Contains(msg, "metode") || strings.Contains(msg, "pembelajaran") || strings.Contains(msg, "belajar") {
+		return "Mata pelajaran pendukung utama yang paling cocok dikembangkan siswa meliputi: Matematika & Logika Analitis, Informatika / Pemrograman Dasar, serta Bahasa Asing (Inggris). Mata pelajaran ini sangat cocok untuk memperkuat daya nalar dan kapasitas kognitif siswa."
 	}
 	if strings.Contains(msg, "jurusan") || strings.Contains(msg, "karir") || strings.Contains(msg, "kerja") || strings.Contains(msg, "rekomendasi") || strings.Contains(msg, "prospek") {
 		return "Berdasarkan pemetaan bakat dan minat, area bidang yang paling potensial meliputi Teknologi Informasi (Software/Data Analyst), Manajemen Strategis, dan Konsultasi Teknis. Penguatan pada logika pemecahan masalah dan komunikasi akan sangat mendukung keberhasilan karir."
@@ -1200,5 +1200,5 @@ func generateFallbackAIChatReply(userMsg string) string {
 	if strings.Contains(msg, "langkah") || strings.Contains(msg, "taktis") || strings.Contains(msg, "diskusi") || strings.Contains(msg, "saran") {
 		return "Langkah taktis pertama yang sebaiknya didiskusikan adalah mengajak siswa menginventarisasi 3 mata pelajaran atau bidang favoritnya, lalu memadukannya dengan pilihan program studi perguruan tinggi yang paling relevan."
 	}
-	return "Terima kasih atas pertanyaan Anda. Untuk memaksimalkan potensi perkembangan, fokuslah pada penguatan daya nalar analitis, pengembangan keterampilan komunikasi tim, serta eksplorasi proyek-proyek praktis yang sesuai minat Anda."
+	return "Untuk pertanyaan spesifik ini, fokus pengembangan dapat diarahkan pada penguatan daya nalar analitis, eksplorasi mata pelajaran eksak/logika, serta pengembangan keterampilan komunikasi tim yang relevan dengan hasil asesmen siswa."
 }

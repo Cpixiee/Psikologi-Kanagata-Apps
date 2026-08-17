@@ -130,10 +130,10 @@ func normalizeNormAge(age int) int {
 		return 31
 	case age >= 36 && age <= 40:
 		return 36
-	case age >= 46 && age <= 50:
-		return 45
-	case age > 60:
-		return 60
+	case age >= 41 && age <= 50:
+		return 41
+	case age >= 51:
+		return 51
 	default:
 		return age
 	}

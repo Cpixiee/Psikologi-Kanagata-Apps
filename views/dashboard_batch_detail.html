@@ -1051,20 +1051,14 @@
 
       /* Helper: has result */
       function hasResult(r) {
-        var active = getActiveTests(_batchData);
-        if (active.length === 0) return false;
-        for (var i = 0; i < active.length; i++) {
-          var t = active[i];
-          var completed = false;
-          if (t === 'ist') completed = !!(r.ist_result && r.ist_result.id);
-          else if (t === 'holland') completed = !!(r.holland_result && r.holland_result.id);
-          else if (t === 'learning_style') completed = !!(r.learning_style_result && r.learning_style_result.id);
-          else if (t === 'kraepelin') completed = !!(r.kraepelin_attempt && r.kraepelin_attempt.id && r.kraepelin_attempt.status === 'finished');
-          else if (t === 'rmib') completed = !!(r.rmib_result && r.rmib_result.id);
-          else if (t === 'papi') completed = !!(r.papi_result && r.papi_result.id);
-          if (!completed) return false;
-        }
-        return true;
+        return !!(
+          (r.ist_result && r.ist_result.id) ||
+          (r.holland_result && r.holland_result.id) ||
+          (r.learning_style_result && r.learning_style_result.id) ||
+          (r.kraepelin_attempt && r.kraepelin_attempt.id) ||
+          (r.rmib_result && r.rmib_result.id) ||
+          (r.papi_result && r.papi_result.id)
+        );
       }
 
       /* ===== Tab ===== */
@@ -1957,26 +1951,25 @@
 
         if (window.lucide) try { lucide.createIcons(); } catch(_){}
 
-        /* Filters */
+        if (window.lucide) try { lucide.createIcons(); } catch(_){}
+      }
+
+      function applyStudentFilter() {
         var searchInput = q('#studentSearchInput');
         var statusFilter = q('#studentStatusFilter');
-        function applyFilter() {
-          var search = (searchInput.value||'').toLowerCase().trim();
-          var status = (statusFilter.value||'');
-          var filtered = _allResults.filter(function(r2) {
-            var name2 = getStudentName(r2).toLowerCase();
-            var email2 = ((r2.student_email||(r2.invitation||{}).email)||'').toLowerCase();
-            var nameMatch = !search || name2.includes(search) || email2.includes(search);
-            var done2 = hasResult(r2);
-            var inv2 = r2.invitation||{};
-            var statusCls2 = done2?'selesai':(inv2.status==='used'||inv2.used_at?'pending':'belum');
-            var statusMatch = !status || status===statusCls2 || (status==='belum'&&statusCls2==='pending');
-            return nameMatch && statusMatch;
-          });
-          renderStudentGrid(filtered);
-        }
-        if (searchInput) searchInput.addEventListener('input', applyFilter);
-        if (statusFilter) statusFilter.addEventListener('change', applyFilter);
+        var search = (searchInput ? searchInput.value || '' : '').toLowerCase().trim();
+        var status = (statusFilter ? statusFilter.value || '' : '');
+        var filtered = _allResults.filter(function(r2) {
+          var name2 = getStudentName(r2).toLowerCase();
+          var email2 = ((r2.student_email || (r2.invitation || {}).email) || '').toLowerCase();
+          var nameMatch = !search || name2.includes(search) || email2.includes(search);
+          var done2 = hasResult(r2);
+          var inv2 = r2.invitation || {};
+          var statusCls2 = done2 ? 'selesai' : (inv2.status === 'used' || inv2.used_at ? 'pending' : 'belum');
+          var statusMatch = !status || status === statusCls2 || (status === 'belum' && (statusCls2 === 'pending' || statusCls2 === 'belum'));
+          return nameMatch && statusMatch;
+        });
+        renderStudentGrid(filtered);
       }
 
 
@@ -2009,6 +2002,11 @@
 
       document.addEventListener('DOMContentLoaded', function() {
         init();
+
+        var sInp = q('#studentSearchInput');
+        var sFlt = q('#studentStatusFilter');
+        if (sInp) sInp.addEventListener('input', applyStudentFilter);
+        if (sFlt) sFlt.addEventListener('change', applyStudentFilter);
 
 
 

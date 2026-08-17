@@ -54,6 +54,9 @@
           <span class="badge bg-warning" id="timerDisplay">20:00</span>
         </div>
         <div class="card-body">
+          {{if .Error}}
+          <div class="alert alert-danger">{{.Error}}</div>
+          {{else}}
           {{if eq .Subtest.Code "ME"}}
           <div id="meMemorizeContainer" class="p-4 border rounded bg-white shadow-sm mb-4">
             <div class="alert alert-danger text-center fw-bold fs-5 mb-3" style="background-color:#fef2f2; color:#dc2626; border:2px solid #ef4444;">

@@ -149,7 +149,11 @@ func (c *PsychotestClientController) StartTest() {
 
 	// Simpan informasi undangan di session untuk dipakai alur tes berikutnya
 	c.SetSession("current_invitation_id", inv.Id)
-	c.SetSession("current_batch_id", inv.BatchId)
+	if inv.BatchId != nil {
+		c.SetSession("current_batch_id", *inv.BatchId)
+	} else {
+		c.SetSession("current_batch_id", 0)
+	}
 
 	// Setelah token valid, arahkan ke alur test sesuai konfigurasi batch.
 	var batch models.TestBatch

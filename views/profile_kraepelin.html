@@ -122,43 +122,15 @@
                       <p class="text-muted mt-2 mb-0">Tes Kraepelin belum pernah dikerjakan</p>
                     </div>
 
-                    <ul class="nav nav-tabs mb-4" id="kraepelinTabs" role="tablist" style="border-bottom: 2px solid #e2e8f0; display: none;">
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold" id="kraepelin-grafik-tab" data-bs-toggle="tab" data-bs-target="#kraepelin-grafik-panel" type="button" role="tab" style="padding: 10px 20px;">
-                          Halaman 1: Hasil Tes Kraepelin
-                        </button>
-                      </li>
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="kraepelin-keseluruhan-tab" data-bs-toggle="tab" data-bs-target="#kraepelin-keseluruhan-panel" type="button" role="tab" style="padding: 10px 20px;">
-                          Halaman 2: Laporan Summary All Alat Test
-                        </button>
-                      </li>
-                    </ul>
-
-                    <div class="tab-content p-0 border-0 shadow-none">
-                      <!-- Tab 1: Grafik & Metrics -->
-                      <div class="tab-pane fade show active" id="kraepelin-grafik-panel" role="tabpanel" aria-labelledby="kraepelin-grafik-tab">
-                        <div id="result" style="display:none;">
-                          <div class="row g-3 mb-3">
-                            <div class="col-md-4"><div class="metric"><div class="k">Total benar</div><div class="v" id="mCorrect">0</div></div></div>
-                            <div class="col-md-4"><div class="metric"><div class="k">Total salah</div><div class="v" id="mErrors">0</div></div></div>
-                            <div class="col-md-4"><div class="metric"><div class="k">Total kosong</div><div class="v" id="mSkipped">0</div></div></div>
-                          </div>
-
-                          <div style="width: 100%; max-width: 1020px; height: 360px;">
-                            <canvas id="chart"></canvas>
-                          </div>
-                        </div>
+                    <div id="result" style="display:none;">
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-4"><div class="metric"><div class="k">Total benar</div><div class="v" id="mCorrect">0</div></div></div>
+                        <div class="col-md-4"><div class="metric"><div class="k">Total salah</div><div class="v" id="mErrors">0</div></div></div>
+                        <div class="col-md-4"><div class="metric"><div class="k">Total kosong</div><div class="v" id="mSkipped">0</div></div></div>
                       </div>
 
-                      <!-- Tab 2: Laporan Summary All Alat Test -->
-                      <div class="tab-pane fade" id="kraepelin-keseluruhan-panel" role="tabpanel" aria-labelledby="kraepelin-keseluruhan-tab">
-                        <div id="kraepelinKeseluruhanContent">
-                          <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <p class="text-muted mt-2">Memuat ringkasan keseluruhan...</p>
-                          </div>
-                        </div>
+                      <div style="width: 100%; max-width: 1020px; height: 360px;">
+                        <canvas id="chart"></canvas>
                       </div>
                     </div>
                   </div>
@@ -244,7 +216,7 @@
 
         document.getElementById('notFound').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('kraepelinTabs').style.display = 'flex';
+        const kt = document.getElementById('kraepelinTabs'); if (kt) kt.style.display = 'flex';
         document.getElementById('mCorrect').textContent = Number(k.total_correct || 0);
         document.getElementById('mErrors').textContent = Number(k.total_errors || 0);
         document.getElementById('mSkipped').textContent = Number(k.total_skipped || 0);

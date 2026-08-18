@@ -30,6 +30,19 @@
       .bar-fill.is-top2 { background:linear-gradient(90deg,#5b8bff,#2c5fe7); }
       .bar-fill.is-top3 { background:linear-gradient(90deg,#f0a35a,#d97a1f); }
       .bar-meta { font-size:.85rem; color:#5a5e7a; text-align:right; }
+      @media (max-width: 768px) {
+        .bar-row {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.35rem;
+          padding: 0.75rem 0;
+        }
+        .bar-meta {
+          text-align: left;
+          font-size: 0.8rem;
+        }
+      }
       .badge-top { font-size:.7rem; padding:.2rem .55rem; border-radius:.4rem; font-weight:600; margin-left:.4rem; }
       .badge-top-1 { background:#e6f7ed; color:#1b6f3a; }
       .badge-top-2 { background:#e6efff; color:#2c5fe7; }

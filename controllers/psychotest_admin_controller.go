@@ -2918,13 +2918,15 @@ func (c *PsychotestAdminController) UpdateInvitation() {
 }
 
 // @router /api/admin/test-invitations/:id [delete]
+// @router /api/admin/test-invitations/:id/delete [post]
 func (c *PsychotestAdminController) DeleteInvitation() {
-	if !c.verifyAdmin() {
+	ok, roleStr, sekolahFilter := c.verifyAdminOrSchool()
+	if !ok {
 		return
 	}
 
 	invID, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
-	if err != nil {
+	if err != nil || invID <= 0 {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = PsychotestAdminResponse{
 			Success: false,
@@ -2946,6 +2948,40 @@ func (c *PsychotestAdminController) DeleteInvitation() {
 		return
 	}
 
+	// Dynamic check for school account ownership
+	if roleStr == string(models.RoleSekolah) && sekolahFilter != "" {
+		if inv.BatchId != nil {
+			var batch models.TestBatch
+			batch.Id = *inv.BatchId
+			if err := o.Read(&batch); err == nil {
+				if batch.Sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolahFilter) {
+					c.Ctx.Output.SetStatus(403)
+					c.Data["json"] = PsychotestAdminResponse{
+						Success: false,
+						Message: "Akses ditolak: Undangan bukan milik sekolah Anda",
+					}
+					c.ServeJSON()
+					return
+				}
+			}
+		}
+	}
+
+	// Delete related attempts & sessions for clean deletion
+	_, _ = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).Delete()
+
+	_, _ = o.Raw("DELETE FROM papi_answers WHERE session_id IN (SELECT id FROM papi_sessions WHERE invitation_id = ?)", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM papi_sessions WHERE invitation_id = ?", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM rmib_answers WHERE session_id IN (SELECT id FROM rmib_sessions WHERE invitation_id = ?)", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM rmib_sessions WHERE invitation_id = ?", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM holland_answers WHERE invitation_id = ?", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM learning_style_answers WHERE invitation_id = ?", inv.Id).Exec()
+
 	if _, err := o.Delete(&inv); err != nil {
 		c.Ctx.Output.SetStatus(500)
 		c.Data["json"] = PsychotestAdminResponse{
@@ -2958,7 +2994,90 @@ func (c *PsychotestAdminController) DeleteInvitation() {
 
 	c.Data["json"] = PsychotestAdminResponse{
 		Success: true,
-		Message: "Undangan berhasil dihapus",
+		Message: "Peserta berhasil dihapus dari batch",
+	}
+	c.ServeJSON()
+}
+
+// @router /api/admin/test-invitations/:id/reset [post]
+func (c *PsychotestAdminController) ResetInvitationProgress() {
+	ok, roleStr, sekolahFilter := c.verifyAdminOrSchool()
+	if !ok {
+		return
+	}
+
+	invID, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil || invID <= 0 {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "ID undangan tidak valid",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	o := orm.NewOrm()
+	inv := models.TestInvitation{Id: invID}
+	if err := o.Read(&inv); err != nil {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Undangan tidak ditemukan",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	// Verify school ownership if school role
+	if roleStr == string(models.RoleSekolah) && sekolahFilter != "" {
+		if inv.BatchId != nil {
+			var batch models.TestBatch
+			batch.Id = *inv.BatchId
+			if err := o.Read(&batch); err == nil {
+				if batch.Sekolah != "" && !strings.EqualFold(batch.Sekolah, sekolahFilter) {
+					c.Ctx.Output.SetStatus(403)
+					c.Data["json"] = PsychotestAdminResponse{
+						Success: false,
+						Message: "Akses ditolak: Undangan bukan milik sekolah Anda",
+					}
+					c.ServeJSON()
+					return
+				}
+			}
+		}
+	}
+
+	// Delete all test results & sessions for this invitation so student can restart cleanly
+	_, _ = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).Delete()
+
+	_, _ = o.Raw("DELETE FROM papi_answers WHERE session_id IN (SELECT id FROM papi_sessions WHERE invitation_id = ?)", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM papi_sessions WHERE invitation_id = ?", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM rmib_answers WHERE session_id IN (SELECT id FROM rmib_sessions WHERE invitation_id = ?)", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM rmib_sessions WHERE invitation_id = ?", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM holland_answers WHERE invitation_id = ?", inv.Id).Exec()
+	_, _ = o.Raw("DELETE FROM learning_style_answers WHERE invitation_id = ?", inv.Id).Exec()
+
+	// Reset invitation status to pending
+	_, err = o.Raw("UPDATE test_invitations SET status = 'pending', used_at = NULL WHERE id = ?", inv.Id).Exec()
+	if err != nil {
+		c.Ctx.Output.SetStatus(500)
+		c.Data["json"] = PsychotestAdminResponse{
+			Success: false,
+			Message: "Gagal mereset status undangan",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	c.Data["json"] = PsychotestAdminResponse{
+		Success: true,
+		Message: "Berhasil mereset tes peserta. Peserta dapat memulai tes kembali dari awal.",
 	}
 	c.ServeJSON()
 }

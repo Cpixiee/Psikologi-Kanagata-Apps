@@ -1943,14 +1943,20 @@
                 '<span class="sc-status '+statusCls+'">'+esc(statusLbl)+'</span>' +
                 (usedAtStr?'<span class="sc-meta"><i data-lucide="calendar" style="width:11px;height:11px;"></i>'+esc(usedAtStr)+'</span>':'') +
               '</div>' +
-              '<div style="display:flex; gap:8px; margin-top:4px;">' +
+              '<div style="display:flex; gap:6px; margin-top:4px;">' +
                 '<a href="/dashboard/batch/result/' + inv.id + '" class="sc-btn '+(done?'':'disabled')+'" style="text-decoration:none; flex:1; margin:0;">' +
                   '<i data-lucide="eye" style="width:14px;height:14px;"></i>' +
                   'Lihat Hasil' +
                 '</a>' +
-                '<a href="/api/results/export-zip?invId=' + inv.id + '&test=keseluruhan" class="sc-btn '+(done?'':'disabled')+'" style="text-decoration:none; width:40px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin:0;" title="Unduh Hasil Lengkap (ZIP)">' +
+                '<a href="/api/results/export-zip?invId=' + inv.id + '&test=keseluruhan" class="sc-btn '+(done?'':'disabled')+'" style="text-decoration:none; width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin:0;" title="Unduh Hasil Lengkap (ZIP)">' +
                   '<i data-lucide="download" style="width:14px;height:14px;"></i>' +
                 '</a>' +
+                '<button onclick="resetStudentTest(' + inv.id + ', \'' + esc(email).replace(/'/g,"\\'") + '\')" class="sc-btn" style="width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin:0; color:#d97706; border-color:#fcd34d; background:#fffbeb;" title="Reset Tes Peserta (Mulai Ulang dari Awal jika Error)">' +
+                  '<i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i>' +
+                '</button>' +
+                '<button onclick="deleteStudentInvitation(' + inv.id + ', \'' + esc(email).replace(/'/g,"\\'") + '\')" class="sc-btn" style="width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin:0; color:#ef4444; border-color:#fca5a5; background:#fef2f2;" title="Hapus Peserta dari Batch Ini">' +
+                  '<i data-lucide="trash-2" style="width:14px;height:14px;"></i>' +
+                '</button>' +
               '</div>' +
             '</div>';
 
@@ -1961,8 +1967,34 @@
         });
 
         if (window.lucide) try { lucide.createIcons(); } catch(_){}
+      }
 
-        if (window.lucide) try { lucide.createIcons(); } catch(_){}
+      async function resetStudentTest(invId, email) {
+        if (!invId) return;
+        if (!confirm('Apakah Anda yakin ingin mereset tes peserta ini (' + (email || '') + ')? Data tes sebelumnya akan direset agar peserta bisa tes ulang dari awal di batch ini.')) return;
+        try {
+          var res = await fetch('/api/admin/test-invitations/' + invId + '/reset', { method: 'POST' });
+          var data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || 'Gagal mereset tes');
+          alert(data.message || 'Berhasil mereset tes. Peserta dapat memulai tes kembali.');
+          window.location.reload();
+        } catch(e) {
+          alert('Error: ' + e.message);
+        }
+      }
+
+      async function deleteStudentInvitation(invId, email) {
+        if (!invId) return;
+        if (!confirm('Apakah Anda yakin ingin menghapus peserta (' + (email || '') + ') dari batch ini?')) return;
+        try {
+          var res = await fetch('/api/admin/test-invitations/' + invId + '/delete', { method: 'POST' });
+          var data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || 'Gagal menghapus peserta');
+          alert(data.message || 'Peserta berhasil dihapus');
+          window.location.reload();
+        } catch(e) {
+          alert('Error: ' + e.message);
+        }
       }
 
       function applyStudentFilter() {

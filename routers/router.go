@@ -293,6 +293,8 @@ func init() {
 	beego.Router("/api/results/export-zip", &controllers.PsychotestAdminController{}, "get:ExportSingleResultZIP")
 	// Invitation CRUD & bulk actions
 	beego.Router("/api/admin/test-invitations/:id", &controllers.PsychotestAdminController{}, "put:UpdateInvitation;delete:DeleteInvitation")
+	beego.Router("/api/admin/test-invitations/:id/delete", &controllers.PsychotestAdminController{}, "post:DeleteInvitation")
+	beego.Router("/api/admin/test-invitations/:id/reset", &controllers.PsychotestAdminController{}, "post:ResetInvitationProgress")
 	beego.Router("/api/admin/test-invitations/:id/result", &controllers.PsychotestAdminController{}, "get:GetInvitationResult")
 	beego.Router("/api/admin/test-invitations/:id/send-code", &controllers.PsychotestAdminController{}, "post:SendCode")
 	beego.Router("/api/admin/test-invitations/bulk", &controllers.PsychotestAdminController{}, "post:BulkInvitations")

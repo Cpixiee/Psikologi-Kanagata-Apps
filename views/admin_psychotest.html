@@ -1212,6 +1212,12 @@
                   <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadInvitation(${inv.id})">
                     <i class="bx bx-download"></i> Download ZIP
                   </button>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="resetInvitationProgress(${inv.id}, '${(inv.email||'').replace(/'/g,"\\'")}')" title="Reset tes peserta jika terputus/error agar bisa tes ulang di batch ini">
+                    <i class="bx bx-refresh"></i> Reset Tes
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteInvitation(${inv.id}, '${(inv.email||'').replace(/'/g,"\\'")}')" title="Hapus peserta dari batch ini">
+                    <i class="bx bx-trash"></i> Hapus
+                  </button>
                   ${rmibDetailBtn}
                 </div>
               </td>
@@ -1236,6 +1242,56 @@
       function downloadInvitation(invId) {
         if (!invId) return;
         window.location.href = '/api/results/export-zip?invId=' + invId + '&test=keseluruhan';
+      }
+
+      async function resetInvitationProgress(invId, email) {
+        if (!invId) return;
+        const confirm = await Swal.fire({
+          icon: 'warning',
+          title: 'Reset Tes Peserta?',
+          text: 'Progress & jawaban peserta (' + (email || 'peserta') + ') akan direset. Peserta dapat langsung tes ulang dari awal di batch ini.',
+          showCancelButton: true,
+          confirmButtonColor: '#f59e0b',
+          confirmButtonText: 'Ya, Reset Tes',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+          const res = await fetch('/api/admin/test-invitations/' + invId + '/reset', { method: 'POST' });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal mereset tes');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil Direset', text: data.message || 'Tes peserta telah direset', timer: 2200, showConfirmButton: false });
+          if (window._currentBatchIdForResults) showBatchResultsModal(window._currentBatchIdForResults);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat mereset tes' });
+        }
+      }
+
+      async function deleteInvitation(invId, email) {
+        if (!invId) return;
+        const confirm = await Swal.fire({
+          icon: 'error',
+          title: 'Hapus Peserta?',
+          text: 'Undangan peserta (' + (email || 'peserta') + ') akan dihapus dari batch ini.',
+          showCancelButton: true,
+          confirmButtonColor: '#ef4444',
+          confirmButtonText: 'Ya, Hapus',
+          cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+          const res = await fetch('/api/admin/test-invitations/' + invId + '/delete', { method: 'POST' });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menghapus peserta');
+          }
+          Swal.fire({ icon: 'success', title: 'Berhasil Dihapus', text: data.message || 'Peserta berhasil dihapus', timer: 2000, showConfirmButton: false });
+          if (window._currentBatchIdForResults) showBatchResultsModal(window._currentBatchIdForResults);
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || 'Terjadi kesalahan saat menghapus peserta' });
+        }
       }
 
       async function sendInvitationCode(invId) {

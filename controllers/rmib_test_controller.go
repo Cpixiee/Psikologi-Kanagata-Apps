@@ -257,10 +257,11 @@ func (c *RMIBTestController) InstructionPage() {
 // PAGE: /test/rmib/group/:n
 // =========================
 type rmibGroupItemView struct {
-	ID            int
-	ItemOrder     int
-	QuestionText  string
-	SelectedRank  int // 0 jika belum dijawab
+	ID           int
+	QuestionId   int
+	ItemOrder    int
+	QuestionText string
+	SelectedRank int // 0 jika belum dijawab
 }
 
 func (c *RMIBTestController) GroupPage() {
@@ -296,6 +297,7 @@ func (c *RMIBTestController) GroupPage() {
 	for _, q := range qs {
 		items = append(items, rmibGroupItemView{
 			ID:           q.Id,
+			QuestionId:   q.Id,
 			ItemOrder:    q.ItemOrder,
 			QuestionText: q.QuestionText,
 			SelectedRank: answers[q.Id],

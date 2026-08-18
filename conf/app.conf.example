@@ -6,11 +6,13 @@ httpport = 8086
 runmode = prod
 copyrequestbody = true
 
-# Session
+# Session (Persistent file provider)
 sessionon = true
-sessionprovider = memory
-sessionname = sessionID
-sessiongcmaxlifetime = 3600
+sessionprovider = file
+sessionproviderconfig = ./data/sessions
+sessionname = psikotes_session
+sessiongcmaxlifetime = 2592000
+sessioncookielifetime = 2592000
 
 # Database (override via .env.docker / environment)
 db_driver = postgres

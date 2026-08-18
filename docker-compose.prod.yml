@@ -41,9 +41,11 @@ services:
       - applogs:/app/logs
       - appuploads:/app/static/uploads
       - aicache:/app/data/ai_cache
+      - appsessions:/app/data/sessions
 
 volumes:
   pgdata:
   applogs:
   appuploads:
   aicache:
+  appsessions:

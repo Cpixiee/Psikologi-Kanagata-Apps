@@ -13,11 +13,14 @@ import (
 )
 
 func main() {
-	// Setup logging ke file dan console
-	// Log file akan disimpan di logs/app.log
+	// Setup logging & session directory
 	logDir := "logs"
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		os.Mkdir(logDir, 0755)
+	}
+	sessionDir := "data/sessions"
+	if _, err := os.Stat(sessionDir); os.IsNotExist(err) {
+		os.MkdirAll(sessionDir, 0755)
 	}
 	
 	// Konfigurasi logging: console + file

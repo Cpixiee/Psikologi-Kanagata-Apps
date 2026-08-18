@@ -11,8 +11,8 @@
   <body class="bg-light">
     <div class="container-xxl py-5">
       <div class="mb-3">
-        <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
-          <i class="bx bx-arrow-back me-1"></i> Kembali ke Dashboard
+        <a href="javascript:void(0)" onclick="if(document.referrer&&document.referrer.includes('/dashboard')){window.location.href=document.referrer;}else{window.location.href='/hasil-tes';}" class="btn btn-outline-secondary btn-sm">
+          <i class="bx bx-arrow-back me-1"></i> Kembali ke Hasil Tes
         </a>
       </div>
 

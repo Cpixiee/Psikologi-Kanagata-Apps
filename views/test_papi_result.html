@@ -301,8 +301,8 @@
             <!-- Action Buttons -->
             <div class="row mt-4">
                 <div class="col-12 text-center">
-                    <a href="/dashboard" class="btn btn-back">
-                        <i class="fas fa-arrow-left me-2"></i>Kembali ke Dashboard
+                    <a href="javascript:void(0)" onclick="if(document.referrer&&document.referrer.includes('/dashboard')){window.location.href=document.referrer;}else{window.location.href='/hasil-tes';}" class="btn btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>Kembali ke Hasil Tes
                     </a>
                     <a href="/api/results/export-zip?invId={{.InvitationID}}&test=papi" class="btn btn-back text-white" style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); margin-left: 0.5rem;">
                         <i class="fas fa-download me-2"></i>Unduh Laporan Lengkap (ZIP)

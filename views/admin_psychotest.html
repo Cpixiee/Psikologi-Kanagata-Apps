@@ -1178,9 +1178,8 @@
               ? papi.dominant_category
               : '<span class="text-muted">-</span>';
 
-            const rmibDetailBtn = rmib
-              ? `<button type="button" class="btn btn-sm btn-outline-info ms-1" data-rmib-inv="${inv.id}" data-rmib-email="${(inv.email || '').replace(/"/g,'&quot;')}">`+
-                  `<i class="bx bx-detail"></i> Detail RMIB</button>`
+            const rmibDropdownItem = rmib
+              ? `<li><button type="button" class="dropdown-item text-info" data-rmib-inv="${inv.id}"><i class="bx bx-detail me-2"></i> Detail RMIB</button></li>`
               : '';
             tr.innerHTML = `
               <td class="text-center">
@@ -1202,23 +1201,34 @@
               <td class="text-center">${papiDisplay}</td>
               <td class="text-center"><small>${new Date(inv.created_at).toLocaleString('id-ID')}</small></td>
               <td class="text-center text-nowrap">
-                <div class="d-inline-flex flex-wrap gap-1 justify-content-center">
-                  <a href="/dashboard/student-result?token=${inv.token}" target="_blank" class="btn btn-sm btn-outline-primary" title="Buka Laporan Hasil & Rekomendasi AI">
-                    <i class="bx bx-sparkles"></i> Hasil AI
-                  </a>
-                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="sendInvitationCode(${inv.id})" title="Kirim kode tes via email/WhatsApp sesuai pengaturan batch">
-                    <i class="bx bx-paper-plane"></i> Kirim Code
+                <div class="dropdown d-inline-block">
+                  <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bx bx-cog me-1"></i> Pilih Aksi
                   </button>
-                  <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadInvitation(${inv.id})">
-                    <i class="bx bx-download"></i> Download ZIP
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="resetInvitationProgress(${inv.id}, '${(inv.email||'').replace(/'/g,"\\'")}')" title="Reset tes peserta jika terputus/error agar bisa tes ulang di batch ini">
-                    <i class="bx bx-refresh"></i> Reset Tes
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteInvitation(${inv.id}, '${(inv.email||'').replace(/'/g,"\\'")}')" title="Hapus peserta dari batch ini">
-                    <i class="bx bx-trash"></i> Hapus
-                  </button>
-                  ${rmibDetailBtn}
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                      <button type="button" class="dropdown-item" onclick="sendInvitationCode(${inv.id})">
+                        <i class="bx bx-paper-plane text-warning me-2"></i> Kirim Code
+                      </button>
+                    </li>
+                    <li>
+                      <button type="button" class="dropdown-item" onclick="downloadInvitation(${inv.id})">
+                        <i class="bx bx-download text-success me-2"></i> Download ZIP
+                      </button>
+                    </li>
+                    ${rmibDropdownItem}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <button type="button" class="dropdown-item text-warning" onclick="resetInvitationProgress(${inv.id}, '${(inv.email||'').replace(/'/g,"\\'")}')">
+                        <i class="bx bx-refresh me-2"></i> Reset Tes
+                      </button>
+                    </li>
+                    <li>
+                      <button type="button" class="dropdown-item text-danger" onclick="deleteInvitation(${inv.id}, '${(inv.email||'').replace(/'/g,"\\'")}')">
+                        <i class="bx bx-trash me-2"></i> Hapus Peserta
+                      </button>
+                    </li>
+                  </ul>
                 </div>
               </td>
             `;

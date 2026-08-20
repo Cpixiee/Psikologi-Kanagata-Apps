@@ -84,12 +84,22 @@ func (c *KraepelinTestController) StartPage() {
 		return
 	}
 
-	// If already finished, go to finish page.
+	// If already finished, check next test in batch.
 	o := orm.NewOrm()
 	var att models.KraepelinAttempt
 	if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&att); err == nil && att.Id != 0 {
 		if att.Status == "finished" {
-			c.Redirect("/test/kraepelin/finish", 302)
+			var batch models.TestBatch
+			if inv.BatchId != nil {
+				batch.Id = *inv.BatchId
+				_ = o.Read(&batch)
+			}
+			nextURL := GetNextTestRedirect(inv.Id, &batch)
+			if nextURL != "" {
+				c.Redirect(nextURL, 302)
+			} else {
+				c.Redirect("/hasil-tes", 302)
+			}
 			return
 		}
 	}

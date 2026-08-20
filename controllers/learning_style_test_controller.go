@@ -86,12 +86,22 @@ func (c *LearningStyleTestController) StartPage() {
 		return
 	}
 
-	// If already finished, go to finish page.
+	// If already finished, check next test in batch.
 	o := orm.NewOrm()
 	var res models.LearningStyleResult
 	if err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res); err == nil && res.Id != 0 {
 		if res.ScoreVisual+res.ScoreAuditory+res.ScoreKinesthetic > 0 && strings.TrimSpace(res.DominantType) != "" {
-			c.Redirect("/test/learning-style/finish", 302)
+			var batch models.TestBatch
+			if inv.BatchId != nil {
+				batch.Id = *inv.BatchId
+				_ = o.Read(&batch)
+			}
+			nextURL := GetNextTestRedirect(inv.Id, &batch)
+			if nextURL != "" {
+				c.Redirect(nextURL, 302)
+			} else {
+				c.Redirect("/hasil-tes", 302)
+			}
 			return
 		}
 	}

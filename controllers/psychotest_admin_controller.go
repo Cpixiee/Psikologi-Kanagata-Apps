@@ -3050,6 +3050,7 @@ func (c *PsychotestAdminController) ResetInvitationProgress() {
 
 	// Delete all test results & sessions for this invitation so student can restart cleanly
 	_, _ = o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", inv.Id).Delete()
+	_, _ = o.QueryTable(new(models.ISTAnswer)).Filter("Invitation__Id", inv.Id).Delete()
 	_, _ = o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).Delete()
 	_, _ = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).Delete()
 	_, _ = o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).Delete()

@@ -179,18 +179,28 @@ func (c *HollandTestController) StartHollandPage() {
 		return
 	}
 
-	// If Holland result exists with page3 fields, go to finish.
+	// If Holland result exists with page3 fields, check next test in batch.
 	o := orm.NewOrm()
 	var res models.HollandResult
 	err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", inv.Id).One(&res)
 	if err == nil && res.Id != 0 {
-		// If user already submitted page 3, redirect to finish.
+		// If user already submitted page 3, redirect to next test.
 		if strings.TrimSpace(res.DreamJob1) != "" &&
 			strings.TrimSpace(res.DreamJob2) != "" &&
 			strings.TrimSpace(res.DreamJob3) != "" &&
 			strings.TrimSpace(res.FavoriteSubject) != "" &&
 			strings.TrimSpace(res.DislikedSubject) != "" {
-			c.Redirect("/test/holland/finish", 302)
+			var batch models.TestBatch
+			if inv.BatchId != nil {
+				batch.Id = *inv.BatchId
+				_ = o.Read(&batch)
+			}
+			nextURL := GetNextTestRedirect(inv.Id, &batch)
+			if nextURL != "" {
+				c.Redirect(nextURL, 302)
+			} else {
+				c.Redirect("/hasil-tes", 302)
+			}
 			return
 		}
 	}

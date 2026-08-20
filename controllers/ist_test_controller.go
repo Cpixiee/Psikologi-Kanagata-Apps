@@ -436,7 +436,17 @@ func (c *ISTTestController) StartISTPage() {
 	// Anti-back/anti-skip: kalau sudah ada progres, jangan balik ke start.
 	o := orm.NewOrm()
 	if current, complete, _ := getISTCurrentSubtestCode(o, inv.Id); complete {
-		c.Redirect("/test/ist/finish", 302)
+		var batch models.TestBatch
+		if inv.BatchId != nil {
+			batch.Id = *inv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(inv.Id, &batch)
+		if nextURL != "" {
+			c.Redirect(nextURL, 302)
+		} else {
+			c.Redirect("/hasil-tes", 302)
+		}
 		return
 	} else if current != "" && current != "SE" {
 		c.Redirect("/test/ist/instruction/"+current, 302)

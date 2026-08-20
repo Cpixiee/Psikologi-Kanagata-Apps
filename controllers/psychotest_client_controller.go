@@ -226,7 +226,7 @@ func GetNextTestRedirect(invID int, batch *models.TestBatch) string {
 			if err := o.QueryTable(new(models.HollandResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
 				return "/test/holland/start"
 			}
-		case "learning_style", "learningstyle", "vak":
+		case "learning_style", "learningstyle", "learning-style", "vak":
 			var r models.LearningStyleResult
 			if err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
 				return "/test/learning-style/start"

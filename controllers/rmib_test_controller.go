@@ -212,11 +212,21 @@ func (c *RMIBTestController) StartPage() {
 		return
 	}
 
-	// Jika hasil sudah ada, langsung ke result.
+	// Jika hasil sudah ada, arahkan ke tes berikutnya di batch (jika ada), atau ke /hasil-tes.
 	o := orm.NewOrm()
 	var existing models.RMIBResult
 	if err := o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&existing); err == nil && existing.Id != 0 {
-		c.Redirect("/profile/rmib", 302)
+		var batch models.TestBatch
+		if inv.BatchId != nil {
+			batch.Id = *inv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(inv.Id, &batch)
+		if nextURL != "" {
+			c.Redirect(nextURL, 302)
+		} else {
+			c.Redirect("/hasil-tes", 302)
+		}
 		return
 	}
 

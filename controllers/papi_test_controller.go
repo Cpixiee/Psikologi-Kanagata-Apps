@@ -169,11 +169,21 @@ func (c *PAPITestController) StartPage() {
 		return
 	}
 
-	// Jika hasil sudah ada, langsung ke profile PAPI
+	// Jika hasil sudah ada, arahkan ke tes berikutnya di batch (jika ada), atau ke /hasil-tes.
 	o := orm.NewOrm()
 	var existing models.PAPIResult
 	if err := o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&existing); err == nil && existing.Id != 0 {
-		c.Redirect("/profile/papi", 302)
+		var batch models.TestBatch
+		if inv.BatchId != nil {
+			batch.Id = *inv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(inv.Id, &batch)
+		if nextURL != "" {
+			c.Redirect(nextURL, 302)
+		} else {
+			c.Redirect("/hasil-tes", 302)
+		}
 		return
 	}
 

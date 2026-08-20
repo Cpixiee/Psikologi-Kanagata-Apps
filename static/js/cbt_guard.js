@@ -65,7 +65,16 @@
     }, 1200);
   }
 
+  let lastViolationTime = 0;
+  const VIOLATION_COOLDOWN_MS = 2500; // Cooldown 2.5 detik untuk cegah false-positive & duplikasi event
+
   function reportViolation(type, meta) {
+    const now = Date.now();
+    if (now - lastViolationTime < VIOLATION_COOLDOWN_MS) {
+      return; // Cooldown: abaikan event duplikat yang terjadi hampir bersamaan
+    }
+    lastViolationTime = now;
+
     playAlarm();
     toast('Peringatan: aktivitas terdeteksi (' + type + '). Pelanggaran akan dicatat.', 'warning');
 
@@ -95,12 +104,9 @@
   window.addEventListener('mousedown', function () { hasStarted = true; }, { capture: true, once: true });
   window.addEventListener('keydown', function () { hasStarted = true; }, { capture: true, once: true });
 
-  // Deteksi: tab switching / minimize / pindah aplikasi
+  // Deteksi: tab switching / minimize (hanya jika tab benar-benar tersembunyi)
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) reportViolation('hidden', 'visibilitychange');
-  });
-  window.addEventListener('blur', function () {
-    reportViolation('blur', 'window blur');
   });
 
   // Deteksi: keluar fullscreen
@@ -128,8 +134,7 @@
       (ctrl && (k === 'c' || k === 'v' || k === 'x' || k === 'p' || k === 's')) ||
       (ctrl && e.shiftKey && (k === 'i' || k === 'j' || k === 'c')) ||
       (k === 'f12') ||
-      (k === 'printscreen') ||
-      (k === 'escape');
+      (k === 'printscreen');
 
     if (blocked) {
       e.preventDefault();

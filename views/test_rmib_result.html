@@ -102,7 +102,7 @@
                 <div class="text-muted small">{{$row.Code}} &middot; {{$row.Category}}</div>
               </div>
               <div class="bar-track">
-                <div class="bar-fill {{if eq $row.Rank 1}}is-top1{{else if eq $row.Rank 2}}is-top2{{else if eq $row.Rank 3}}is-top3{{end}}" style="width:{{$row.BarPercent}}%"></div>
+                <div class="bar-fill {{if eq $row.Rank 1}}is-top1{{else if eq $row.Rank 2}}is-top2{{else if eq $row.Rank 3}}is-top3{{end}}" style="width: {{$row.BarPercent}}%;"></div>
               </div>
               <div class="bar-meta">
                 Skor <strong>{{$row.Score}}</strong> &middot; Peringkat <strong>{{$row.Rank}}</strong>

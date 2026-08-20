@@ -1422,7 +1422,7 @@ func (c *ISTTestController) ReportViolationAPI() {
 	var r req
 	_ = json.Unmarshal(c.Ctx.Input.RequestBody, &r)
 
-	const limit = 3
+	const limit = 5
 
 	curAny := c.GetSession("ist_violation_count")
 	cur := 0

@@ -191,6 +191,51 @@ func filterISTDummyQuestions(questions []models.ISTQuestion) []models.ISTQuestio
 	return filtered
 }
 
+// shuffleISTQuestionOptions mengacak pilihan jawaban A, B, C, D, E untuk satu soal IST
+// secara deterministik berdasarkan seed (misalnya inv.Id * 100000 + q.Id).
+// Hal ini memastikan urutan pilihan jawaban acak secara unik untuk setiap peserta,
+// namun konsisten antara render tampilan soal dan penilaian saat submit API.
+func shuffleISTQuestionOptions(q *models.ISTQuestion, seed int64) {
+	if q == nil {
+		return
+	}
+	opts := []string{q.OptionA, q.OptionB, q.OptionC, q.OptionD, q.OptionE}
+	letters := []string{"A", "B", "C", "D", "E"}
+
+	origCorrectLetter := strings.ToUpper(strings.TrimSpace(q.Correct))
+	origCorrectIdx := -1
+	for i, l := range letters {
+		if l == origCorrectLetter {
+			origCorrectIdx = i
+			break
+		}
+	}
+	if origCorrectIdx < 0 {
+		origCorrectIdx = 0 // Fallback ke OptionA
+	}
+	correctText := opts[origCorrectIdx]
+
+	r := rand.New(rand.NewSource(seed))
+	perm := r.Perm(5)
+
+	shuffledOpts := make([]string, 5)
+	newCorrectLetter := "A"
+
+	for newIdx, origIdx := range perm {
+		shuffledOpts[newIdx] = opts[origIdx]
+		if origIdx == origCorrectIdx || opts[origIdx] == correctText {
+			newCorrectLetter = letters[newIdx]
+		}
+	}
+
+	q.OptionA = shuffledOpts[0]
+	q.OptionB = shuffledOpts[1]
+	q.OptionC = shuffledOpts[2]
+	q.OptionD = shuffledOpts[3]
+	q.OptionE = shuffledOpts[4]
+	q.Correct = newCorrectLetter
+}
+
 // istQuestionRangeByCode mengembalikan rentang nomor soal 176-item IST
 // untuk setiap subtest, supaya progres tidak terpengaruh soal-soal sisa
 // dari seeder lama yang nomornya di luar rentang resmi.
@@ -701,12 +746,12 @@ func (c *ISTTestController) SubtestPage() {
 	// Jangan filter berdasarkan nomor, karena SE no 1-2 adalah soal asli.
 	questions = filterISTDummyQuestions(questions)
 
-	// Pengacakan soal untuk subtes RA dan ZR/ZA sesuai ketentuan
+	// Pengacakan pilihan jawaban (bukan urutan nomor soal) untuk subtes RA dan ZR/ZA sesuai ketentuan
 	if sub.Code == "RA" || sub.Code == "ZR" || sub.Code == "ZA" {
-		rand.Seed(time.Now().UnixNano())
-		rand.Shuffle(len(questions), func(i, j int) {
-			questions[i], questions[j] = questions[j], questions[i]
-		})
+		for i := range questions {
+			seed := int64(inv.Id)*100000 + int64(questions[i].Id)
+			shuffleISTQuestionOptions(&questions[i], seed)
+		}
 	}
 
 	// Durasi resmi per subtest IST (menit):
@@ -830,6 +875,14 @@ func (c *ISTTestController) SubmitSubtestAPI() {
 		c.Data["json"] = map[string]interface{}{"success": false, "message": "Soal subtest belum tersedia"}
 		c.ServeJSON()
 		return
+	}
+
+	// Terapkan pengacakan opsi jawaban yang sama secara deterministik untuk RA, ZR, ZA
+	if sub.Code == "RA" || sub.Code == "ZR" || sub.Code == "ZA" {
+		for i := range questions {
+			seed := int64(inv.Id)*100000 + int64(questions[i].Id)
+			shuffleISTQuestionOptions(&questions[i], seed)
+		}
 	}
 
 	// Validasi: default (normal) semua soal yang tampil harus dijawab.

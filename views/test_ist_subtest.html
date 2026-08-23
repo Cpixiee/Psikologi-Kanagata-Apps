@@ -177,12 +177,17 @@
         // Expose toast function untuk CBT guard (anti-cheat)
         window.__istShowToast = showToast;
 
+        let timerTriggered = false;
         function tick() {
           const m = Math.floor(secondsLeft / 60);
           const s = secondsLeft % 60;
           if (el) el.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
           if (secondsLeft <= 0) {
-            submitForm();
+            if (!timerTriggered) {
+              timerTriggered = true;
+              showToast('Waktu subtest telah habis. Otomatis menyimpan dan melanjutkan ke subtest berikutnya...', 'warning');
+              submitForm({ force_submit: true, violation_src: 'timer_expired' });
+            }
             return;
           }
           secondsLeft--;
@@ -357,8 +362,14 @@
               }
             })
             .catch(function () {
-              showToast('Gagal menyimpan jawaban', 'danger');
+              showToast('Gagal menyimpan jawaban. Mengulang...', 'danger');
               form.dataset.submitted = '0';
+              timerTriggered = false;
+              if (secondsLeft <= 0) {
+                setTimeout(function () {
+                  submitForm({ force_submit: true, violation_src: 'timer_expired_retry' });
+                }, 2000);
+              }
             });
         }
 

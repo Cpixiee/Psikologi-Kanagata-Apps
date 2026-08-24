@@ -187,8 +187,15 @@ func (c *PAPITestController) StartPage() {
 		return
 	}
 
-	if _, err := c.getOrCreateSession(inv, user); err != nil {
+	session, err := c.getOrCreateSession(inv, user)
+	if err != nil {
 		c.Data["Error"] = err.Error()
+	} else if session != nil {
+		answers, _ := c.getAnswersBySession(session.Id)
+		if len(answers) > 0 {
+			c.Redirect("/test/papi/questions", 302)
+			return
+		}
 	}
 
 	c.Data["User"] = user

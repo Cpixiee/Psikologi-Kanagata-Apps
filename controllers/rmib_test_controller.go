@@ -230,8 +230,19 @@ func (c *RMIBTestController) StartPage() {
 		return
 	}
 
-	if _, err := c.getOrCreateSession(inv, user); err != nil {
+	session, err := c.getOrCreateSession(inv, user)
+	if err != nil {
 		c.Data["Error"] = err.Error()
+	} else if session != nil {
+		gv := genderVersionFromUser(user)
+		firstInc, _ := c.firstIncompleteGroup(gv, session.Id)
+		if firstInc > 1 {
+			c.Redirect(fmt.Sprintf("/test/rmib/group/%d", firstInc), 302)
+			return
+		} else if firstInc == 0 {
+			c.Redirect("/test/rmib/summary", 302)
+			return
+		}
 	}
 
 	c.Data["User"] = user

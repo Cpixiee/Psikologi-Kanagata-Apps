@@ -6,14 +6,14 @@
 
   const CFG = window.__CBT_GUARD_CFG__ || {};
   const enabled = CFG.enabled === true;
-  const limit = Number(CFG.violationLimit || 3);
+  const limit = Number(CFG.violationLimit || 5);
   const violationApi = CFG.violationApi || '/api/test/ist/violation';
   const alarmSrc = CFG.alarmSrc || '/static/allert/Allert.mp3';
   const showToast = typeof window.__istShowToast === 'function' ? window.__istShowToast : null;
 
   if (!enabled) return;
 
-  let hasStarted = false; // true setelah ada user gesture (click/keydown) => audio bisa autoplay
+  let hasStarted = false; // true setelah ada user gesture (click/keydown/touch) => audio bisa autoplay
   let isSubmitting = false;
 
   // Alarm audio (dipakai hanya saat pelanggaran)
@@ -21,6 +21,11 @@
   alarm.preload = 'auto';
   alarm.loop = false;
   alarm.volume = 1.0;
+
+  // Grace period: abaikan event dalam 3 detik pertama sejak halaman dimuat.
+  // Mencegah false-positive di HP saat halaman baru dibuka dan browser trigger visibilitychange.
+  const PAGE_LOAD_TIME = Date.now();
+  const GRACE_PERIOD_MS = 3000;
 
   function toast(msg, variant) {
     if (showToast) showToast(msg, variant);
@@ -66,9 +71,14 @@
   }
 
   let lastViolationTime = 0;
-  const VIOLATION_COOLDOWN_MS = 2500; // Cooldown 2.5 detik untuk cegah false-positive & duplikasi event
+  const VIOLATION_COOLDOWN_MS = 3000; // Cooldown 3 detik — lebih panjang untuk HP agar tidak double-fire
 
   function reportViolation(type, meta) {
+    // Abaikan event dalam grace period setelah halaman dimuat (false-positive di HP)
+    if (Date.now() - PAGE_LOAD_TIME < GRACE_PERIOD_MS) {
+      return;
+    }
+
     const now = Date.now();
     if (now - lastViolationTime < VIOLATION_COOLDOWN_MS) {
       return; // Cooldown: abaikan event duplikat yang terjadi hampir bersamaan
@@ -76,7 +86,6 @@
     lastViolationTime = now;
 
     playAlarm();
-    toast('Peringatan: aktivitas terdeteksi (' + type + '). Pelanggaran akan dicatat.', 'warning');
 
     fetch(violationApi, {
       method: 'POST',
@@ -88,25 +97,36 @@
         if (!data || !data.success) return;
         const count = Number(data.count || 0);
         const lim = Number(data.limit || limit);
-        if (count >= lim && data.force_submit) {
-          toast('Batas pelanggaran tercapai (' + count + '/' + lim + '). Ujian dihentikan & auto submit.', 'danger');
-          forceSubmitNow(type);
+        if (count >= lim) {
+          // Batas tercapai → auto submit (dengan delay 1.5 detik agar toast sempat terbaca)
+          toast('⛔ Pelanggaran ke-' + count + '/' + lim + ': Ujian dihentikan & jawaban otomatis terkirim!', 'danger');
+          setTimeout(function () { forceSubmitNow(type); }, 1500);
         } else {
-          toast('Pelanggaran: ' + count + '/' + lim, 'warning');
+          // Tampilkan peringatan ke-N dari total limit
+          const remaining = lim - count;
+          toast(
+            '⚠️ Peringatan ' + count + '/' + lim + ': Jangan pindah tab! ' +
+            remaining + ' peringatan lagi sebelum ujian dihentikan otomatis.',
+            'warning'
+          );
         }
       })
       .catch(function () {
-        // Jika API gagal, tetap tahan secara UI (tanpa auto-submit)
+        // Jika API gagal, tampilkan peringatan lokal saja tapi JANGAN auto-submit
+        toast('⚠️ Peringatan: Jangan pindah tab/aplikasi saat ujian berlangsung!', 'warning');
       });
   }
 
   // Mark "started" setelah gesture pertama (supaya audio bisa play)
   window.addEventListener('mousedown', function () { hasStarted = true; }, { capture: true, once: true });
   window.addEventListener('keydown', function () { hasStarted = true; }, { capture: true, once: true });
+  window.addEventListener('touchstart', function () { hasStarted = true; }, { capture: true, once: true, passive: true });
 
   // Deteksi: tab switching / minimize (hanya jika tab benar-benar tersembunyi)
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) reportViolation('hidden', 'visibilitychange');
+    if (document.hidden) {
+      reportViolation('hidden', 'visibilitychange');
+    }
   });
 
   // Deteksi: keluar fullscreen
@@ -145,7 +165,5 @@
   }, { capture: true });
 
   // Saat halaman ujian dimuat, coba masuk fullscreen (kalau belum)
-  // Request fullscreen biasanya butuh user gesture, tapi beberapa browser akan allow jika navigasi dari klik.
   ensureFullscreen();
 })();
-

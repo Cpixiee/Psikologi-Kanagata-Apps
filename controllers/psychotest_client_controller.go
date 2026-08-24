@@ -217,8 +217,28 @@ func GetNextTestRedirect(invID int, batch *models.TestBatch) string {
 		test = strings.TrimSpace(strings.ToLower(test))
 		switch test {
 		case "ist":
-			var r models.ISTResult
-			if err := o.QueryTable(new(models.ISTResult)).Filter("Invitation__Id", invID).One(&r); err != nil || r.Id == 0 {
+			var progressList []models.ISTProgress
+			_, _ = o.QueryTable(new(models.ISTProgress)).
+				Filter("Invitation__Id", invID).
+				Filter("Status", "completed").
+				All(&progressList)
+			allSubtests := []string{"SE", "WA", "AN", "GE", "RA", "ZR", "FA", "WU", "ME"}
+			completedSet := make(map[string]bool)
+			for _, p := range progressList {
+				code := strings.ToUpper(strings.TrimSpace(p.SubtestCode))
+				completedSet[code] = true
+				if code == "ZA" {
+					completedSet["ZR"] = true
+				}
+			}
+			istComplete := true
+			for _, sub := range allSubtests {
+				if !completedSet[sub] {
+					istComplete = false
+					break
+				}
+			}
+			if !istComplete {
 				return "/test/ist/start"
 			}
 		case "holland":

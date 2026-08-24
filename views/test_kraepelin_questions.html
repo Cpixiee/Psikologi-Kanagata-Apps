@@ -88,6 +88,7 @@
 
       let timeLeft = attempt.seconds_per_column;
       let isSubmitting = false;
+      let isNavigating = false; // Flag PERMANEN: sekali true, tidak pernah di-reset
       let ticking = false;
       let autoSaveTimer = null;
 
@@ -187,12 +188,14 @@
       function scheduleAutoSave() {
         if (autoSaveTimer) clearTimeout(autoSaveTimer);
         autoSaveTimer = setTimeout(async () => {
+          if (isNavigating) return; // Jangan auto-save jika sedang navigating
           try { await submitColumn(currentColIndex, false); } catch (_) {}
         }, 700);
       }
 
       async function submitColumn(colIndex, forceFinish=false) {
         if (isSubmitting) return null;
+        if (isNavigating && !forceFinish) return null; // Jangan submit jika navigating (kecuali forceFinish)
         isSubmitting = true;
         try {
           const answers = saved[colIndex].map(v => (v === null ? null : v));
@@ -202,11 +205,16 @@
             client_at: new Date().toISOString(),
             force_finish: forceFinish
           };
+          // AbortController: timeout 15 detik agar tidak hang selamanya
+          const ctrl = new AbortController();
+          const fetchTimeout = setTimeout(() => ctrl.abort(), 15000);
           const res = await fetch('/api/test/kraepelin/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: ctrl.signal
           });
+          clearTimeout(fetchTimeout);
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.success) {
             throw new Error(data.message || 'Gagal menyimpan jawaban');
@@ -218,17 +226,31 @@
       }
 
       async function goNextAfterSubmit(forceFinish) {
-        const data = await submitColumn(currentColIndex, forceFinish);
-        if (forceFinish || currentRaw >= attempt.column_count) {
-          const nextUrl = (data && data.next_redirect) ? data.next_redirect : '/test/kraepelin/finish';
-          window.location.href = nextUrl;
-          return;
+        // Guard permanen: sekali isNavigating=true, tidak pernah dipanggil lagi
+        if (isNavigating) return;
+        isNavigating = true;
+
+        try {
+          const data = await submitColumn(currentColIndex, forceFinish);
+          if (forceFinish || currentRaw >= attempt.column_count) {
+            const nextUrl = (data && data.next_redirect) ? data.next_redirect : '/test/kraepelin/finish';
+            window.location.href = nextUrl;
+            return;
+          }
+          window.location.href = `/test/kraepelin/questions?raw=${currentRaw + 1}`;
+        } catch (err) {
+          // Jika gagal, reset isNavigating agar bisa retry
+          isNavigating = false;
+          // Retry setelah 3 detik
+          setTimeout(function() {
+            goNextAfterSubmit(forceFinish);
+          }, 3000);
         }
-        window.location.href = `/test/kraepelin/questions?raw=${currentRaw + 1}`;
       }
 
       async function tickSecond() {
         if (ticking) return;
+        if (isNavigating) return; // Berhenti tick jika sudah navigating
         ticking = true;
         try {
           timeLeftLabel.textContent = `00:${pad2(timeLeft)}`;

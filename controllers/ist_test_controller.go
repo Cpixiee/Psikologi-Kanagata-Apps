@@ -821,6 +821,55 @@ func (c *ISTTestController) SubmitSubtestAPI() {
 	}
 
 	o := orm.NewOrm()
+
+	// IDEMPOTENCY CHECK: Jika subtest ini sudah completed di ist_progress,
+	// langsung return success + next subtest tanpa memproses ulang.
+	// Ini mencegah race condition saat client mengirim submit ganda (double-tap, network retry).
+	normalizedCodeCheck := normalizeISTCode(code)
+	var existingProgress models.ISTProgress
+	if err := o.QueryTable(new(models.ISTProgress)).
+		Filter("Invitation__Id", inv.Id).
+		Filter("SubtestCode", normalizedCodeCheck).
+		Filter("Status", "completed").
+		One(&existingProgress); err == nil && existingProgress.Id > 0 {
+		// Subtest sudah selesai — cari next subtest dan return
+		order := istAllowedOrder()
+		nextCode := ""
+		for i := range order {
+			if order[i] == code {
+				if i+1 < len(order) {
+					nextCode = order[i+1]
+				}
+				break
+			}
+		}
+		if nextCode != "" {
+			c.Data["json"] = map[string]interface{}{
+				"success":          true,
+				"next_subtest":     nextCode,
+				"is_complete":      false,
+				"next_instruction": "/test/ist/instruction/" + nextCode,
+			}
+		} else {
+			var batch models.TestBatch
+			if inv.BatchId != nil {
+				batch.Id = *inv.BatchId
+				_ = o.Read(&batch)
+			}
+			finishRedirect := GetNextTestRedirect(inv.Id, &batch)
+			if finishRedirect == "" {
+				finishRedirect = "/hasil-tes"
+			}
+			c.Data["json"] = map[string]interface{}{
+				"success":         true,
+				"is_complete":     true,
+				"finish_redirect": finishRedirect,
+			}
+		}
+		c.ServeJSON()
+		return
+	}
+
 	// Anti-back/anti-skip: submission idealnya hanya untuk subtest current.
 	// Namun untuk mencegah peserta "terkunci" karena perbedaan data progres,
 	// kita izinkan juga submit untuk subtest yang persis satu langkah

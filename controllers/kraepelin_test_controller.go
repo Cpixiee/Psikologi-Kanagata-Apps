@@ -72,6 +72,32 @@ func (c *KraepelinTestController) ensureBatchAllowsKraepelin(inv *models.TestInv
 	return batch.EnableKraepelin
 }
 
+func getKraepelinResumeColumn(att *models.KraepelinAttempt) int {
+	if att == nil || strings.TrimSpace(att.AnswersJSON) == "" {
+		return 1
+	}
+	var allAnswers [][]*int
+	if err := json.Unmarshal([]byte(att.AnswersJSON), &allAnswers); err != nil || len(allAnswers) == 0 {
+		return 1
+	}
+	for colIdx, colAns := range allAnswers {
+		if len(colAns) == 0 {
+			return colIdx + 1
+		}
+		allNil := true
+		for _, v := range colAns {
+			if v != nil {
+				allNil = false
+				break
+			}
+		}
+		if allNil {
+			return colIdx + 1
+		}
+	}
+	return 40
+}
+
 // @router /test/kraepelin/start [get]
 func (c *KraepelinTestController) StartPage() {
 	inv, user, ok := c.mustGetSessionInvitation()
@@ -84,7 +110,7 @@ func (c *KraepelinTestController) StartPage() {
 		return
 	}
 
-	// If already finished, check next test in batch.
+	// If already finished, check next test in batch. If in_progress, auto-resume.
 	o := orm.NewOrm()
 	var att models.KraepelinAttempt
 	if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&att); err == nil && att.Id != 0 {
@@ -100,6 +126,9 @@ func (c *KraepelinTestController) StartPage() {
 			} else {
 				c.Redirect("/hasil-tes", 302)
 			}
+			return
+		} else if att.Status == "in_progress" {
+			c.Redirect("/test/kraepelin/questions", 302)
 			return
 		}
 	}
@@ -267,7 +296,17 @@ func (c *KraepelinTestController) QuestionsPage() {
 		return
 	}
 	if att.Status == "finished" {
-		c.Redirect("/test/kraepelin/finish", 302)
+		var batch models.TestBatch
+		if inv.BatchId != nil {
+			batch.Id = *inv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(inv.Id, &batch)
+		if nextURL != "" {
+			c.Redirect(nextURL, 302)
+		} else {
+			c.Redirect("/test/kraepelin/finish", 302)
+		}
 		return
 	}
 
@@ -304,7 +343,7 @@ func (c *KraepelinTestController) QuestionsPage() {
 
 	rawIdx, _ := strconv.Atoi(strings.TrimSpace(c.GetString("raw")))
 	if rawIdx <= 0 {
-		rawIdx = 1
+		rawIdx = getKraepelinResumeColumn(&att)
 	}
 	if rawIdx > 40 {
 		rawIdx = 40
@@ -551,6 +590,17 @@ func (c *KraepelinTestController) FinishPage() {
 	var att models.KraepelinAttempt
 	if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&att); err != nil || att.Id == 0 {
 		c.Redirect("/test/kraepelin/start", 302)
+		return
+	}
+
+	var batch models.TestBatch
+	if inv.BatchId != nil {
+		batch.Id = *inv.BatchId
+		_ = o.Read(&batch)
+	}
+	nextURL := GetNextTestRedirect(inv.Id, &batch)
+	if nextURL != "" {
+		c.Redirect(nextURL, 302)
 		return
 	}
 

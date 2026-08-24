@@ -205,6 +205,17 @@ func (c *HollandTestController) StartHollandPage() {
 		}
 	}
 
+	// Checkpoint resume logic:
+	p1Done, _ := c.isHollandPageComplete(inv.Id, 1)
+	p2Done, _ := c.isHollandPageComplete(inv.Id, 2)
+	if p1Done && p2Done {
+		c.Redirect("/test/holland/page3", 302)
+		return
+	} else if p1Done {
+		c.Redirect("/test/holland/page2", 302)
+		return
+	}
+
 	c.Data["User"] = user
 	c.Data["Invitation"] = inv
 	c.TplName = "test_holland_start.html"

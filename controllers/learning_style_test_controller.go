@@ -106,6 +106,13 @@ func (c *LearningStyleTestController) StartPage() {
 		}
 	}
 
+	// Checkpoint resume logic: if user already answered some questions, jump directly to questions page
+	ansMap, _ := c.answersMap(inv.Id)
+	if len(ansMap) > 0 {
+		c.Redirect("/test/learning-style/questions", 302)
+		return
+	}
+
 	c.Data["User"] = user
 	c.Data["Invitation"] = inv
 	c.TplName = "test_learning_style_start.html"

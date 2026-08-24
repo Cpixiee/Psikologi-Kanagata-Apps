@@ -17,6 +17,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/app main.go
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/migrate ./cmd/migrate
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/seed ./cmd/seed
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/push_pending ./cmd/push_pending
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/push_pending_wa ./cmd/push_pending_wa
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
@@ -26,6 +27,7 @@ COPY --from=builder /out/app /app/app
 COPY --from=builder /out/migrate /app/migrate
 COPY --from=builder /out/seed /app/seed
 COPY --from=builder /out/push_pending /app/push_pending
+COPY --from=builder /out/push_pending_wa /app/push_pending_wa
 # conf/app.conf di-gitignore; yang di-commit hanya app.conf.example → jadikan app.conf di image
 COPY conf/app.conf.example /app/conf/app.conf
 COPY views ./views
@@ -35,7 +37,7 @@ COPY seeds ./seeds
 COPY data ./data
 COPY scripts/entrypoint.sh /app/scripts/entrypoint.sh
 
-RUN chmod +x /app/scripts/entrypoint.sh /app/app /app/migrate /app/seed /app/push_pending
+RUN chmod +x /app/scripts/entrypoint.sh /app/app /app/migrate /app/seed /app/push_pending /app/push_pending_wa
 
 EXPOSE 8086
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

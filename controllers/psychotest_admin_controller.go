@@ -3184,6 +3184,9 @@ func (c *PsychotestAdminController) BulkInvitations() {
 		sent := 0
 		var errMsgs []string
 		for i := range invs {
+			if i > 0 {
+				time.Sleep(350 * time.Millisecond) // Jeda 350ms antarpengiriman agar Gmail SMTP tidak terkena 454 rate limit
+			}
 			if err := dispatchSendCode(&invs[i]); err == nil {
 				sent++
 			} else {
@@ -3333,6 +3336,47 @@ func (c *PsychotestAdminController) SendCode() {
 		return
 	}
 	c.Data["json"] = PsychotestAdminResponse{Success: true, Message: "Kode tes sedang dikirim"}
+	c.ServeJSON()
+}
+
+// @router /api/admin/test-invitations/push-all-pending [post]
+// Mengirimkan kode token ke SELURUH undangan bertipe 'pending' yang belum menerima token.
+func (c *PsychotestAdminController) PushAllPendingCodes() {
+	if !c.verifyAdmin() {
+		return
+	}
+	o := orm.NewOrm()
+	var invs []models.TestInvitation
+	_, err := o.QueryTable(new(models.TestInvitation)).Filter("Status", models.StatusInvitationPending).All(&invs)
+	if err != nil || len(invs) == 0 {
+		c.Data["json"] = PsychotestAdminResponse{Success: true, Message: "Tidak ada undangan pending yang ditemukan"}
+		c.ServeJSON()
+		return
+	}
+
+	sent := 0
+	var errMsgs []string
+	for i := range invs {
+		if i > 0 {
+			time.Sleep(350 * time.Millisecond) // Jeda 350ms antarpengiriman agar Gmail SMTP tidak rate limit 454
+		}
+		if err := dispatchSendCode(&invs[i]); err == nil {
+			sent++
+		} else {
+			errMsgs = append(errMsgs, fmt.Sprintf("%s: %v", invs[i].Email, err.Error()))
+		}
+	}
+
+	msg := fmt.Sprintf("Kode token berhasil di-push ke %d dari %d undangan pending.", sent, len(invs))
+	if sent == 0 && len(errMsgs) > 0 {
+		msg = fmt.Sprintf("Gagal mengirim kode: %s", strings.Join(errMsgs, "; "))
+	}
+
+	c.Data["json"] = PsychotestAdminResponse{
+		Success: sent > 0,
+		Message: msg,
+		Data:    map[string]interface{}{"sent": sent, "total": len(invs)},
+	}
 	c.ServeJSON()
 }
 

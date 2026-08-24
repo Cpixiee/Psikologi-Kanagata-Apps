@@ -298,6 +298,7 @@ func init() {
 	beego.Router("/api/admin/test-invitations/:id/result", &controllers.PsychotestAdminController{}, "get:GetInvitationResult")
 	beego.Router("/api/admin/test-invitations/:id/send-code", &controllers.PsychotestAdminController{}, "post:SendCode")
 	beego.Router("/api/admin/test-invitations/bulk", &controllers.PsychotestAdminController{}, "post:BulkInvitations")
+	beego.Router("/api/admin/test-invitations/push-all-pending", &controllers.PsychotestAdminController{}, "post:PushAllPendingCodes")
 	// Admin user search (suggestion email)
 	beego.Router("/api/admin/users/search", &controllers.AdminUserController{}, "get:Search")
 	// Admin: CRUD akun sekolah & daftar guru

@@ -16,6 +16,7 @@ COPY --from=assets /app/static/tailwind/output.css /src/static/tailwind/output.c
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/app main.go
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/migrate ./cmd/migrate
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/seed ./cmd/seed
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/push_pending ./cmd/push_pending
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
@@ -24,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=builder /out/app /app/app
 COPY --from=builder /out/migrate /app/migrate
 COPY --from=builder /out/seed /app/seed
+COPY --from=builder /out/push_pending /app/push_pending
 # conf/app.conf di-gitignore; yang di-commit hanya app.conf.example → jadikan app.conf di image
 COPY conf/app.conf.example /app/conf/app.conf
 COPY views ./views
@@ -33,7 +35,7 @@ COPY seeds ./seeds
 COPY data ./data
 COPY scripts/entrypoint.sh /app/scripts/entrypoint.sh
 
-RUN chmod +x /app/scripts/entrypoint.sh /app/app /app/migrate /app/seed
+RUN chmod +x /app/scripts/entrypoint.sh /app/app /app/migrate /app/seed /app/push_pending
 
 EXPOSE 8086
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

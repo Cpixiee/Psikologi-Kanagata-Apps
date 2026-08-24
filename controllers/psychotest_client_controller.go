@@ -46,32 +46,51 @@ func (c *PsychotestClientController) TokenPage() {
 		return
 	}
 
-	// Sudah login: jika session invitation belum ada, coba auto-resolve dari DB
+	// Sudah login: jika user punya active invitation (di session atau di DB), langsung redirect ke next checkpoint
 	o := orm.NewOrm()
 	userID, _ := sessionUser.(int)
 	var user models.User
 	user.Id = userID
 	_ = o.Read(&user)
 
-	if c.GetSession("current_invitation_id") == nil {
+	var invID int
+	if currentInv := c.GetSession("current_invitation_id"); currentInv != nil {
+		if id, ok := currentInv.(int); ok {
+			invID = id
+		}
+	}
+
+	var activeInv *models.TestInvitation
+	if invID > 0 {
+		var inv models.TestInvitation
+		inv.Id = invID
+		if o.Read(&inv) == nil && inv.Status == models.StatusInvitationPending && !time.Now().After(inv.ExpiresAt) {
+			activeInv = &inv
+		}
+	}
+
+	if activeInv == nil {
 		if inv, ok := ResolveActiveInvitation(o, userID, user.Email); ok {
+			activeInv = inv
 			c.SetSession("current_invitation_id", inv.Id)
 			bID := 0
 			if inv.BatchId != nil {
 				bID = *inv.BatchId
 			}
 			c.SetSession("current_batch_id", bID)
+		}
+	}
 
-			var batch models.TestBatch
-			if inv.BatchId != nil {
-				batch.Id = *inv.BatchId
-				_ = o.Read(&batch)
-			}
-			nextURL := GetNextTestRedirect(inv.Id, &batch)
-			if nextURL != "" {
-				c.Redirect(nextURL, 302)
-				return
-			}
+	if activeInv != nil {
+		var batch models.TestBatch
+		if activeInv.BatchId != nil {
+			batch.Id = *activeInv.BatchId
+			_ = o.Read(&batch)
+		}
+		nextURL := GetNextTestRedirect(activeInv.Id, &batch)
+		if nextURL != "" {
+			c.Redirect(nextURL, 302)
+			return
 		}
 	}
 

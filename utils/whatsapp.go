@@ -43,6 +43,9 @@ func GetWhatsAppConfig() WhatsAppConfig {
 
 	apiToken := getEnv("WA_API_TOKEN", "")
 	if apiToken == "" {
+		apiToken = beego.AppConfig.DefaultString("WA_API_TOKEN", "")
+	}
+	if apiToken == "" {
 		apiToken = beego.AppConfig.DefaultString("wa_api_token", "")
 	}
 

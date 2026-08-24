@@ -40,7 +40,7 @@ func main() {
 
 	for i := range invs {
 		if i > 0 {
-			time.Sleep(1 * time.Second) // 1s delay per WA message to be safe
+			time.Sleep(1200 * time.Millisecond) // 1.2s delay between messages for Fonnte stability
 		}
 		inv := &invs[i]
 		if inv.BatchId == nil {
@@ -74,12 +74,24 @@ func main() {
 		msg := fmt.Sprintf("Halo %s,\n\nBerikut Kode (Token) untuk mengikuti tes psikologi *%s*:\n\n*KODE: %s*\n\nBuka link berikut untuk mulai mengerjakan:\n%s\n\nToken berlaku hingga: %s",
 			resolveName(displayName, inv.Email), batch.Name, inv.Token, link, inv.ExpiresAt.Format("02 Jan 2006 15:04"))
 
-		err := utils.SendWhatsApp(waConfig, phoneToUse, msg)
-		if err == nil {
-			sentWA++
-			fmt.Printf("[%d/%d] BERHASIL WA -> HP: %s (%s), Token: %s\n", sentWA, len(invs), phoneToUse, inv.Email, inv.Token)
-		} else {
-			fmt.Printf("[%d/%d] GAGAL WA -> HP: %s: %v\n", i+1, len(invs), phoneToUse, err)
+		var lastErr error
+		success := false
+		for attempt := 1; attempt <= 3; attempt++ {
+			if attempt > 1 {
+				time.Sleep(2 * time.Second)
+			}
+			if err := utils.SendWhatsApp(waConfig, phoneToUse, msg); err == nil {
+				sentWA++
+				fmt.Printf("[%d/%d] BERHASIL WA -> HP: %s (%s), Token: %s (attempt %d)\n", sentWA, len(invs), phoneToUse, inv.Email, inv.Token, attempt)
+				success = true
+				break
+			} else {
+				lastErr = err
+			}
+		}
+
+		if !success {
+			fmt.Printf("[%d/%d] GAGAL WA -> HP: %s: %v\n", i+1, len(invs), phoneToUse, lastErr)
 		}
 	}
 	fmt.Printf("\n=== SELESAI ===\nTotal %d token berhasil dikirim via WhatsApp.\n", sentWA)

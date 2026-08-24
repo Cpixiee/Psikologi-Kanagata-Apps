@@ -1156,13 +1156,16 @@
             }
             
             const tr = document.createElement('tr');
-            // Pastikan menampilkan IQ dan TotalStandardScore dengan benar
             const iqDisplay = (ist && typeof ist.iq === 'number' && ist.iq > 0) 
               ? ist.iq + (ist.iq_category && ist.iq_category !== '' ? ' (' + ist.iq_category + ')' : '') 
-              : '<span class="text-muted">-</span>';
+              : (row.ist_completed_count > 0 
+                  ? `<span class="badge bg-label-info">Subtes ${row.ist_completed_count}/9</span>` 
+                  : '<span class="text-muted">-</span>');
             const totalSSDisplay = (ist && typeof ist.total_standard_score === 'number' && ist.total_standard_score > 0)
               ? ist.total_standard_score
-              : '<span class="text-muted">-</span>';
+              : (row.ist_completed_count > 0 
+                  ? `<span class="badge bg-label-secondary">${row.ist_completed_count}/9 Subtes</span>` 
+                  : '<span class="text-muted">-</span>');
             
             const rmibTopDisplay = rmib && (rmib.top1 || rmib.top2 || rmib.top3)
               ? [rmib.top1, rmib.top2, rmib.top3].filter(Boolean).join(' / ')

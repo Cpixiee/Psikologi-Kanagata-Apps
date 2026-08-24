@@ -1076,17 +1076,18 @@ func (c *PsychotestAdminController) ListBatchResults() {
 	}
 
 	type InvitationSummary struct {
-		Invitation    models.TestInvitation       `json:"invitation"`
-		TeacherName   string                      `json:"teacher_name,omitempty"`
-		StudentName   string                      `json:"student_name,omitempty"`
-		StudentEmail  string                      `json:"student_email,omitempty"`
-		StudentAvatar string                      `json:"student_avatar,omitempty"`
-		IST           *models.ISTResult           `json:"ist_result,omitempty"`
-		Holland       *models.HollandResult       `json:"holland_result,omitempty"`
-		RMIB          *models.RMIBResult          `json:"rmib_result,omitempty"`
-		LearningStyle *models.LearningStyleResult `json:"learning_style_result,omitempty"`
-		Kraepelin     *models.KraepelinAttempt    `json:"kraepelin_attempt,omitempty"`
-		PAPI          *models.PAPIResult          `json:"papi_result,omitempty"`
+		Invitation        models.TestInvitation       `json:"invitation"`
+		TeacherName       string                      `json:"teacher_name,omitempty"`
+		StudentName       string                      `json:"student_name,omitempty"`
+		StudentEmail      string                      `json:"student_email,omitempty"`
+		StudentAvatar     string                      `json:"student_avatar,omitempty"`
+		IST               *models.ISTResult           `json:"ist_result,omitempty"`
+		ISTCompletedCount int                         `json:"ist_completed_count"`
+		Holland           *models.HollandResult       `json:"holland_result,omitempty"`
+		RMIB              *models.RMIBResult          `json:"rmib_result,omitempty"`
+		LearningStyle     *models.LearningStyleResult `json:"learning_style_result,omitempty"`
+		Kraepelin         *models.KraepelinAttempt    `json:"kraepelin_attempt,omitempty"`
+		PAPI              *models.PAPIResult          `json:"papi_result,omitempty"`
 	}
 
 	var result []InvitationSummary
@@ -1096,10 +1097,14 @@ func (c *PsychotestAdminController) ListBatchResults() {
 		if inv.TeacherId != nil {
 			teacherName = teacherMap[*inv.TeacherId]
 		}
+		var istProgressCount int64
+		_, _ = o.QueryTable(new(models.ISTProgress)).Filter("Invitation__Id", inv.Id).Count()
+
 		summary := InvitationSummary{
-			Invitation:   inv,
-			TeacherName:  teacherName,
-			StudentEmail: inv.Email,
+			Invitation:        inv,
+			TeacherName:       teacherName,
+			StudentEmail:      inv.Email,
+			ISTCompletedCount: int(istProgressCount),
 		}
 
 		// Resolve student real name from User table

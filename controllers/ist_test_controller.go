@@ -437,27 +437,49 @@ func (c *ISTTestController) redirectToISTCurrent(invID int) {
 	c.Redirect("/test/ist/instruction/"+current, 302)
 }
 
-// mustGetSessionInvitation memastikan user punya invitation valid di session.
+// mustGetSessionInvitation memastikan user punya invitation valid di session (dengan auto-recovery jika session reset).
 func (c *ISTTestController) mustGetSessionInvitation() (*models.TestInvitation, *models.User, bool) {
 	userID := c.GetSession("user_id")
-	invID := c.GetSession("current_invitation_id")
-	batchID := c.GetSession("current_batch_id")
-
-	if userID == nil || invID == nil || batchID == nil {
+	if userID == nil {
 		return nil, nil, false
 	}
 
 	o := orm.NewOrm()
-	var inv models.TestInvitation
-	inv.Id = invID.(int)
-	if err := o.Read(&inv); err != nil {
-		return nil, nil, false
-	}
-
 	var user models.User
 	user.Id = userID.(int)
 	if err := o.Read(&user); err != nil {
 		return nil, nil, false
+	}
+
+	invID := c.GetSession("current_invitation_id")
+	var inv models.TestInvitation
+	if invID == nil {
+		activeInv, ok := ResolveActiveInvitation(o, user.Id, user.Email)
+		if !ok {
+			return nil, nil, false
+		}
+		inv = *activeInv
+		bID := 0
+		if inv.BatchId != nil {
+			bID = *inv.BatchId
+		}
+		c.SetSession("current_invitation_id", inv.Id)
+		c.SetSession("current_batch_id", bID)
+	} else {
+		inv.Id = invID.(int)
+		if err := o.Read(&inv); err != nil {
+			activeInv, ok := ResolveActiveInvitation(o, user.Id, user.Email)
+			if !ok {
+				return nil, nil, false
+			}
+			inv = *activeInv
+			bID := 0
+			if inv.BatchId != nil {
+				bID = *inv.BatchId
+			}
+			c.SetSession("current_invitation_id", inv.Id)
+			c.SetSession("current_batch_id", bID)
+		}
 	}
 
 	return &inv, &user, true

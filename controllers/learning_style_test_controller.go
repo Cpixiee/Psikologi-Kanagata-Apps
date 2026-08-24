@@ -23,8 +23,7 @@ type LearningStyleTestController struct {
 
 func (c *LearningStyleTestController) mustGetSessionInvitation() (*models.TestInvitation, *models.User, bool) {
 	userIDAny := c.GetSession("user_id")
-	invIDAny := c.GetSession("current_invitation_id")
-	if userIDAny == nil || invIDAny == nil {
+	if userIDAny == nil {
 		return nil, nil, false
 	}
 
@@ -32,22 +31,44 @@ func (c *LearningStyleTestController) mustGetSessionInvitation() (*models.TestIn
 	if !ok || userID == 0 {
 		return nil, nil, false
 	}
-	invID, ok := invIDAny.(int)
-	if !ok || invID == 0 {
-		return nil, nil, false
-	}
 
 	o := orm.NewOrm()
-	var inv models.TestInvitation
-	inv.Id = invID
-	if err := o.Read(&inv); err != nil {
-		return nil, nil, false
-	}
-
 	var user models.User
 	user.Id = userID
 	if err := o.Read(&user); err != nil {
 		return nil, nil, false
+	}
+
+	invIDAny := c.GetSession("current_invitation_id")
+	var inv models.TestInvitation
+	if invIDAny == nil {
+		activeInv, ok := ResolveActiveInvitation(o, user.Id, user.Email)
+		if !ok {
+			return nil, nil, false
+		}
+		inv = *activeInv
+		bID := 0
+		if inv.BatchId != nil {
+			bID = *inv.BatchId
+		}
+		c.SetSession("current_invitation_id", inv.Id)
+		c.SetSession("current_batch_id", bID)
+	} else {
+		invID, _ := invIDAny.(int)
+		inv.Id = invID
+		if err := o.Read(&inv); err != nil {
+			activeInv, ok := ResolveActiveInvitation(o, user.Id, user.Email)
+			if !ok {
+				return nil, nil, false
+			}
+			inv = *activeInv
+			bID := 0
+			if inv.BatchId != nil {
+				bID = *inv.BatchId
+			}
+			c.SetSession("current_invitation_id", inv.Id)
+			c.SetSession("current_batch_id", bID)
+		}
 	}
 
 	// Ownership guard

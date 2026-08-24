@@ -46,11 +46,83 @@ func (c *PsychotestClientController) TokenPage() {
 		return
 	}
 
-	// Sudah login: kalau token disediakan via query, auto-fill pada template.
+	// Sudah login: jika session invitation belum ada, coba auto-resolve dari DB
+	o := orm.NewOrm()
+	userID, _ := sessionUser.(int)
+	var user models.User
+	user.Id = userID
+	_ = o.Read(&user)
+
+	if c.GetSession("current_invitation_id") == nil {
+		if inv, ok := ResolveActiveInvitation(o, userID, user.Email); ok {
+			c.SetSession("current_invitation_id", inv.Id)
+			bID := 0
+			if inv.BatchId != nil {
+				bID = *inv.BatchId
+			}
+			c.SetSession("current_batch_id", bID)
+
+			var batch models.TestBatch
+			if inv.BatchId != nil {
+				batch.Id = *inv.BatchId
+				_ = o.Read(&batch)
+			}
+			nextURL := GetNextTestRedirect(inv.Id, &batch)
+			if nextURL != "" {
+				c.Redirect(nextURL, 302)
+				return
+			}
+		}
+	}
+
+	// Kalau token disediakan via query, auto-fill pada template.
 	if tokenQ != "" {
 		c.Data["Token"] = tokenQ
 	}
 	c.TplName = "test_token.html"
+}
+
+// ResolveActiveInvitation auto-recovers the latest active pending invitation for a user.
+// This ensures checkpoints work even in Incognito mode or after session cookie resets.
+func ResolveActiveInvitation(o orm.Ormer, userID int, email string) (*models.TestInvitation, bool) {
+	if o == nil {
+		o = orm.NewOrm()
+	}
+	var inv models.TestInvitation
+	now := time.Now()
+
+	// 1. Try matching by UserId
+	if userID > 0 {
+		err := o.QueryTable(new(models.TestInvitation)).
+			Filter("UserId", userID).
+			Filter("Status", models.StatusInvitationPending).
+			Filter("ExpiresAt__gt", now).
+			OrderBy("-CreatedAt").
+			One(&inv)
+		if err == nil && inv.Id > 0 {
+			return &inv, true
+		}
+	}
+
+	// 2. Try matching by Email
+	email = strings.TrimSpace(email)
+	if email != "" {
+		err := o.QueryTable(new(models.TestInvitation)).
+			Filter("Email__iexact", email).
+			Filter("Status", models.StatusInvitationPending).
+			Filter("ExpiresAt__gt", now).
+			OrderBy("-CreatedAt").
+			One(&inv)
+		if err == nil && inv.Id > 0 {
+			if userID > 0 && (inv.UserId == nil || *inv.UserId == 0) {
+				inv.UserId = &userID
+				_, _ = o.Update(&inv, "UserId")
+			}
+			return &inv, true
+		}
+	}
+
+	return nil, false
 }
 
 // @router /test/start [post]

@@ -21,14 +21,42 @@ type WhatsAppConfig struct {
 	CountryCode string // misal: 62 (Indonesia)
 }
 
-// GetWhatsAppConfig membaca konfigurasi WA dengan default Fonnte.
+// GetWhatsAppConfig membaca konfigurasi WA dengan default Fonnte & support env var.
 func GetWhatsAppConfig() WhatsAppConfig {
+	enabledStr := getEnv("WA_ENABLED", "")
+	enabled := false
+	if enabledStr != "" {
+		enabled = strings.ToLower(enabledStr) == "true" || enabledStr == "1"
+	} else {
+		enabled = beego.AppConfig.DefaultBool("wa_enabled", false)
+	}
+
+	provider := getEnv("WA_PROVIDER", "")
+	if provider == "" {
+		provider = beego.AppConfig.DefaultString("wa_provider", "fonnte")
+	}
+
+	apiURL := getEnv("WA_API_URL", "")
+	if apiURL == "" {
+		apiURL = beego.AppConfig.DefaultString("wa_api_url", "https://api.fonnte.com/send")
+	}
+
+	apiToken := getEnv("WA_API_TOKEN", "")
+	if apiToken == "" {
+		apiToken = beego.AppConfig.DefaultString("wa_api_token", "")
+	}
+
+	countryCode := getEnv("WA_COUNTRY_CODE", "")
+	if countryCode == "" {
+		countryCode = beego.AppConfig.DefaultString("wa_country_code", "62")
+	}
+
 	return WhatsAppConfig{
-		Enabled:     beego.AppConfig.DefaultBool("wa_enabled", false),
-		Provider:    strings.ToLower(beego.AppConfig.DefaultString("wa_provider", "fonnte")),
-		APIURL:      beego.AppConfig.DefaultString("wa_api_url", "https://api.fonnte.com/send"),
-		APIToken:    beego.AppConfig.DefaultString("wa_api_token", ""),
-		CountryCode: beego.AppConfig.DefaultString("wa_country_code", "62"),
+		Enabled:     enabled,
+		Provider:    strings.ToLower(provider),
+		APIURL:      apiURL,
+		APIToken:    apiToken,
+		CountryCode: countryCode,
 	}
 }
 

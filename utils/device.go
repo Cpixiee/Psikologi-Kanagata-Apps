@@ -54,18 +54,22 @@ func ParseUserAgent(userAgent string) string {
 }
 
 // CheckAndRegisterDevice checks if device is new and registers it
+// Device is scoped per-user (UserId + DeviceId) so blocking one user doesn't affect others on the same network.
 func CheckAndRegisterDevice(userID int, userAgent, ipAddress string) (isNew bool, device *models.UserDevice, err error) {
 	o := orm.NewOrm()
-	
+
 	deviceId := GenerateDeviceId(userAgent, ipAddress)
 	deviceName := ParseUserAgent(userAgent)
-	
-	// Check if device exists
-	device = &models.UserDevice{DeviceId: deviceId}
-	err = o.Read(device, "DeviceId")
-	
+
+	// Check if device exists FOR THIS SPECIFIC USER (not globally)
+	device = &models.UserDevice{}
+	err = o.QueryTable(new(models.UserDevice)).
+		Filter("UserId", userID).
+		Filter("DeviceId", deviceId).
+		One(device)
+
 	if err != nil {
-		// Device not found, create new
+		// Device not found for this user, create new
 		device = &models.UserDevice{
 			UserId:      userID,
 			DeviceId:    deviceId,
@@ -81,10 +85,10 @@ func CheckAndRegisterDevice(userID int, userAgent, ipAddress string) (isNew bool
 		}
 		return true, device, nil
 	}
-	
-	// Device exists, update last used
+
+	// Device exists for this user, update last used
 	device.LastUsedAt = time.Now()
 	o.Update(device, "LastUsedAt")
-	
+
 	return false, device, nil
 }

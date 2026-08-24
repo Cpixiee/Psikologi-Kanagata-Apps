@@ -443,26 +443,48 @@ func (c *PsychotestAdminController) CreateInvitations() {
 		recipients = append(recipients, recipient{Email: strings.TrimSpace(r.Email), Phone: strings.TrimSpace(r.Phone)})
 	}
 	for _, raw := range payload.Emails {
-		// Setiap baris bisa berformat "email" atau "email,phone" / "email;phone" / "email\tphone"
+		// Setiap baris dari Excel / textarea (pisahkan via tab, koma, titik koma, atau pipe)
 		line := strings.TrimSpace(raw)
 		if line == "" {
 			continue
 		}
-		// Pisah pakai koma / titik koma / tab
 		var email, phone string
-		seps := []string{",", ";", "\t", "|"}
-		split := []string{line}
+		seps := []string{"\t", ",", ";", "|"}
+		var cells []string
 		for _, sep := range seps {
 			if strings.Contains(line, sep) {
-				split = strings.SplitN(line, sep, 2)
+				for _, part := range strings.Split(line, sep) {
+					trimmed := strings.TrimSpace(part)
+					if trimmed != "" {
+						cells = append(cells, trimmed)
+					}
+				}
 				break
 			}
 		}
-		email = strings.TrimSpace(split[0])
-		if len(split) > 1 {
-			phone = strings.TrimSpace(split[1])
+		if len(cells) == 0 {
+			cells = []string{line}
 		}
-		recipients = append(recipients, recipient{Email: email, Phone: phone})
+
+		// Smart scan sel untuk mencari email (@) & nomor HP (digit)
+		for _, cell := range cells {
+			if email == "" && isValidEmailFormat(cell) {
+				email = cell
+			} else if phone == "" && isPossiblePhoneNumber(cell) {
+				phone = cell
+			}
+		}
+		// Fallback: kalau belum terdeteksi via scan tapi sel pertama valid
+		if email == "" && len(cells) > 0 && isValidEmailFormat(cells[0]) {
+			email = cells[0]
+			if phone == "" && len(cells) > 1 && isPossiblePhoneNumber(cells[1]) {
+				phone = cells[1]
+			}
+		}
+
+		if email != "" {
+			recipients = append(recipients, recipient{Email: email, Phone: phone})
+		}
 	}
 
 	if len(recipients) == 0 {
@@ -613,6 +635,29 @@ func isValidEmailFormat(s string) bool {
 	}
 	if strings.HasPrefix(domain, ".") || strings.HasSuffix(domain, ".") {
 		return false
+	}
+	return true
+}
+
+func isPossiblePhoneNumber(s string) bool {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return false
+	}
+	cleaned := strings.ReplaceAll(s, "-", "")
+	cleaned = strings.ReplaceAll(cleaned, " ", "")
+	cleaned = strings.ReplaceAll(cleaned, "(", "")
+	cleaned = strings.ReplaceAll(cleaned, ")", "")
+	if strings.HasPrefix(cleaned, "+") {
+		cleaned = cleaned[1:]
+	}
+	if len(cleaned) < 8 || len(cleaned) > 15 {
+		return false
+	}
+	for _, ch := range cleaned {
+		if ch < '0' || ch > '9' {
+			return false
+		}
 	}
 	return true
 }
@@ -3137,14 +3182,21 @@ func (c *PsychotestAdminController) BulkInvitations() {
 		var invs []models.TestInvitation
 		_, _ = o.QueryTable(new(models.TestInvitation)).Filter("Id__in", payload.IDs).All(&invs)
 		sent := 0
+		var errMsgs []string
 		for i := range invs {
 			if err := dispatchSendCode(&invs[i]); err == nil {
 				sent++
+			} else {
+				errMsgs = append(errMsgs, fmt.Sprintf("%s: %v", invs[i].Email, err.Error()))
 			}
 		}
+		msg := fmt.Sprintf("Kode (token) berhasil dikirim untuk %d dari %d undangan terpilih.", sent, len(invs))
+		if sent == 0 && len(errMsgs) > 0 {
+			msg = fmt.Sprintf("Gagal mengirim kode: %s", strings.Join(errMsgs, "; "))
+		}
 		c.Data["json"] = PsychotestAdminResponse{
-			Success: true,
-			Message: fmt.Sprintf("Kode dikirim untuk %d undangan", sent),
+			Success: sent > 0,
+			Message: msg,
 			Data:    map[string]interface{}{"sent": sent, "total": len(invs)},
 		}
 		c.ServeJSON()
@@ -3219,18 +3271,27 @@ func dispatchSendCode(inv *models.TestInvitation) error {
 		_, _ = o.Update(inv, "Phone")
 	}
 
-	logs.Info("dispatchSendCode invID=%d email=%q phone=%q via_email=%v via_wa=%v",
-		inv.Id, inv.Email, inv.Phone, batch.SendViaEmail, batch.SendViaWhatsApp)
+	phoneToUse := strings.TrimSpace(inv.Phone)
+	if phoneToUse == "" {
+		phoneToUse = strings.TrimSpace(phoneFromUser)
+	}
 
-	if batch.SendViaEmail && inv.Email != "" {
+	logs.Info("dispatchSendCode invID=%d email=%q phone=%q via_email=%v via_wa=%v",
+		inv.Id, inv.Email, phoneToUse, batch.SendViaEmail, batch.SendViaWhatsApp)
+
+	sendEmail := batch.SendViaEmail && inv.Email != ""
+	// Kirim via WA jika WA di-enable di batch ATAU jika nomor HP tersedia saat kirim kode
+	sendWA := (batch.SendViaWhatsApp || phoneToUse != "") && phoneToUse != ""
+
+	if !sendEmail && !sendWA {
+		return fmt.Errorf("tidak ada channel pengiriman (email/WA) aktif atau nomor HP tidak tersedia untuk %s", inv.Email)
+	}
+
+	if sendEmail {
 		go sendInvitationCodeEmail(&batch, displayName, inv.Email, inv)
 	}
-	if batch.SendViaWhatsApp {
-		if strings.TrimSpace(inv.Phone) == "" {
-			logs.Warning("WA skip: inv #%d (%s) tidak punya nomor HP. Update profil user atau ketik 'email,nomor' saat membuat undangan.", inv.Id, inv.Email)
-		} else {
-			go sendInvitationCodeWA(&batch, displayName, inv.Phone, inv)
-		}
+	if sendWA {
+		go sendInvitationCodeWA(&batch, displayName, phoneToUse, inv)
 	}
 	// Buat notifikasi in-app saat kode/token dikirim (jika invitation sudah
 	// ter-link ke akun user).

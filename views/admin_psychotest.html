@@ -382,6 +382,9 @@
                           <span class="text-muted small" id="resultsSelectionInfo">Pilih peserta untuk aksi massal</span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
+                          <button type="button" class="btn btn-sm btn-outline-success" onclick="exportTokensCSV()">
+                            <i class="bx bx-file me-1"></i>Export Excel Token
+                          </button>
                           <button type="button" class="btn btn-sm btn-warning strict-admin-only" id="btnBulkSendCode" onclick="handleBulkSendCode()" disabled>
                             <i class="bx bx-paper-plane me-1"></i>Kirim Code Massal
                           </button>
@@ -438,6 +441,31 @@
       let batchSettingsMode = false;
       let batchViewMode = 'active'; // active | archived
       const batchCache = {}; // id -> batch object (lengkap dengan flag enable_*)
+      var _lastBatchResultsData = [];
+
+      function exportTokensCSV() {
+        if (!currentBatchId || !_lastBatchResultsData || _lastBatchResultsData.length === 0) {
+          Swal.fire({ icon: 'warning', title: 'Data kosong', text: 'Tidak ada data peserta untuk di-export.' });
+          return;
+        }
+        let csvContent = "\uFEFFNo,Email,Token,Status,Tanggal Dibuat\n";
+        _lastBatchResultsData.forEach((row, index) => {
+          const inv = row.invitation || {};
+          const email = (inv.email || '').replace(/"/g, '""');
+          const token = inv.token || '-';
+          const status = inv.status || 'pending';
+          const date = inv.created_at ? new Date(inv.created_at).toLocaleString('id-ID') : '-';
+          csvContent += `${index + 1},"${email}","${token}","${status}","${date}"\n`;
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Daftar_Token_${(currentBatchName || 'Batch').replace(/\s+/g, '_')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
       // Daftar metadata alat tes &mdash; dipakai untuk render tombol "Download Result Hasil"
       // sesuai tes yang diaktifkan di batch.
@@ -1127,9 +1155,12 @@
           const data = await res.json();
 
           if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+            _lastBatchResultsData = [];
             tbody.innerHTML = '<tr><td colspan="13" class="text-center text-muted py-4">Belum ada hasil yang tersimpan.</td></tr>';
             return;
           }
+
+          _lastBatchResultsData = data.data;
 
           tbody.innerHTML = '';
           data.data.forEach(function (row) {

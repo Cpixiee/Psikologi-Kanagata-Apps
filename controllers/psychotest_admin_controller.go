@@ -3240,7 +3240,7 @@ func dispatchSendCode(inv *models.TestInvitation) error {
 	logs.Info("dispatchSendCode invID=%d email=%q phone=%q via_email=%v via_wa=%v",
 		inv.Id, inv.Email, phoneToUse, batch.SendViaEmail, batch.SendViaWhatsApp)
 
-	sendEmail := batch.SendViaEmail && inv.Email != ""
+	sendEmail := strings.TrimSpace(inv.Email) != ""
 	// Kirim via WA jika WA di-enable di batch ATAU jika nomor HP tersedia saat kirim kode
 	sendWA := (batch.SendViaWhatsApp || phoneToUse != "") && phoneToUse != ""
 

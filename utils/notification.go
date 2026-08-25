@@ -149,11 +149,17 @@ func SendInvitationCodeSentNotification(userID *int, batchName string) {
 	if userID == nil || *userID <= 0 {
 		return
 	}
+	o := orm.NewOrm()
 	title := "Kode Undangan Tes Dikirim"
 	message := fmt.Sprintf("Kode undangan untuk batch \"%s\" telah dikirim ke email/WhatsApp Anda.", batchName)
-	if err := SendNotification(*userID, NotifTypeNewForYou, title, message); err != nil {
-		fmt.Printf("Error sending invitation code notification: %v\n", err)
+	notification := models.Notification{
+		UserId:  *userID,
+		Type:    string(NotifTypeNewForYou),
+		Title:   title,
+		Message: message,
+		IsRead:  false,
 	}
+	o.Insert(&notification)
 }
 
 // SendBrowserLoginNotification sends "Browser login" notification

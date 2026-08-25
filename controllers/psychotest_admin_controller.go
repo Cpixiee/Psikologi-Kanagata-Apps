@@ -737,55 +737,8 @@ func resolveDisplayName(name, email string) string {
 
 // Helper: kirim email PENGUMUMAN undangan (tanpa token).
 // Email ini hanya memberitahu peserta bahwa mereka diundang ikut tes batch tertentu.
-// Token dikirim terpisah saat operator klik "Kirim Code".
 func sendInvitationAnnouncementEmail(batch *models.TestBatch, displayName, email string, inv *models.TestInvitation) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("panic in sendInvitationAnnouncementEmail: %v", r)
-		}
-	}()
-
-	config := utils.GetEmailConfig()
-	appURL := utils.GetAppBaseURL()
-	link := fmt.Sprintf("%s/test", appURL)
-
-	subject := fmt.Sprintf("Undangan Tes Psikologi - %s", batch.Name)
-	body := fmt.Sprintf(`<!DOCTYPE html>
-<html><head><meta charset="UTF-8"/><style>
-body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0}
-.container{max-width:600px;margin:0 auto;padding:20px}
-.header{background:#696cff;color:#fff;padding:24px;text-align:center;border-radius:12px 12px 0 0}
-.content{background:#f8f9fa;padding:30px;border-radius:0 0 12px 12px}
-.info-list{list-style:none;padding:0;margin:20px 0}
-.info-list li{padding:8px 0;border-bottom:1px solid #e0e0e0}
-.button{display:inline-block;padding:14px 28px;background:#696cff;color:#fff;text-decoration:none;border-radius:8px;font-weight:600}
-.note{background:#fff3cd;border-left:4px solid #ffc107;padding:12px 16px;margin:20px 0;border-radius:4px;color:#856404;font-size:14px}
-</style></head><body>
-<div class="container">
-  <div class="header"><h2>Undangan Tes Psikologi</h2></div>
-  <div class="content">
-    <p>Halo <strong>%s</strong>,</p>
-    <p>Anda telah diundang untuk mengikuti tes psikologi dengan detail berikut:</p>
-    <ul class="info-list">
-      <li><strong>Batch</strong>: %s</li>
-      <li><strong>Institusi</strong>: %s</li>
-      <li><strong>Tipe Tes</strong>: %s</li>
-    </ul>
-    <div class="note">
-      <strong>Catatan:</strong> Kode (token) akses tes akan dikirim secara terpisah oleh admin.
-      Mohon menunggu pesan berikutnya yang berisi kode untuk mulai mengerjakan tes.
-    </div>
-    <p>Anda dapat membuka halaman tes terlebih dahulu (login / daftar bila belum punya akun):</p>
-    <p style="text-align:center"><a class="button" href="%s" target="_blank" rel="noopener">Buka Halaman Tes</a></p>
-    <p style="font-size:12px;color:#777">Undangan berlaku sampai: <strong>%s</strong>.</p>
-  </div>
-</div></body></html>`,
-		resolveDisplayName(displayName, email), batch.Name, batch.Institution,
-		invitationTestTypes(batch), link, inv.ExpiresAt.Format("02 Jan 2006 15:04"))
-
-	if err := utils.SendEmail(config, utils.EmailData{To: email, Subject: subject, Body: body}); err != nil {
-		log.Printf("Gagal mengirim pengumuman undangan ke %s: %v", email, err)
-	}
+	sendInvitationCodeEmail(batch, displayName, email, inv)
 }
 
 // Helper: kirim email berisi KODE / TOKEN tes.

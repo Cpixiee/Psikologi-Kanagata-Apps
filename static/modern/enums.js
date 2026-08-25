@@ -31,6 +31,8 @@
     { code: "RPL", label: "RPL", description: "Rekayasa Perangkat Lunak" },
     { code: "MM", label: "MM", description: "Multimedia" },
     { code: "DKV", label: "DKV", description: "Desain Komunikasi Visual" },
+    { code: "BR", label: "BR", description: "Bisnis Ritel" },
+    { code: "BD", label: "BD", description: "Bisnis Digital" },
     { code: "AKL", label: "AKL", description: "Akuntansi dan Keuangan Lembaga" },
     { code: "BDP", label: "BDP", description: "Bisnis Daring dan Pemasaran" },
     { code: "OTKP", label: "OTKP", description: "Otomatisasi dan Tata Kelola Perkantoran" },

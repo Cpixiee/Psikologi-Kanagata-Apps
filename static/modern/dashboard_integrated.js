@@ -860,8 +860,9 @@
     batches.forEach(function(b) {
       const typeKey = getBatchTypeKey(b);
       const typeName = getBatchTypeName(b);
-      const status = (b.status || "active") === "active" ? "aktif" : "selesai";
-      const statusLabel = status === "aktif" ? "Aktif" : "Selesai";
+      const isArchived = b.status === "archived";
+      const status = isArchived ? "archived" : ((b.status || "active") === "active" ? "aktif" : "selesai");
+      const statusLabel = isArchived ? "Arsip" : (status === "aktif" ? "Aktif" : "Selesai");
       const total = b.participant_count || 0;
       const done = b.completed_count || 0;
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;

@@ -72,37 +72,42 @@
     FA: "Figural", WU: "Spasial", ME: "Memori",
   };
 
-  // Career rekomendasi berdasarkan kombinasi top RIASEC
   const CAREER_BY_LETTER = {
     R: [
-      { name: "Mechanical Engineer", base: 88 },
-      { name: "Robotics Engineer", base: 84 },
-      { name: "Field Technician", base: 80 },
+      { name: "Supervisor Operasional & Manufaktur", base: 93, icon: "settings" },
+      { name: "Teknisi Rekayasa & Otomatisasi", base: 90, icon: "cpu" },
+      { name: "Logistik & Supply Chain Specialist", base: 87, icon: "truck" },
+      { name: "Field Engineer & Maintenance", base: 84, icon: "wrench" },
     ],
     I: [
-      { name: "Data Scientist", base: 90 },
-      { name: "AI Engineer", base: 92 },
-      { name: "Research Scientist", base: 88 },
+      { name: "Data Analyst & Market Researcher", base: 93, icon: "bar-chart-2" },
+      { name: "Business Intelligence Analyst", base: 90, icon: "line-chart" },
+      { name: "Analyst Sistem & Inovasi", base: 87, icon: "search" },
+      { name: "Specialist Riset & Data", base: 84, icon: "database" },
     ],
     A: [
-      { name: "UI/UX Designer", base: 87 },
-      { name: "Creative Director", base: 84 },
-      { name: "Content Creator", base: 82 },
+      { name: "Visual & Graphic Designer", base: 94, icon: "palette" },
+      { name: "Digital Media & Creative Strategist", base: 91, icon: "pen-tool" },
+      { name: "Content Creator & Copywriter", base: 88, icon: "video" },
+      { name: "UI/UX & Product Designer", base: 85, icon: "layout" },
     ],
     S: [
-      { name: "Guru / Educator", base: 86 },
-      { name: "Konselor", base: 84 },
-      { name: "HR Specialist", base: 82 },
+      { name: "Public Relations & Communications", base: 93, icon: "users" },
+      { name: "Human Resources (HR) & Talent Specialist", base: 90, icon: "contact" },
+      { name: "Konselor & Educator", base: 87, icon: "graduation-cap" },
+      { name: "Event & Community Coordinator", base: 84, icon: "heart" },
     ],
     E: [
-      { name: "Entrepreneur", base: 88 },
-      { name: "Tech Lead / Founder", base: 86 },
-      { name: "Marketing Manager", base: 82 },
+      { name: "Business Development & Sales Manager", base: 95, icon: "briefcase" },
+      { name: "Digital Marketer & E-Commerce Specialist", base: 92, icon: "megaphone" },
+      { name: "Entrepreneur & Business Owner", base: 89, icon: "rocket" },
+      { name: "Retail & Marketing Operations Manager", base: 86, icon: "shopping-bag" },
     ],
     C: [
-      { name: "Software Developer", base: 89 },
-      { name: "Cyber Security Analyst", base: 86 },
-      { name: "Financial Analyst", base: 84 },
+      { name: "Financial & Tax Analyst", base: 94, icon: "coins" },
+      { name: "Accounting & Audit Specialist", base: 91, icon: "calculator" },
+      { name: "Operations & Database Administrator", base: 88, icon: "database" },
+      { name: "Quality Control & Compliance Officer", base: 85, icon: "file-text" },
     ],
   };
 
@@ -630,19 +635,6 @@
       resilience:      pct(((istPct.AN || 50) + (100 - stressPct)) / 2),
     };
 
-    // === Skill Tracker (mapping IST + Holland) ===
-    const skills = [
-      { name: "Coding & Programming",  value: pct(((istPct.RA || 0) + (holPct.I || 0)) / 2) },
-      { name: "Problem Solving",       value: istPct.RA || 50 },
-      { name: "Critical Thinking",     value: istPct.AN || 50 },
-      { name: "Communication",         value: pct(((istPct.WA || 0) + (holPct.S || 0)) / 2) },
-      { name: "Leadership",            value: leadershipPct },
-      { name: "Creativity",            value: Math.max(istPct.GE || 0, istPct.FA || 0, holPct.A || 0) },
-    ];
-    const skillAvg = pct(skills.reduce((a, b) => a + b.value, 0) / skills.length);
-    const skillTotal = skillAvg + " /100";
-    const skillTotalLabel = skillAvg >= 75 ? "Good Performance" : skillAvg >= 55 ? "Average" : "Needs Improvement";
-
     // === Career roadmap ===
     let careerSeed = [];
     if (code) {
@@ -699,12 +691,86 @@
           if (careerSeed.indexOf(item.letter) === -1) careerSeed.push(item.letter);
         });
       }
-      // fill with defaults
-      ["I", "S", "E", "A", "R", "C"].forEach(function(l) {
+
+      // Dynamic defaults based on student major / jurusan
+      const jurStr = String(u.jurusan || u.kelas || "").toUpperCase();
+      let defaultOrder = ["E", "C", "S", "A", "R", "I"]; // Default business & general
+      if (jurStr.includes("DKV") || jurStr.includes("DESAIN") || jurStr.includes("SENI")) {
+        defaultOrder = ["A", "E", "R", "S", "C", "I"];
+      } else if (jurStr.includes("AK") || jurStr.includes("AKUN") || jurStr.includes("KEUANGAN") || jurStr.includes("OTKP") || jurStr.includes("ADMIN")) {
+        defaultOrder = ["C", "E", "S", "R", "I", "A"];
+      } else if (jurStr.includes("TKJ") || jurStr.includes("RPL") || jurStr.includes("IPA") || jurStr.includes("INFORMATIKA")) {
+        defaultOrder = ["I", "C", "R", "E", "A", "S"];
+      }
+
+      defaultOrder.forEach(function(l) {
         if (careerSeed.length < 3 && careerSeed.indexOf(l) === -1) careerSeed.push(l);
       });
     }
     careerSeed = careerSeed.slice(0, 3);
+
+    // === Skill Tracker (Dynamic based on primary Holland domain) ===
+    let skills = [];
+    const topDomain = careerSeed[0] || "E";
+    if (topDomain === "E") {
+      skills = [
+        { name: "Strategi Bisnis & Sales", value: pct(((holPct.E || 85) + (istPct.WA || 80)) / 2) },
+        { name: "Negosiasi & Persuasi", value: pct(((holPct.E || 82) + (holPct.S || 78)) / 2) },
+        { name: "Komunikasi & Presentasi", value: pct(((istPct.WA || 80) + (holPct.S || 80)) / 2) },
+        { name: "Kepemimpinan Tim", value: leadershipPct },
+        { name: "Manajemen Proyek", value: istPct.RA || 75 },
+        { name: "Kreativitas Pemasaran", value: Math.max(istPct.GE || 70, holPct.A || 70) }
+      ];
+    } else if (topDomain === "A") {
+      skills = [
+        { name: "Kreativitas & Konsep", value: Math.max(istPct.GE || 85, holPct.A || 85) },
+        { name: "Desain Visual & Estetika", value: pct(((holPct.A || 88) + (istPct.FA || 80)) / 2) },
+        { name: "Media Digital & Video", value: pct(((holPct.A || 85) + (istPct.WU || 75)) / 2) },
+        { name: "Komunikasi Visual", value: pct(((istPct.WA || 80) + (holPct.A || 80)) / 2) },
+        { name: "Inovasi Produk", value: Math.max(istPct.GE || 75, istPct.FA || 75) },
+        { name: "Problem Solving", value: istPct.RA || 75 }
+      ];
+    } else if (topDomain === "S") {
+      skills = [
+        { name: "Pelayanan & Empati", value: pct(((holPct.S || 88) + (istPct.WA || 80)) / 2) },
+        { name: "Komunikasi Interpersonal", value: pct(((istPct.WA || 85) + (holPct.S || 85)) / 2) },
+        { name: "Pengembangan SDM & Edukasi", value: pct(((holPct.S || 84) + (istPct.GE || 76)) / 2) },
+        { name: "Kerja Sama Tim", value: pct(((holPct.S || 86) + (holPct.E || 76)) / 2) },
+        { name: "Resolusi Konflik", value: pct(((istPct.AN || 75) + (holPct.S || 80)) / 2) },
+        { name: "Kepemimpinan", value: leadershipPct }
+      ];
+    } else if (topDomain === "C") {
+      skills = [
+        { name: "Ketelitian & Akurasi Data", value: pct(((istPct.ME || 85) + (holPct.C || 85)) / 2) },
+        { name: "Manajemen Keuangan & Admin", value: pct(((istPct.ZA || 82) + (holPct.C || 84)) / 2) },
+        { name: "Administrasi & Dokumentasi", value: pct(((holPct.C || 84) + (istPct.ME || 80)) / 2) },
+        { name: "Perencanaan & Organisasi", value: istPct.AN || 80 },
+        { name: "Manajemen Risiko", value: istPct.RA || 78 },
+        { name: "Critical Thinking", value: istPct.AN || 80 }
+      ];
+    } else if (topDomain === "R") {
+      skills = [
+        { name: "Keterampilan Teknik", value: pct(((holPct.R || 85) + (istPct.FA || 80)) / 2) },
+        { name: "Troubleshooting & Mekanikal", value: pct(((istPct.WU || 82) + (holPct.R || 82)) / 2) },
+        { name: "Manajemen Operasional", value: pct(((holPct.R || 80) + (istPct.RA || 78)) / 2) },
+        { name: "Keandalan Kerja Lapangan", value: pct(((holPct.R || 84) + (100 - stressPct)) / 2) },
+        { name: "Penggunaan Alat & Teknologi", value: istPct.FA || 80 },
+        { name: "Problem Solving", value: istPct.RA || 78 }
+      ];
+    } else {
+      // I (Investigative)
+      skills = [
+        { name: "Penalaran Logis & Analitis", value: istPct.AN || 85 },
+        { name: "Riset & Metodologi Data", value: pct(((istPct.AN || 82) + (holPct.I || 82)) / 2) },
+        { name: "Pemecahan Masalah Kompleks", value: istPct.RA || 84 },
+        { name: "Berpikir Kritis", value: istPct.AN || 82 },
+        { name: "Ketelitian Observasi", value: istPct.ME || 80 },
+        { name: "Komunikasi Data", value: istPct.WA || 76 }
+      ];
+    }
+    const skillAvg = pct(skills.reduce((a, b) => a + b.value, 0) / skills.length);
+    const skillTotal = skillAvg + " /100";
+    const skillTotalLabel = skillAvg >= 75 ? "Good Performance" : skillAvg >= 55 ? "Average" : "Needs Improvement";
 
     const careerMap = new Map();
     careerSeed.forEach((letter, idx) => {

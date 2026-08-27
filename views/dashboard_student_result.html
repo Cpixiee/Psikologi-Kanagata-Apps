@@ -856,8 +856,18 @@
               if (careerSeed.indexOf(item.letter) === -1) careerSeed.push(item.letter);
             });
           }
-          // fill with defaults
-          ["I", "S", "E", "A", "R", "C"].forEach(function(l) {
+          // Dynamic defaults based on student major / jurusan
+          var jurStr = String(user.jurusan || user.kelas || "").toUpperCase();
+          var defaultOrder = ["E", "C", "S", "A", "R", "I"]; // Default business & general
+          if (jurStr.indexOf("DKV") !== -1 || jurStr.indexOf("DESAIN") !== -1 || jurStr.indexOf("SENI") !== -1) {
+            defaultOrder = ["A", "E", "R", "S", "C", "I"];
+          } else if (jurStr.indexOf("AK") !== -1 || jurStr.indexOf("AKUN") !== -1 || jurStr.indexOf("KEUANGAN") !== -1 || jurStr.indexOf("OTKP") !== -1 || jurStr.indexOf("ADMIN") !== -1) {
+            defaultOrder = ["C", "E", "S", "R", "I", "A"];
+          } else if (jurStr.indexOf("TKJ") !== -1 || jurStr.indexOf("RPL") !== -1 || jurStr.indexOf("IPA") !== -1 || jurStr.indexOf("INFORMATIKA") !== -1) {
+            defaultOrder = ["I", "C", "R", "E", "A", "S"];
+          }
+
+          defaultOrder.forEach(function(l) {
             if (careerSeed.length < 3 && careerSeed.indexOf(l) === -1) careerSeed.push(l);
           });
         }
@@ -883,45 +893,95 @@
           resilience: Math.round(((istPct.AN || 50) + (100 - stressPct)) / 2)
         };
 
-        var skills = [
-          { name: "Coding & Programming", value: Math.round(((istPct.RA || 50) + (holPct.I || 50)) / 2) },
-          { name: "Problem Solving", value: istPct.RA || 50 },
-          { name: "Critical Thinking", value: istPct.AN || 50 },
-          { name: "Communication", value: Math.round(((istPct.WA || 50) + (holPct.S || 50)) / 2) },
-          { name: "Leadership", value: leadershipPct || 50 },
-          { name: "Creativity", value: Math.max(istPct.GE || 50, istPct.FA || 50, holPct.A || 50) }
-        ];
+        // Dynamic Skill Tracker based on primary Holland domain
+        var skills = [];
+        var topDomain = careerSeed[0] || "E";
+        if (topDomain === "E") {
+          skills = [
+            { name: "Strategi Bisnis & Sales", value: Math.round(((holPct.E || 85) + (istPct.WA || 80)) / 2) },
+            { name: "Negosiasi & Persuasi", value: Math.round(((holPct.E || 82) + (holPct.S || 78)) / 2) },
+            { name: "Komunikasi & Presentasi", value: Math.round(((istPct.WA || 80) + (holPct.S || 80)) / 2) },
+            { name: "Kepemimpinan Tim", value: leadershipPct || 80 },
+            { name: "Manajemen Proyek", value: istPct.RA || 75 },
+            { name: "Kreativitas Pemasaran", value: Math.max(istPct.GE || 70, holPct.A || 70) }
+          ];
+        } else if (topDomain === "A") {
+          skills = [
+            { name: "Kreativitas & Konsep", value: Math.max(istPct.GE || 85, holPct.A || 85) },
+            { name: "Desain Visual & Estetika", value: Math.round(((holPct.A || 88) + (istPct.FA || 80)) / 2) },
+            { name: "Media Digital & Video", value: Math.round(((holPct.A || 85) + (istPct.WU || 75)) / 2) },
+            { name: "Komunikasi Visual", value: Math.round(((istPct.WA || 80) + (holPct.A || 80)) / 2) },
+            { name: "Inovasi Produk", value: Math.max(istPct.GE || 75, istPct.FA || 75) },
+            { name: "Problem Solving", value: istPct.RA || 75 }
+          ];
+        } else if (topDomain === "S") {
+          skills = [
+            { name: "Pelayanan & Empati", value: Math.round(((holPct.S || 88) + (istPct.WA || 80)) / 2) },
+            { name: "Komunikasi Interpersonal", value: Math.round(((istPct.WA || 85) + (holPct.S || 85)) / 2) },
+            { name: "Pengembangan SDM & Edukasi", value: Math.round(((holPct.S || 84) + (istPct.GE || 76)) / 2) },
+            { name: "Kerja Sama Tim", value: Math.round(((holPct.S || 86) + (holPct.E || 76)) / 2) },
+            { name: "Resolusi Konflik", value: Math.round(((istPct.AN || 75) + (holPct.S || 80)) / 2) },
+            { name: "Kepemimpinan", value: leadershipPct || 78 }
+          ];
+        } else if (topDomain === "C") {
+          skills = [
+            { name: "Ketelitian & Akurasi Data", value: Math.round(((istPct.ME || 85) + (holPct.C || 85)) / 2) },
+            { name: "Manajemen Keuangan & Admin", value: Math.round(((istPct.ZA || 82) + (holPct.C || 84)) / 2) },
+            { name: "Administrasi & Dokumentasi", value: Math.round(((holPct.C || 84) + (istPct.ME || 80)) / 2) },
+            { name: "Perencanaan & Organisasi", value: istPct.AN || 80 },
+            { name: "Manajemen Risiko", value: istPct.RA || 78 },
+            { name: "Critical Thinking", value: istPct.AN || 80 }
+          ];
+        } else if (topDomain === "R") {
+          skills = [
+            { name: "Keterampilan Teknik", value: Math.round(((holPct.R || 85) + (istPct.FA || 80)) / 2) },
+            { name: "Troubleshooting & Mekanikal", value: Math.round(((istPct.WU || 82) + (holPct.R || 82)) / 2) },
+            { name: "Manajemen Operasional", value: Math.round(((holPct.R || 80) + (istPct.RA || 78)) / 2) },
+            { name: "Keandalan Kerja Lapangan", value: Math.round(((holPct.R || 84) + (100 - stressPct)) / 2) },
+            { name: "Penggunaan Alat & Teknologi", value: istPct.FA || 80 },
+            { name: "Problem Solving", value: istPct.RA || 78 }
+          ];
+        } else {
+          skills = [
+            { name: "Penalaran Logis & Analitis", value: istPct.AN || 85 },
+            { name: "Riset & Metodologi Data", value: Math.round(((istPct.AN || 82) + (holPct.I || 82)) / 2) },
+            { name: "Pemecahan Masalah Kompleks", value: istPct.RA || 84 },
+            { name: "Berpikir Kritis", value: istPct.AN || 82 },
+            { name: "Ketelitian Observasi", value: istPct.ME || 80 },
+            { name: "Komunikasi Data", value: istPct.WA || 76 }
+          ];
+        }
 
         var CAREER_BY_LETTER = {
           R: [
-            { name: "Mechanical Engineer", base: 88, icon: "briefcase" },
-            { name: "Robotics Engineer", base: 84, icon: "cpu" },
-            { name: "Field Technician", base: 80, icon: "wrench" }
+            { name: "Supervisor Operasional & Manufaktur", base: 93, icon: "briefcase" },
+            { name: "Teknisi Rekayasa & Otomatisasi", base: 90, icon: "cpu" },
+            { name: "Logistik & Supply Chain Specialist", base: 87, icon: "wrench" }
           ],
           I: [
-            { name: "Data Scientist", base: 90, icon: "bar-chart-2" },
-            { name: "AI Engineer", base: 92, icon: "bot" },
-            { name: "Research Scientist", base: 88, icon: "flask-conical" }
+            { name: "Data Analyst & Market Researcher", base: 93, icon: "bar-chart-2" },
+            { name: "Business Intelligence Analyst", base: 90, icon: "bot" },
+            { name: "Analyst Sistem & Inovasi", base: 88, icon: "flask-conical" }
           ],
           A: [
-            { name: "UI/UX Designer", base: 87, icon: "palette" },
-            { name: "Creative Director", base: 84, icon: "pen-tool" },
-            { name: "Content Creator", base: 82, icon: "video" }
+            { name: "Visual & Graphic Designer", base: 94, icon: "palette" },
+            { name: "Digital Media & Creative Strategist", base: 91, icon: "pen-tool" },
+            { name: "Content Creator & Copywriter", base: 88, icon: "video" }
           ],
           S: [
-            { name: "Guru / Educator", base: 86, icon: "graduation-cap" },
-            { name: "Konselor", base: 84, icon: "users" },
-            { name: "HR Specialist", base: 82, icon: "contact" }
+            { name: "Public Relations & Communications", base: 93, icon: "users" },
+            { name: "Human Resources (HR) & Talent Specialist", base: 90, icon: "contact" },
+            { name: "Konselor & Educator", base: 87, icon: "graduation-cap" }
           ],
           E: [
-            { name: "Entrepreneur", base: 88, icon: "rocket" },
-            { name: "Tech Lead / Founder", base: 86, icon: "crown" },
-            { name: "Marketing Manager", base: 82, icon: "megaphone" }
+            { name: "Business Development & Sales Manager", base: 95, icon: "briefcase" },
+            { name: "Digital Marketer & E-Commerce Specialist", base: 92, icon: "megaphone" },
+            { name: "Entrepreneur & Business Owner", base: 89, icon: "rocket" }
           ],
           C: [
-            { name: "Software Developer", base: 89, icon: "code-2" },
-            { name: "Cyber Security Analyst", base: 86, icon: "shield-check" },
-            { name: "Financial Analyst", base: 84, icon: "coins" }
+            { name: "Financial & Tax Analyst", base: 94, icon: "coins" },
+            { name: "Accounting & Audit Specialist", base: 91, icon: "calculator" },
+            { name: "Operations & Database Administrator", base: 88, icon: "shield-check" }
           ]
         };
 

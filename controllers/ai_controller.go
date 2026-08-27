@@ -1006,7 +1006,284 @@ func init() {
 	_ = os.MkdirAll("data/ai_cache", 0755)
 }
 
+type DomainProfile struct {
+	Letter             string
+	TipeManusia        string
+	Strengths          []string
+	Developments       []string
+	AcademicMajors     []string
+	SkillItems         []string
+	ActivityItems      []string
+	CareerItems        []map[string]interface{}
+	MapelItems         []string
+	SkillTracker       []map[string]interface{}
+	EmotionalAnalytics map[string]interface{}
+}
+
+func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
+	letter := "E" // Default to Enterprising for general business/vocational
+
+	if hollandRaw, ok := results["holland"]; ok && hollandRaw != nil {
+		if hMap, ok2 := hollandRaw.(map[string]interface{}); ok2 {
+			if code, ok3 := hMap["code"].(string); ok3 && len(strings.TrimSpace(code)) > 0 {
+				first := strings.ToUpper(string(strings.TrimSpace(code)[0]))
+				if strings.Contains("RIASEC", first) {
+					letter = first
+				}
+			} else if top1, ok3 := hMap["top1"].(string); ok3 && len(strings.TrimSpace(top1)) > 0 {
+				first := strings.ToUpper(string(strings.TrimSpace(top1)[0]))
+				if strings.Contains("RIASEC", first) {
+					letter = first
+				}
+			}
+		}
+	} else if rmibRaw, ok := results["rmib"]; ok && rmibRaw != nil {
+		if rMap, ok2 := rmibRaw.(map[string]interface{}); ok2 {
+			dom, _ := rMap["dominant_category"].(string)
+			dom = strings.ToUpper(strings.TrimSpace(dom))
+			rmibToLetter := map[string]string{
+				"PERS": "E", "AEST": "A", "ART": "A", "MUS": "A", "LIT": "A",
+				"SOC": "S", "COMP": "C", "CLER": "C", "PRAC": "R", "OUT": "R",
+				"MEC": "R", "MECH": "R", "SCI": "I", "MED": "I",
+			}
+			if l, exists := rmibToLetter[dom]; exists {
+				letter = l
+			}
+		}
+	} else if studentRaw, ok := results["student"]; ok && studentRaw != nil {
+		if sMap, ok2 := studentRaw.(map[string]interface{}); ok2 {
+			jur, _ := sMap["jurusan"].(string)
+			jur = strings.ToUpper(strings.TrimSpace(jur))
+			if strings.Contains(jur, "BR") || strings.Contains(jur, "BD") || strings.Contains(jur, "PEMASARAN") || strings.Contains(jur, "BISNIS") || strings.Contains(jur, "RETAIL") {
+				letter = "E"
+			} else if strings.Contains(jur, "DKV") || strings.Contains(jur, "DESAIN") || strings.Contains(jur, "SENI") {
+				letter = "A"
+			} else if strings.Contains(jur, "AK") || strings.Contains(jur, "AKUN") || strings.Contains(jur, "KEUANGAN") || strings.Contains(jur, "OTKP") || strings.Contains(jur, "ADMIN") {
+				letter = "C"
+			} else if strings.Contains(jur, "TKJ") || strings.Contains(jur, "RPL") || strings.Contains(jur, "IPA") || strings.Contains(jur, "INFORMATIKA") {
+				letter = "I"
+			}
+		}
+	}
+
+	switch letter {
+	case "E":
+		return DomainProfile{
+			Letter:      "E",
+			TipeManusia: "Enterprising & Persuasif (Bisnis & Kepemimpinan)",
+			Strengths: []string{
+				"Kemampuan negosiasi dan persuasi bisnis yang kuat",
+				"Orientasi target pencapaian dan inisiatif tinggi",
+				"Komunikasi publik dan kepemimpinan tim yang efektif",
+				"Daya analisis peluang pasar dan strategi operasional",
+			},
+			Developments: []string{
+				"Meningkatkan kesabaran dalam proses analisis teknis detail",
+				"Memperdalam pengelolaan manajemen keuangan jangka panjang",
+				"Melatih kontrol emosi saat menghadapi tekanan negosiasi",
+			},
+			AcademicMajors: []string{"Bisnis Digital / E-Commerce", "Bisnis Ritel / Pemasaran", "Manajemen Bisnis / Kewirausahaan", "Ilmu Komunikasi / Public Relations"},
+			SkillItems:     []string{"Strategi Penjualan & Digital Marketing", "Negosiasi & Persuasi Bisnis", "Komunikasi & Public Speaking"},
+			ActivityItems:  []string{"Kompetisi Inovasi Bisnis / E-Commerce", "Klub Kewirausahaan Muda", "Pelatihan Public Speaking & Negotiation"},
+			CareerItems: []map[string]interface{}{
+				{"name": "Business Development & Sales Manager", "match": 95, "icon": "briefcase"},
+				{"name": "Digital Marketer & E-Commerce Specialist", "match": 92, "icon": "megaphone"},
+				{"name": "Entrepreneur & Business Owner", "match": 89, "icon": "rocket"},
+				{"name": "Retail & Marketing Operations Manager", "match": 86, "icon": "shopping-bag"},
+			},
+			MapelItems: []string{"Kewirausahaan & Bisnis", "Pemasaran Digital", "Ekonomi & Manajemen", "Komunikasi Bisnis"},
+			SkillTracker: []map[string]interface{}{
+				{"name": "Strategi Bisnis & Sales", "score": 88},
+				{"name": "Negosiasi & Persuasi", "score": 85},
+				{"name": "Komunikasi & Public Speaking", "score": 84},
+				{"name": "Kepemimpinan Tim", "score": 82},
+				{"name": "Manajemen Proyek", "score": 78},
+				{"name": "Kreativitas Pemasaran", "score": 80},
+			},
+			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 82, "selfRegulation": 75, "motivation": 88, "empathy": 76, "stressManagement": 78, "resilience": 84},
+		}
+	case "A":
+		return DomainProfile{
+			Letter:      "A",
+			TipeManusia: "Artistik & Kreatif (Desain & Inovasi Visual)",
+			Strengths: []string{
+				"Daya imajinasi dan estetika visual yang tinggi",
+				"Orisinalitas ide dalam perancangan karya dan media",
+				"Kreativitas ekspresif dalam penyampaian pesan",
+				"Kepekaan terhadap tren visual dan konsep artistik",
+			},
+			Developments: []string{
+				"Meningkatkan kedisiplinan dan manajemen deadline proyek",
+				"Melatih toleransi terhadap kritik dan revisi karya",
+				"Mengembangkan pemahaman manajemen bisnis kreatif",
+			},
+			AcademicMajors: []string{"Desain Komunikasi Visual (DKV)", "Desain Produk & Multimedia", "Penyiaran & Media Digital", "Seni Rupa & Desain Interior"},
+			SkillItems:     []string{"Desain Graphic & Visual Branding", "UI/UX & Multimedia Editing", "Konsep Kreatif & Copywriting"},
+			ActivityItems:  []string{"Pameran Karya & Kontes Desain", "Klub Multimedia & Fotografi", "Workshop Digital Illustration"},
+			CareerItems: []map[string]interface{}{
+				{"name": "Visual & Graphic Designer", "match": 94, "icon": "palette"},
+				{"name": "Digital Media & Creative Strategist", "match": 91, "icon": "pen-tool"},
+				{"name": "Content Creator & Copywriter", "match": 88, "icon": "video"},
+				{"name": "UI/UX & Product Designer", "match": 85, "icon": "layout"},
+			},
+			MapelItems: []string{"Seni Rupa & Desain Visual", "Seni Media / Multimedia", "Bahasa & Literasi Kreatif", "Komunikasi Visual"},
+			SkillTracker: []map[string]interface{}{
+				{"name": "Kreativitas & Konsep", "score": 90},
+				{"name": "Desain Visual & Estetika", "score": 88},
+				{"name": "Media Digital & Video", "score": 85},
+				{"name": "Komunikasi Visual", "score": 82},
+				{"name": "Inovasi Produk", "score": 80},
+				{"name": "Problem Solving", "score": 75},
+			},
+			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 85, "selfRegulation": 70, "motivation": 82, "empathy": 80, "stressManagement": 72, "resilience": 76},
+		}
+	case "S":
+		return DomainProfile{
+			Letter:      "S",
+			TipeManusia: "Sosial & Edukatif (Pelayanan & Komunikasi)",
+			Strengths: []string{
+				"Empati tinggi dan kepekaan hubungan antar-manusia",
+				"Komunikasi verbal yang persuasif dan menenangkan",
+				"Kapasitas mendengarkan aktif dan mendampingi orang lain",
+				"Kemampuan membangun kerja sama tim yang harmonis",
+			},
+			Developments: []string{
+				"Meningkatkan ketegasan dalam pengambilan keputusan sulit",
+				"Menjaga batas emosional pribadi agar tidak mudah lelah secara mental",
+				"Melatih pemikiran analitis berbasis data kuantitatif",
+			},
+			AcademicMajors: []string{"Hubungan Masyarakat / Ilmu Komunikasi", "Manajemen SDM (HR)", "Psikologi", "Pendidikan & Keguruan"},
+			SkillItems:     []string{"Interpersonal Communication & Counseling", "Public Relations & Event Management", "Talent & Team Development"},
+			ActivityItems:  []string{"Organisasi Siswa & Komunitas Sosial", "Relawan & Bakti Sosial", "Klub Debat & Public Speaking"},
+			CareerItems: []map[string]interface{}{
+				{"name": "Public Relations & Communications", "match": 93, "icon": "users"},
+				{"name": "Human Resources (HR) & Talent Specialist", "match": 90, "icon": "contact"},
+				{"name": "Konselor & Educator", "match": 87, "icon": "graduation-cap"},
+				{"name": "Event & Community Coordinator", "match": 84, "icon": "heart"},
+			},
+			MapelItems: []string{"Bahasa Indonesia / Inggris Komunikasi", "Sosiologi / Psikologi Sosial", "Komunikasi Publik", "Etika Bisnis"},
+			SkillTracker: []map[string]interface{}{
+				{"name": "Pelayanan & Empati", "score": 90},
+				{"name": "Komunikasi Interpersonal", "score": 88},
+				{"name": "Pengembangan SDM", "score": 85},
+				{"name": "Kerja Sama Tim", "score": 86},
+				{"name": "Resolusi Konflik", "score": 82},
+				{"name": "Kepemimpinan", "score": 78},
+			},
+			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 84, "selfRegulation": 78, "motivation": 80, "empathy": 90, "stressManagement": 75, "resilience": 80},
+		}
+	case "C":
+		return DomainProfile{
+			Letter:      "C",
+			TipeManusia: "Konvensional & Terstruktur (Keuangan & Administrasi)",
+			Strengths: []string{
+				"Ketelitian dan akurasi tinggi dalam pengolahan data",
+				"Kepatuhan pada prosedur, aturan, dan standar baku",
+				"Organisasi dokumen dan administrasi yang sangat rapi",
+				"Konsistensi dan keandalan dalam tugas-tugas rutin",
+			},
+			Developments: []string{
+				"Meningkatkan fleksibilitas terhadap perubahan prosedur mendadak",
+				"Melatih pemikiran kreatif di luar panduan baku (out of the box)",
+				"Mengembangkan keberanian mengambil risiko terukur",
+			},
+			AcademicMajors: []string{"Akuntansi & Keuangan", "Manajemen Operasional & Logistik", "Perbankan & Administrasi Bisnis", "Sistem Informasi Manajemen"},
+			SkillItems:     []string{"Pengolahan Data & Financial Spreadsheet", "Administrasi Perkantoran & Audit", "Compliance & Quality Control"},
+			ActivityItems:  []string{"Klub Akuntansi & Keuangan", "Simulasi Audit & Logistik", "Sertifikasi Olah Data (Excel/Spreadsheet)"},
+			CareerItems: []map[string]interface{}{
+				{"name": "Financial & Tax Analyst", "match": 94, "icon": "coins"},
+				{"name": "Accounting & Audit Specialist", "match": 91, "icon": "calculator"},
+				{"name": "Operations & Database Administrator", "match": 88, "icon": "database"},
+				{"name": "Quality Control & Compliance Officer", "match": 85, "icon": "file-text"},
+			},
+			MapelItems: []string{"Akuntansi & Spreadsheet Data", "Matematika Ekonomi", "Administrasi Perkantoran", "Statistika Terapan"},
+			SkillTracker: []map[string]interface{}{
+				{"name": "Ketelitian & Akurasi Data", "score": 92},
+				{"name": "Manajemen Keuangan & Admin", "score": 88},
+				{"name": "Administrasi & Dokumentasi", "score": 86},
+				{"name": "Perencanaan & Organisasi", "score": 85},
+				{"name": "Manajemen Risiko", "score": 80},
+				{"name": "Critical Thinking", "score": 78},
+			},
+			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 80, "selfRegulation": 85, "motivation": 82, "empathy": 72, "stressManagement": 80, "resilience": 82},
+		}
+	case "R":
+		return DomainProfile{
+			Letter:      "R",
+			TipeManusia: "Realistis & Praktis (Teknik & Operasional)",
+			Strengths: []string{
+				"Keterampilan psikomotorik dan teknis lapangan yang handal",
+				"Kemampuan pemecahan masalah mekanikal yang praktis",
+				"Daya tahan kerja dan ketangguhan fisik/operasional",
+				"Fokus pada hasil kerja nyata yang konkret dan terukur",
+			},
+			Developments: []string{
+				"Meningkatkan keterampilan komunikasi tertulis dan presentasi",
+				"Melatih kesabaran dalam urusan administrasi konseptual",
+				"Memperluas pemahaman strategi bisnis berbasis data",
+			},
+			AcademicMajors: []string{"Teknik Industri / Manufaktur", "Logistik & Supply Chain", "Teknik Mesin / Otomotif", "Teknik Elektro & Otomatisasi"},
+			SkillItems:     []string{"Teknik Operasional & Maintenance", "Troubleshooting Mekanikal / Sistem", "Manajemen K3 & Keselamatan Kerja"},
+			ActivityItems:  []string{"Klub Otomasi & Robotika", "Praktikum Bengkel & Lapangan", "Kompetisi Rekayasa Teknis"},
+			CareerItems: []map[string]interface{}{
+				{"name": "Supervisor Operasional & Manufaktur", "match": 93, "icon": "settings"},
+				{"name": "Teknisi Rekayasa & Otomatisasi", "match": 90, "icon": "cpu"},
+				{"name": "Logistik & Supply Chain Specialist", "match": 87, "icon": "truck"},
+				{"name": "Field Engineer & Maintenance", "match": 84, "icon": "wrench"},
+			},
+			MapelItems: []string{"Fisika / Sains Terapan", "Matematika Teknik", "Prakarya & Kewirausahaan", "Gambar Teknik"},
+			SkillTracker: []map[string]interface{}{
+				{"name": "Keterampilan Teknik", "score": 90},
+				{"name": "Troubleshooting & Mekanikal", "score": 88},
+				{"name": "Manajemen Operasional", "score": 84},
+				{"name": "Keandalan Kerja Lapangan", "score": 86},
+				{"name": "Penggunaan Alat & Teknologi", "score": 85},
+				{"name": "Problem Solving", "score": 80},
+			},
+			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 78, "selfRegulation": 82, "motivation": 85, "empathy": 70, "stressManagement": 82, "resilience": 86},
+		}
+	default:
+		// I (Investigative)
+		return DomainProfile{
+			Letter:      "I",
+			TipeManusia: "Investigatif & Analitis (Peneliti & Analyst)",
+			Strengths: []string{
+				"Daya nalar analitis dan logika pemecahan masalah terstruktur",
+				"Rasa ingin tahu ilmiah dan ketelitian observasi tinggi",
+				"Kapasitas pemahaman konsep abstrak dan pemrosesan informasi kompleks",
+				"Kemandirian belajar dan pendekatan berbasis riset data",
+			},
+			Developments: []string{
+				"Meningkatkan keterampilan komunikasi publik dan keluwesan sosial",
+				"Mengembangkan keterampilan eksekusi praktis berbasis waktu cepat",
+				"Melatih keterbukaan terhadap pandangan non-analitis",
+			},
+			AcademicMajors: []string{"Data Science / Sistem Informasi", "Biologi / Kimia / Farmasi", "Statistika / Sains Riset", "Teknik Informatika"},
+			SkillItems:     []string{"Data Analysis & Problem Solving", "Riset & Metodologi Ilmiah", "Pemrosesan Logika & Statistik"},
+			ActivityItems:  []string{"Klub Sains & Data Research", "Olimpiade Sains & Pemrograman", "Kursus Analisis Data"},
+			CareerItems: []map[string]interface{}{
+				{"name": "Data Analyst & Market Researcher", "match": 93, "icon": "bar-chart-2"},
+				{"name": "Business Intelligence Analyst", "match": 90, "icon": "line-chart"},
+				{"name": "Analyst Sistem & Inovasi", "match": 87, "icon": "search"},
+				{"name": "Specialist Riset & Data", "match": 84, "icon": "database"},
+			},
+			MapelItems: []string{"Matematika Logika & Analisis Data", "Informatika", "Fisika / Kimia", "Statistika Terapan"},
+			SkillTracker: []map[string]interface{}{
+				{"name": "Penalaran Logis & Analitis", "score": 92},
+				{"name": "Riset & Metodologi Data", "score": 88},
+				{"name": "Pemecahan Masalah Kompleks", "score": 86},
+				{"name": "Berpikir Kritis", "score": 85},
+				{"name": "Ketelitian Observasi", "score": 84},
+				{"name": "Komunikasi Data", "score": 76},
+			},
+			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 82, "selfRegulation": 80, "motivation": 84, "empathy": 72, "stressManagement": 78, "resilience": 80},
+		}
+	}
+}
+
 func generateFallbackTestSummary(testType, title string, result interface{}, allResults map[string]interface{}) map[string]interface{} {
+	profile := resolvePrimaryProfile(allResults)
+
 	var completedNames []string
 	if len(allResults) > 0 {
 		if r, ok := allResults["ist"]; ok && r != nil {
@@ -1031,55 +1308,40 @@ func generateFallbackTestSummary(testType, title string, result interface{}, all
 
 	summaryText := ""
 	if len(completedNames) > 0 {
-		summaryText = fmt.Sprintf("Berdasarkan integrasi evaluasi seluruh tes psikologi yang telah diselesaikan (%s), peserta menunjukkan profil potensi yang utuh dengan kecerdasan analitis terstruktur, minat eksploratif yang kuat, serta penyesuaian kerja yang adaptif.", strings.Join(completedNames, ", "))
+		summaryText = fmt.Sprintf("Berdasarkan integrasi evaluasi seluruh tes psikologi yang telah diselesaikan (%s), peserta menunjukkan profil potensi %s dengan orientasi minat yang kuat serta penyesuaian kerja yang adaptif.", strings.Join(completedNames, ", "), profile.TipeManusia)
 	} else {
 		displayTest := testType
 		if displayTest == "" {
 			displayTest = "Asesmen Psikologi"
 		}
-		summaryText = fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (%s), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.", displayTest)
+		summaryText = fmt.Sprintf("Berdasarkan evaluasi tes psikologi (%s), peserta menunjukkan profil potensi %s dengan daya nalar terstruktur dan minat kerja yang positif.", displayTest, profile.TipeManusia)
+	}
+
+	var rekomendasiKarir []map[string]string
+	for _, c := range profile.CareerItems {
+		name, _ := c["name"].(string)
+		rekomendasiKarir = append(rekomendasiKarir, map[string]string{
+			"posisi": name,
+			"alasan": fmt.Sprintf("Sangat sesuai dengan tipe orientasi %s dan profil potensi peserta.", profile.TipeManusia),
+		})
 	}
 
 	return map[string]interface{}{
-		"summary": summaryText,
-		"tipe_manusia": "Investigatif & Analitis (Persuasif)",
-		"kekuatan": []string{
-			"Memiliki kemampuan analisis problem solving yang terstruktur",
-			"Mampu beradaptasi dengan ritme kerja baru secara efisien",
-			"Berkomunikasi dengan kejelasan intonasi dan empati yang baik",
-			"Daya konsentrasi dan fokus tugas yang stabil",
-		},
-		"area_pengembangan": []string{
-			"Meningkatkan fleksibilitas dalam menghadapi situasi perubahan mendadak",
-			"Melatih manajemen waktu dan skala prioritas tugas",
-			"Mengembangkan keterampilan kepemimpinan dalam tim",
-		},
-		"rekomendasi_karir": []map[string]string{
-			{"posisi": "Software Developer / Engineer", "alasan": "Cocok dengan logika pemecahan masalah dan kemampuan analitis."},
-			{"posisi": "Data Scientist / Analyst", "alasan": "Daya analisis data dan ketelitian pola kerja yang tinggi."},
-			{"posisi": "Business & Management Consultant", "alasan": "Kombinasi komunikasi terstruktur dan kemampuan strategi."},
-			{"posisi": "Research & Product Specialist", "alasan": "Kedalaman rasa ingin tahu dan pendekatan inovasi terstruktur."},
-		},
-		"rekomendasi_jurusan": []string{
-			"Teknik Informatika / Computer Science",
-			"Sistem Informasi / Data Science",
-			"Psikologi / Manajemen SDM",
-			"Teknik Industri / Manajemen Operasional",
-		},
-		"rekomendasi_mata_pelajaran": []string{
-			"Informatika & Pemrograman Dasar",
-			"Matematika Lanjut & Analisis Data",
-			"Fisika / Sains Terapan",
-			"Bahasa Inggris Komunikasi & Literasi Digital",
-		},
+		"summary":                    summaryText,
+		"tipe_manusia":               profile.TipeManusia,
+		"kekuatan":                   profile.Strengths,
+		"area_pengembangan":          profile.Developments,
+		"rekomendasi_karir":          rekomendasiKarir,
+		"rekomendasi_jurusan":        profile.AcademicMajors,
+		"rekomendasi_mata_pelajaran": profile.MapelItems,
 		"rekomendasi_siswa": []string{
-			"Ikuti proyek berbasis tim untuk mengasah kolaborasi.",
-			"Tingkatkan literasi digital dan keterampilan problem-solving secara berkala.",
-			"Latih manajemen stres melalui istirahat yang teratur.",
+			"Kembangkan minat dan keahlian utama melalui kegiatan praktis terstruktur.",
+			"Ikuti pelatihan atau proyek tim untuk mengasah keterampilan kolaborasi.",
+			"Latih manajemen waktu dan stres secara berkala.",
 		},
 		"rekomendasi_ortu": []string{
 			"Berikan dukungan moral dan ruang diskusi terbuka untuk eksplorasi minat anak.",
-			"Fasilitasi sarana belajar mandiri dan kegiatan esktrakurikuler yang relevan.",
+			"Fasilitasi sarana belajar mandiri dan kegiatan ekstrakurikuler yang relevan.",
 		},
 		"rekomendasi_bk": []string{
 			"Berikan bimbingan karir fokus pada pemetaan minat dan potensi studi lanjut.",
@@ -1093,111 +1355,76 @@ func generateFallbackStudentCombinedSummary(studentName, batchName string, resul
 	if studentName == "" {
 		studentName = "Peserta"
 	}
+	profile := resolvePrimaryProfile(results)
+
+	topCareerName := "Spesialis Profesional"
+	if len(profile.CareerItems) > 0 {
+		if name, ok := profile.CareerItems[0]["name"].(string); ok {
+			topCareerName = name
+		}
+	}
+
 	return map[string]interface{}{
 		"kesimpulan_detail": map[string]interface{}{
-			"ist":            "Kemampuan intelegensi kognitif peserta berada pada tingkat baik, menunjukkan daya nalar logis dan kapasitas belajar yang adaptif.",
-			"holland":        "Minat dominan berorientasi pada tipe Investigatif dan Realistis, dengan daya observasi dan analisis pemecahan masalah yang tinggi.",
-			"learning_style": "Gaya belajar gabungan Visual dan Kinestetik, peserta paling efektif menyerap informasi melalui demonstrasi visual dan praktik langsung.",
-			"kraepelin":      "Kecepatan dan ketelitian kerja menunjukkan stabilitas ritme yang konsisten dengan daya tahan tugas yang baik.",
-			"rmib":           "Orientasi minat pekerjaan RMIB menunjukkan kecenderungan kuat pada bidang teknis, analisis persuasif, serta kegiatan praktis yang terstruktur.",
-			"papi":           "Dinamika kepribadian mencerminkan komitmen tinggi terhadap tugas, kerja sama tim yang kooperatif, serta penyesuaian diri yang fleksibel.",
+			"ist":            "Kemampuan intelegensi kognitif peserta berada pada tingkat yang mendukung, menunjukkan kapasitas nalar logis dan pemahaman instruksi yang baik.",
+			"holland":        fmt.Sprintf("Minat dominan berorientasi pada tipe %s, menunjukkan preferensi kerja yang jelas dan berorientasi hasil.", profile.TipeManusia),
+			"learning_style": "Gaya belajar peserta mendukung penyerapan informasi secara efektif melalui demonstrasi visual dan instruksi terstruktur.",
+			"kraepelin":      "Ketelitian dan kecepatan kerja menunjukkan konsistensi ritme yang stabil dengan daya tahan tugas yang baik.",
+			"rmib":           fmt.Sprintf("Orientasi minat pekerjaan RMIB mengonfirmasi kecenderungan kuat pada bidang %s.", profile.TipeManusia),
+			"papi":           "Dinamika kepribadian mencerminkan komitmen terhadap tugas, kerja sama tim yang baik, serta adaptasi kerja yang fleksibel.",
 		},
-		"kesimpulan_gabungan": fmt.Sprintf("Secara keseluruhan, %s memiliki profil potensi kognitif dan minat yang saling mendukung. Kombinasi daya nalar analitis, kecermatan kerja, serta minat eksploratif memberikan pondasi kuat untuk pengembangan karir di bidang profesional dan teknologi.", studentName),
-		"strengths": []string{
-			"Daya nalar analitis dan logika pemecahan masalah yang terstruktur",
-			"Stabilitas konsentrasi dan kecermatan dalam menyelesaikan tugas",
-			"Komunikasi efektif dan kecenderungan kerja sama tim yang positif",
-			"Kemampuan adaptasi yang cepat terhadap lingkungan baru",
-		},
-		"developments": []string{
-			"Meningkatkan fleksibilitas strategi saat menghadapi hambatan tidak terduga",
-			"Melatih teknik manajemen waktu dan prioritas proyek jangka panjang",
-			"Memperluas wawasan keahlian digital pendukung karir",
-		},
+		"kesimpulan_gabungan": fmt.Sprintf("Secara keseluruhan, %s memiliki profil potensi kognitif dan minat yang saling mendukung. Orientasi %s memberikan pondasi kuat untuk pengembangan karir dan studi lanjut.", studentName, profile.TipeManusia),
+		"strengths":           profile.Strengths,
+		"developments":        profile.Developments,
 		"recommendations": []map[string]interface{}{
 			{
 				"color": "violet",
 				"icon":  "graduation-cap",
 				"title": "Rekomendasi Akademik & Jurusan Kuliah",
-				"items": []string{
-					"Teknik Informatika / Computer Science",
-					"Sistem Informasi / Data Analytics",
-					"Psikologi / Manajemen Rekayasa",
-				},
+				"items": profile.AcademicMajors,
 			},
 			{
 				"color": "blue",
 				"icon":  "code-2",
 				"title": "Rekomendasi Keahlian & Skill Kunci",
-				"items": []string{
-					"Problem Solving & Logic Programming",
-					"Data Analysis & Visualisation",
-					"Communication & Team Collaboration",
-				},
+				"items": profile.SkillItems,
 			},
 			{
 				"color": "pink",
 				"icon":  "rocket",
-				"title": "Rekomendasi Karir & Profesi Utama",
-				"items": []string{
-					"Software Developer / Engineer",
-					"Data Scientist / Business Analyst",
-					"Cyber Security / Systems Specialist",
-				},
+				"title": "Rekomendasi Kegiatan & Ekstrakurikuler",
+				"items": profile.ActivityItems,
 			},
 		},
-		"potential": 88,
-		"potential_desc": "Peserta memiliki potensi perkembangan yang sangat baik jika didukung dengan lingkungan belajar yang terstruktur dan interaktif.",
-		"insight": "Dukungan pada penguatan proyek akademis praktis dan bimbingan karir berkala akan mengoptimalkan pencapaian siswa.",
-		"emotional_analytics": map[string]interface{}{
-			"selfAwareness":    78,
-			"selfRegulation":   72,
-			"motivation":       80,
-			"empathy":          75,
-			"stressManagement": 70,
-			"resilience":       82,
-		},
-		"skill_tracker": []map[string]interface{}{
-			{"name": "Coding & Programming", "score": 75},
-			{"name": "Problem Solving", "score": 82},
-			{"name": "Critical Thinking", "score": 80},
-			{"name": "Communication", "score": 76},
-			{"name": "Leadership", "score": 72},
-			{"name": "Creativity", "score": 78},
-		},
+		"potential":      88,
+		"potential_desc": fmt.Sprintf("Peserta memiliki potensi perkembangan yang sangat baik di bidang %s jika didukung lingkungan yang terstruktur.", profile.TipeManusia),
+		"insight":        fmt.Sprintf("Dukungan pada penguatan bidang %s dan bimbingan karir berkala akan mengoptimalkan pencapaian %s.", profile.TipeManusia, studentName),
+		"emotional_analytics": profile.EmotionalAnalytics,
+		"skill_tracker":       profile.SkillTracker,
 		"career_roadmap": map[string]interface{}{
-			"preferred_subjects": []string{"Matematika", "Informatika", "Bahasa Inggris"},
-			"student_target_careers": []string{"Software Engineer", "Data Scientist"},
-			"careers": []map[string]interface{}{
-				{"name": "Software Developer / Engineer", "match": 92, "icon": "code-2"},
-				{"name": "Data Scientist / Analyst", "match": 88, "icon": "bar-chart-2"},
-				{"name": "Cyber Security Analyst", "match": 85, "icon": "shield"},
-				{"name": "Systems Consultant", "match": 82, "icon": "briefcase"},
-			},
+			"preferred_subjects":     profile.MapelItems,
+			"student_target_careers": []string{topCareerName},
+			"careers":                profile.CareerItems,
 			"roadmap": []map[string]interface{}{
 				{
-					"term": "Rekomendasi Jurusan Perguruan Tinggi",
-					"items": []string{
-						"Teknik Informatika / Ilmu Komputer",
-						"Sistem Informasi",
-						"Teknik Elektro / Rekayasa",
-					},
+					"term":  "Rekomendasi Jurusan Perguruan Tinggi",
+					"items": profile.AcademicMajors,
 				},
 				{
-					"term": "Mata Pelajaran Pendukung Sekolah",
-					"items": []string{"Matematika Logika", "Informatika / Pemrograman", "Bahasa Asing"},
+					"term":  "Mata Pelajaran Pendukung Sekolah",
+					"items": profile.MapelItems,
 				},
 				{
-					"term": "Rencana Karir Jangka Pendek (1-2 Tahun)",
-					"items": []string{"Fokus penguatan nilai mata pelajaran eksak & logika", "Mengikuti kompetisi atau bootcamp minat"},
+					"term":  "Rencana Karir Jangka Pendek (1-2 Tahun)",
+					"items": []string{"Fokus penguatan nilai mata pelajaran pendukung", "Mengikuti kegiatan ekstrakurikuler/pelatihan relevan"},
 				},
 				{
-					"term": "Rencana Karir Jangka Menengah (3-5 Tahun)",
-					"items": []string{"Menempuh kuliah di jurusan yang direkomendasikan", "Magang dan pengerjaan proyek industri real"},
+					"term":  "Rencana Karir Jangka Menengah (3-5 Tahun)",
+					"items": []string{fmt.Sprintf("Menempuh kuliah di jurusan %s", profile.AcademicMajors[0]), "Aktif magang dan proyek praktis"},
 				},
 				{
-					"term": "Rencana Karir Jangka Panjang (5+ Tahun)",
-					"items": []string{"Berkarir profesional sebagai Specialist / Engineer", "Mengambil sertifikasi keahlian profesional"},
+					"term":  "Rencana Karir Jangka Panjang (5+ Tahun)",
+					"items": []string{fmt.Sprintf("Berkarir profesional sebagai %s", topCareerName), "Mengambil sertifikasi keahlian profesional"},
 				},
 			},
 		},

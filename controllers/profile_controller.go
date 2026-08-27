@@ -806,10 +806,15 @@ type HollandDetailResult struct {
 	ScoreS       int       `json:"score_s"`
 	ScoreE       int       `json:"score_e"`
 	ScoreC       int       `json:"score_c"`
-	Top1         string    `json:"top1"`
-	Top2         string    `json:"top2"`
-	Top3         string    `json:"top3"`
-	Code         string    `json:"code"`
+	Top1            string    `json:"top1"`
+	Top2            string    `json:"top2"`
+	Top3            string    `json:"top3"`
+	Code            string    `json:"code"`
+	DreamJob1       string    `json:"dream_job_1"`
+	DreamJob2       string    `json:"dream_job_2"`
+	DreamJob3       string    `json:"dream_job_3"`
+	FavoriteSubject string    `json:"favorite_subject"`
+	DislikedSubject string    `json:"disliked_subject"`
 }
 
 type LearningStyleDetailResult struct {
@@ -1207,10 +1212,15 @@ func (c *ProfileController) GetTestSummary() {
 			ScoreS:       lastHolland.ScoreS,
 			ScoreE:       lastHolland.ScoreE,
 			ScoreC:       lastHolland.ScoreC,
-			Top1:         lastHolland.Top1,
-			Top2:         lastHolland.Top2,
-			Top3:         lastHolland.Top3,
-			Code:         lastHolland.Code,
+			Top1:            lastHolland.Top1,
+			Top2:            lastHolland.Top2,
+			Top3:            lastHolland.Top3,
+			Code:            lastHolland.Code,
+			DreamJob1:       lastHolland.DreamJob1,
+			DreamJob2:       lastHolland.DreamJob2,
+			DreamJob3:       lastHolland.DreamJob3,
+			FavoriteSubject: lastHolland.FavoriteSubject,
+			DislikedSubject: lastHolland.DislikedSubject,
 		}
 		summary.LastHollandResult = &holDetail
 	}

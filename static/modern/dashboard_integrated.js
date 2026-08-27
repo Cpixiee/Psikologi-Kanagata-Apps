@@ -1292,7 +1292,7 @@
       if (Array.isArray(aiData.skill_tracker) && aiData.skill_tracker.length > 0) {
         const skills = aiData.skill_tracker.map(s => ({
           name:  s.name  || "Skill",
-          value: typeof s.value === 'number' ? Math.min(100, Math.max(0, s.value)) : 50
+          value: typeof s.value === 'number' ? Math.min(100, Math.max(0, s.value)) : (typeof s.score === 'number' ? Math.min(100, Math.max(0, s.score)) : 75)
         }));
         const skillAvg = Math.round(skills.reduce((a, b) => a + b.value, 0) / skills.length);
         const skillTotal = skillAvg + " /100";

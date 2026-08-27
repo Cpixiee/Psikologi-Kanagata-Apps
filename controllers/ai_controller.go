@@ -836,6 +836,9 @@ PENTING:
 		}
 	}
 
+	// Strict enforcement: Align career roadmap, skill tracker, and recommendations with student's actual Holland dream jobs & profile
+	parsed = enforceStudentProfileConstraints(parsed, req.Results)
+
 	// Save to cache
 	if cacheFile != "" {
 		if fileBytes, err := json.Marshal(parsed); err == nil {
@@ -982,6 +985,9 @@ PENTING:
 		}
 	}
 
+	// Strict enforcement: Align career roadmap, skill tracker, and recommendations with student's actual Holland dream jobs & profile
+	parsed = enforceStudentProfileConstraints(parsed, results)
+
 	// Save to cache
 	if cacheFile != "" {
 		if fileBytes, err := json.Marshal(parsed); err == nil {
@@ -1111,12 +1117,12 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			},
 			MapelItems: []string{"Kewirausahaan & Bisnis", "Pemasaran Digital", "Ekonomi & Manajemen", "Komunikasi Bisnis"},
 			SkillTracker: []map[string]interface{}{
-				{"name": "Strategi Bisnis & Sales", "score": 88},
-				{"name": "Negosiasi & Persuasi", "score": 85},
-				{"name": "Komunikasi & Public Speaking", "score": 84},
-				{"name": "Kepemimpinan Tim", "score": 82},
-				{"name": "Manajemen Proyek", "score": 78},
-				{"name": "Kreativitas Pemasaran", "score": 80},
+				{"name": "Strategi Bisnis & Sales", "value": 88, "score": 88},
+				{"name": "Negosiasi & Persuasi", "value": 85, "score": 85},
+				{"name": "Komunikasi & Public Speaking", "value": 84, "score": 84},
+				{"name": "Kepemimpinan Tim", "value": 82, "score": 82},
+				{"name": "Manajemen Proyek", "value": 78, "score": 78},
+				{"name": "Kreativitas Pemasaran", "value": 80, "score": 80},
 			},
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 82, "selfRegulation": 75, "motivation": 88, "empathy": 76, "stressManagement": 78, "resilience": 84},
 		}
@@ -1146,12 +1152,12 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			},
 			MapelItems: []string{"Seni Rupa & Desain Visual", "Seni Media / Multimedia", "Bahasa & Literasi Kreatif", "Komunikasi Visual"},
 			SkillTracker: []map[string]interface{}{
-				{"name": "Kreativitas & Konsep", "score": 90},
-				{"name": "Desain Visual & Estetika", "score": 88},
-				{"name": "Media Digital & Video", "score": 85},
-				{"name": "Komunikasi Visual", "score": 82},
-				{"name": "Inovasi Produk", "score": 80},
-				{"name": "Problem Solving", "score": 75},
+				{"name": "Kreativitas & Konsep", "value": 90, "score": 90},
+				{"name": "Desain Visual & Estetika", "value": 88, "score": 88},
+				{"name": "Media Digital & Video", "value": 85, "score": 85},
+				{"name": "Komunikasi Visual", "value": 82, "score": 82},
+				{"name": "Inovasi Produk", "value": 80, "score": 80},
+				{"name": "Problem Solving", "value": 75, "score": 75},
 			},
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 85, "selfRegulation": 70, "motivation": 82, "empathy": 80, "stressManagement": 72, "resilience": 76},
 		}
@@ -1181,12 +1187,12 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			},
 			MapelItems: []string{"Bahasa Indonesia / Inggris Komunikasi", "Sosiologi / Psikologi Sosial", "Komunikasi Publik", "Etika Bisnis"},
 			SkillTracker: []map[string]interface{}{
-				{"name": "Pelayanan & Empati", "score": 90},
-				{"name": "Komunikasi Interpersonal", "score": 88},
-				{"name": "Pengembangan SDM", "score": 85},
-				{"name": "Kerja Sama Tim", "score": 86},
-				{"name": "Resolusi Konflik", "score": 82},
-				{"name": "Kepemimpinan", "score": 78},
+				{"name": "Pelayanan & Empati", "value": 90, "score": 90},
+				{"name": "Komunikasi Interpersonal", "value": 88, "score": 88},
+				{"name": "Pengembangan SDM", "value": 85, "score": 85},
+				{"name": "Kerja Sama Tim", "value": 86, "score": 86},
+				{"name": "Resolusi Konflik", "value": 82, "score": 82},
+				{"name": "Kepemimpinan", "value": 78, "score": 78},
 			},
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 84, "selfRegulation": 78, "motivation": 80, "empathy": 90, "stressManagement": 75, "resilience": 80},
 		}
@@ -1216,12 +1222,12 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			},
 			MapelItems: []string{"Akuntansi & Spreadsheet Data", "Matematika Ekonomi", "Administrasi Perkantoran", "Statistika Terapan"},
 			SkillTracker: []map[string]interface{}{
-				{"name": "Ketelitian & Akurasi Data", "score": 92},
-				{"name": "Manajemen Keuangan & Admin", "score": 88},
-				{"name": "Administrasi & Dokumentasi", "score": 86},
-				{"name": "Perencanaan & Organisasi", "score": 85},
-				{"name": "Manajemen Risiko", "score": 80},
-				{"name": "Critical Thinking", "score": 78},
+				{"name": "Ketelitian & Akurasi Data", "value": 92, "score": 92},
+				{"name": "Manajemen Keuangan & Admin", "value": 88, "score": 88},
+				{"name": "Administrasi & Dokumentasi", "value": 86, "score": 86},
+				{"name": "Perencanaan & Organisasi", "value": 85, "score": 85},
+				{"name": "Manajemen Risiko", "value": 80, "score": 80},
+				{"name": "Critical Thinking", "value": 78, "score": 78},
 			},
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 80, "selfRegulation": 85, "motivation": 82, "empathy": 72, "stressManagement": 80, "resilience": 82},
 		}
@@ -1251,12 +1257,12 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			},
 			MapelItems: []string{"Fisika / Sains Terapan", "Matematika Teknik", "Prakarya & Kewirausahaan", "Gambar Teknik"},
 			SkillTracker: []map[string]interface{}{
-				{"name": "Keterampilan Teknik", "score": 90},
-				{"name": "Troubleshooting & Mekanikal", "score": 88},
-				{"name": "Manajemen Operasional", "score": 84},
-				{"name": "Keandalan Kerja Lapangan", "score": 86},
-				{"name": "Penggunaan Alat & Teknologi", "score": 85},
-				{"name": "Problem Solving", "score": 80},
+				{"name": "Keterampilan Teknik", "value": 90, "score": 90},
+				{"name": "Troubleshooting & Mekanikal", "value": 88, "score": 88},
+				{"name": "Manajemen Operasional", "value": 84, "score": 84},
+				{"name": "Keandalan Kerja Lapangan", "value": 86, "score": 86},
+				{"name": "Penggunaan Alat & Teknologi", "value": 85, "score": 85},
+				{"name": "Problem Solving", "value": 80, "score": 80},
 			},
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 78, "selfRegulation": 82, "motivation": 85, "empathy": 70, "stressManagement": 82, "resilience": 86},
 		}
@@ -1276,23 +1282,23 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 				"Mengembangkan keterampilan eksekusi praktis berbasis waktu cepat",
 				"Melatih keterbukaan terhadap pandangan non-analitis",
 			},
-			AcademicMajors: []string{"Data Science / Sistem Informasi", "Biologi / Kimia / Farmasi", "Statistika / Sains Riset", "Teknik Informatika"},
-			SkillItems:     []string{"Data Analysis & Problem Solving", "Riset & Metodologi Ilmiah", "Pemrosesan Logika & Statistik"},
-			ActivityItems:  []string{"Klub Sains & Data Research", "Olimpiade Sains & Pemrograman", "Kursus Analisis Data"},
+			AcademicMajors: []string{"Data Science / Sistem Informasi", "Biologi / Kimia / Farmasi", "Statistika / Sains Riset", "Teknik Industri"},
+			SkillItems:     []string{"Data Analysis & Problem Solving", "Riset & Metodologi Ilmiah", "Pemrosesan Logika & Riset Terapan"},
+			ActivityItems:  []string{"Klub Sains & Data Research", "Olimpiade Sains & Penelitian", "Kursus Analisis Data"},
 			CareerItems: []map[string]interface{}{
 				{"name": "Data Analyst & Market Researcher", "match": 93, "icon": "bar-chart-2"},
 				{"name": "Business Intelligence Analyst", "match": 90, "icon": "line-chart"},
 				{"name": "Analyst Sistem & Inovasi", "match": 87, "icon": "search"},
 				{"name": "Specialist Riset & Data", "match": 84, "icon": "database"},
 			},
-			MapelItems: []string{"Matematika Logika & Analisis Data", "Informatika", "Fisika / Kimia", "Statistika Terapan"},
+			MapelItems: []string{"Matematika Logika & Analisis Data", "Informatika / Sains Terapan", "Fisika / Kimia", "Statistika Terapan"},
 			SkillTracker: []map[string]interface{}{
-				{"name": "Penalaran Logis & Analitis", "score": 92},
-				{"name": "Riset & Metodologi Data", "score": 88},
-				{"name": "Pemecahan Masalah Kompleks", "score": 86},
-				{"name": "Berpikir Kritis", "score": 85},
-				{"name": "Ketelitian Observasi", "score": 84},
-				{"name": "Komunikasi Data", "score": 76},
+				{"name": "Penalaran Logis & Analitis", "value": 92, "score": 92},
+				{"name": "Riset & Metodologi Data", "value": 88, "score": 88},
+				{"name": "Pemecahan Masalah Kompleks", "value": 86, "score": 86},
+				{"name": "Berpikir Kritis", "value": 85, "score": 85},
+				{"name": "Ketelitian Observasi", "value": 84, "score": 84},
+				{"name": "Komunikasi Data", "value": 76, "score": 76},
 			},
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 82, "selfRegulation": 80, "motivation": 84, "empathy": 72, "stressManagement": 78, "resilience": 80},
 		}
@@ -1330,6 +1336,96 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 	}
 
 	return baseProfile
+}
+
+func enforceStudentProfileConstraints(parsed map[string]interface{}, results map[string]interface{}) map[string]interface{} {
+	if parsed == nil {
+		parsed = make(map[string]interface{})
+	}
+	profile := resolvePrimaryProfile(results)
+
+	// 1. Enforce Career Roadmap
+	cr, _ := parsed["career_roadmap"].(map[string]interface{})
+	if cr == nil {
+		cr = make(map[string]interface{})
+	}
+	cr["careers"] = profile.CareerItems
+	cr["preferred_subjects"] = profile.MapelItems
+	if len(profile.CareerItems) > 0 {
+		if n, ok := profile.CareerItems[0]["name"].(string); ok {
+			cr["student_target_careers"] = []string{n}
+		}
+	}
+	topMajor := "Jurusan Pilihan Sesuai Minat"
+	if len(profile.AcademicMajors) > 0 {
+		topMajor = profile.AcademicMajors[0]
+	}
+	topCareer := "Profesi Pilihan Utama"
+	if len(profile.CareerItems) > 0 {
+		if n, ok := profile.CareerItems[0]["name"].(string); ok {
+			topCareer = n
+		}
+	}
+
+	cr["roadmap"] = []map[string]interface{}{
+		{
+			"term":  "Rekomendasi Jurusan Perguruan Tinggi (Major Matches)",
+			"items": profile.AcademicMajors,
+		},
+		{
+			"term":  "Mata Pelajaran Pendukung Sekolah (Subject Matches)",
+			"items": profile.MapelItems,
+		},
+		{
+			"term":  "Rencana Karir Jangka Pendek (1-2 Tahun)",
+			"items": []string{"Fokus penguatan nilai akademis mata pelajaran pendukung", "Mengikuti pelatihan/ekstrakurikuler relevan"},
+		},
+		{
+			"term":  "Rencana Karir Jangka Menengah (3-5 Tahun)",
+			"items": []string{fmt.Sprintf("Menempuh pendidikan perguruan tinggi di jurusan %s", topMajor), "Aktif magang & proyek industri"},
+		},
+		{
+			"term":  "Rencana Karir Jangka Panjang (5+ Tahun)",
+			"items": []string{fmt.Sprintf("Berkarir profesional sebagai %s", topCareer), "Sertifikasi keahlian tingkat lanjut"},
+		},
+	}
+	parsed["career_roadmap"] = cr
+
+	// 2. Enforce Skill Tracker
+	parsed["skill_tracker"] = profile.SkillTracker
+
+	// 3. Enforce AI Recommendations
+	var topCareerNames []string
+	for _, c := range profile.CareerItems {
+		if name, ok := c["name"].(string); ok {
+			topCareerNames = append(topCareerNames, name)
+		}
+	}
+	if len(topCareerNames) > 3 {
+		topCareerNames = topCareerNames[:3]
+	}
+	parsed["recommendations"] = []map[string]interface{}{
+		{
+			"color": "violet",
+			"icon":  "graduation-cap",
+			"title": "Rekomendasi Akademik & Jurusan Kuliah",
+			"items": profile.AcademicMajors,
+		},
+		{
+			"color": "blue",
+			"icon":  "code-2",
+			"title": "Rekomendasi Keahlian & Skill Kunci",
+			"items": profile.SkillItems,
+		},
+		{
+			"color": "pink",
+			"icon":  "rocket",
+			"title": "Rekomendasi Karir & Profesi Utama",
+			"items": topCareerNames,
+		},
+	}
+
+	return parsed
 }
 
 func generateFallbackTestSummary(testType, title string, result interface{}, allResults map[string]interface{}) map[string]interface{} {

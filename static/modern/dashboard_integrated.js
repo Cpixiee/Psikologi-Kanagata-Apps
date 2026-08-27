@@ -505,7 +505,7 @@
   function buildContext(profile, summary, rmib, papi) {
     const u = profile || {};
     const ist = (summary && summary.last_ist_result) || null;
-    const hol = (summary && summary.last_holland_result) || null;
+    const hollandData = (summary && summary.last_holland_result) || null;
     const vak = (summary && summary.last_learning_style_result) || null;
     const krp = (summary && summary.last_kraepelin_attempt) || null;
     const rmibTop = (rmib && rmib[0]) ? rmib[0].rmib_result : null;
@@ -525,8 +525,8 @@
     
     // === Holland percentages (skor R/I/A/S/E/C; max kira-kira 40) ===
     let holPct = { R: 50, I: 50, A: 50, S: 50, E: 50, C: 50 };
-    if (hol) {
-      const holScores = { R: hol.score_r, I: hol.score_i, A: hol.score_a, S: hol.score_s, E: hol.score_e, C: hol.score_c };
+    if (hollandData) {
+      const holScores = { R: hollandData.score_r, I: hollandData.score_i, A: hollandData.score_a, S: hollandData.score_s, E: hollandData.score_e, C: hollandData.score_c };
       const holMax = Math.max(40, ...Object.values(holScores));
       Object.keys(holScores).forEach((k) => { holPct[k] = pct((holScores[k] / holMax) * 100); });
     } else {
@@ -574,7 +574,7 @@
     }
 
     // === Personality type from RIASEC ===
-    const code = hol ? (hol.code || (hol.top1 + hol.top2 + hol.top3)) : "";
+    const code = hollandData ? (hollandData.code || (hollandData.top1 + hollandData.top2 + hollandData.top3)) : "";
     const personalityLabel = code
       ? code.split("").map((c) => RIASEC_LABELS[c] || c).slice(0,2).join(" - ")
       : "Belum tersedia";
@@ -775,7 +775,7 @@
     const careerMap = new Map();
 
     // Prioritize student explicit dream jobs from Holland Page 3
-    const holRes = hol || ctx.holland || (ctx.allResults && ctx.allResults.holland) || {};
+    const holRes = hollandData || ctx.holland || (ctx.allResults && ctx.allResults.holland) || {};
     const d1 = (holRes.dream_job_1 || "").trim();
     const d2 = (holRes.dream_job_2 || "").trim();
     const d3 = (holRes.dream_job_3 || "").trim();

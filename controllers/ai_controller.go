@@ -1066,9 +1066,27 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 		}
 	}
 
+	// Extract dream jobs & favorite subjects if present
+	var d1, d2, d3, favSubj string
+	if hollandRaw, ok := results["holland"]; ok && hollandRaw != nil {
+		if hMap, ok2 := hollandRaw.(map[string]interface{}); ok2 {
+			d1, _ = hMap["dream_job_1"].(string)
+			d2, _ = hMap["dream_job_2"].(string)
+			d3, _ = hMap["dream_job_3"].(string)
+			favSubj, _ = hMap["favorite_subject"].(string)
+
+			d1 = strings.TrimSpace(d1)
+			d2 = strings.TrimSpace(d2)
+			d3 = strings.TrimSpace(d3)
+			favSubj = strings.TrimSpace(favSubj)
+		}
+	}
+
+	var baseProfile DomainProfile
+
 	switch letter {
 	case "E":
-		return DomainProfile{
+		baseProfile = DomainProfile{
 			Letter:      "E",
 			TipeManusia: "Enterprising & Persuasif (Bisnis & Kepemimpinan)",
 			Strengths: []string{
@@ -1103,7 +1121,7 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 82, "selfRegulation": 75, "motivation": 88, "empathy": 76, "stressManagement": 78, "resilience": 84},
 		}
 	case "A":
-		return DomainProfile{
+		baseProfile = DomainProfile{
 			Letter:      "A",
 			TipeManusia: "Artistik & Kreatif (Desain & Inovasi Visual)",
 			Strengths: []string{
@@ -1138,7 +1156,7 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 85, "selfRegulation": 70, "motivation": 82, "empathy": 80, "stressManagement": 72, "resilience": 76},
 		}
 	case "S":
-		return DomainProfile{
+		baseProfile = DomainProfile{
 			Letter:      "S",
 			TipeManusia: "Sosial & Edukatif (Pelayanan & Komunikasi)",
 			Strengths: []string{
@@ -1173,7 +1191,7 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 84, "selfRegulation": 78, "motivation": 80, "empathy": 90, "stressManagement": 75, "resilience": 80},
 		}
 	case "C":
-		return DomainProfile{
+		baseProfile = DomainProfile{
 			Letter:      "C",
 			TipeManusia: "Konvensional & Terstruktur (Keuangan & Administrasi)",
 			Strengths: []string{
@@ -1208,7 +1226,7 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 80, "selfRegulation": 85, "motivation": 82, "empathy": 72, "stressManagement": 80, "resilience": 82},
 		}
 	case "R":
-		return DomainProfile{
+		baseProfile = DomainProfile{
 			Letter:      "R",
 			TipeManusia: "Realistis & Praktis (Teknik & Operasional)",
 			Strengths: []string{
@@ -1244,7 +1262,7 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 		}
 	default:
 		// I (Investigative)
-		return DomainProfile{
+		baseProfile = DomainProfile{
 			Letter:      "I",
 			TipeManusia: "Investigatif & Analitis (Peneliti & Analyst)",
 			Strengths: []string{
@@ -1279,6 +1297,39 @@ func resolvePrimaryProfile(results map[string]interface{}) DomainProfile {
 			EmotionalAnalytics: map[string]interface{}{"selfAwareness": 82, "selfRegulation": 80, "motivation": 84, "empathy": 72, "stressManagement": 78, "resilience": 80},
 		}
 	}
+
+	// Augment with student's explicit dream jobs if available
+	if d1 != "" {
+		var customCareers []map[string]interface{}
+		customCareers = append(customCareers, map[string]interface{}{"name": d1, "match": 95, "icon": "crown"})
+		if d2 != "" {
+			customCareers = append(customCareers, map[string]interface{}{"name": d2, "match": 92, "icon": "briefcase"})
+		}
+		if d3 != "" {
+			customCareers = append(customCareers, map[string]interface{}{"name": d3, "match": 89, "icon": "heart"})
+		}
+
+		for _, item := range baseProfile.CareerItems {
+			name, _ := item["name"].(string)
+			if name != d1 && name != d2 && name != d3 {
+				customCareers = append(customCareers, item)
+			}
+		}
+		baseProfile.CareerItems = customCareers
+	}
+
+	if favSubj != "" {
+		var customMapels []string
+		customMapels = append(customMapels, favSubj)
+		for _, m := range baseProfile.MapelItems {
+			if strings.ToLower(m) != strings.ToLower(favSubj) {
+				customMapels = append(customMapels, m)
+			}
+		}
+		baseProfile.MapelItems = customMapels
+	}
+
+	return baseProfile
 }
 
 func generateFallbackTestSummary(testType, title string, result interface{}, allResults map[string]interface{}) map[string]interface{} {

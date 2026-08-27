@@ -986,6 +986,22 @@
         };
 
         var careerMap = new Map();
+
+        // Prioritize student explicit dream jobs from Holland Page 3
+        var d1 = String(hol.dream_job_1 || "").trim();
+        var d2 = String(hol.dream_job_2 || "").trim();
+        var d3 = String(hol.dream_job_3 || "").trim();
+
+        if (d1) {
+          careerMap.set(d1, { name: d1, match: 95, icon: "crown" });
+        }
+        if (d2) {
+          careerMap.set(d2, { name: d2, match: 92, icon: "briefcase" });
+        }
+        if (d3) {
+          careerMap.set(d3, { name: d3, match: 89, icon: "heart" });
+        }
+
         careerSeed.forEach(function(letter, idx) {
           var list = CAREER_BY_LETTER[letter] || [];
           list.forEach(function(c) {

@@ -773,12 +773,29 @@
     const skillTotalLabel = skillAvg >= 75 ? "Good Performance" : skillAvg >= 55 ? "Average" : "Needs Improvement";
 
     const careerMap = new Map();
+
+    // Prioritize student explicit dream jobs from Holland Page 3
+    const hol = ctx.holland || ctx.allResults?.holland || {};
+    const d1 = (hol.dream_job_1 || "").trim();
+    const d2 = (hol.dream_job_2 || "").trim();
+    const d3 = (hol.dream_job_3 || "").trim();
+
+    if (d1) {
+      careerMap.set(d1, { name: d1, match: 95, icon: "crown" });
+    }
+    if (d2) {
+      careerMap.set(d2, { name: d2, match: 92, icon: "briefcase" });
+    }
+    if (d3) {
+      careerMap.set(d3, { name: d3, match: 89, icon: "heart" });
+    }
+
     careerSeed.forEach((letter, idx) => {
       const list = CAREER_BY_LETTER[letter] || [];
       list.forEach((c) => {
         const adj = c.base - idx * 2;
         if (!careerMap.has(c.name) || careerMap.get(c.name).match < adj) {
-          const ic = idx === 0 ? "bot" : idx === 1 ? "line-chart" : idx === 2 ? "flask-conical" : "briefcase";
+          const ic = c.icon || (idx === 0 ? "briefcase" : idx === 1 ? "line-chart" : "rocket");
           careerMap.set(c.name, { name: c.name, match: clamp(adj, 50, 96), icon: ic });
         }
       });

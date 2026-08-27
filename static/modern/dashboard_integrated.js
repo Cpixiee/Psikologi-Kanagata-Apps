@@ -775,10 +775,10 @@
     const careerMap = new Map();
 
     // Prioritize student explicit dream jobs from Holland Page 3
-    const hol = ctx.holland || ctx.allResults?.holland || {};
-    const d1 = (hol.dream_job_1 || "").trim();
-    const d2 = (hol.dream_job_2 || "").trim();
-    const d3 = (hol.dream_job_3 || "").trim();
+    const holRes = hol || ctx.holland || (ctx.allResults && ctx.allResults.holland) || {};
+    const d1 = (holRes.dream_job_1 || "").trim();
+    const d2 = (holRes.dream_job_2 || "").trim();
+    const d3 = (holRes.dream_job_3 || "").trim();
 
     if (d1) {
       careerMap.set(d1, { name: d1, match: 95, icon: "crown" });

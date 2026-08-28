@@ -775,7 +775,7 @@
     const careerMap = new Map();
 
     // Prioritize student explicit dream jobs from Holland Page 3
-    const holRes = hollandData || ctx.holland || (ctx.allResults && ctx.allResults.holland) || {};
+    const holRes = hollandData || {};
     const d1 = (holRes.dream_job_1 || "").trim();
     const d2 = (holRes.dream_job_2 || "").trim();
     const d3 = (holRes.dream_job_3 || "").trim();

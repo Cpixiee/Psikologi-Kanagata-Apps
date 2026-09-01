@@ -4316,7 +4316,7 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 	}
 	pdf.Ln(3)
 
-	// 2. SPESIFIK HASIL TES (minat/kepribadian/gaya belajar)
+	// 2. SPESIFIK HASIL TES (minat/kepribadian/gaya belajar/intelegensi/kraepelin)
 	if testType == "Holland" {
 		if hol, ok := resultData.(models.HollandResult); ok {
 			pdf.SetFont("Arial", "B", 9.5)
@@ -4353,13 +4353,16 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
 			}
 			pdf.Ln(2.5)
-			
-			summaryText, _ := summaryData["summary"].(string)
-			if summaryText != "" {
+
+			detailText, _ := summaryData["interpretasi_detail"].(string)
+			if detailText == "" {
+				detailText, _ = summaryData["summary"].(string)
+			}
+			if detailText != "" {
 				pdf.SetFont("Arial", "I", 9)
 				pdf.CellFormat(0, 4.5, "Interpretasi Minat Karir:", "", 1, "L", false, 0, "")
 				pdf.SetFont("Arial", "", 9)
-				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
 			}
 		}
 	} else if testType == "RMIB" {
@@ -4368,7 +4371,7 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			pdf.CellFormat(0, 4.5, "2. MINAT KARIER DOMINAN (RMIB)", "", 1, "L", false, 0, "")
 			pdf.Ln(1)
 			pdf.SetFont("Arial", "", 9)
-			
+
 			type entry struct {
 				Label string `json:"label"`
 				Score int    `json:"score"`
@@ -4376,14 +4379,14 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			}
 			parsed := map[string]entry{}
 			_ = json.Unmarshal([]byte(rmib.ResultJSON), &parsed)
-			
+
 			codes := []string{"OUT", "MEC", "COMP", "SCI", "PERS", "AEST", "MUS", "LIT", "SOC", "CLER", "PRAC", "MED"}
 			labels := map[string]string{
 				"OUT": "Outdoor", "MEC": "Mechanical", "COMP": "Computational", "SCI": "Scientific",
 				"PERS": "Personal Contact", "AEST": "Aesthetic", "MUS": "Musical", "LIT": "Literary",
 				"SOC": "Social Service", "CLER": "Clerical", "PRAC": "Practical", "MED": "Medical",
 			}
-			
+
 			type aspectRow struct {
 				Name string
 				Rank int
@@ -4405,7 +4408,7 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			sort.Slice(aspects, func(i, j int) bool {
 				return aspects[i].Rank < aspects[j].Rank
 			})
-			
+
 			var top3 []string
 			for idx, s := range aspects {
 				if idx >= 3 {
@@ -4430,13 +4433,16 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
 			}
 			pdf.Ln(2.5)
-			
-			summaryText, _ := summaryData["summary"].(string)
-			if summaryText != "" {
+
+			detailText, _ := summaryData["interpretasi_detail"].(string)
+			if detailText == "" {
+				detailText, _ = summaryData["summary"].(string)
+			}
+			if detailText != "" {
 				pdf.SetFont("Arial", "I", 9)
 				pdf.CellFormat(0, 4.5, "Interpretasi RMIB:", "", 1, "L", false, 0, "")
 				pdf.SetFont("Arial", "", 9)
-				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
 			}
 		}
 	} else if testType == "Gaya_Belajar" {
@@ -4473,12 +4479,15 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			}
 			pdf.Ln(2.5)
 
-			summaryText, _ := summaryData["summary"].(string)
-			if summaryText != "" {
+			detailText, _ := summaryData["interpretasi_detail"].(string)
+			if detailText == "" {
+				detailText, _ = summaryData["summary"].(string)
+			}
+			if detailText != "" {
 				pdf.SetFont("Arial", "I", 9)
 				pdf.CellFormat(0, 4.5, "Interpretasi Gaya Belajar:", "", 1, "L", false, 0, "")
 				pdf.SetFont("Arial", "", 9)
-				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
 			}
 		}
 	} else if testType == "PAPI" {
@@ -4538,12 +4547,58 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			}
 			pdf.Ln(2.5)
 
+			pdf.SetFont("Arial", "I", 9)
+			pdf.CellFormat(0, 4.5, "Interpretasi Kepribadian Kerja:", "", 1, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 9)
 			summaryText, _ := summaryData["summary"].(string)
 			if summaryText != "" {
-				pdf.SetFont("Arial", "I", 9)
-				pdf.CellFormat(0, 4.5, "Interpretasi Kepribadian Kerja:", "", 1, "L", false, 0, "")
-				pdf.SetFont("Arial", "", 9)
 				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
+				pdf.Ln(2)
+			}
+
+			// Render dimensions if available
+			if dimMap, ok := summaryData["papi_dimensions"].(map[string]interface{}); ok && len(dimMap) > 0 {
+				order := []string{"work_direction", "leadership", "activity", "social_nature", "work_style", "temperament", "follower_authority"}
+				for _, k := range order {
+					if dVal, exists := dimMap[k]; exists && dVal != nil {
+						if dObj, okObj := dVal.(map[string]interface{}); okObj {
+							title, _ := dObj["title"].(string)
+							if title != "" {
+								if pdf.GetY() > 260 {
+									pdf.AddPage()
+								}
+								pdf.SetFont("Arial", "B", 8.5)
+								pdf.CellFormat(0, 4.5, "•  "+title, "", 1, "L", false, 0, "")
+								pdf.SetFont("Arial", "", 8.5)
+								if items, okItems := dObj["items"].([]map[string]string); okItems {
+									for _, itm := range items {
+										pdf.SetFont("Arial", "I", 8)
+										pdf.CellFormat(0, 4, "   "+itm["aspect"]+": "+itm["score"], "", 1, "L", false, 0, "")
+										pdf.SetFont("Arial", "", 8)
+										pdf.SetX(pdf.GetX() + 3)
+										pdf.MultiCell(0, 4, itm["desc"], "", "L", false)
+										pdf.Ln(1)
+									}
+								} else if itemsGeneric, okGen := dObj["items"].([]interface{}); okGen {
+									for _, itmGen := range itemsGeneric {
+										if itm, okM := itmGen.(map[string]interface{}); okM {
+											aspect, _ := itm["aspect"].(string)
+											score, _ := itm["score"].(string)
+											desc, _ := itm["desc"].(string)
+											pdf.SetFont("Arial", "I", 8)
+											pdf.CellFormat(0, 4, "   "+aspect+": "+score, "", 1, "L", false, 0, "")
+											pdf.SetFont("Arial", "", 8)
+											pdf.SetX(pdf.GetX() + 3)
+											pdf.MultiCell(0, 4, desc, "", "L", false)
+											pdf.Ln(1)
+										}
+									}
+								}
+								pdf.Ln(1.5)
+							}
+						}
+					}
+				}
 			}
 		}
 	} else if testType == "IST" {
@@ -4598,6 +4653,17 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
 			}
 			pdf.Ln(2.5)
+
+			detailText, _ := summaryData["interpretasi_detail"].(string)
+			if detailText == "" {
+				detailText, _ = summaryData["summary"].(string)
+			}
+			if detailText != "" {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(0, 4.5, "Interpretasi Tes IST:", "", 1, "L", false, 0, "")
+				pdf.SetFont("Arial", "", 9)
+				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
+			}
 		}
 	} else if testType == "Kraepelin" {
 		if krp, ok := resultData.(models.KraepelinAttempt); ok {
@@ -4636,154 +4702,19 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.CellFormat(50, 5, a.Cat, "1", 1, "C", false, 0, "")
 			}
 			pdf.Ln(2.5)
+
+			detailText, _ := summaryData["interpretasi_detail"].(string)
+			if detailText == "" {
+				detailText, _ = summaryData["summary"].(string)
+			}
+			if detailText != "" {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(0, 4.5, "Interpretasi Kraepelin:", "", 1, "L", false, 0, "")
+				pdf.SetFont("Arial", "", 9)
+				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
+			}
 		}
 	}
-	pdf.Ln(3)
-
-	// 3. KARAKTERISTIK PRIBADI
-	pdf.SetFont("Arial", "B", 9.5)
-	pdf.CellFormat(0, 4.5, "3. KARAKTERISTIK PRIBADI", "", 1, "L", false, 0, "")
-	pdf.Ln(1)
-
-	kekuatan := parseArrayOrString(summaryData["kekuatan"])
-	areaDev := parseArrayOrString(summaryData["area_pengembangan"])
-
-	pdf.SetFont("Arial", "B", 9)
-	pdf.CellFormat(0, 4.5, "Kekuatan Utama:", "", 1, "L", false, 0, "")
-	pdf.SetFont("Arial", "", 9)
-	if len(kekuatan) > 0 {
-		for _, k := range kekuatan {
-			pdf.MultiCell(0, 4.5, "- "+k, "", "L", false)
-		}
-	} else {
-		pdf.CellFormat(0, 4.5, "- Menunjukkan motivasi dan kapasitas belajar yang adaptif.", "", 1, "L", false, 0, "")
-	}
-	pdf.Ln(1.5)
-
-	pdf.SetFont("Arial", "B", 9)
-	pdf.CellFormat(0, 4.5, "Area Pengembangan:", "", 1, "L", false, 0, "")
-	pdf.SetFont("Arial", "", 9)
-	if len(areaDev) > 0 {
-		for _, ad := range areaDev {
-			pdf.MultiCell(0, 4.5, "- "+ad, "", "L", false)
-		}
-	} else {
-		pdf.CellFormat(0, 4.5, "- Mengoptimalkan pengelolaan waktu dan konsentrasi saat tugas rumit.", "", 1, "L", false, 0, "")
-	}
-	pdf.Ln(4)
-
-	// --- 4. KESIMPULAN ---
-	pdf.SetFillColor(0, 0, 0)
-	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 10.5)
-	pdf.CellFormat(0, 7, "  KESIMPULAN", "0", 1, "L", true, 0, "")
-	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(2.5)
-
-	pdf.SetFont("Arial", "", 9)
-	catatanPenting, _ := summaryData["catatan_penting"].(string)
-	summaryText, _ := summaryData["summary"].(string)
-	kesimpulanParagraf := summaryText
-	if catatanPenting != "" {
-		kesimpulanParagraf = kesimpulanParagraf + " " + catatanPenting
-	}
-	if kesimpulanParagraf == "" {
-		kesimpulanParagraf = "Peserta didik secara umum menunjukkan potensi yang baik dan relevan dengan pilihan jurusan akademisnya. Disarankan untuk terus dibimbing agar pencapaian karirnya optimal."
-	}
-	pdf.MultiCell(0, 4.5, kesimpulanParagraf, "", "L", false)
-	pdf.Ln(4)
-
-	if pdf.GetY() > 210 {
-		pdf.AddPage()
-	}
-
-	// --- 5. REKOMENDASI ---
-	pdf.SetFillColor(0, 0, 0)
-	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 10.5)
-	pdf.CellFormat(0, 7, "  REKOMENDASI", "0", 1, "L", true, 0, "")
-	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(3.5)
-
-	rekomendasiSiswa := parseArrayOrString(summaryData["rekomendasi_siswa"])
-	rekomendasiOrtu := parseArrayOrString(summaryData["rekomendasi_ortu"])
-	rekomendasiBK := parseArrayOrString(summaryData["rekomendasi_bk"])
-
-	xStart := 15.0
-	yStart := pdf.GetY()
-	colW := 54.0
-	gap := 9.0
-
-	// Col 1: Untuk Peserta Didik
-	pdf.SetXY(xStart, yStart)
-	pdf.SetFont("Arial", "B", 9)
-	pdf.MultiCell(colW, 5, "Untuk Peserta Didik:", "", "L", false)
-	pdf.SetFont("Arial", "", 8)
-	y1 := pdf.GetY() + 1.0
-	if len(rekomendasiSiswa) > 0 {
-		for _, item := range rekomendasiSiswa {
-			pdf.SetXY(xStart, y1)
-			pdf.CellFormat(3, 4, "-", "", 0, "L", false, 0, "")
-			pdf.SetXY(xStart+3, y1)
-			pdf.MultiCell(colW-3, 4, item, "", "L", false)
-			y1 = pdf.GetY() + 1.0
-		}
-	} else {
-		pdf.SetXY(xStart, y1)
-		pdf.MultiCell(colW, 4, "- Melatih keterampilan secara rutin dan terencana.", "", "L", false)
-		y1 = pdf.GetY() + 1.0
-	}
-
-	// Col 2: Untuk Orang Tua
-	x2 := xStart + colW + gap
-	pdf.SetXY(x2, yStart)
-	pdf.SetFont("Arial", "B", 9)
-	pdf.MultiCell(colW, 5, "Untuk Orang Tua:", "", "L", false)
-	pdf.SetFont("Arial", "", 8)
-	y2 := pdf.GetY() + 1.0
-	if len(rekomendasiOrtu) > 0 {
-		for _, item := range rekomendasiOrtu {
-			pdf.SetXY(x2, y2)
-			pdf.CellFormat(3, 4, "-", "", 0, "L", false, 0, "")
-			pdf.SetXY(x2+3, y2)
-			pdf.MultiCell(colW-3, 4, item, "", "L", false)
-			y2 = pdf.GetY() + 1.0
-		}
-	} else {
-		pdf.SetXY(x2, y2)
-		pdf.MultiCell(colW, 4, "- Memberikan dukungan moral dan fasilitas belajar.", "", "L", false)
-		y2 = pdf.GetY() + 1.0
-	}
-
-	// Col 3: Untuk Sekolah/Guru BK
-	x3 := xStart + 2*(colW+gap)
-	pdf.SetXY(x3, yStart)
-	pdf.SetFont("Arial", "B", 9)
-	pdf.MultiCell(colW, 5, "Untuk Sekolah/Guru BK:", "", "L", false)
-	pdf.SetFont("Arial", "", 8)
-	y3 := pdf.GetY() + 1.0
-	if len(rekomendasiBK) > 0 {
-		for _, item := range rekomendasiBK {
-			pdf.SetXY(x3, y3)
-			pdf.CellFormat(3, 4, "-", "", 0, "L", false, 0, "")
-			pdf.SetXY(x3+3, y3)
-			pdf.MultiCell(colW-3, 4, item, "", "L", false)
-			y3 = pdf.GetY() + 1.0
-		}
-	} else {
-		pdf.SetXY(x3, y3)
-		pdf.MultiCell(colW, 4, "- Memberikan layanan BK yang sesuai potensi dan minat anak.", "", "L", false)
-		y3 = pdf.GetY() + 1.0
-	}
-
-	maxY := y1
-	if y2 > maxY {
-		maxY = y2
-	}
-	if y3 > maxY {
-		maxY = y3
-	}
-	pdf.SetY(maxY + 6.0)
 
 	buf := new(bytes.Buffer)
 	err := pdf.Output(buf)

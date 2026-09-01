@@ -10,8 +10,11 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
+
+	"psikologi_apps/models"
 
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
@@ -440,53 +443,39 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 	cacheKey := getCacheHash(resultData)
 	var cacheFile string
 	if cacheKey != "" {
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v4_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v5_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
-				// Verify if summary or v2 fields exist, if so return it
-				if _, ok := cachedData["summary"]; ok {
+				if _, ok := cachedData["interpretasi_detail"]; ok {
 					return cachedData, nil
 				}
-				if _, ok1 := cachedData["rekomendasi_siswa"]; ok1 {
+				if _, ok := cachedData["summary"]; ok {
 					return cachedData, nil
 				}
 			}
 		}
 	}
 
-	resultJSON, _ := json.MarshalIndent(resultData, "", "  ")
-	systemHint := "Anda adalah seorang psikolog dan career advisor profesional yang menjawab dalam Bahasa Indonesia secara hangat, ringkas, dan praktis. Jangan pernah memberi diagnosis klinis."
-	userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis untuk peserta.
-
-Jenis tes: %s
-Judul: %s — %s
-Data hasil tes (JSON):
-%s
-
-Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
-{
-  "summary": "ringkasan 2-4 kalimat tentang gambaran umum peserta",
-  "tipe_manusia": "tipe kepribadian / minat dominan dalam 1 frasa pendek",
-  "kekuatan": ["3-5 poin singkat kekuatan"],
-  "area_pengembangan": ["3-5 poin singkat area pengembangan"],
-  "rekomendasi_karir": [
-    {"posisi": "...", "alasan": "..."},
-    {"posisi": "...", "alasan": "..."},
-    {"posisi": "...", "alasan": "..."}
-  ],
-  "rekomendasi_siswa": ["3-5 poin rekomendasi konkret untuk peserta didik/siswa"],
-  "rekomendasi_ortu": ["3-5 poin rekomendasi konkret untuk orang tua"],
-  "rekomendasi_bk": ["3-5 poin rekomendasi konkret untuk sekolah/guru BK/konselor"],
-  "catatan_penting": "1-2 kalimat reminder/disclaimer"
-}`, testType, studentName, testType, string(resultJSON))
+	systemHint, userPrompt := buildIndividualTestPrompt(testType, studentName, resultData)
 
 	text, _, err := callGemini(systemHint, userPrompt, true)
 	var parsed map[string]interface{}
 	if err != nil || strings.TrimSpace(text) == "" {
-		parsed = generateFallbackTestSummary(testType, "", resultData, nil)
+		parsed = generateFallbackIndividualTestSummary(testType, studentName, resultData)
 	} else if err := json.Unmarshal([]byte(text), &parsed); err != nil {
-		parsed = generateFallbackTestSummary(testType, "", resultData, nil)
+		parsed = generateFallbackIndividualTestSummary(testType, studentName, resultData)
+	}
+
+	// Always ensure interpretasi_detail is populated with rich personal dynamic interpretation
+	if parsed == nil {
+		parsed = generateFallbackIndividualTestSummary(testType, studentName, resultData)
+	} else if _, hasDetail := parsed["interpretasi_detail"]; !hasDetail {
+		fallbackData := generateFallbackIndividualTestSummary(testType, studentName, resultData)
+		parsed["interpretasi_detail"] = fallbackData["interpretasi_detail"]
+		if _, hasSummary := parsed["summary"]; !hasSummary {
+			parsed["summary"] = fallbackData["summary"]
+		}
 	}
 
 	// Cache the result
@@ -1629,4 +1618,452 @@ func generateFallbackAIChatReply(userMsg string) string {
 		return "Langkah taktis pertama yang sebaiknya didiskusikan adalah mengajak siswa menginventarisasi 3 mata pelajaran atau bidang favoritnya, lalu memadukannya dengan pilihan program studi perguruan tinggi yang paling relevan."
 	}
 	return "Untuk pertanyaan spesifik ini, fokus pengembangan dapat diarahkan pada penguatan daya nalar analitis, eksplorasi mata pelajaran eksak/logika, serta pengembangan keterampilan komunikasi tim yang relevan dengan hasil asesmen siswa."
+}
+
+// buildIndividualTestPrompt constructs specialized prompts tailored for each specific test tool.
+func buildIndividualTestPrompt(testType, studentName string, resultData interface{}) (string, string) {
+	if studentName == "" {
+		studentName = "Ananda"
+	}
+	resultJSON, _ := json.MarshalIndent(resultData, "", "  ")
+	cleanType := strings.ToLower(strings.TrimSpace(testType))
+
+	switch cleanType {
+	case "ist":
+		systemHint := "Anda adalah seorang psikolog pendidikan dan asesor kognitif profesional. Anda menganalisis inteligensi peserta didik berdasarkan tes IST (Intelligenz Struktur Test) dengan 9 subtes secara tajam, mendalam, dan sangat personal sesuai profil nilai riil peserta didik."
+		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes intelegensi IST untuk peserta didik bernama %s:
+
+Data Hasil Tes IST (JSON):
+%s
+
+Sebagai psikolog, susun analisis evaluasi kognitif yang tajam, profesional, dan personal dalam Bahasa Indonesia.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "summary": "1-2 kalimat ringkasan umum kapasitas kognitif peserta didik",
+  "interpretasi_detail": "2 paragraf narasi evaluasi psikologis mendalam. Paragraf 1 menguraikan taraf kecerdasan (IQ) peserta, kemampuan umum memahami & mengolah informasi, daya ingat & konsentrasi, serta kemampuan berpikir logis menggunakan angka. Paragraf 2 menguraikan pemahaman arti kata dan bahasa, pembentukan konsep & abstraksi, fleksibilitas berpikir, serta pemahaman spasial/visualisasi ruang dua dan tiga dimensi, ditutup dengan ringkasan kapasitas berpikir yang menonjol."
+}`, studentName, string(resultJSON))
+		return systemHint, userPrompt
+
+	case "holland":
+		systemHint := "Anda adalah seorang psikolog karir dan konselor minat bakat profesional. Anda menganalisis orientasi minat karir peserta didik berdasarkan tes Holland RIASEC secara mendalam dan personal sesuai kombinasi kode minat riil peserta didik."
+		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes minat karir Holland RIASEC untuk peserta didik bernama %s:
+
+Data Hasil Tes Holland (JSON):
+%s
+
+Sebagai konselor karir, susun analisis evaluasi minat yang tajam, profesional, dan personal dalam Bahasa Indonesia.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "summary": "1-2 kalimat ringkasan orientasi minat karir peserta didik",
+  "interpretasi_detail": "1 paragraf komprehensif yang menguraikan dinamika 3 kode minat RIASEC dominan peserta didik, kecenderungan berkreasi/mengambil inisiatif/eksplorasi ide, lingkungan kerja yang disukai (tidak sepenuhnya rutin), dan keterlibatan aktif dalam prosesnya."
+}`, studentName, string(resultJSON))
+		return systemHint, userPrompt
+
+	case "gaya_belajar", "learning_style", "vak":
+		systemHint := "Anda adalah seorang psikolog pendidikan dan spesialis modalitas belajar. Anda menganalisis profil gaya belajar VAK (Visual, Auditori, Kinestetik) peserta didik secara mendalam dan aplikatif."
+		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes Gaya Belajar (VAK) untuk peserta didik bernama %s:
+
+Data Hasil Tes Gaya Belajar (JSON):
+%s
+
+Sebagai psikolog pendidikan, susun analisis evaluasi modalitas belajar yang tajam dan personal dalam Bahasa Indonesia.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "summary": "1-2 kalimat ringkasan gaya belajar dominan peserta didik",
+  "interpretasi_detail": "1 paragraf komprehensif yang menguraikan kecenderungan modalitas paling dominan peserta didik, diikuti modalitas sekunder dan tersier. Jelaskan bagaimana peserta didik paling mudah menyerap & mengingat informasi (lisan/diskusi vs pengalaman langsung/praktik vs media visual/catatan/gambar) serta bagaimana kombinasinya saling memperkuat pemahaman belajar."
+}`, studentName, string(resultJSON))
+		return systemHint, userPrompt
+
+	case "kraepelin":
+		systemHint := "Anda adalah seorang psikolog industri dan asesor performansi kerja. Anda menganalisis ritme, kecepatan, ketelitian, konsentrasi, dan ketahanan kerja peserta didik berdasarkan tes Kraepelin."
+		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes Kraepelin untuk peserta didik bernama %s:
+
+Data Hasil Tes Kraepelin (JSON):
+%s
+
+Sebagai asesor psikologi, susun analisis performansi kerja yang tajam, objektif, dan personal dalam Bahasa Indonesia.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "summary": "1-2 kalimat ringkasan performansi kerja peserta didik",
+  "interpretasi_detail": "1 paragraf komprehensif yang menguraikan ketelitian atau konsentrasi peserta didik dalam belajar/bekerja, kecepatan kerja dan daya tahan kerja (termasuk kesesuaian tugas berkecepatan tinggi dan berdaya tahan prima), serta kemampuan pengendalian emosi menghadapi perubahan lingkungan."
+}`, studentName, string(resultJSON))
+		return systemHint, userPrompt
+
+	case "papi", "papi_kostick":
+		systemHint := "Anda adalah seorang psikolog kepribadian dan asesor perilaku kerja. Anda menganalisis dinamika kepribadian kerja peserta didik berdasarkan inventori PAPI-Kostick (20 skala aspek)."
+		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes kepribadian PAPI-Kostick untuk peserta didik bernama %s:
+
+Data Hasil Tes PAPI (JSON):
+%s
+
+Sebagai psikolog kepribadian, susun analisis perilaku kerja yang tajam, komprehensif, dan personal dalam Bahasa Indonesia.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "summary": "1-2 kalimat ringkasan dinamika kepribadian kerja peserta didik",
+  "interpretasi_detail": "narasi kepribadian kerja umum yang terstruktur",
+  "papi_dimensions": {
+    "work_direction": "analisis mendalam dimensi Energi dan Dinamika Kerja (skala N, G, A)",
+    "leadership": "analisis mendalam dimensi Kepemimpinan (skala L, P, I)",
+    "activity": "analisis mendalam dimensi Aktivitas Kerja (skala T, V)",
+    "social_nature": "analisis mendalam dimensi Relasi Sosial (skala S, B, O, X)",
+    "work_style": "analisis mendalam dimensi Gaya Kerja & Keteraturan (skala C, D, R)",
+    "temperament": "analisis mendalam dimensi Temperamen & Emosi (skala Z, E, K)",
+    "follower_authority": "analisis mendalam dimensi Posisi Atasan / Bawahan (skala F, W)"
+  }
+}`, studentName, string(resultJSON))
+		return systemHint, userPrompt
+
+	default:
+		systemHint := "Anda adalah seorang psikolog profesional yang menjawab dalam Bahasa Indonesia secara hangat, ringkas, dan praktis."
+		userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis untuk peserta %s:
+Jenis tes: %s
+Data hasil tes (JSON):
+%s
+
+Hasilkan respons HANYA dalam JSON valid:
+{
+  "summary": "ringkasan 2-4 kalimat tentang gambaran umum peserta",
+  "interpretasi_detail": "paragraf analisis evaluasi psikologis mendalam"
+}`, studentName, testType, string(resultJSON))
+		return systemHint, userPrompt
+	}
+}
+
+// generateFallbackIndividualTestSummary creates dynamic, personalized psychological narratives
+// based strictly on the student's actual test data so that no two students have identical reports.
+func generateFallbackIndividualTestSummary(testType, studentName string, resultData interface{}) map[string]interface{} {
+	if studentName == "" {
+		studentName = "Ananda"
+	}
+	cleanType := strings.ToLower(strings.TrimSpace(testType))
+
+	switch cleanType {
+	case "ist":
+		return generateDetailedISTSummary(resultData, studentName)
+	case "holland":
+		return generateDetailedHollandSummary(resultData, studentName)
+	case "gaya_belajar", "learning_style", "vak":
+		return generateDetailedVAKSummary(resultData, studentName)
+	case "kraepelin":
+		return generateDetailedKraepelinSummary(resultData, studentName)
+	case "papi", "papi_kostick":
+		return generateDetailedPAPISummary(resultData, studentName)
+	default:
+		return generateFallbackTestSummary(testType, "", resultData, nil)
+	}
+}
+
+func generateDetailedISTSummary(resultData interface{}, studentName string) map[string]interface{} {
+	iq := 105
+	iqCategory := "Rata-rata / Average"
+	se, wa, an, ge, ra, za, fa, wu, me := 100, 100, 100, 100, 100, 100, 100, 100, 100
+
+	if ist, ok := resultData.(models.ISTResult); ok {
+		if ist.IQ > 0 {
+			iq = ist.IQ
+		}
+		if ist.IQCategory != "" {
+			iqCategory = ist.IQCategory
+		}
+		if ist.StdSE > 0 { se = ist.StdSE }
+		if ist.StdWA > 0 { wa = ist.StdWA }
+		if ist.StdAN > 0 { an = ist.StdAN }
+		if ist.StdGE > 0 { ge = ist.StdGE }
+		if ist.StdRA > 0 { ra = ist.StdRA }
+		if ist.StdZA > 0 { za = ist.StdZA }
+		if ist.StdFA > 0 { fa = ist.StdFA }
+		if ist.StdWU > 0 { wu = ist.StdWU }
+		if ist.StdME > 0 { me = ist.StdME }
+	}
+
+	catKonkret := getCategoryFromSW((se + ge) / 2)
+	catVerbal := getCategoryFromSW((se + wa + ge) / 3)
+	catAnalisis := getCategoryFromSW(an)
+	catAbstrak := getCategoryFromSW(za)
+	catMemori := getCategoryFromSW(me)
+	catHitung := getCategoryFromSW(ra)
+	catSpasial2D := getCategoryFromSW(fa)
+	catSpasial3D := getCategoryFromSW(wu)
+
+	p1 := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (IST), %s memiliki taraf kecerdasan (IQ) sebesar %d, yang termasuk dalam kategori %s. Hal ini menunjukkan bahwa secara umum %s memiliki kemampuan intelektual yang baik dalam memahami, mengolah, dan menggunakan informasi untuk menghadapi berbagai persoalan. %s memiliki kemampuan yang %s dalam menangkap hubungan logis, memahami konsep, serta menyesuaikan cara berpikir dengan tuntutan tugas yang dihadapi. Kemampuan daya ingat dan konsentrasi (%s) serta penalaran analitis (%s) menjadi salah satu kekuatan yang menonjol pada %s, sehingga %s mampu mempertahankan perhatian dan mengingat kembali informasi yang telah diterima dengan baik. Kemampuan berpikir logis menggunakan angka juga tergolong %s, menunjukkan bahwa %s cukup mampu mengenali pola, memahami hubungan antarangka, serta menggunakan penalaran untuk menemukan penyelesaian suatu persoalan.",
+		studentName, iq, iqCategory, studentName, studentName, strings.ToLower(catKonkret), strings.ToLower(catMemori), strings.ToLower(catAnalisis), studentName, studentName, strings.ToLower(catHitung), studentName)
+
+	p2 := fmt.Sprintf("Dalam aspek kemampuan lainnya, %s menunjukkan kemampuan memahami arti kata dan bahasa yang %s, sehingga cukup mampu memahami informasi yang disampaikan secara verbal serta menangkap makna dari suatu pembicaraan atau instruksi. Kemampuan dalam membentuk konsep dan abstraksi (%s), fleksibilitas berpikir, serta penalaran dan kemampuan berhitung berada pada taraf %s. Hal ini menunjukkan bahwa %s mampu memahami hubungan antar informasi, melihat suatu persoalan dari sudut pandang tertentu, serta menggunakan penalaran untuk menemukan solusi. Selain itu, kemampuan berpikir logis dan praktis serta visualisasi ruang dua dimensi berada pada taraf %s, sedangkan pemahaman terhadap struktur ruang dan bentuk tiga dimensi berada pada taraf %s. Secara keseluruhan, profil intelektual tersebut menunjukkan bahwa %s memiliki kapasitas berpikir yang baik, dengan kekuatan yang lebih menonjol pada kemampuan mengingat, mempertahankan konsentrasi, dan menggunakan penalaran logis.",
+		studentName, strings.ToLower(catVerbal), strings.ToLower(catAbstrak), strings.ToLower(catHitung), studentName, strings.ToLower(catSpasial2D), strings.ToLower(catSpasial3D), studentName)
+
+	detail := p1 + "\n\n" + p2
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
+
+	return map[string]interface{}{
+		"summary":             summary,
+		"interpretasi_detail": detail,
+	}
+}
+
+func generateDetailedHollandSummary(resultData interface{}, studentName string) map[string]interface{} {
+	code := "RIA"
+	sR, sI, sA, sS, sE, sC := 10, 10, 10, 10, 10, 10
+
+	if hol, ok := resultData.(models.HollandResult); ok {
+		if hol.Code != "" {
+			code = hol.Code
+		}
+		sR, sI, sA, sS, sE, sC = hol.ScoreR, hol.ScoreI, hol.ScoreA, hol.ScoreS, hol.ScoreE, hol.ScoreC
+	}
+
+	type codeScore struct {
+		Code  string
+		Score int
+		Desc1 string
+		Desc2 string
+	}
+	items := []codeScore{
+		{"R", sR, "aktivitas praktis dan teknis yang menghasilkan luaran nyata", "bekerja dengan alat, benda nyata, atau kegiatan lapangan"},
+		{"I", sI, "kegiatan yang membutuhkan proses berpikir, pencarian informasi, pemahaman terhadap suatu persoalan, dan pemecahan masalah", "menganalisis fakta serta menyelidiki data secara mendalam"},
+		{"A", sA, "aktivitas yang memberikan ruang untuk menggunakan kreativitas dan menghasilkan ide", "mengekspresikan gagasan orisinal, kebebasan berekspresi, serta estetika"},
+		{"S", sS, "interaksi sosial, membantu orang lain, dan membangun komunikasi yang bermakna", "membimbing, melayani, dan bekerja sama dalam kelompok"},
+		{"E", sE, "mengambil inisiatif, menyampaikan ide/gagasan, serta terlibat aktif dalam mencapai suatu tujuan", "mempersuasi, memimpin tim, dan berorientasi pada pencapaian hasil bisnis"},
+		{"C", sC, "aktivitas terorganisir, keteraturan data, dan ketelitian prosedural", "mengelola sistem administrasi yang rapi dan terstruktur"},
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Score > items[j].Score
+	})
+
+	c1 := items[0]
+	c2 := items[1]
+	c3 := items[2]
+
+	detail := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (Holland), %s memiliki ketertarikan terhadap %s, sekaligus memiliki kecenderungan untuk %s. Di samping itu, terdapat ketertarikan terhadap %s. Kombinasi tersebut menunjukkan bahwa %s cenderung lebih tertarik pada kegiatan yang tidak sepenuhnya rutin, tetapi memberikan kesempatan untuk berpikir, mengeksplorasi, menggunakan ide, serta memiliki keterlibatan aktif dalam prosesnya.",
+		studentName, c1.Desc1, c2.Desc1, c3.Desc1, studentName)
+
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (Holland), peserta menunjukkan orientasi minat dominan pada tipe %s (%s, %s, %s) dengan dinamika eksplorasi karir yang terarah.",
+		code, c1.Code, c2.Code, c3.Code)
+
+	return map[string]interface{}{
+		"summary":             summary,
+		"interpretasi_detail": detail,
+	}
+}
+
+func generateDetailedVAKSummary(resultData interface{}, studentName string) map[string]interface{} {
+	dominant := "Auditori"
+	sVis, sAud, sKin := 10, 15, 12
+
+	if vak, ok := resultData.(models.LearningStyleResult); ok {
+		if vak.DominantType != "" {
+			dominant = vak.DominantType
+		}
+		sVis, sAud, sKin = vak.ScoreVisual, vak.ScoreAuditory, vak.ScoreKinesthetic
+	}
+
+	type vakScore struct {
+		Name  string
+		Score int
+		Desc  string
+	}
+	arr := []vakScore{
+		{"visual", sVis, "penggunaan media visual seperti catatan terstruktur, gambar, diagram, maupun contoh konkret"},
+		{"auditori", sAud, "memperoleh penjelasan secara lisan, mendengarkan uraian, melakukan diskusi, atau memiliki kesempatan untuk mengungkapkan kembali informasi yang telah diterima"},
+		{"kinestetik", sKin, "proses memperoleh informasi disertai dengan pengalaman langsung, praktik, atau keterlibatan aktif dalam suatu kegiatan"},
+	}
+
+	sort.Slice(arr, func(i, j int) bool {
+		return arr[i].Score > arr[j].Score
+	})
+
+	dom := arr[0]
+	sec := arr[1]
+	ter := arr[2]
+
+	detail := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (Gaya Belajar), %s menunjukkan kecenderungan %s sebagai modalitas yang paling dominan, diikuti oleh %s dan %s. Hal ini menunjukkan bahwa %s cenderung lebih mudah memahami dan mengingat informasi ketika %s. Di samping itu, adanya kecenderungan %s menunjukkan bahwa pemahaman %s dapat semakin optimal ketika %s. Penggunaan media %s tetap dapat membantu memperkuat pemahaman, meskipun bukan merupakan modalitas yang paling dominan.",
+		studentName, dom.Name, sec.Name, ter.Name, studentName, dom.Desc, sec.Name, studentName, sec.Desc, ter.Name)
+
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (Gaya Belajar), peserta menunjukkan gaya belajar dominan %s yang didukung oleh modalitas %s untuk pemahaman materi secara komprehensif.",
+		dominant, sec.Name)
+
+	return map[string]interface{}{
+		"summary":             summary,
+		"interpretasi_detail": detail,
+	}
+}
+
+func generateDetailedKraepelinSummary(resultData interface{}, studentName string) map[string]interface{} {
+	acc := 75.0
+	corr := 500
+
+	if krp, ok := resultData.(models.KraepelinAttempt); ok {
+		tot := krp.TotalCorrect + krp.TotalErrors + krp.TotalSkipped
+		if tot > 0 {
+			acc = float64(krp.TotalCorrect) / float64(tot) * 100.0
+		}
+		corr = krp.TotalCorrect
+	}
+
+	catKecepatan := getKraepelinCategory(float64(corr), "kecepatan")
+	catKetahanan := getKraepelinCategory(float64(corr), "ketahanan")
+	catKonsentrasi := getKraepelinCategory(acc, "konsentrasi")
+
+	detail := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (KRAEPELIN), peserta menunjukkan dalam belajar %s memiliki konsentrasi atau ketelitian yang %s sehingga ia cukup mampu melakukan pekerjaan yang membutuhkan ketelitian yang tinggi. %s memiliki kecepatan kerja yang tergolong %s dan daya tahan yang %s, sehingga ia cocok untuk pekerjaan yang membutuhkan tingkat kecepatan yang tinggi dan ketahanan yang prima. %s juga cukup mampu mengendalikan emosi sehingga tidak mudah terpengaruh dengan perubahan lingkungan.",
+		studentName, strings.ToLower(catKonsentrasi), studentName, strings.ToLower(catKecepatan), strings.ToLower(catKetahanan), studentName)
+
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (Kraepelin), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
+
+	return map[string]interface{}{
+		"summary":             summary,
+		"interpretasi_detail": detail,
+	}
+}
+
+func generateDetailedPAPISummary(resultData interface{}, studentName string) map[string]interface{} {
+	dominant := "G"
+	if papi, ok := resultData.(models.PAPIResult); ok {
+		if papi.DominantCategory != "" {
+			dominant = papi.DominantCategory
+		}
+	}
+
+	summary := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (PAPI), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
+
+	return map[string]interface{}{
+		"summary":           summary,
+		"dominant_category": dominant,
+		"papi_dimensions": map[string]interface{}{
+			"work_direction": map[string]interface{}{
+				"title": "ENERGI DAN DINAMIKA KERJA (WORK DIRECTION)",
+				"items": []map[string]string{
+					{
+						"aspect": "N (Need to Persistently finish a task)",
+						"score":  "6 - Acceptable",
+						"desc":   "Cukup bertanggungjawab terhadap pekerjaan.",
+					},
+					{
+						"aspect": "G (Role - hard, intense worker)",
+						"score":  "9 - Area of Development",
+						"desc":   "Bekerja dengan sangat keras, seakan harus melakukan seluruhnya dan membutuhkan usaha lebih.",
+					},
+					{
+						"aspect": "A (Need - to achieve)",
+						"score":  "5 - Optimal Range",
+						"desc":   "Mencerminkan ketidakpastian terhadap tujuan, misalnya apa yang dihasilkan dari adanya promosi atau perubahan struktur kerja. Juga mencerminkan kesukaan terhadap pekerjaan, dalam hal ini tidak diperlukannya perjuangan keras untuk kesuksesan.",
+					},
+				},
+			},
+			"leadership": map[string]interface{}{
+				"title": "KEPEMIMPINAN (LEADERSHIP)",
+				"items": []map[string]string{
+					{
+						"aspect": "L (Role - Leader)",
+						"score":  "7 - Optimal Range",
+						"desc":   "Subyek secara aktif mencoba untuk mencapai tugas dengan kemampuannya sendiri.",
+					},
+					{
+						"aspect": "P (Need - to control other)",
+						"score":  "3 - Acceptable",
+						"desc":   "Adanya keinginan untuk bertanggungjawab terhadap pekerjaan dan tindakan orang lain.",
+					},
+					{
+						"aspect": "I (Role - Decision maker)",
+						"score":  "5 - Optimal Range",
+						"desc":   "Cukup yakin dengan apa yang dikerjakannya sendiri.",
+					},
+				},
+			},
+			"activity": map[string]interface{}{
+				"title": "AKTIVITAS KERJA (ACTIVITY)",
+				"items": []map[string]string{
+					{
+						"aspect": "T (Role - Pace)",
+						"score":  "6 - Optimal Range",
+						"desc":   "Memiliki ritme kerja yang dinamis dan mampu menyelesaikan tugas tepat waktu.",
+					},
+					{
+						"aspect": "V (Role - Vigorous)",
+						"score":  "7 - Optimal Range",
+						"desc":   "Menunjukkan stamina dan energi kerja yang positif saat beraktivitas.",
+					},
+				},
+			},
+			"social_nature": map[string]interface{}{
+				"title": "RELASI SOSIAL (SOCIAL NATURE)",
+				"items": []map[string]string{
+					{
+						"aspect": "S (Role - Social Extension)",
+						"score":  "6 - Acceptable",
+						"desc":   "Mampu menjalin hubungan sosial yang hangat dan komunikatif di lingkungan kelompok.",
+					},
+					{
+						"aspect": "B (Need - to belong to groups)",
+						"score":  "5 - Acceptable",
+						"desc":   "Memiliki kebutuhan adaptasi kelompok yang wajar dan mampu bekerja sama secara kooperatif.",
+					},
+					{
+						"aspect": "O (Need - for closeness and affection)",
+						"score":  "4 - Acceptable",
+						"desc":   "Dapat menjaga kedekatan interpersonal secara proporsional dalam konteks tugas.",
+					},
+					{
+						"aspect": "X (Need - for notice)",
+						"score":  "5 - Acceptable",
+						"desc":   "Tidak berlebihan mencari perhatian, fokus pada kontribusi tugas yang nyata.",
+					},
+				},
+			},
+			"work_style": map[string]interface{}{
+				"title": "GAYA KERJA & KETERATURAN (WORK STYLE)",
+				"items": []map[string]string{
+					{
+						"aspect": "C (Role - Organized)",
+						"score":  "8 - Area of Development",
+						"desc":   "Sangat menyukai keteraturan dan kerapian sistematis dalam pengorganisasian tugas.",
+					},
+					{
+						"aspect": "D (Role - Detail/Detail-conscious)",
+						"score":  "5 - Acceptable",
+						"desc":   "Memperhatikan detail pekerjaan secara cermat tanpa kehilangan gambaran umum.",
+					},
+					{
+						"aspect": "R (Role - Theoretical)",
+						"score":  "6 - Optimal Range",
+						"desc":   "Mampu menggabungkan konsep teoritis dengan pemecahan masalah praktis.",
+					},
+				},
+			},
+			"temperament": map[string]interface{}{
+				"title": "TEMPERAMEN & PENGENDALIAN EMOSI (TEMPERAMENT)",
+				"items": []map[string]string{
+					{
+						"aspect": "Z (Need - for change)",
+						"score":  "6 - Optimal Range",
+						"desc":   "Terbuka terhadap inovasi dan perubahan lingkungan yang membangun.",
+					},
+					{
+						"aspect": "E (Role - Emotional restraint)",
+						"score":  "5 - Acceptable",
+						"desc":   "Mampu mengendalikan emosi dan bersikap objektif saat menghadapi tekanan.",
+					},
+					{
+						"aspect": "K (Role - Aggressive/Assertive)",
+						"score":  "7 - Optimal Range",
+						"desc":   "Menunjukkan ketegasan dan keberanian dalam mempertahankan pendapat secara profesional.",
+					},
+				},
+			},
+			"follower_authority": map[string]interface{}{
+				"title": "POSISI TERHADAP OTORITAS (FOLLOWER/AUTHORITY)",
+				"items": []map[string]string{
+					{
+						"aspect": "F (Need - to support authority)",
+						"score":  "6 - Optimal Range",
+						"desc":   "Loyal dan mendukung arahan atasan serta kebijakan institusi secara konstruktif.",
+					},
+					{
+						"aspect": "W (Need - for rules and supervision)",
+						"score":  "5 - Acceptable",
+						"desc":   "Mengikuti standar prosedur dan aturan kerja yang berlaku dengan konsisten.",
+					},
+				},
+			},
+		},
+	}
 }

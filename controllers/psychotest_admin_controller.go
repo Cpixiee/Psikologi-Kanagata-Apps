@@ -3963,6 +3963,12 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 
 // checkResultAccessInternal determines if the session user has right to download
 func (c *PsychotestAdminController) checkResultAccessInternal(o orm.Ormer, inv *models.TestInvitation) (bool, error) {
+	// If matching invitation token is passed in query, grant access
+	tokenParam := strings.TrimSpace(c.GetString("token"))
+	if tokenParam != "" && inv.Token != "" && tokenParam == inv.Token {
+		return true, nil
+	}
+
 	sessionUser := c.GetSession("user_id")
 	if sessionUser == nil {
 		return false, fmt.Errorf("Silakan login terlebih dahulu")

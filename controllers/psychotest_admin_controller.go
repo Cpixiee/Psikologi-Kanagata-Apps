@@ -5343,45 +5343,48 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 	}
 	pdf.MultiCell(0, 4, papiConcl, "", "L", false)
 
+	// Extract dynamic student data
+	studData := extractStudentData(nama, istRes, hollandRes, learningRes, rmibRes, kraepelinRes, papiRes)
+
 	// ================= PAGE 5: PROFIL SISWA DARI SUMMARY SEMUA ALAT TEST =================
 	addNewPage()
 
-	pdf.SetFont("Arial", "B", 10.5)
+	pdf.SetFont("Arial", "B", 10)
 	pdf.SetTextColor(220, 38, 38) // red
-	pdf.CellFormat(0, 6, "PROFIL SISWA DARI SUMMARY SEMUA ALAT TEST", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "PROFIL SISWA DARI SUMMARY SEMUA ALAT TEST", "", 1, "L", false, 0, "")
 	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(2)
+	pdf.Ln(1)
 
 	// Bold Executive Summary (1 sentence)
-	pdf.SetFont("Arial", "B", 8.5)
-	pdf.MultiCell(0, 4.2, fmt.Sprintf("Secara keseluruhan, %s memiliki profil potensi kognitif dan minat yang saling mendukung. Kombinasi daya nalar analitis, kecermatan kerja, serta minat eksploratif memberikan pondasi kuat untuk pengembangan karir di bidang profesional dan teknologi.", strings.ToUpper(nama)), "", "L", false)
-	pdf.Ln(3)
-
-	// KESIMPULAN (Red Title)
-	pdf.SetFont("Arial", "B", 9.5)
-	pdf.SetTextColor(220, 38, 38)
-	pdf.CellFormat(0, 5, "KESIMPULAN", "", 1, "L", false, 0, "")
-	pdf.SetTextColor(0, 0, 0)
-	pdf.SetFont("Arial", "", 8.5)
-
-	kesimpulanParas := getKesimpulanParagraphs(combinedSummary, nama, resultsMap)
-	for _, p := range kesimpulanParas {
-		pdf.MultiCell(0, 4, p, "", "J", false)
-		pdf.Ln(2)
-	}
+	pdf.SetFont("Arial", "B", 8)
+	pdf.MultiCell(0, 3.6, fmt.Sprintf("Secara keseluruhan, %s memiliki profil potensi kognitif %s dengan minat dominan pada bidang %s. Kombinasi modalitas belajar %s serta dinamika kepribadian kerja memberikan pondasi yang solid untuk pengembangan karir akademik dan profesional.", strings.ToUpper(nama), studData.IQCat, strings.Join(studData.RMIBTopNames, ", "), studData.VAKDominant), "", "L", false)
 	pdf.Ln(2)
 
-	// REKOMENDASI (Red Title)
-	pdf.SetFont("Arial", "B", 9.5)
+	// KESIMPULAN (Red Title)
+	pdf.SetFont("Arial", "B", 9)
 	pdf.SetTextColor(220, 38, 38)
-	pdf.CellFormat(0, 5, "REKOMENDASI", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 4.5, "KESIMPULAN", "", 1, "L", false, 0, "")
 	pdf.SetTextColor(0, 0, 0)
-	pdf.SetFont("Arial", "", 8.5)
+	pdf.SetFont("Arial", "", 7.5)
 
-	rekomendasiParas := getRekomendasiParagraphs(combinedSummary, nama, resultsMap)
+	kesimpulanParas := getKesimpulanParagraphs(studData)
+	for _, p := range kesimpulanParas {
+		pdf.MultiCell(0, 3.5, p, "", "J", false)
+		pdf.Ln(1.2)
+	}
+	pdf.Ln(1)
+
+	// REKOMENDASI (Red Title)
+	pdf.SetFont("Arial", "B", 9)
+	pdf.SetTextColor(220, 38, 38)
+	pdf.CellFormat(0, 4.5, "REKOMENDASI", "", 1, "L", false, 0, "")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.SetFont("Arial", "", 7.5)
+
+	rekomendasiParas := getRekomendasiParagraphs(studData)
 	for _, p := range rekomendasiParas {
-		pdf.MultiCell(0, 4, p, "", "J", false)
-		pdf.Ln(2)
+		pdf.MultiCell(0, 3.5, p, "", "J", false)
+		pdf.Ln(1.2)
 	}
 
 	// ================= PAGE 6: TABEL PREFERENSI & PANDUAN AKSI =================
@@ -5389,19 +5392,19 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 
 	pdf.SetFont("Arial", "B", 10)
 	pdf.SetTextColor(220, 38, 38) // red
-	pdf.CellFormat(0, 5.5, "TABEL PREFERENSI", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "TABEL PREFERENSI", "", 1, "L", false, 0, "")
 	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(1.5)
+	pdf.Ln(1)
 
 	// Draw 3-row Preference Table
 	pdf.SetFillColor(240, 240, 240)
 	pdf.SetFont("Arial", "B", 7.5)
-	pdf.CellFormat(10, 5.5, "No.", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(75, 5.5, "Preferensi Mata Pelajaran", "1", 0, "L", true, 0, "")
-	pdf.CellFormat(45, 5.5, "Rekomendasi Jurusan Kuliah", "1", 0, "L", true, 0, "")
-	pdf.CellFormat(50, 5.5, "Rekomendasi Pekerjaan", "1", 1, "L", true, 0, "")
+	pdf.CellFormat(10, 5, "No.", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(75, 5, "Preferensi Mata Pelajaran", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(45, 5, "Rekomendasi Jurusan Kuliah", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(50, 5, "Rekomendasi Pekerjaan", "1", 1, "L", true, 0, "")
 
-	prefRows := getPreferenceTableRows(combinedSummary, resultsMap)
+	prefRows := getPreferenceTableRows(studData)
 	pdf.SetFont("Arial", "", 7.5)
 	for _, r := range prefRows {
 		xStart := pdf.GetX()
@@ -5414,54 +5417,58 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 
 		pdf.Rect(xStart+10, yStart, 75, rowH, "D")
 		pdf.SetXY(xStart+11, yStart+1)
-		pdf.MultiCell(73, 3.5, r.Mapel, "", "L", false)
+		pdf.MultiCell(73, 3.4, r.Mapel, "", "L", false)
 
 		pdf.Rect(xStart+85, yStart, 45, rowH, "D")
 		pdf.SetXY(xStart+86, yStart+1)
-		pdf.MultiCell(43, 3.5, r.Jurusan, "", "L", false)
+		pdf.MultiCell(43, 3.4, r.Jurusan, "", "L", false)
 
 		pdf.Rect(xStart+130, yStart, 50, rowH, "D")
 		pdf.SetXY(xStart+131, yStart+1)
-		pdf.MultiCell(48, 3.5, r.Pekerjaan, "", "L", false)
+		pdf.MultiCell(48, 3.4, r.Pekerjaan, "", "L", false)
 
 		pdf.SetXY(xStart, yStart+rowH)
 	}
-	pdf.Ln(4)
+	pdf.Ln(3.5)
 
 	// Black Header Bar: REKOMENDASI
 	pdf.SetFillColor(15, 23, 42) // black / dark slate
 	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 8.5)
-	pdf.CellFormat(0, 5.5, "  REKOMENDASI", "0", 1, "L", true, 0, "")
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(0, 5, "  REKOMENDASI", "0", 1, "L", true, 0, "")
 	pdf.SetTextColor(0, 0, 0)
-	pdf.Ln(2.5)
+	pdf.Ln(2)
 
 	// Actionable Recommendations
 	drawActionBullet := func(text string) {
-		pdf.SetFont("Arial", "", 8)
-		pdf.CellFormat(5, 4, "-", "", 0, "R", false, 0, "")
-		pdf.MultiCell(0, 4, "  "+text, "", "L", false)
-		pdf.Ln(0.5)
+		pdf.SetFont("Arial", "", 7.5)
+		pdf.CellFormat(5, 3.8, "-", "", 0, "R", false, 0, "")
+		pdf.MultiCell(0, 3.8, "  "+text, "", "L", false)
+		pdf.Ln(0.4)
 	}
 
-	pdf.SetFont("Arial", "B", 8.5)
-	pdf.CellFormat(0, 4.5, "Untuk Peserta Didik:", "", 1, "L", false, 0, "")
-	drawActionBullet("Ikuti proyek berbasis tim untuk mengasah kolaborasi.")
-	drawActionBullet("Tingkatkan literasi digital dan keterampilan problem-solving secara berkala.")
-	drawActionBullet("Latih manajemen stres melalui istirahat yang teratur.")
-	pdf.Ln(1.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(0, 4, "Untuk Peserta Didik:", "", 1, "L", false, 0, "")
+	topR1 := "minat utama"
+	if len(studData.RMIBTopNames) > 0 {
+		topR1 = studData.RMIBTopNames[0]
+	}
+	drawActionBullet(fmt.Sprintf("Pertahankan konsistensi belajar dan eksplorasi minat pada bidang %s.", topR1))
+	drawActionBullet("Tingkatkan literasi digital dan keterampilan problem-solving secara terstruktur.")
+	drawActionBullet("Latih manajemen waktu dan istirahat yang teratur untuk menjaga stamina belajar.")
+	pdf.Ln(1)
 
-	pdf.SetFont("Arial", "B", 8.5)
-	pdf.CellFormat(0, 4.5, "Untuk Orang Tua:", "", 1, "L", false, 0, "")
-	drawActionBullet("Berikan dukungan moral dan ruang diskusi terbuka untuk eksplorasi minat anak.")
-	drawActionBullet("Fasilitasi sarana belajar mandiri dan kegiatan ekstrakurikuler yang relevan.")
-	pdf.Ln(1.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(0, 4, "Untuk Orang Tua:", "", 1, "L", false, 0, "")
+	drawActionBullet("Berikan dukungan moral dan ruang diskusi terbuka terkait rencana studi lanjutan anak.")
+	drawActionBullet("Fasilitasi sarana belajar mandiri dan kegiatan ekstrakurikuler yang relevan dengan minatnya.")
+	pdf.Ln(1)
 
-	pdf.SetFont("Arial", "B", 8.5)
-	pdf.CellFormat(0, 4.5, "Untuk Sekolah/Guru BK:", "", 1, "L", false, 0, "")
-	drawActionBullet("Berikan bimbingan karir fokus pada pemetaan minat dan potensi studi lanjut.")
-	drawActionBullet("Libatkan siswa dalam kegiatan organisasi atau kepemimpinan sekolah.")
-	pdf.Ln(2)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(0, 4, "Untuk Sekolah/Guru BK:", "", 1, "L", false, 0, "")
+	drawActionBullet(fmt.Sprintf("Berikan bimbingan karir fokus pada pemetaan minat (%s).", strings.Join(studData.HollandTopNames, ", ")))
+	drawActionBullet("Libatkan siswa dalam kegiatan praktis, proyek tim, atau organisasi kepemimpinan.")
+	pdf.Ln(1.5)
 
 	// Draw Checkbox item helper
 	drawCheckboxItem := func(text string) {
@@ -5469,35 +5476,35 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 		y := pdf.GetY()
 		pdf.SetLineWidth(0.2)
 		pdf.SetDrawColor(0, 0, 0)
-		pdf.Rect(x+1, y+0.6, 3.2, 3.2, "D")
-		pdf.Line(x+1.7, y+2.0, x+2.4, y+2.8)
-		pdf.Line(x+2.4, y+2.8, x+3.6, y+1.1)
+		pdf.Rect(x+1, y+0.5, 3.0, 3.0, "D")
+		pdf.Line(x+1.6, y+1.8, x+2.2, y+2.6)
+		pdf.Line(x+2.2, y+2.6, x+3.4, y+1.0)
 
-		pdf.SetXY(x+6, y)
-		pdf.SetFont("Arial", "", 8)
-		pdf.MultiCell(0, 4, text, "", "L", false)
-		pdf.Ln(0.8)
+		pdf.SetXY(x+5.5, y)
+		pdf.SetFont("Arial", "", 7.5)
+		pdf.MultiCell(0, 3.8, text, "", "L", false)
+		pdf.Ln(0.6)
 	}
 
 	// Rekomendasi Kekuatan (Red Title)
-	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(220, 38, 38)
-	pdf.CellFormat(0, 4.5, "Rekomendasi Kekuatan", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 4, "Rekomendasi Kekuatan", "", 1, "L", false, 0, "")
 	pdf.SetTextColor(0, 0, 0)
-	drawCheckboxItem("Memiliki kemampuan analisis problem solving yang terstruktur")
-	drawCheckboxItem("Mampu beradaptasi dengan ritme kerja baru secara efisien")
-	drawCheckboxItem("Berkomunikasi dengan kejelasan intonasi dan empati yang baik")
-	drawCheckboxItem("Daya konsentrasi dan fokus tugas yang stabil")
-	pdf.Ln(1.5)
+	drawCheckboxItem(fmt.Sprintf("Kemampuan intelegensi dan pemahaman konsep yang %s", strings.ToLower(studData.IQCat)))
+	drawCheckboxItem(fmt.Sprintf("Modalitas gaya belajar %s yang mendukung penyerapan informasi secara efektif", studData.VAKDominant))
+	drawCheckboxItem(fmt.Sprintf("Orientasi minat kerja %s yang terarah", strings.Join(studData.RMIBTopNames, " dan ")))
+	drawCheckboxItem("Konsistensi performansi kerja dan daya tahan tugas yang stabil")
+	pdf.Ln(1)
 
 	// Rekomendasi Pengembangan (Red Title)
-	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(220, 38, 38)
-	pdf.CellFormat(0, 4.5, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 4, "Rekomendasi Pengembangan", "", 1, "L", false, 0, "")
 	pdf.SetTextColor(0, 0, 0)
-	drawCheckboxItem("Ikuti proyek berbasis tim untuk mengasah kolaborasi.")
-	drawCheckboxItem("Tingkatkan literasi digital dan keterampilan problem-solving secara berkala.")
-	drawCheckboxItem("Latih manajemen stres melalui istirahat yang teratur untuk mengembalikan stamina.")
+	drawCheckboxItem("Tingkatkan kolaborasi tim dan komunikasi interpersonal dalam menyelesaikan tugas.")
+	drawCheckboxItem("Perdalam keahlian teknis dan wawasan studi pada program kejuruan/kuliah yang diminati.")
+	drawCheckboxItem("Kembangkan strategi manajemen stres agar ritme belajar tetap optimal.")
 
 	buf := new(bytes.Buffer)
 	err = pdf.Output(buf)
@@ -5514,66 +5521,234 @@ type prefRow struct {
 	Pekerjaan string
 }
 
-func getKesimpulanParagraphs(combinedSummary map[string]interface{}, studentName string, resultsMap map[string]interface{}) []string {
-	p1 := fmt.Sprintf("Secara keseluruhan, hasil pemeriksaan menunjukkan adanya keterkaitan yang cukup selaras antara kemampuan intelektual, profil minat, dan kecenderungan gaya belajar %s. Kemampuan daya ingat dan konsentrasi yang sangat baik pada hasil IST mendukung kemampuan %s dalam menerima dan mempertahankan informasi, yang dapat menjadi modal dalam minat scientific pada RMIB dan kecenderungan investigative pada RIASEC, karena aktivitas tersebut membutuhkan kemampuan untuk menyerap informasi, memahami suatu persoalan, serta mengolah informasi sebelum menarik kesimpulan. Kemampuan berpikir logis menggunakan angka yang kuat, disertai kemampuan membentuk konsep dan fleksibilitas berpikir yang cukup baik, juga mendukung kecenderungan scientific dan investigative, terutama pada kegiatan yang membutuhkan penalaran, pencarian pola, dan pemecahan masalah.", studentName, studentName)
+type interestDetail struct {
+	Mapel     string
+	Jurusan   string
+	Pekerjaan string
+}
 
-	p2 := fmt.Sprintf("Di sisi lain, kemampuan verbal yang baik dalam memahami arti kata dan bahasa dapat menunjang kecenderungan personal contact pada RMIB serta aspek enterprising dalam RIASEC. Kemampuan tersebut dapat membantu %s dalam memahami informasi yang disampaikan orang lain, mengomunikasikan gagasan, serta terlibat dalam interaksi sosial. Disamping itu, kemampuan membentuk konsep dan fleksibilitas berpikir yang cukup baik memberikan ruang untuk munculnya kecenderungan artistic, karena %s memiliki kapasitas untuk mengembangkan gagasan dan melihat suatu hal dari lebih dari satu sudut pandang. Minat musical yang menjadi minat tertinggi dalam RMIB juga tampak selaras dengan hasil gaya belajar, di mana auditori merupakan modalitas yang paling dominan. Hal ini menunjukkan bahwa %s cenderung lebih mudah menerima dan mengingat informasi melalui pendengaran, penjelasan lisan, diskusi, maupun stimulus yang melibatkan suara dan irama.", studentName, studentName, studentName)
+func getInterestMapping(code string) interestDetail {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	switch code {
+	case "MUS", "MUSICAL":
+		return interestDetail{
+			Mapel:     "Seni Budaya & Musik - selaras dengan minat ekspresi musikal dan kreasi audio",
+			Jurusan:   "Seni Musik / Pendidikan Seni Musik / Sound Engineering",
+			Pekerjaan: "Musisi / Sound Designer / Music Producer / Pengajar Musik",
+		}
+	case "AEST", "AESTHETIC", "A", "ARTISTIC":
+		return interestDetail{
+			Mapel:     "Seni Rupa & Desain Kreatif - selaras dengan minat estetika dan eksplorasi visual",
+			Jurusan:   "Desain Komunikasi Visual / Arsitektur / Seni Rupa / Desain Produk",
+			Pekerjaan: "Graphic Designer / UI-UX Designer / Creative Director / Arsitek",
+		}
+	case "SCI", "SCIENTIFIC", "I", "INVESTIGATIVE":
+		return interestDetail{
+			Mapel:     "IPA & Matematika - selaras dengan daya nalar analitis dan minat investigasi fenomena",
+			Jurusan:   "Sains Terapan / Bioteknologi / Statistika / Farmasi / Riset Murni",
+			Pekerjaan: "Peneliti / Data Scientist / Research Analyst / Saintis Laboratorium",
+		}
+	case "COMP", "COMPUTATIONAL":
+		return interestDetail{
+			Mapel:     "Informatika & Matematika - selaras dengan logika komputasi dan analisis algoritma",
+			Jurusan:   "Teknik Informatika / Ilmu Komputer / Sistem Informasi / Sains Data",
+			Pekerjaan: "Software Developer / Data Analyst / Database Specialist / Cyber Security",
+		}
+	case "MEC", "MECHANICAL", "R", "REALISTIC":
+		return interestDetail{
+			Mapel:     "Fisika & Teknologi Terapan - selaras dengan pemahaman sistem mesin dan rekayasa fisik",
+			Jurusan:   "Teknik Mesin / Teknik Elektro / Teknik Otomotif / Mekatronika",
+			Pekerjaan: "Mechanical Engineer / Teknisi Sistem / Automation Specialist / Field Engineer",
+		}
+	case "OUT", "OUTDOOR":
+		return interestDetail{
+			Mapel:     "Geografi & Ilmu Lingkungan - selaras dengan aktivitas alam terbuka dan eksplorasi lingkungan",
+			Jurusan:   "Teknik Lingkungan / Kehutanan / Agroteknologi / Geologi & Kelautan",
+			Pekerjaan: "Konservator Lingkungan / Surveyor Geologi / Field Specialist / Agronomis",
+		}
+	case "MED", "MEDICAL":
+		return interestDetail{
+			Mapel:     "Biologi & Kimia - selaras dengan minat kesehatan, anatomi, dan kepedulian medis",
+			Jurusan:   "Kedokteran / Farmasi / Keperawatan / Fisioterapi / Kesehatan Masyarakat",
+			Pekerjaan: "Dokter / Tenaga Medis / Apoteker / Praktisi Kesehatan Klinis",
+		}
+	case "PRAC", "PRACTICAL":
+		return interestDetail{
+			Mapel:     "Praktik Kejuruan & Rekayasa - selaras dengan keterampilan teknis praktis dan kerja terapan",
+			Jurusan:   "Teknik Terapan / Vokasi Industri / Manajemen Operasional / Manufaktur",
+			Pekerjaan: "Spesialis Teknis / Praktisi Lapangan / Supervisor Operasional",
+		}
+	case "CLER", "CLERICAL", "C", "CONVENTIONAL":
+		return interestDetail{
+			Mapel:     "Ekonomi & Akuntansi - selaras dengan ketelitian pengorganisasian data dan sistem administrasi",
+			Jurusan:   "Akuntansi / Administrasi Bisnis / Manajemen Keuangan / Perbankan",
+			Pekerjaan: "Akuntan / Financial Analyst / Tax Consultant / Auditor / Administrator",
+		}
+	case "PERS", "PERSONAL CONTACT", "E", "ENTERPRISING":
+		return interestDetail{
+			Mapel:     "Bahasa & Komunikasi - selaras dengan keluwesan interaksi sosial, persuasi, dan negosiasi",
+			Jurusan:   "Ilmu Komunikasi / Manajemen Bisnis / Hubungan Internasional / Marketing",
+			Pekerjaan: "Public Relations / Business Development / Account Executive / Konsultan Bisnis",
+		}
+	case "SOC", "SOCIAL SERVICE", "S", "SOCIAL":
+		return interestDetail{
+			Mapel:     "Sosiologi & Psikologi - selaras dengan empati, konseling, dan pembinaan sosial",
+			Jurusan:   "Psikologi / Bimbingan Konseling / Kesejahteraan Sosial / Pendidikan",
+			Pekerjaan: "Psikolog / Konselor Pendidikan / HR Specialist / Pekerja Sosial",
+		}
+	case "LIT", "LITERARY":
+		return interestDetail{
+			Mapel:     "Bahasa Indonesia & Bahasa Asing - selaras dengan literasi, tata bahasa, dan daya nalar verbal",
+			Jurusan:   "Sastra & Bahasa / Jurnalistik / Komunikasi Massa / Ilmu Perpustakaan",
+			Pekerjaan: "Penulis / Editor / Jurnalis / Content Strategist / Penerjemah",
+		}
+	default:
+		return interestDetail{
+			Mapel:     "Pengembangan Akademik Terpadu - selaras dengan penguasaan konsep dan kemampuan analitis",
+			Jurusan:   "Manajemen Terapan / Ilmu Terapan / Pendidikan / Komunikasi",
+			Pekerjaan: "Professional Specialist / Konsultan / Staf Ahli Terapan",
+		}
+	}
+}
 
-	p3 := fmt.Sprintf("Dengan demikian, profil %s memperlihatkan perpaduan antara kemampuan kognitif yang baik, ketertarikan pada kreativitas dan musik, minat untuk memahami dan memecahkan persoalan, serta kecenderungan untuk berinteraksi dengan orang lain. Kekuatan pada daya ingat dan konsentrasi dapat menjadi modal dalam mengembangkan minat scientific dan investigative, kemampuan verbal dan interaksi dapat mendukung minat personal contact dan enterprising, sedangkan fleksibilitas berpikir serta kecenderungan auditori dapat mendukung aspek artistic dan musical. Pola ini menunjukkan bahwa %s berpotensi lebih optimal dalam kegiatan yang memberikan kesempatan untuk mendengarkan dan mengolah informasi, berpikir dan mengeksplorasi, mengekspresikan gagasan, serta berinteraksi secara aktif dengan lingkungan, terutama apabila kegiatan tersebut tidak terlalu monoton dan memberikan ruang bagi %s untuk menggunakan kemampuan serta minat yang dimilikinya secara bersamaan.", studentName, studentName, studentName)
+type StudentExtractedData struct {
+	Name            string
+	IQ              int
+	IQCat           string
+	HollandCode     string
+	HollandTopNames []string
+	HollandTopCodes []string
+	VAKDominant     string
+	RMIBTopCodes    []string
+	RMIBTopNames    []string
+	KraepelinSpeed  string
+	KraepelinAcc    string
+	PAPIDom         string
+}
 
-	if combinedSummary != nil {
-		if k, ok := combinedSummary["kesimpulan_gabungan"].(string); ok && len(strings.TrimSpace(k)) > 100 {
-			split := strings.Split(k, "\n\n")
-			if len(split) >= 2 {
-				var res []string
-				for _, sp := range split {
-					t := strings.TrimSpace(sp)
-					if t != "" {
-						res = append(res, t)
-					}
-				}
-				if len(res) >= 2 {
-					return res
-				}
+func extractStudentData(
+	nama string,
+	istRes models.ISTResult,
+	hollandRes models.HollandResult,
+	learningRes models.LearningStyleResult,
+	rmibRes models.RMIBResult,
+	kraepelinRes models.KraepelinAttempt,
+	papiRes models.PAPIResult,
+) StudentExtractedData {
+	d := StudentExtractedData{
+		Name:        nama,
+		IQ:          istRes.IQ,
+		IQCat:       istRes.IQCategory,
+		HollandCode: hollandRes.Code,
+		VAKDominant: learningRes.DominantType,
+		PAPIDom:     papiRes.DominantCategory,
+	}
+	if d.IQ == 0 {
+		d.IQ = 100
+		d.IQCat = "Average / Rata-rata"
+	}
+	if d.VAKDominant == "" {
+		d.VAKDominant = "Auditori"
+	}
+	if d.PAPIDom == "" {
+		d.PAPIDom = "S"
+	}
+
+	// Holland codes & names
+	hMap := map[string]string{
+		"R": "Realistic", "I": "Investigative", "A": "Artistic",
+		"S": "Social", "E": "Enterprising", "C": "Conventional",
+	}
+	for _, c := range []string{hollandRes.Top1, hollandRes.Top2, hollandRes.Top3} {
+		c = strings.ToUpper(strings.TrimSpace(c))
+		if c != "" {
+			d.HollandTopCodes = append(d.HollandTopCodes, c)
+			if name, ok := hMap[c]; ok {
+				d.HollandTopNames = append(d.HollandTopNames, name)
+			} else {
+				d.HollandTopNames = append(d.HollandTopNames, c)
 			}
 		}
 	}
+	if len(d.HollandTopCodes) == 0 {
+		d.HollandTopCodes = []string{"I", "A", "S"}
+		d.HollandTopNames = []string{"Investigative", "Artistic", "Social"}
+	}
+
+	// RMIB codes & names
+	rMap := map[string]string{
+		"OUT": "Outdoor", "MEC": "Mechanical", "COMP": "Computational", "SCI": "Scientific",
+		"PERS": "Personal Contact", "AEST": "Aesthetic", "MUS": "Musical", "LIT": "Literary",
+		"SOC": "Social Service", "CLER": "Clerical", "PRAC": "Practical", "MED": "Medical",
+	}
+	for _, c := range []string{rmibRes.Top1, rmibRes.Top2, rmibRes.Top3} {
+		c = strings.ToUpper(strings.TrimSpace(c))
+		if c != "" {
+			d.RMIBTopCodes = append(d.RMIBTopCodes, c)
+			if name, ok := rMap[c]; ok {
+				d.RMIBTopNames = append(d.RMIBTopNames, name)
+			} else {
+				d.RMIBTopNames = append(d.RMIBTopNames, c)
+			}
+		}
+	}
+	if len(d.RMIBTopCodes) == 0 {
+		d.RMIBTopCodes = []string{"PRAC", "CLER", "MED"}
+		d.RMIBTopNames = []string{"Practical", "Clerical", "Medical"}
+	}
+
+	// Kraepelin speed & acc
+	tot := kraepelinRes.TotalCorrect + kraepelinRes.TotalErrors + kraepelinRes.TotalSkipped
+	acc := 0.0
+	if tot > 0 {
+		acc = float64(kraepelinRes.TotalCorrect) / float64(tot) * 100.0
+	}
+	d.KraepelinSpeed = getKraepelinCategory(float64(kraepelinRes.TotalCorrect), "kecepatan")
+	d.KraepelinAcc = getKraepelinCategory(acc, "konsentrasi")
+
+	return d
+}
+
+func getKesimpulanParagraphs(d StudentExtractedData) []string {
+	rmibStr := strings.Join(d.RMIBTopNames, ", ")
+	hollandStr := strings.Join(d.HollandTopNames, ", ")
+
+	p1 := fmt.Sprintf("Secara keseluruhan, hasil pemeriksaan menunjukkan adanya keterkaitan yang cukup selaras antara kemampuan intelektual, profil minat, dan kecenderungan gaya belajar %s. Kemampuan kognitif berada pada kategori %s (IQ %d) yang mendukung daya serap informasi dan kapasitas penalaran logis secara optimal. Modalitas belajar %s yang dominan memperkuat efektivitas penerimaan materi baru, di mana %s lebih mudah menginternalisasi konsep melalui stimulus yang terstruktur, eksploratif, dan aplikatif.", d.Name, d.IQCat, d.IQ, d.VAKDominant, d.Name)
+
+	p2 := fmt.Sprintf("Pada aspek minat dan vokasional, %s menunjukkan orientasi kuat pada bidang %s berdasarkan hasil RMIB, yang selaras dengan tipe kepribadian karir RIASEC yaitu %s (Kode %s). Kombinasi minat ini menggambarkan motivasi kerja yang berorientasi pada pemecahan masalah praktis, interaksi terarah, serta penyelesaian tugas secara sistematis. Karakteristik ini membuat %s mampu beradaptasi dengan baik dalam lingkungan akademik maupun dunia kerja masa depan.", d.Name, rmibStr, hollandStr, d.HollandCode, d.Name)
+
+	p3 := fmt.Sprintf("Ditinjau dari performansi dan kepribadian kerja, stabilitas kecepatan (%s) serta ketelitian (%s) pada pengujian Kraepelin, ditambah kecenderungan kepribadian PAPI (Kategori %s), menunjukkan modalitas kerja yang bertanggung jawab dan fokus pada pencapaian hasil. Pola integratif ini menunjukkan bahwa %s berpotensi berkembang secara optimal apabila diberikan ruang eksplorasi akademik dan karir yang selaras dengan bakat analitis dan minat utamanya.", d.KraepelinSpeed, d.KraepelinAcc, d.PAPIDom, d.Name)
 
 	return []string{p1, p2, p3}
 }
 
-func getRekomendasiParagraphs(combinedSummary map[string]interface{}, studentName string, resultsMap map[string]interface{}) []string {
-	p1 := fmt.Sprintf("Dengan mempertimbangkan keseluruhan profil tersebut, preferensi mata pelajaran %s diperkirakan lebih mengarah pada mata pelajaran yang memberikan kombinasi antara pemahaman konsep, penalaran, komunikasi, dan kreativitas. Bidang yang dapat menjadi pertimbangan antara lain Bahasa Indonesia/Bahasa Inggris, Informatika atau mata pelajaran yang berkaitan dengan logika dan teknologi, Matematika, IPA/Biologi, serta seni atau musik. Mata pelajaran yang memberikan kesempatan untuk berdiskusi, melakukan eksplorasi, memahami suatu fenomena, memecahkan masalah, maupun menghasilkan karya dapat lebih sesuai dengan karakteristik kemampuan dan minat %s. Meskipun demikian, preferensi terhadap mata pelajaran tetap perlu mempertimbangkan pengalaman belajar dan ketertarikan pribadi %s.", studentName, studentName, studentName)
+func getRekomendasiParagraphs(d StudentExtractedData) []string {
+	detail1 := getInterestMapping(d.RMIBTopCodes[0])
+	detail2 := getInterestMapping(d.RMIBTopCodes[1])
+	detail3 := getInterestMapping(d.RMIBTopCodes[2])
 
-	p2 := fmt.Sprintf("Selain itu, untuk pilihan jurusan kuliah, profil %s dapat mendukung beberapa bidang yang menggabungkan kemampuan berpikir, kreativitas, komunikasi, maupun ketertarikan terhadap musik. Beberapa alternatif yang dapat dipertimbangkan antara lain psikologi, ilmu komunikasi, pendidikan, teknologi informasi/informatika, sistem informasi, bidang sains dan musik. Apabila %s lebih tertarik pada aspek interaksi dan komunikasi, bidang seperti psikologi, ilmu komunikasi, pendidikan, atau bidang lain yang banyak melibatkan hubungan interpersonal dapat menjadi pilihan. Jika %s lebih menikmati aktivitas yang bersifat analitis dan eksploratif, bidang informatika, sistem informasi, atau sains dapat dipertimbangkan. Namun jika minat musical dan artistic lebih kuat dalam keseharian, bidang yang berkaitan dengan musik, seni, produksi kreatif, maupun industri kreatif juga dapat menjadi alternatif yang relevan.", studentName, studentName, studentName)
+	p1 := fmt.Sprintf("Mempertimbangkan profil kemampuan kognitif dan minat tersebut, preferensi mata pelajaran %s disarankan mengombinasikan bidang penguatan nalar dan minat vokasionalnya, seperti %s serta mata pelajaran pendukung logika dan analitis lainnya.", d.Name, detail1.Mapel)
 
-	p3 := fmt.Sprintf("Dalam kaitannya dengan pilihan pekerjaan, %s berpotensi lebih sesuai pada pekerjaan yang tidak sepenuhnya bersifat rutin dan memberikan kesempatan untuk menggunakan kemampuan berpikir sekaligus berinteraksi atau menghasilkan sesuatu. Beberapa bidang pekerjaan yang dapat menjadi pertimbangan antara lain konsultan, pengajar atau trainer, psikolog atau bidang pendampingan yang sesuai dengan kualifikasi pendidikan, komunikator, content creator, penulis, bidang media dan industri kreatif, analis, peneliti, pengembang konten edukasi, maupun pekerjaan yang berkaitan dengan musik. Pilihan tersebut tetap perlu disesuaikan dengan pendidikan yang nantinya ditempuh, pengalaman, nilai-nilai pribadi, serta kondisi dan kesempatan yang tersedia.", studentName)
+	p2 := fmt.Sprintf("Untuk pilihan program studi perguruan tinggi, %s memiliki alternatif jalur studi yang sangat potensial pada bidang: (1) %s, (2) %s, atau (3) %s. Pilihan program studi ini memberikan ruang penerapan bakat kognitif sekaligus menyalurkan aspirasi minat karir secara berkesinambungan.", d.Name, detail1.Jurusan, detail2.Jurusan, detail3.Jurusan)
 
-	p4 := fmt.Sprintf("Dengan demikian, hasil pemeriksaan tidak menunjukkan bahwa %s hanya sesuai dengan satu jurusan atau pekerjaan tertentu, melainkan memperlihatkan beberapa arah yang potensial. Kekuatan intelektual pada daya ingat, konsentrasi, dan penalaran dapat menjadi modal dalam bidang yang membutuhkan kemampuan memahami serta mengolah informasi, sementara minat artistic, enterprising, investigative, musical, scientific, dan personal contact memberikan ruang pilihan yang lebih luas pada bidang kreatif, analitis, maupun interpersonal. Bidang yang paling berpotensi sesuai adalah bidang yang mampu menggabungkan setidaknya dua atau lebih karakteristik tersebut, sehingga %s tidak hanya menggunakan kemampuan berpikirnya, tetapi juga memperoleh kesempatan untuk berkomunikasi, berkreasi, mengeksplorasi, dan terlibat aktif dalam kegiatan yang dijalankan.", studentName, studentName)
+	p3 := fmt.Sprintf("Dalam hal prospek profesi, orientasi karir yang relevan bagi %s di masa depan antara lain mencakup peran sebagai: %s, %s, maupun %s. Pengembangan keterampilan praktis, komunikasi, serta literasi teknologi akan semakin memperluas daya saing profesional %s.", d.Name, detail1.Pekerjaan, detail2.Pekerjaan, detail3.Pekerjaan, d.Name)
+
+	p4 := fmt.Sprintf("Hasil pemeriksaan ini menegaskan beberapa alternatif jalur karir yang terbuka luas bagi %s. Dukungan terarah dari pihak sekolah dan orang tua dalam memberikan bimbingan karir serta fasilitas belajar yang kondusif akan membantu %s meraih potensi tertingginya secara konsisten.", d.Name, d.Name)
 
 	return []string{p1, p2, p3, p4}
 }
 
-func getPreferenceTableRows(combinedSummary map[string]interface{}, resultsMap map[string]interface{}) []prefRow {
-	return []prefRow{
-		{
-			No:        1,
-			Mapel:     "Seni & Musik — sesuai dengan minat Musical dan Artistic yang menonjol",
-			Jurusan:   "Seni / Seni Musik",
-			Pekerjaan: "Musisi / Pengajar Musik",
-		},
-		{
-			No:        2,
-			Mapel:     "Informatika/Komputer — sesuai dengan kemampuan berpikir logis, pemecahan masalah, dan minat Investigative",
-			Jurusan:   "Teknik Informatika / Psikologi",
-			Pekerjaan: "Programmer / Software Developer atau cyber psychology",
-		},
-		{
-			No:        3,
-			Mapel:     "Bahasa Indonesia & Bahasa Inggris — ini mendukung kemampuan verbal, komunikasi, dan minat Personal Contact",
-			Jurusan:   "Ilmu Komunikasi",
-			Pekerjaan: "Public Relations / Communication Specialist",
-		},
+func getPreferenceTableRows(d StudentExtractedData) []prefRow {
+	var rows []prefRow
+	for i := 0; i < 3 && i < len(d.RMIBTopCodes); i++ {
+		detail := getInterestMapping(d.RMIBTopCodes[i])
+		rows = append(rows, prefRow{
+			No:        i + 1,
+			Mapel:     detail.Mapel,
+			Jurusan:   detail.Jurusan,
+			Pekerjaan: detail.Pekerjaan,
+		})
 	}
+	return rows
 }
 

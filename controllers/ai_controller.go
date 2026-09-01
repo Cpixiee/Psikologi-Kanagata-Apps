@@ -315,8 +315,8 @@ func (c *AIController) TestSummary() {
 	}
 	var cacheFile string
 	if cacheKey != "" {
-		sanitizedType := strings.ToLower(strings.ReplaceAll(req.TestType, " ", "_"))
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v5_%s_%s.json", sanitizedType, cacheKey)
+		sanitizedType := normalizeIndividualTestType(req.TestType)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v6_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -1642,13 +1642,38 @@ func generateFallbackAIChatReply(userMsg string) string {
 	return "Untuk pertanyaan spesifik ini, fokus pengembangan dapat diarahkan pada penguatan daya nalar analitis, eksplorasi mata pelajaran eksak/logika, serta pengembangan keterampilan komunikasi tim yang relevan dengan hasil asesmen siswa."
 }
 
+func normalizeIndividualTestType(testType string) string {
+	s := strings.ToLower(strings.TrimSpace(testType))
+	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, " ", "_")
+	if strings.Contains(s, "ist") || strings.Contains(s, "iq") {
+		return "ist"
+	}
+	if strings.Contains(s, "holland") || strings.Contains(s, "riasec") {
+		return "holland"
+	}
+	if strings.Contains(s, "gaya_belajar") || strings.Contains(s, "learning_style") || strings.Contains(s, "vak") || strings.Contains(s, "gaya") {
+		return "gaya_belajar"
+	}
+	if strings.Contains(s, "kraepelin") || strings.Contains(s, "kraeplin") {
+		return "kraepelin"
+	}
+	if strings.Contains(s, "papi") {
+		return "papi"
+	}
+	if strings.Contains(s, "rmib") {
+		return "rmib"
+	}
+	return s
+}
+
 // buildIndividualTestPrompt constructs specialized prompts tailored for each specific test tool.
 func buildIndividualTestPrompt(testType, studentName string, resultData interface{}) (string, string) {
 	if studentName == "" {
 		studentName = "Ananda"
 	}
 	resultJSON, _ := json.MarshalIndent(resultData, "", "  ")
-	cleanType := strings.ToLower(strings.TrimSpace(testType))
+	cleanType := normalizeIndividualTestType(testType)
 
 	switch cleanType {
 	case "ist":
@@ -1681,7 +1706,7 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 }`, studentName, string(resultJSON))
 		return systemHint, userPrompt
 
-	case "gaya_belajar", "learning_style", "vak":
+	case "gaya_belajar":
 		systemHint := "Anda adalah seorang psikolog pendidikan dan spesialis modalitas belajar. Anda menganalisis profil gaya belajar VAK (Visual, Auditori, Kinestetik) peserta didik secara mendalam dan aplikatif."
 		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes Gaya Belajar (VAK) untuk peserta didik bernama %s:
 
@@ -1711,7 +1736,7 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 }`, studentName, string(resultJSON))
 		return systemHint, userPrompt
 
-	case "papi", "papi_kostick":
+	case "papi":
 		systemHint := "Anda adalah seorang psikolog kepribadian dan asesor perilaku kerja. Anda menganalisis dinamika kepribadian kerja peserta didik berdasarkan inventori PAPI-Kostick (20 skala aspek)."
 		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes kepribadian PAPI-Kostick untuk peserta didik bernama %s:
 
@@ -1732,6 +1757,21 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
     "temperament": "analisis mendalam dimensi Temperamen & Emosi (skala Z, E, K)",
     "follower_authority": "analisis mendalam dimensi Posisi Atasan / Bawahan (skala F, W)"
   }
+}`, studentName, string(resultJSON))
+		return systemHint, userPrompt
+
+	case "rmib":
+		systemHint := "Anda adalah seorang psikolog kejuruan dan konselor minat karir. Anda menganalisis profil minat pekerjaan Rothwell Miller Interest Blank (RMIB) peserta didik."
+		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes minat karir RMIB untuk peserta didik bernama %s:
+
+Data Hasil Tes RMIB (JSON):
+%s
+
+Sebagai konselor kejuruan, susun analisis minat kerja yang tajam, profesional, dan personal dalam Bahasa Indonesia.
+Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
+{
+  "summary": "1-2 kalimat ringkasan minat karir dominan peserta didik",
+  "interpretasi_detail": "1 paragraf komprehensif yang menguraikan bidang minat peringkat teratas peserta didik dan relevansinya terhadap pemilihan rumpun keilmuan perguruan tinggi dan profesi masa depan."
 }`, studentName, string(resultJSON))
 		return systemHint, userPrompt
 
@@ -1757,19 +1797,21 @@ func generateFallbackIndividualTestSummary(testType, studentName string, resultD
 	if studentName == "" {
 		studentName = "Ananda"
 	}
-	cleanType := strings.ToLower(strings.TrimSpace(testType))
+	cleanType := normalizeIndividualTestType(testType)
 
 	switch cleanType {
 	case "ist":
 		return generateDetailedISTSummary(resultData, studentName)
 	case "holland":
 		return generateDetailedHollandSummary(resultData, studentName)
-	case "gaya_belajar", "learning_style", "vak":
+	case "gaya_belajar":
 		return generateDetailedVAKSummary(resultData, studentName)
 	case "kraepelin":
 		return generateDetailedKraepelinSummary(resultData, studentName)
-	case "papi", "papi_kostick":
+	case "papi":
 		return generateDetailedPAPISummary(resultData, studentName)
+	case "rmib":
+		return generateDetailedRMIBSummary(resultData, studentName)
 	default:
 		return generateFallbackTestSummary(testType, "", resultData, nil)
 	}
@@ -1780,23 +1822,25 @@ func generateDetailedISTSummary(resultData interface{}, studentName string) map[
 	iqCategory := "Rata-rata / Average"
 	se, wa, an, ge, ra, za, fa, wu, me := 100, 100, 100, 100, 100, 100, 100, 100, 100
 
-	if ist, ok := resultData.(models.ISTResult); ok {
-		if ist.IQ > 0 {
-			iq = ist.IQ
-		}
-		if ist.IQCategory != "" {
-			iqCategory = ist.IQCategory
-		}
-		if ist.StdSE > 0 { se = ist.StdSE }
-		if ist.StdWA > 0 { wa = ist.StdWA }
-		if ist.StdAN > 0 { an = ist.StdAN }
-		if ist.StdGE > 0 { ge = ist.StdGE }
-		if ist.StdRA > 0 { ra = ist.StdRA }
-		if ist.StdZA > 0 { za = ist.StdZA }
-		if ist.StdFA > 0 { fa = ist.StdFA }
-		if ist.StdWU > 0 { wu = ist.StdWU }
-		if ist.StdME > 0 { me = ist.StdME }
+	var ist models.ISTResult
+	if b, err := json.Marshal(resultData); err == nil {
+		_ = json.Unmarshal(b, &ist)
 	}
+	if ist.IQ > 0 {
+		iq = ist.IQ
+	}
+	if ist.IQCategory != "" {
+		iqCategory = ist.IQCategory
+	}
+	if ist.StdSE > 0 { se = ist.StdSE }
+	if ist.StdWA > 0 { wa = ist.StdWA }
+	if ist.StdAN > 0 { an = ist.StdAN }
+	if ist.StdGE > 0 { ge = ist.StdGE }
+	if ist.StdRA > 0 { ra = ist.StdRA }
+	if ist.StdZA > 0 { za = ist.StdZA }
+	if ist.StdFA > 0 { fa = ist.StdFA }
+	if ist.StdWU > 0 { wu = ist.StdWU }
+	if ist.StdME > 0 { me = ist.StdME }
 
 	catKonkret := getCategoryFromSW((se + ge) / 2)
 	catVerbal := getCategoryFromSW((se + wa + ge) / 3)
@@ -1826,10 +1870,14 @@ func generateDetailedHollandSummary(resultData interface{}, studentName string) 
 	code := "RIA"
 	sR, sI, sA, sS, sE, sC := 10, 10, 10, 10, 10, 10
 
-	if hol, ok := resultData.(models.HollandResult); ok {
-		if hol.Code != "" {
-			code = hol.Code
-		}
+	var hol models.HollandResult
+	if b, err := json.Marshal(resultData); err == nil {
+		_ = json.Unmarshal(b, &hol)
+	}
+	if hol.Code != "" {
+		code = hol.Code
+	}
+	if hol.ScoreR > 0 || hol.ScoreI > 0 || hol.ScoreA > 0 || hol.ScoreS > 0 || hol.ScoreE > 0 || hol.ScoreC > 0 {
 		sR, sI, sA, sS, sE, sC = hol.ScoreR, hol.ScoreI, hol.ScoreA, hol.ScoreS, hol.ScoreE, hol.ScoreC
 	}
 
@@ -1872,10 +1920,14 @@ func generateDetailedVAKSummary(resultData interface{}, studentName string) map[
 	dominant := "Auditori"
 	sVis, sAud, sKin := 10, 15, 12
 
-	if vak, ok := resultData.(models.LearningStyleResult); ok {
-		if vak.DominantType != "" {
-			dominant = vak.DominantType
-		}
+	var vak models.LearningStyleResult
+	if b, err := json.Marshal(resultData); err == nil {
+		_ = json.Unmarshal(b, &vak)
+	}
+	if vak.DominantType != "" {
+		dominant = vak.DominantType
+	}
+	if vak.ScoreVisual > 0 || vak.ScoreAuditory > 0 || vak.ScoreKinesthetic > 0 {
 		sVis, sAud, sKin = vak.ScoreVisual, vak.ScoreAuditory, vak.ScoreKinesthetic
 	}
 
@@ -1914,11 +1966,15 @@ func generateDetailedKraepelinSummary(resultData interface{}, studentName string
 	acc := 75.0
 	corr := 500
 
-	if krp, ok := resultData.(models.KraepelinAttempt); ok {
-		tot := krp.TotalCorrect + krp.TotalErrors + krp.TotalSkipped
-		if tot > 0 {
-			acc = float64(krp.TotalCorrect) / float64(tot) * 100.0
-		}
+	var krp models.KraepelinAttempt
+	if b, err := json.Marshal(resultData); err == nil {
+		_ = json.Unmarshal(b, &krp)
+	}
+	tot := krp.TotalCorrect + krp.TotalErrors + krp.TotalSkipped
+	if tot > 0 {
+		acc = float64(krp.TotalCorrect) / float64(tot) * 100.0
+	}
+	if krp.TotalCorrect > 0 {
 		corr = krp.TotalCorrect
 	}
 
@@ -1926,10 +1982,32 @@ func generateDetailedKraepelinSummary(resultData interface{}, studentName string
 	catKetahanan := getKraepelinCategory(float64(corr), "ketahanan")
 	catKonsentrasi := getKraepelinCategory(acc, "konsentrasi")
 
-	detail := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (KRAEPELIN), peserta menunjukkan dalam belajar %s memiliki konsentrasi atau ketelitian yang %s sehingga ia cukup mampu melakukan pekerjaan yang membutuhkan ketelitian yang tinggi. %s memiliki kecepatan kerja yang tergolong %s dan daya tahan yang %s, sehingga ia cocok untuk pekerjaan yang membutuhkan tingkat kecepatan yang tinggi dan ketahanan yang prima. %s juga cukup mampu mengendalikan emosi sehingga tidak mudah terpengaruh dengan perubahan lingkungan.",
+	detail := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (Kraepelin), dalam belajar %s memiliki konsentrasi atau ketelitian yang %s sehingga ia cukup mampu melakukan pekerjaan yang membutuhkan ketelitian yang tinggi. %s memiliki kecepatan kerja yang tergolong %s dan daya tahan yang %s, sehingga ia cocok untuk pekerjaan yang membutuhkan tingkat kecepatan yang tinggi dan ketahanan yang prima. %s juga cukup mampu mengendalikan emosi sehingga tidak mudah terpengaruh dengan perubahan lingkungan.",
 		studentName, strings.ToLower(catKonsentrasi), studentName, strings.ToLower(catKecepatan), strings.ToLower(catKetahanan), studentName)
 
-	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (Kraepelin), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (Kraepelin), peserta menunjukkan performansi kerja dengan kecepatan %s dan konsentrasi kerja %s.",
+		catKecepatan, catKonsentrasi)
+
+	return map[string]interface{}{
+		"summary":             summary,
+		"interpretasi_detail": detail,
+	}
+}
+
+func generateDetailedRMIBSummary(resultData interface{}, studentName string) map[string]interface{} {
+	dominant := "Outdoor"
+	var rm models.RMIBResult
+	if b, err := json.Marshal(resultData); err == nil {
+		_ = json.Unmarshal(b, &rm)
+	}
+	if rm.DominantCategory != "" {
+		dominant = rm.DominantCategory
+	}
+
+	detail := fmt.Sprintf("Berdasarkan evaluasi tes minat karir RMIB (Rothwell Miller Interest Blank), %s menunjukkan minat pekerjaan dominan pada kategori %s. Peserta didik menunjukkan ketertarikan yang konsisten terhadap bidang tugas yang relevan dengan eksplorasi peminatan ini dan didukung oleh kecenderungan gaya kerja yang selaras.",
+		studentName, dominant)
+
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes minat RMIB, peserta memiliki minat dominan pada bidang %s.", dominant)
 
 	return map[string]interface{}{
 		"summary":             summary,

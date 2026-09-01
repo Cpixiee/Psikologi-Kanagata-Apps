@@ -409,12 +409,10 @@ func buildKraepelinResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.
 	showGridLines := false
 	_ = f.SetSheetView(sheet, 0, &excelize.ViewOptions{ShowGridLines: &showGridLines})
 
-	_ = f.SetColWidth(sheet, "A", "A", 10)
-	_ = f.SetColWidth(sheet, "B", "B", 12)
+	_ = f.SetColWidth(sheet, "A", "A", 26)
+	_ = f.SetColWidth(sheet, "B", "B", 14)
+	_ = f.SetColWidth(sheet, "C", "C", 14)
 	_ = f.SetColWidth(sheet, "D", "E", 20)
-	_ = f.SetColWidth(sheet, "G", "N", 12)
-	_ = f.SetColWidth(sheet, "C", "C", 4)
-	_ = f.SetColWidth(sheet, "F", "F", 4)
 
 	titleStyle, _ := f.NewStyle(&excelize.Style{
 		Font:      &excelize.Font{Bold: true, Size: 16},
@@ -548,58 +546,25 @@ func buildKraepelinResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.
 		"6  SMA (P)", "7  Sarjana muda IPA-IPS (L/P)", "8  Sarjana IPA-IPS",
 	})
 
-	_ = f.SetCellValue(sheet, "H3", "Sum of Error")
-	_ = f.SetCellValue(sheet, "I3", att.TotalErrors)
-	_ = f.SetCellValue(sheet, "H4", "Sum of Skippeds")
-	_ = f.SetCellValue(sheet, "I4", att.TotalSkipped)
-	_ = f.SetCellStyle(sheet, "H3", "H4", labelStyle)
-	_ = f.SetCellStyle(sheet, "I3", "I4", yColStyle)
-
-	analysisHeaderStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 10},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	_ = f.SetCellValue(sheet, "H10", "Pembulatan")
-	_ = f.SetCellValue(sheet, "I10", "Analisis")
-	_ = f.SetCellStyle(sheet, "H10", "I10", analysisHeaderStyle)
-	_ = f.SetCellValue(sheet, "G11", "Panker (Titik Setimbang)")
-	_ = f.SetCellValue(sheet, "G12", "Janker (Faktor Ritme)")
-	_ = f.SetCellValue(sheet, "G13", "Hanker (Daya Tahan y40-y0)")
-	_ = f.SetCellValue(sheet, "G14", "Tianker (Ketelitian & Skip)")
-	_ = f.SetCellValue(sheet, "H11", fmt.Sprintf("%.2f", panker))
-	_ = f.SetCellValue(sheet, "H12", fmt.Sprintf("%.2f", float64(janker)))
-	_ = f.SetCellValue(sheet, "H13", fmt.Sprintf("%.2f", float64(hankerDiff)))
-	_ = f.SetCellValue(sheet, "H14", fmt.Sprintf("%d", tianker))
-	_ = f.SetCellValue(sheet, "I11", "(speed factor)")
-	_ = f.SetCellValue(sheet, "I12", "(rhitme factor)")
-	_ = f.SetCellValue(sheet, "I13", "(ausdeur factor)")
-	_ = f.SetCellValue(sheet, "I14", "(tianker)")
-
-	redValueStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 10, Color: "#FFFFFF"},
-		Fill:      excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"#C00000"}},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	_ = f.SetCellStyle(sheet, "H11", "H14", redValueStyle)
-	_ = f.SetCellStyle(sheet, "G11", "G14", labelStyle)
-	_ = f.SetCellStyle(sheet, "I11", "I14", valueStyle)
+	// Grafik Hasil Tes Kraepelin (ditempatkan di bawah tabel data x/y)
+	chartTitleRow := 55
+	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", chartTitleRow), "GRAFIK HASIL TES KRAEPELIN")
+	_ = f.MergeCell(sheet, fmt.Sprintf("A%d", chartTitleRow), fmt.Sprintf("E%d", chartTitleRow))
+	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", chartTitleRow), fmt.Sprintf("E%d", chartTitleRow), titleStyle)
 
 	categories := fmt.Sprintf("%s!$A$12:$A$51", sheet)
 	values := fmt.Sprintf("%s!$B$12:$B$51", sheet)
-	_ = f.SetCellValue(sheet, "D46", "GRAFIK HASIL TES KRAEPELIN")
-	_ = f.MergeCell(sheet, "D46", "N46")
-	_ = f.SetCellStyle(sheet, "D46", "N46", titleStyle)
 	xMin := 1.0
 	xMax := 50.0
 	xMajor := 1.0
 	yMin := 0.0
 	yMax := 35.0
 	yMajor := 1.0
-	_ = f.AddChart(sheet, "C47", &excelize.Chart{
+	_ = f.AddChart(sheet, "A57", &excelize.Chart{
 		Type: excelize.Line,
 		Series: []excelize.ChartSeries{
 			{
-				Name:       "Nilai y",
+				Name:       "Series1",
 				Categories: categories,
 				Values:     values,
 				Marker: excelize.ChartMarker{
@@ -620,6 +585,52 @@ func buildKraepelinResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.
 		},
 		Legend: excelize.ChartLegend{Position: "bottom"},
 	})
+
+	// Bagian Sum of Error & Sum of Skippeds (di bawah grafik)
+	sumErrorRow := 78
+	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", sumErrorRow), "Sum of Error")
+	_ = f.MergeCell(sheet, fmt.Sprintf("C%d", sumErrorRow), fmt.Sprintf("D%d", sumErrorRow))
+	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", sumErrorRow), att.TotalErrors)
+
+	sumSkipRow := 79
+	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", sumSkipRow), "Sum of Skippeds")
+	_ = f.MergeCell(sheet, fmt.Sprintf("C%d", sumSkipRow), fmt.Sprintf("D%d", sumSkipRow))
+	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", sumSkipRow), att.TotalSkipped)
+
+	_ = f.SetCellStyle(sheet, fmt.Sprintf("B%d", sumErrorRow), fmt.Sprintf("B%d", sumSkipRow), labelStyle)
+	_ = f.SetCellStyle(sheet, fmt.Sprintf("C%d", sumErrorRow), fmt.Sprintf("D%d", sumSkipRow), yColStyle)
+
+	// Tabel Pembulatan & Analisis (di bawah Sum of Error)
+	analysisHeaderRow := 82
+	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", analysisHeaderRow), "Pembulatan")
+	_ = f.SetCellValue(sheet, fmt.Sprintf("D%d", analysisHeaderRow), "Analisis")
+	analysisHeaderStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 10},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+	_ = f.SetCellStyle(sheet, fmt.Sprintf("C%d", analysisHeaderRow), fmt.Sprintf("D%d", analysisHeaderRow), analysisHeaderStyle)
+
+	_ = f.SetCellValue(sheet, "A83", "Panker (Titik Setimbang)")
+	_ = f.SetCellValue(sheet, "A84", "Janker (Faktor Ritme)")
+	_ = f.SetCellValue(sheet, "A85", "Hanker (Daya Tahan y40-y0)")
+	_ = f.SetCellValue(sheet, "A86", "Tianker (Ketelitian & Skip)")
+	_ = f.SetCellValue(sheet, "C83", fmt.Sprintf("%.2f", panker))
+	_ = f.SetCellValue(sheet, "C84", fmt.Sprintf("%.2f", float64(janker)))
+	_ = f.SetCellValue(sheet, "C85", fmt.Sprintf("%.2f", float64(hankerDiff)))
+	_ = f.SetCellValue(sheet, "C86", fmt.Sprintf("%d", tianker))
+	_ = f.SetCellValue(sheet, "D83", "(speed factor)")
+	_ = f.SetCellValue(sheet, "D84", "(rhitme factor)")
+	_ = f.SetCellValue(sheet, "D85", "(ausdeur factor)")
+	_ = f.SetCellValue(sheet, "D86", "(tianker)")
+
+	redValueStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 10, Color: "#FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"#C00000"}},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+	_ = f.SetCellStyle(sheet, "C83", "C86", redValueStyle)
+	_ = f.SetCellStyle(sheet, "A83", "A86", labelStyle)
+	_ = f.SetCellStyle(sheet, "D83", "D86", valueStyle)
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {

@@ -4556,55 +4556,13 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			pdf.SetFont("Arial", "I", 9)
 			pdf.CellFormat(0, 4.5, "Interpretasi Kepribadian Kerja:", "", 1, "L", false, 0, "")
 			pdf.SetFont("Arial", "", 9)
-			summaryText, _ := summaryData["summary"].(string)
-			if summaryText != "" {
-				pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
-				pdf.Ln(2)
+			detailText, _ := summaryData["interpretasi_detail"].(string)
+			if detailText == "" {
+				detailText, _ = summaryData["summary"].(string)
 			}
-
-			// Render dimensions if available
-			if dimMap, ok := summaryData["papi_dimensions"].(map[string]interface{}); ok && len(dimMap) > 0 {
-				order := []string{"work_direction", "leadership", "activity", "social_nature", "work_style", "temperament", "follower_authority"}
-				for _, k := range order {
-					if dVal, exists := dimMap[k]; exists && dVal != nil {
-						if dObj, okObj := dVal.(map[string]interface{}); okObj {
-							title, _ := dObj["title"].(string)
-							if title != "" {
-								if pdf.GetY() > 260 {
-									pdf.AddPage()
-								}
-								pdf.SetFont("Arial", "B", 8.5)
-								pdf.CellFormat(0, 4.5, "•  "+title, "", 1, "L", false, 0, "")
-								pdf.SetFont("Arial", "", 8.5)
-								if items, okItems := dObj["items"].([]map[string]string); okItems {
-									for _, itm := range items {
-										pdf.SetFont("Arial", "I", 8)
-										pdf.CellFormat(0, 4, "   "+itm["aspect"]+": "+itm["score"], "", 1, "L", false, 0, "")
-										pdf.SetFont("Arial", "", 8)
-										pdf.SetX(pdf.GetX() + 3)
-										pdf.MultiCell(0, 4, itm["desc"], "", "L", false)
-										pdf.Ln(1)
-									}
-								} else if itemsGeneric, okGen := dObj["items"].([]interface{}); okGen {
-									for _, itmGen := range itemsGeneric {
-										if itm, okM := itmGen.(map[string]interface{}); okM {
-											aspect, _ := itm["aspect"].(string)
-											score, _ := itm["score"].(string)
-											desc, _ := itm["desc"].(string)
-											pdf.SetFont("Arial", "I", 8)
-											pdf.CellFormat(0, 4, "   "+aspect+": "+score, "", 1, "L", false, 0, "")
-											pdf.SetFont("Arial", "", 8)
-											pdf.SetX(pdf.GetX() + 3)
-											pdf.MultiCell(0, 4, desc, "", "L", false)
-											pdf.Ln(1)
-										}
-									}
-								}
-								pdf.Ln(1.5)
-							}
-						}
-					}
-				}
+			if detailText != "" {
+				cleanText := strings.ReplaceAll(detailText, "•", "-")
+				pdf.MultiCell(0, 4.5, cleanText, "", "L", false)
 			}
 		}
 	} else if testType == "IST" {

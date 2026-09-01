@@ -2565,6 +2565,29 @@
               '</tr>';
           }
 
+          var dimsHtml = '';
+          if (aiData && aiData.papi_dimensions) {
+            var order = ["work_direction", "leadership", "activity", "social_nature", "work_style", "temperament", "follower_authority"];
+            dimsHtml = '<div class="mt-3">';
+            order.forEach(function(k) {
+              var dVal = aiData.papi_dimensions[k];
+              if (dVal && dVal.title) {
+                dimsHtml += '<div class="mb-3 p-3" style="background:#f8fafc; border-left:3.5px solid #4f46e5; border-radius:8px; border-top:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">';
+                dimsHtml += '<h6 class="fw-bold mb-2" style="font-size:12.5px; color:#1e293b; letter-spacing:0.3px;">• ' + esc(dVal.title) + '</h6>';
+                if (dVal.items && Array.isArray(dVal.items)) {
+                  dVal.items.forEach(function(itm) {
+                    dimsHtml += '<div class="ms-2 mb-2 pb-1" style="border-bottom:1px dashed #e2e8f0;">';
+                    dimsHtml += '<div class="fw-semibold fst-italic" style="font-size:12px; color:#334155;">' + esc(itm.aspect) + ': <span class="badge bg-indigo-50 text-primary border border-primary-subtle" style="font-size:11px;">' + esc(itm.score) + '</span></div>';
+                    dimsHtml += '<div class="text-secondary mt-0.5" style="font-size:12px; line-height:1.5;">' + esc(itm.desc) + '</div>';
+                    dimsHtml += '</div>';
+                  });
+                }
+                dimsHtml += '</div>';
+              }
+            });
+            dimsHtml += '</div>';
+          }
+
           specificHtml = `
             <table class="table table-borderless table-sm mb-3" style="font-size:13px; max-width: 450px;">
               <tr><td style="width: 180px;" class="fw-semibold text-muted">Tipe Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${papi.dominant_category || '-'}</td></tr>
@@ -2589,6 +2612,7 @@
             <div class="mt-3">
               <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Kepribadian Kerja:</h6>
               ${detailHtml}
+              ${dimsHtml}
             </div>
           `;
         } else if (typeKey === 'rmib' && d.rmib_result) {

@@ -316,7 +316,7 @@ func (c *AIController) TestSummary() {
 	var cacheFile string
 	if cacheKey != "" {
 		sanitizedType := normalizeIndividualTestType(req.TestType)
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v7_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v9_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -2052,6 +2052,201 @@ func generateDetailedRMIBSummary(resultData interface{}, studentName string) map
 	}
 }
 
+func getPAPIScaleInfo(code string, score int) (string, string, string) {
+	norm := "Acceptable"
+	if score >= 4 && score <= 7 {
+		norm = "Optimal Range"
+	} else if score >= 8 || score <= 2 {
+		norm = "Area of Development"
+	}
+	scoreStr := fmt.Sprintf("%d - %s", score, norm)
+
+	switch code {
+	case "N":
+		aspect := "N (Need to Persistently finish a task)"
+		desc := "Cukup bertanggungjawab terhadap pekerjaan dan menyelesaikan tugas yang diemban."
+		if score >= 7 {
+			desc = "Memiliki komitmen dan ketekunan yang sangat tinggi dalam menuntaskan seluruh target kerja."
+		} else if score <= 3 {
+			desc = "Membutuhkan dorongan dan pemantauan berkala agar tugas dapat diselesaikan tepat waktu."
+		}
+		return aspect, scoreStr, desc
+	case "G":
+		aspect := "G (Role - hard, intense worker)"
+		desc := "Memiliki etos kerja keras dan kesediaan mencurahkan usaha ekstra untuk mencapai hasil optimal."
+		if score >= 8 {
+			desc = "Bekerja dengan sangat keras, seakan harus melakukan seluruhnya dan membutuhkan usaha lebih."
+		} else if score <= 3 {
+			desc = "Memilih ritme kerja yang santai dan seimbang tanpa tekanan berlebihan."
+		}
+		return aspect, scoreStr, desc
+	case "A":
+		aspect := "A (Need - to achieve)"
+		desc := "Mencerminkan dorongan berprestasi yang positif dan keinginan untuk meraih kemajuan."
+		if score >= 7 {
+			desc = "Berorientasi tinggi pada pencapaian prestasi terbaik dan target yang menantang."
+		} else if score <= 3 {
+			desc = "Cenderung merasa puas dengan pencapaian yang ada tanpa memaksakan diri pada target tinggi."
+		}
+		return aspect, scoreStr, desc
+	case "L":
+		aspect := "L (Role - Leader)"
+		desc := "Subyek secara aktif mencoba untuk mencapai tugas dengan kemampuannya sendiri dan mengarahkan orang lain."
+		if score >= 7 {
+			desc = "Memiliki inisiatif kepemimpinan yang menonjol dan percaya diri dalam memimpin tim."
+		} else if score <= 3 {
+			desc = "Lebih nyaman berperan sebagai anggota tim pendukung daripada memegang komando."
+		}
+		return aspect, scoreStr, desc
+	case "P":
+		aspect := "P (Need - to control other)"
+		desc := "Adanya keinginan untuk bertanggungjawab terhadap pekerjaan dan tindakan orang lain."
+		if score >= 7 {
+			desc = "Memiliki dorongan kuat untuk mengontrol, mengawasi, dan mengarahkan aktivitas kelompok."
+		} else if score <= 3 {
+			desc = "Memberikan keleluasaan penuh kepada rekan kerja tanpa banyak campur tangan."
+		}
+		return aspect, scoreStr, desc
+	case "I":
+		aspect := "I (Role - Decision maker)"
+		desc := "Cukup yakin dengan apa yang dikerjakannya sendiri dan mampu membuat keputusan."
+		if score >= 7 {
+			desc = "Cepat, tegas, dan percaya diri dalam mengambil keputusan penting."
+		} else if score <= 3 {
+			desc = "Berhati-hati dan membutuhkan masukan dari orang lain sebelum memutuskan sesuatu."
+		}
+		return aspect, scoreStr, desc
+	case "T":
+		aspect := "T (Role - Pace)"
+		desc := "Cukup patuh terhadap tenggat waktu yang diberikan untuk mengerjakan tugas."
+		if score >= 7 {
+			desc = "Memiliki tempo kerja yang sangat dinamis dan terbiasa bekerja cepat."
+		} else if score <= 3 {
+			desc = "Bekerja dengan tempo tenang, metodis, dan tidak terburu-buru."
+		}
+		return aspect, scoreStr, desc
+	case "V":
+		aspect := "V (Role - Vigorous)"
+		desc := "Menunjukkan kemampuan dalam menyelesaikan tugas dengan semangat dan stamina yang baik."
+		if score >= 7 {
+			desc = "Memiliki stamina fisik dan energi kerja yang prima saat beraktivitas."
+		} else if score <= 3 {
+			desc = "Lebih menyukai aktivitas yang tidak membutuhkan mobilitas fisik tinggi."
+		}
+		return aspect, scoreStr, desc
+	case "X":
+		aspect := "X (Need - to be noticed)"
+		desc := "Tampil beda (distinctive); memiliki tipe tingkah laku unik dan ekspresif."
+		if score >= 7 {
+			desc = "Menyukai pengakuan publik dan senang mengekspresikan gagasan di depan umum."
+		} else if score <= 3 {
+			desc = "Fokus pada substansi kerja tanpa merasa perlu menonjolkan diri."
+		}
+		return aspect, scoreStr, desc
+	case "S":
+		aspect := "S (Role - Social)"
+		desc := "Menunjukkan peningkatan tingkat kepercayaan diri dalam relasi sosial, cukup menyukai interaksi sosial."
+		if score >= 7 {
+			desc = "Sangat ramah, mudah bergaul, dan aktif membangun jejaring sosial yang luas."
+		} else if score <= 3 {
+			desc = "Selektif dalam berteman dan lebih nyaman dalam lingkaran kelompok kecil."
+		}
+		return aspect, scoreStr, desc
+	case "B":
+		aspect := "B (Need - to belong to group)"
+		desc := "Kebutuhan tertentu untuk penerimaan, mampu beradaptasi secara wajar dalam kelompok."
+		if score >= 7 {
+			desc = "Sangat mengutamakan kebersamaan tim dan membutuhkan rasa diterima kelompok."
+		} else if score <= 3 {
+			desc = "Mandiri dan tidak bergantung pada penerimaan kelompok."
+		}
+		return aspect, scoreStr, desc
+	case "O":
+		aspect := "O (Need - for closeness and affection)"
+		desc := "Cukup menunjukkan peningkatan derajat ketergantungan pada penerimaan kelompok secara personal."
+		if score >= 7 {
+			desc = "Membangun hubungan interpersonal yang hangat, penuh empati, dan suportif."
+		} else if score <= 3 {
+			desc = "Menjaga jarak profesional dan memisahkan urusan kerja dari perasaan pribadi."
+		}
+		return aspect, scoreStr, desc
+	case "R":
+		aspect := "R (Role - Theoretical)"
+		desc := "Menekankan pekerjaan yang teoritis -- memadukan konsep dengan pemecahan masalah."
+		if score >= 7 {
+			desc = "Sangat tertarik pada konsep analitis, riset teoritis, dan pemikiran mendalam."
+		} else if score <= 3 {
+			desc = "Sangat praktis dan lebih mengutamakan aplikasi nyata daripada teori panjang."
+		}
+		return aspect, scoreStr, desc
+	case "D":
+		aspect := "D (Role - Interested in working with detail)"
+		desc := "Cukup menunjukkan peningkatan ketertarikan personal dalam menangani suatu hal dengan detil."
+		if score >= 7 {
+			desc = "Sangat cermat, teliti, dan memperhatikan akurasi hingga ke rincian terkecil."
+		} else if score <= 3 {
+			desc = "Fokus pada gambaran besar tanpa terjebak pada hal-hal detail minor."
+		}
+		return aspect, scoreStr, desc
+	case "C":
+		aspect := "C (Role - Organized)"
+		desc := "Menunjukkan keteraturan dan kerapian sistematis dalam pengorganisasian tugas."
+		if score >= 7 {
+			desc = "Sangat terstruktur, metodis, dan mengorganisir pekerjaan dengan perencanaan rapi."
+		} else if score <= 3 {
+			desc = "Lebih fleksibel dan spontan dalam bekerja tanpa prosedur yang kaku."
+		}
+		return aspect, scoreStr, desc
+	case "Z":
+		aspect := "Z (Need - for change vs. Sameness)"
+		desc := "Cukup mau menerima perubahan dan beradaptasi dengannya."
+		if score >= 7 {
+			desc = "Sangat menyukai inovasi, variasi tantangan baru, dan dinamis menghadapi perubahan."
+		} else if score <= 3 {
+			desc = "Menyukai stabilitas, konsistensi, dan rutinitas kerja yang mapan."
+		}
+		return aspect, scoreStr, desc
+	case "E":
+		aspect := "E (Role - Emotionally restrained)"
+		desc := "Cukup memiliki pemikiran yang terbuka dan mampu mengendalikan ekspresi emosi."
+		if score >= 7 {
+			desc = "Sangat tenang, berkepala dingin, dan objektif bahkan dalam situasi penuh tekanan."
+		} else if score <= 3 {
+			desc = "Spontan dalam mengekspresikan perasaan dan emosi secara terbuka."
+		}
+		return aspect, scoreStr, desc
+	case "K":
+		aspect := "K (Need - to be careful / Assertive)"
+		desc := "Lebih menyukai lingkungan yang dinamis, tidak menghindari konflik, dan dapat mengatasi masalah."
+		if score >= 7 {
+			desc = "Tegas, berani mengemukakan pendapat kritis, dan asertif dalam memperjuangkan prinsip."
+		} else if score <= 3 {
+			desc = "Cenderung mengalah dan menghindari perselisihan demi menjaga hubungan harmonis."
+		}
+		return aspect, scoreStr, desc
+	case "F":
+		aspect := "F (Need - to support authority)"
+		desc := "Memiliki tekad yang kuat untuk mendukung atasan dan menghormati hierarki kerja."
+		if score >= 7 {
+			desc = "Sangat loyal dan berkomitmen menjalankan arahan pimpinan dengan disiplin tinggi."
+		} else if score <= 3 {
+			desc = "Cenderung kritis terhadap instruksi dan lebih menyukai otonomi dalam bekerja."
+		}
+		return aspect, scoreStr, desc
+	case "W":
+		aspect := "W (Need - for rules and supervision)"
+		desc := "Derajat tingginya orientasi tugas dan kebutuhan akan instruksi yang jelas."
+		if score >= 7 {
+			desc = "Sangat patuh pada SOP, pedoman resmi, dan bekerja dalam kerangka aturan yang pasti."
+		} else if score <= 3 {
+			desc = "Lebih mandiri dan tidak membutuhkan pengawasan terus-menerus dalam bertugas."
+		}
+		return aspect, scoreStr, desc
+	default:
+		return code, scoreStr, "Cukup baik dalam aspek ini."
+	}
+}
+
 func generateDetailedPAPISummary(resultData interface{}, studentName string) map[string]interface{} {
 	dominant := "G"
 	var papi models.PAPIResult
@@ -2072,36 +2267,45 @@ func generateDetailedPAPISummary(resultData interface{}, studentName string) map
 		_ = json.Unmarshal([]byte(papi.ResultJSON), &parsed)
 	}
 
-	sG := parsed["G"].Score
-	sL := parsed["L"].Score
-	sI := parsed["I"].Score
-	sS := parsed["S"].Score
-	sC := parsed["C"].Score
-	sE := parsed["E"].Score
-	sN := parsed["N"].Score
-	sW := parsed["W"].Score
+	getScore := func(code string) int {
+		if itm, ok := parsed[code]; ok {
+			return itm.Score
+		}
+		return 5
+	}
 
-	catKetekunan := getPAPICategory(sN)
-	catKerjaKeras := getPAPICategory(sG)
-	catPemimpin := getPAPICategory(sL)
-	catKeputusan := getPAPICategory(sI)
-	catSosial := getPAPICategory(sS)
-	catTeratur := getPAPICategory(sC)
-	catEmosi := getPAPICategory(sE)
-	catAturan := getPAPICategory(sW)
+	buildDim := func(title string, codes []string) map[string]interface{} {
+		var items []map[string]string
+		for _, c := range codes {
+			asp, scr, dsc := getPAPIScaleInfo(c, getScore(c))
+			items = append(items, map[string]string{
+				"aspect": asp,
+				"score":  scr,
+				"desc":   dsc,
+			})
+		}
+		return map[string]interface{}{
+			"title": title,
+			"items": items,
+		}
+	}
 
-	p1 := fmt.Sprintf("Berdasarkan evaluasi dinamika kepribadian kerja (PAPI-Kostick), %s menunjukkan tipe peran dominan %s dengan tingkat ketekunan menyelesaikan tugas mandiri (skala N) yang tergolong %s serta etos kerja keras (skala G) yang %s. Dalam situasi kelompok, %s menunjukkan potensi kepemimpinan (skala L) pada taraf %s yang didukung oleh kemampuan mengambil keputusan (skala I) yang %s. Hal ini mencerminkan dorongan yang positif untuk mengambil inisiatif mandiri, menjaga komitmen penyelesaian target, serta mengarahkan usaha secara terstruktur.",
-		studentName, dominant, strings.ToLower(catKetekunan), strings.ToLower(catKerjaKeras), studentName, strings.ToLower(catPemimpin), strings.ToLower(catKeputusan))
+	papiDimensions := map[string]interface{}{
+		"work_direction":     buildDim("ENERGI DAN DINAMIKA KERJA (WORK DIRECTION)", []string{"N", "G", "A"}),
+		"leadership":         buildDim("KEPEMIMPINAN (LEADERSHIP)", []string{"L", "P", "I"}),
+		"activity":           buildDim("KECEPATAN DAN KETAHANAN (ACTIVITY)", []string{"T", "V"}),
+		"social_nature":      buildDim("HUBUNGAN SOSIAL (SOCIAL NATURE)", []string{"X", "S", "B", "O"}),
+		"work_style":         buildDim("CARA KERJA (WORK STYLE)", []string{"R", "D", "C"}),
+		"temperament":        buildDim("TEMPERAMEN DAN EMOSI (TEMPERAMENT)", []string{"Z", "E", "K"}),
+		"follower_authority": buildDim("HUBUNGAN DENGAN ATASAN (FOLLOWERSHIP)", []string{"F", "W"}),
+	}
 
-	p2 := fmt.Sprintf("Pada aspek relasi interpersonal dan gaya kerja, %s menunjukkan kemampuan interaksi sosial (skala S) yang %s serta keteraturan dan pengorganisasian tugas (skala C) pada taraf %s. Dalam menghadapi tekanan atau dinamika lingkungan, stabilitas pengendalian emosi (skala E) berada pada kategori %s, sementara ketaatan terhadap prosedur dan aturan kerja (skala W) tergolong %s. Profil kepribadian ini menunjukkan bahwa %s memiliki kemampuan adaptasi yang baik dalam lingkungan belajar maupun tim kerja yang menuntut keseimbangan antara inisiatif pribadi dan kolaborasi kelompok.",
-		studentName, strings.ToLower(catSosial), strings.ToLower(catTeratur), strings.ToLower(catEmosi), strings.ToLower(catAturan), studentName)
-
-	detail := p1 + "\n\n" + p2
-	summary := fmt.Sprintf("Berdasarkan evaluasi tes kepribadian kerja (PAPI), peserta menunjukkan profil peran dominan %s dengan kapasitas inisiatif mandiri, ketekunan kerja, dan relasi interpersonal yang adaptif.", dominant)
+	summary := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (PAPI), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
 
 	return map[string]interface{}{
 		"summary":             summary,
 		"dominant_category":   dominant,
-		"interpretasi_detail": detail,
+		"interpretasi_detail": summary,
+		"papi_dimensions":     papiDimensions,
 	}
 }

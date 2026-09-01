@@ -4496,8 +4496,12 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
 			}
 		}
-	} else if testType == "PAPI" {
-		if papi, ok := resultData.(models.PAPIResult); ok {
+	} else if strings.EqualFold(testType, "PAPI") {
+		var papi models.PAPIResult
+		if b, err := json.Marshal(resultData); err == nil {
+			_ = json.Unmarshal(b, &papi)
+		}
+		if papi.Id > 0 || papi.ResultJSON != "" {
 			pdf.SetFont("Arial", "B", 9.5)
 			pdf.CellFormat(0, 4.5, "2. ASPEK KEPRIBADIAN (PAPI-Kostick)", "", 1, "L", false, 0, "")
 			pdf.Ln(1)
@@ -4564,7 +4568,14 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			}
 
 			// Render 7 Dimensions with detailed scale interpretations (clean ASCII bullet)
-			if dimMap, ok := summaryData["papi_dimensions"].(map[string]interface{}); ok && len(dimMap) > 0 {
+			dimMap, ok := summaryData["papi_dimensions"].(map[string]interface{})
+			if !ok || len(dimMap) == 0 {
+				fb := generateDetailedPAPISummary(papi, nama)
+				if fbDims, okFb := fb["papi_dimensions"].(map[string]interface{}); okFb {
+					dimMap = fbDims
+				}
+			}
+			if len(dimMap) > 0 {
 				order := []string{"work_direction", "leadership", "activity", "social_nature", "work_style", "temperament", "follower_authority"}
 				for _, k := range order {
 					if dVal, exists := dimMap[k]; exists && dVal != nil {

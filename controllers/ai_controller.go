@@ -461,18 +461,21 @@ func cleanParsedAIData(text string) map[string]interface{} {
 
 // GetOrGenerateTestSummaryInternal is a helper called by the ZIP download endpoint to retrieve or build the AI summary on-the-fly.
 func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData interface{}, studentName string) (map[string]interface{}, error) {
-	sanitizedType := strings.ToLower(strings.ReplaceAll(testType, " ", "_"))
+	cleanType := normalizeIndividualTestType(testType)
 	cacheKey := getCacheHash(resultData)
 	var cacheFile string
 	if cacheKey != "" {
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v5_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v9_%s_%s.json", cleanType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
-				if _, ok := cachedData["interpretasi_detail"]; ok {
+				if cleanType == "papi" {
+					if _, hasDims := cachedData["papi_dimensions"]; hasDims {
+						return cachedData, nil
+					}
+				} else if _, ok := cachedData["interpretasi_detail"]; ok {
 					return cachedData, nil
-				}
-				if _, ok := cachedData["summary"]; ok {
+				} else if _, ok := cachedData["summary"]; ok {
 					return cachedData, nil
 				}
 			}
@@ -489,14 +492,24 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 		parsed = generateFallbackIndividualTestSummary(testType, studentName, resultData)
 	}
 
-	// Always ensure interpretasi_detail is populated with rich personal dynamic interpretation
+	// Always ensure interpretasi_detail and dimensions are populated
+	fallbackData := generateFallbackIndividualTestSummary(testType, studentName, resultData)
 	if parsed == nil {
-		parsed = generateFallbackIndividualTestSummary(testType, studentName, resultData)
-	} else if _, hasDetail := parsed["interpretasi_detail"]; !hasDetail {
-		fallbackData := generateFallbackIndividualTestSummary(testType, studentName, resultData)
-		parsed["interpretasi_detail"] = fallbackData["interpretasi_detail"]
+		parsed = fallbackData
+	} else {
+		if _, hasDetail := parsed["interpretasi_detail"]; !hasDetail {
+			parsed["interpretasi_detail"] = fallbackData["interpretasi_detail"]
+		}
 		if _, hasSummary := parsed["summary"]; !hasSummary {
 			parsed["summary"] = fallbackData["summary"]
+		}
+		if cleanType == "papi" {
+			if _, hasDims := parsed["papi_dimensions"]; !hasDims {
+				parsed["papi_dimensions"] = fallbackData["papi_dimensions"]
+			}
+			if _, hasDom := parsed["dominant_category"]; !hasDom {
+				parsed["dominant_category"] = fallbackData["dominant_category"]
+			}
 		}
 	}
 

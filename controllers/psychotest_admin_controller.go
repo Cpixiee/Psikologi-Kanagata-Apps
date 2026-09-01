@@ -2521,61 +2521,7 @@ func buildISTResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestIn
 	_ = f.MergeCell(sheet1, fmt.Sprintf("A%d", sumTextRow), fmt.Sprintf("I%d", sumTextRow))
 	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", sumTextRow), fmt.Sprintf("I%d", sumTextRow), styleCellLeft)
 
-	// 6. Detail Skor Subtes (Row 35)
-	tblRow := sumTextRow + 2
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", tblRow), "III. RINGKASAN SKOR PER SUBTES IST")
-	_ = f.MergeCell(sheet1, fmt.Sprintf("A%d", tblRow), fmt.Sprintf("I%d", tblRow))
-	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", tblRow), fmt.Sprintf("I%d", tblRow), styleSectionHeader)
-
-	hRow := tblRow + 1
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", hRow), "No")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", hRow), "Kode Subtes")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", hRow), "Nama Subtes")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("D%d", hRow), "Raw Score (RW)")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("E%d", hRow), "Skor Standar (SW)")
-	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", hRow), fmt.Sprintf("E%d", hRow), styleTableHeaderGroup)
-
-	subDefs := []struct {
-		no   int
-		code string
-		nama string
-		rw   int
-		sw   int
-	}{
-		{1, "SE", "Berpikir logis & Praktis", res.RawSE, res.StdSE},
-		{2, "WA", "Memahami arti kata dan bahasa", res.RawWA, res.StdWA},
-		{3, "AN", "Fleksibilitas berpikir", res.RawAN, res.StdAN},
-		{4, "GE", "Kemampuan membentuk konsep dan abstraksi", res.RawGE, res.StdGE},
-		{5, "RA", "Penalaran dan kemampuan berhitung", res.RawRA, res.StdRA},
-		{6, "ZR", "Berpikir logis menggunakan angka", res.RawZA, res.StdZA},
-		{7, "FA", "Imajinasi ruang dan visualisasi 2D", res.RawFA, res.StdFA},
-		{8, "WU", "Memahami struktur ruang dan bentuk 3D", res.RawWU, res.StdWU},
-		{9, "ME", "Daya ingat dan konsentrasi", res.RawME, res.StdME},
-	}
-
-	curR := hRow + 1
-	for _, sd := range subDefs {
-		_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", curR), sd.no)
-		_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", curR), sd.code)
-		_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", curR), sd.nama)
-		_ = f.SetCellValue(sheet1, fmt.Sprintf("D%d", curR), sd.rw)
-		_ = f.SetCellValue(sheet1, fmt.Sprintf("E%d", curR), sd.sw)
-
-		_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", curR), fmt.Sprintf("B%d", curR), styleCellCenter)
-		_ = f.SetCellStyle(sheet1, fmt.Sprintf("C%d", curR), fmt.Sprintf("C%d", curR), styleCellLeft)
-		_ = f.SetCellStyle(sheet1, fmt.Sprintf("D%d", curR), fmt.Sprintf("E%d", curR), styleCellCenter)
-		curR++
-	}
-
-	// Total Row
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("A%d", curR), "")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("B%d", curR), "TOTAL")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("C%d", curR), "Total Skor")
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("D%d", curR), totalRW)
-	_ = f.SetCellValue(sheet1, fmt.Sprintf("E%d", curR), res.TotalStandardScore)
-	_ = f.SetCellStyle(sheet1, fmt.Sprintf("A%d", curR), fmt.Sprintf("E%d", curR), styleTableHeaderGroup)
-
-	// 7. Sheet 2 (Jawaban Detail)
+	// 6. Sheet 2 (Jawaban Detail)
 	if len(answersByNumber) > 0 {
 		sheet2 := "Jawaban Subtes"
 		_, _ = f.NewSheet(sheet2)
@@ -2747,54 +2693,96 @@ func buildLearningStyleResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *mod
 	_ = f.SetCellValue(sheet, "A1", "RESUME\nTES GAYA BELAJAR (VAK)")
 	_ = f.SetCellStyle(sheet, "A1", "C1", styleHeaderGreen)
 
-	// Identitas peserta — pakai data User (lebih authoritative dari res.TestName)
+	// Identitas peserta
 	nama := res.TestName
 	nisnNip := ""
-	idLabel := "NISN/NIP"
 	kelas := ""
 	jurusan := ""
+	age := 0
+	if res.TestAge > 0 {
+		age = res.TestAge
+	}
 	if user != nil {
 		if strings.TrimSpace(user.NamaLengkap) != "" {
 			nama = user.NamaLengkap
 		}
 		nisnNip = strings.TrimSpace(user.NISN)
-		idLabel = "NISN"
 		if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
 			nisnNip = user.NIP
-			idLabel = "NIP"
 		}
-		kelas = user.Kelas
-		jurusan = user.Jurusan
+		if user.Kelas != "" {
+			kelas = user.Kelas
+		}
+		if user.Jurusan != "" {
+			jurusan = user.Jurusan
+		}
+		if user.TanggalLahir != nil {
+			age = utils.AgeYears(*user.TanggalLahir, time.Now())
+		}
+	}
+	gender := res.TestGender
+	if gender == "" && user != nil {
+		if user.JenisKelamin == models.GenderLakiLaki {
+			gender = "laki-laki"
+		} else if user.JenisKelamin == models.GenderPerempuan {
+			gender = "perempuan"
+		}
 	}
 
-	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", nama)
-	_ = f.SetCellValue(sheet, "A4", idLabel)
-	_ = f.SetCellValue(sheet, "B4", nisnNip)
-	_ = f.SetCellValue(sheet, "A5", "Kelas")
-	_ = f.SetCellValue(sheet, "B5", kelas)
-	_ = f.SetCellValue(sheet, "A6", "Jurusan")
-	_ = f.SetCellValue(sheet, "B6", jurusan)
-	_ = f.SetCellValue(sheet, "A7", "Usia")
-	_ = f.SetCellValue(sheet, "B7", res.TestAge)
-	_ = f.SetCellValue(sheet, "A8", "Pendidikan")
-	_ = f.SetCellValue(sheet, "B8", res.TestInstitution)
-	_ = f.SetCellValue(sheet, "A9", "Jenis kelamin")
-	_ = f.SetCellValue(sheet, "B9", res.TestGender)
-	_ = f.SetCellValue(sheet, "A10", "Tanggal")
-	_ = f.SetCellValue(sheet, "B10", res.TestDate.Format("02-01-2006"))
-	_ = f.SetCellStyle(sheet, "A3", "A10", styleCenter)
-	_ = f.SetCellStyle(sheet, "B3", "B10", styleBody)
+	usiaStr := ""
+	if age > 0 {
+		usiaStr = fmt.Sprintf("%d", age)
+	}
+
+	pendidikan := res.TestInstitution
+	if pendidikan == "" && batch != nil {
+		pendidikan = batch.Institution
+	}
+
+	bioRows := []struct {
+		label string
+		val   string
+	}{
+		{"Nama", nama},
+		{"NISN", nisnNip},
+		{"Kelas", kelas},
+		{"Jurusan", jurusan},
+		{"Usia", usiaStr},
+		{"Pendidikan", pendidikan},
+		{"Jenis", gender},
+		{"Tanggal", res.TestDate.Format("02-01-2006")},
+	}
+	for idx, br := range bioRows {
+		row := 3 + idx
+		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row), br.label)
+		_ = f.MergeCell(sheet, fmt.Sprintf("B%d", row), fmt.Sprintf("C%d", row))
+		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", row), br.val)
+		_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("A%d", row), styleCenter)
+		_ = f.SetCellStyle(sheet, fmt.Sprintf("B%d", row), fmt.Sprintf("C%d", row), styleBody)
+	}
 
 	startRow := 12
 	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", startRow), "TIPE GAYA\nBELAJAR")
 	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", startRow), "INTERPRETASI")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", startRow), "NILAI SKOR")
+	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", startRow), "NILAI\nSKOR")
 	_ = f.SetRowHeight(sheet, startRow, 28)
 	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", startRow), fmt.Sprintf("C%d", startRow), styleTableHeader)
 
+	interpVisual := res.InterpretationVisual
+	if strings.TrimSpace(interpVisual) == "" {
+		interpVisual = "Individu dengan tipe ini akan lebih memahami melalui apa yang mereka lihat. Warna, hubungan ruang, potret mental dan gambar menonjol dalam modalitas ini. Adapun beberapa ciri orang dengan tipe belajar visual, yaitu: Rapi, teratur, memperhatikan segala sesuatu dan menjaga penampilan, Berbicara dengan cepat, Perencana dan pengatur jangka panjang yang baik, Pengeja yang baik dan dapat melihat kata-kata yang sebenarnya dalam pikiran mereka, Lebih mengingat apa yang dilihat daripada yang didengar, Mengingat dengan asosiasi visual, Mempunyai masalah untuk mengingat instruksi verbal kecuali jika ditulis dan sering meminta orang lain untuk mengulangi ucapannya, Lebih suka membaca daripada dibacakan dan pembaca yang cepat, Mencoret-coret tanpa arti selama berbicara di telepon atau dalam rapat, Lebih suka melakukan demonstrasi daripada berpidato, Lebih menyukai seni gambar daripada musik, Sering menjawab pertanyaan dengan jawaban singkat ya atau tidak, Mengetahui apa yang harus dikatakan, tetapi tidak pandai memilih kata-kata yang tepat, Biasanya tidak terganggu dengan keributan."
+	}
+	interpAuditory := res.InterpretationAuditory
+	if strings.TrimSpace(interpAuditory) == "" {
+		interpAuditory = "Individu dengan tipe ini akan lebih memahami sesuatu melalui apa yang mereka dengar. Modalitas ini mengakses segala jenis bunyi dan kata. Musik, irama, dialog internal dan suara menonjol pada tipe auditori. Seseorang yang sangat auditori memiliki ciri-ciri sebagai berikut: Suka berbicara kepada diri sendiri saat bekerja, Perhatiannya mudah terpecah dan mudah terganggu oleh keributan, Menggerakkan bibir mereka dan mengucapkan tulisan di buku ketika membaca, Senang membaca dengan keras dan mendengarkan, Dapat mengulangi kembali dan menirukan nada, perubahan dan warna suara, Merasa kesulitan untuk menulis dan lebih suka mengucapkan secara lisan, Berbicara dalam irama yang terpola, Lebih suka musik daripada seni gambar, Belajar dengan mendengarkan dan mengingat apa yang didiskusikan daripada yang dilihat, Suka berbicara, suka berdiskusi dan menjelaskan sesuatu dengan panjang lebar, Lebih suka gurauan lisan daripada membaca komik, Mempunyai masalah dengan pekerjaan-pekerjaan yang melibatkan visualisasi, seperti memotong bagian-bagian hingga sesuai satu sama lain, Lebih pandai mengeja dengan keras daripada menuliskannya, Biasanya pembicara yang fasih."
+	}
+	interpKinesthetic := res.InterpretationKinesthetic
+	if strings.TrimSpace(interpKinesthetic) == "" {
+		interpKinesthetic = "Individu dengan tipe ini belajar melalui gerak, emosi dan sentuhan. Modalitas ini mengakses pada gerakan, koordinasi, irama, tanggapan emosional, dan kenyamanan fisik. Ciri-ciri orang dengan tipe belajar kinestetik yaitu: Berbicara dengan perlahan, Menyentuh orang untuk mendapatkan perhatian mereka saat berbicara, Berdiri berdekatan saat berbicara dengan orang, Selalu berorientasi pada fisik dan banyak bergerak, Belajar melalui manipulasi dan praktik, Menghafal dengan cara berjalan dan melihat, Menggunakan jari sebagai penunjuk ketika membaca, Banyak menggunakan isyarat tubuh, Tidak dapat diam untuk waktu yang lama, Tidak dapat mengingat geografis, kecuali jika mereka memang telah pernah berada di tempat itu, Menyukai permainan yang menyibukkan, Mencerminkan aksi dengan gerakan tubuh saat membaca, suka mengetuk-ngetuk pena, jari, atau kaki saat mendengarkan, Ingin melakukan segala sesuatu, Kemungkinan tulisannya kurang bagus."
+	}
+
 	writeRow := func(row int, tipe string, interp string, skor int) int {
-		_ = f.SetRowHeight(sheet, row, 120)
+		_ = f.SetRowHeight(sheet, row, 130)
 		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row), strings.ToUpper(tipe))
 		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", row), strings.TrimSpace(interp))
 		_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", row), skor)
@@ -2805,9 +2793,9 @@ func buildLearningStyleResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *mod
 	}
 
 	r := startRow + 1
-	r = writeRow(r, "Visual", res.InterpretationVisual, res.ScoreVisual)
-	r = writeRow(r, "Auditori", res.InterpretationAuditory, res.ScoreAuditory)
-	_ = writeRow(r, "Kinestetik", res.InterpretationKinesthetic, res.ScoreKinesthetic)
+	r = writeRow(r, "Visual", interpVisual, res.ScoreVisual)
+	r = writeRow(r, "Auditori", interpAuditory, res.ScoreAuditory)
+	_ = writeRow(r, "Kinestetik", interpKinesthetic, res.ScoreKinesthetic)
 
 	buf, werr := f.WriteToBuffer()
 	if werr != nil {

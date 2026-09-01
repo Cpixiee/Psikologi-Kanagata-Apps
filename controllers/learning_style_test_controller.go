@@ -14,7 +14,6 @@ import (
 
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
-	"github.com/xuri/excelize/v2"
 )
 
 type LearningStyleTestController struct {
@@ -586,130 +585,7 @@ func (c *LearningStyleTestController) ExportResultExcel() {
 		return
 	}
 
-	var res models.LearningStyleResult
-	err := o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
-	if err != nil || res.Id == 0 {
-		c.Redirect("/test/learning-style/finish", 302)
-		return
-	}
-
-	// Build Excel mirip resume contoh: header, biodata, 3 baris tipe dengan interpretasi & skor
-	f := excelize.NewFile()
-	sheet := "Resume"
-	f.SetSheetName(f.GetSheetName(0), sheet)
-	showGridLines := false
-	_ = f.SetSheetView(sheet, 0, &excelize.ViewOptions{ShowGridLines: &showGridLines})
-
-	borderAll := []excelize.Border{
-		{Type: "left", Color: "000000", Style: 1},
-		{Type: "right", Color: "000000", Style: 1},
-		{Type: "top", Color: "000000", Style: 1},
-		{Type: "bottom", Color: "000000", Style: 1},
-	}
-	styleHeaderGreen, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF", Size: 16},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#00A65A"}, Pattern: 1},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-	})
-	styleSubHeader, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF"},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#00A65A"}, Pattern: 1},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
-		Border:    borderAll,
-	})
-	styleTableHeader, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF"},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#00A65A"}, Pattern: 1},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
-		Border:    borderAll,
-	})
-	styleBody, _ := f.NewStyle(&excelize.Style{
-		Alignment: &excelize.Alignment{Vertical: "top", WrapText: true},
-		Border:    borderAll,
-	})
-	styleCenter, _ := f.NewStyle(&excelize.Style{
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
-		Border:    borderAll,
-	})
-	styleTypeCell, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", TextRotation: 90},
-		Border:    borderAll,
-	})
-	styleScoreBlue, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#8DB4E2"}, Pattern: 1},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-		Border:    borderAll,
-	})
-
-	_ = f.SetColWidth(sheet, "A", "A", 18)
-	_ = f.SetColWidth(sheet, "B", "B", 70)
-	_ = f.SetColWidth(sheet, "C", "C", 14)
-
-	// Header
-	_ = f.MergeCell(sheet, "A1", "C1")
-	_ = f.SetRowHeight(sheet, 1, 32)
-	_ = f.SetCellValue(sheet, "A1", "RESUME\nTES GAYA BELAJAR (VAK)")
-	_ = f.SetCellStyle(sheet, "A1", "C1", styleHeaderGreen)
-	nisnNip := strings.TrimSpace(user.NISN)
-	idLabel := "NISN"
-	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
-		nisnNip = user.NIP
-		idLabel = "NIP"
-	}
-	if nisnNip == "" {
-		idLabel = "NISN/NIP"
-	}
-	nama := res.TestName
-	if strings.TrimSpace(user.NamaLengkap) != "" {
-		nama = user.NamaLengkap
-	}
-	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", nama)
-	_ = f.SetCellValue(sheet, "A4", idLabel)
-	_ = f.SetCellValue(sheet, "B4", nisnNip)
-	_ = f.SetCellValue(sheet, "A5", "Kelas")
-	_ = f.SetCellValue(sheet, "B5", user.Kelas)
-	_ = f.SetCellValue(sheet, "A6", "Jurusan")
-	_ = f.SetCellValue(sheet, "B6", user.Jurusan)
-	_ = f.SetCellValue(sheet, "A7", "Usia")
-	_ = f.SetCellValue(sheet, "B7", res.TestAge)
-	_ = f.SetCellValue(sheet, "A8", "Pendidikan")
-	_ = f.SetCellValue(sheet, "B8", res.TestInstitution)
-	_ = f.SetCellValue(sheet, "A9", "Jenis kelamin")
-	_ = f.SetCellValue(sheet, "B9", res.TestGender)
-	_ = f.SetCellValue(sheet, "A10", "Tanggal")
-	_ = f.SetCellValue(sheet, "B10", res.TestDate.Format("02-01-2006"))
-	_ = f.SetCellStyle(sheet, "A3", "A10", styleCenter)
-	_ = f.SetCellStyle(sheet, "B3", "B10", styleBody)
-
-	// Table header
-	startRow := 12
-	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", startRow), "TIPE GAYA\nBELAJAR")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", startRow), "INTERPRETASI")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", startRow), "NILAI SKOR")
-	_ = f.SetRowHeight(sheet, startRow, 28)
-	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", startRow), fmt.Sprintf("C%d", startRow), styleTableHeader)
-
-	writeRow := func(row int, tipe string, interp string, skor int) int {
-		_ = f.SetRowHeight(sheet, row, 120)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row), strings.ToUpper(tipe))
-		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", row), strings.TrimSpace(interp))
-		_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", row), skor)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("A%d", row), styleTypeCell)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("B%d", row), fmt.Sprintf("B%d", row), styleBody)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("C%d", row), fmt.Sprintf("C%d", row), styleScoreBlue)
-		return row + 1
-	}
-
-	r := startRow + 1
-	r = writeRow(r, "Visual", res.InterpretationVisual, res.ScoreVisual)
-	r = writeRow(r, "Auditori", res.InterpretationAuditory, res.ScoreAuditory)
-	_ = styleSubHeader // keep style referenced if future expansion; compile safety
-	_ = writeRow(r, "Kinestetik", res.InterpretationKinesthetic, res.ScoreKinesthetic)
-
-	buf, err := f.WriteToBuffer()
+	excelBytes, err := buildLearningStyleResultXLSX(o, nil, &inv, &user)
 	if err != nil {
 		c.Redirect("/test/learning-style/finish", 302)
 		return
@@ -741,20 +617,14 @@ func (c *LearningStyleTestController) ExportResultExcel() {
 		return out
 	}
 
-	downloadName := strings.TrimSpace(res.TestName)
-	if downloadName == "" {
-		downloadName = strings.TrimSpace(user.NamaLengkap)
-	}
-	if downloadName == "" {
-		downloadName = strings.TrimSpace(user.Email)
-	}
+	downloadName := strings.TrimSpace(user.NamaLengkap)
 	if downloadName == "" {
 		downloadName = strings.TrimSpace(inv.Email)
 	}
 	filename := fmt.Sprintf("learning_style_result_%s.xlsx", makeSafeName(downloadName))
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
-	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())
+	_, _ = c.Ctx.ResponseWriter.Write(excelBytes)
 }
 
 // DEV ONLY: POST /test/learning-style/dev-autofill

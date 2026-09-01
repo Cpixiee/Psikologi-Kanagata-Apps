@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +17,6 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/jung-kurt/gofpdf"
-	"github.com/xuri/excelize/v2"
 )
 
 // istAspectRow merepresentasikan satu baris psikogram (untuk HTML & PDF).
@@ -2018,198 +2016,8 @@ func (c *ISTTestController) ExportResultExcel() {
 			}
 		}
 	}
-
-	f := excelize.NewFile()
-	sheet := "IST"
-	f.SetSheetName("Sheet1", sheet)
-
-	// Styles
-	borderAll := []excelize.Border{
-		{Type: "left", Color: "000000", Style: 1},
-		{Type: "right", Color: "000000", Style: 1},
-		{Type: "top", Color: "000000", Style: 1},
-		{Type: "bottom", Color: "000000", Style: 1},
-	}
-	styleTitle, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true, Size: 14}})
-	styleBold, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}})
-	styleHeaderGray, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#E6E6E6"}, Pattern: 1},
-		Border:    borderAll,
-	})
-	styleHeaderBlue, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#CFE2F3"}, Pattern: 1},
-		Border:    borderAll,
-	})
-	styleBody, _ := f.NewStyle(&excelize.Style{
-		Alignment: &excelize.Alignment{Vertical: "top", WrapText: true},
-		Border:    borderAll,
-	})
-	styleCenter, _ := f.NewStyle(&excelize.Style{
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-		Border:    borderAll,
-	})
-
-	// Column widths
-	_ = f.SetColWidth(sheet, "A", "A", 4)
-	_ = f.SetColWidth(sheet, "B", "B", 28)
-	_ = f.SetColWidth(sheet, "C", "C", 70)
-	_ = f.SetColWidth(sheet, "D", "I", 12)
-
-	// Title
-	_ = f.MergeCell(sheet, "A1", "I1")
-	_ = f.SetCellValue(sheet, "A1", "LAPORAN HASIL TES IST")
-	_ = f.SetCellStyle(sheet, "A1", "A1", styleTitle)
-
-	// Identity
-	nama := user.NamaLengkap
-	if nama == "" {
-		nama = inv.Email
-	}
-	dob := ""
-	if user.TanggalLahir != nil {
-		dob = user.TanggalLahir.Format("02-01-2006")
-	}
-	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "C3", nama)
-	_ = f.SetCellValue(sheet, "A4", "Tanggal Lahir")
-	_ = f.SetCellValue(sheet, "C4", dob)
-	_ = f.SetCellValue(sheet, "A5", "Usia")
-	if age > 0 {
-		_ = f.SetCellValue(sheet, "C5", fmt.Sprintf("%d tahun", age))
-	}
-	_ = f.SetCellStyle(sheet, "A3", "A5", styleBold)
-
-	// NISN/NIP, Kelas, Jurusan di kolom kanan
-	nisnNip := strings.TrimSpace(user.NISN)
-	idLabel := "NISN"
-	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
-		nisnNip = user.NIP
-		idLabel = "NIP"
-	}
-	if nisnNip == "" {
-		idLabel = "NISN/NIP"
-	}
-	_ = f.SetCellValue(sheet, "E3", idLabel)
-	_ = f.SetCellValue(sheet, "F3", nisnNip)
-	_ = f.SetCellValue(sheet, "E4", "Kelas")
-	_ = f.SetCellValue(sheet, "F4", user.Kelas)
-	_ = f.SetCellValue(sheet, "E5", "Jurusan")
-	_ = f.SetCellValue(sheet, "F5", user.Jurusan)
-	_ = f.SetCellStyle(sheet, "E3", "E5", styleBold)
-
-	// A. Kecerdasan umum
-	_ = f.SetCellValue(sheet, "A7", "A. KECERDASAN UMUM (Skala IST)")
-	_ = f.SetCellStyle(sheet, "A7", "A7", styleBold)
-	_ = f.SetCellValue(sheet, "A8", fmt.Sprintf("IQ = %d   (%s)", res.IQ, res.IQCategory))
-
-	// B. Kemampuan khusus
-	_ = f.SetCellValue(sheet, "A10", "B. KEMAMPUAN KHUSUS")
-	_ = f.SetCellStyle(sheet, "A10", "A10", styleBold)
-
-	// Header tabel psikogram (mirip screenshot)
-	_ = f.MergeCell(sheet, "A12", "A15")
-	_ = f.MergeCell(sheet, "B12", "B15")
-	_ = f.MergeCell(sheet, "C12", "C15")
-	_ = f.MergeCell(sheet, "D12", "I12")
-	_ = f.SetCellValue(sheet, "A12", "No")
-	_ = f.SetCellValue(sheet, "B12", "ASPEK PSIKOLOGIS")
-	_ = f.SetCellValue(sheet, "C12", "")
-	_ = f.SetCellValue(sheet, "D12", "KATEGORI")
-	_ = f.SetCellStyle(sheet, "A12", "I12", styleHeaderGray)
-	_ = f.SetCellStyle(sheet, "A12", "C15", styleHeaderGray)
-
-	_ = f.MergeCell(sheet, "D13", "E13")
-	_ = f.MergeCell(sheet, "F13", "G13")
-	_ = f.MergeCell(sheet, "H13", "I13")
-	_ = f.SetCellValue(sheet, "D13", "Kurang")
-	_ = f.SetCellValue(sheet, "F13", "Cukup")
-	_ = f.SetCellValue(sheet, "H13", "Baik")
-	_ = f.SetCellStyle(sheet, "D13", "I13", styleHeaderBlue)
-
-	_ = f.SetCellValue(sheet, "D14", "Kurang Sekali")
-	_ = f.SetCellValue(sheet, "E14", "Kurang")
-	_ = f.SetCellValue(sheet, "F14", "Cukup")
-	_ = f.SetCellValue(sheet, "G14", "Cukup Baik")
-	_ = f.SetCellValue(sheet, "H14", "Baik")
-	_ = f.SetCellValue(sheet, "I14", "Baik Sekali")
-	_ = f.SetCellStyle(sheet, "D14", "I14", styleHeaderBlue)
-
-	_ = f.SetCellValue(sheet, "D15", 1)
-	_ = f.SetCellValue(sheet, "E15", 2)
-	_ = f.SetCellValue(sheet, "F15", 3)
-	_ = f.SetCellValue(sheet, "G15", 4)
-	_ = f.SetCellValue(sheet, "H15", 5)
-	_ = f.SetCellValue(sheet, "I15", 6)
-	_ = f.SetCellStyle(sheet, "D15", "I15", styleHeaderBlue)
-
-	avg := func(vals ...int) int {
-		sum := 0
-		n := 0
-		for _, v := range vals {
-			if v > 0 {
-				sum += v
-				n++
-			}
-		}
-		if n == 0 {
-			return 0
-		}
-		return sum / n
-	}
-	type rowDef struct {
-		no   int
-		nama string
-		desc string
-		skor int
-	}
-	rows := []rowDef{
-		{1, "Penalaran Konkret", "Kemampuan berpikir praktis, sesuai kenyataan dan mengambil keputusan secara mandiri berdasarkan data maupun situasi serta kondisi yang ada.", avg(res.StdSE, res.StdGE)},
-		{2, "Penalaran Verbal", "Kemampuan berpikir logis dalam penggunaan bahasa terkait informasi, instruksi maupun literasi.", avg(res.StdSE, res.StdWA, res.StdGE)},
-		{3, "Daya Analisis", "Kemampuan melakukan pengkajian suatu peristiwa, objek, informasi maupun hubungan serta sebab akibat dalam penyelesaian persoalan atau masalah.", res.StdAN},
-		{4, "Penalaran Abstrak", "Kemampuan memahami dan membayangkan suatu objek yang tidak nyata/abstrak.", res.StdZA},
-		{5, "Daya Ingat", "Kemampuan mengingat/menghafal suatu informasi maupun objek.", res.StdME},
-		{6, "Kemampuan Berhitung", "Kemampuan memahami konsep dasar berhitung dan mengolah angka secara praktis.", res.StdRA},
-		{7, "Analogi Angka", "Kemampuan memahami analogi angka dengan analisis mendalam sesuai pola khusus secara teoritis.", res.StdZA},
-		{8, "Daya Bayang Konstruksional", "Kemampuan memahami, mengingat dan membayangkan maupun menciptakan kreasi konstruksi secara teknis dengan berpikir secara menyeluruh mengenai suatu objek, bangunan maupun lokasi.", res.StdFA},
-		{9, "Daya Bayang Ruang", "Kemampuan memahami dan membayangkan suatu ruang tiga dimensi, berpikir fleksibel dan kreatif.", res.StdWU},
-	}
-	// Tentukan kategori psikogram dari skor SW aspek.
-	getCatIdx := func(sw int) int { return psychogramCatIdxFromSW(sw) }
-
-	startRow := 16
-	for i, r := range rows {
-		top := startRow + i*2
-		bot := top + 1
-		_ = f.MergeCell(sheet, fmt.Sprintf("A%d", top), fmt.Sprintf("A%d", bot))
-		_ = f.MergeCell(sheet, fmt.Sprintf("B%d", top), fmt.Sprintf("B%d", bot))
-		_ = f.MergeCell(sheet, fmt.Sprintf("C%d", top), fmt.Sprintf("C%d", bot))
-		for col := 'D'; col <= 'I'; col++ {
-			_ = f.MergeCell(sheet, fmt.Sprintf("%c%d", col, top), fmt.Sprintf("%c%d", col, bot))
-		}
-		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", top), r.no)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", top), r.nama)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", top), r.desc)
-		cat := getCatIdx(r.skor)
-		for j := 0; j < 6; j++ {
-			cell := fmt.Sprintf("%c%d", 'D'+j, top)
-			if j == cat {
-				_ = f.SetCellValue(sheet, cell, "√")
-			}
-		}
-		_ = f.SetRowHeight(sheet, top, 34)
-		_ = f.SetRowHeight(sheet, bot, 34)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", top), fmt.Sprintf("A%d", bot), styleCenter)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("B%d", top), fmt.Sprintf("B%d", bot), styleBody)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("C%d", top), fmt.Sprintf("C%d", bot), styleBody)
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("D%d", top), fmt.Sprintf("I%d", bot), styleCenter)
-	}
-
-	var buf bytes.Buffer
-	if err := f.Write(&buf); err != nil {
+	excelBytes, err := buildISTResultXLSX(o, nil, &inv, &user)
+	if err != nil {
 		c.Redirect("/profile", 302)
 		return
 	}
@@ -2248,7 +2056,7 @@ func (c *ISTTestController) ExportResultExcel() {
 	filename := fmt.Sprintf("ist_result_%s.xlsx", makeSafeName(downloadName))
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
-	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())
+	_, _ = c.Ctx.ResponseWriter.Write(excelBytes)
 }
 
 // AutoCompleteAllSubtestsAPI: DEV HELPER - Auto-complete semua subtest IST dengan jawaban random.

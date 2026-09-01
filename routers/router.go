@@ -83,9 +83,10 @@ func init() {
 			"/reject-device":  true,
 		}
 
-		// Public APIs (auth & contact & captcha & reset password)
+		// Public APIs (auth & contact & captcha & reset password & token-authorized export)
 		if strings.HasPrefix(path, "/api/auth/") ||
-			path == "/api/contact" {
+			path == "/api/contact" ||
+			(path == "/api/results/export-zip" && ctx.Input.Query("token") != "") {
 			return
 		}
 

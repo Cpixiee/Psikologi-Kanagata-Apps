@@ -3835,7 +3835,7 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 				resultData = res
 				excelBytes, fetchErr = buildHollandResultXLSX(o, &batch, &inv, &user)
 			}
-		case "learning_style", "vak":
+		case "learning_style", "vak", "gaya_belajar", "gayabelajar", "learningstyle":
 			friendlyTestName = "Gaya_Belajar"
 			var res models.LearningStyleResult
 			fetchErr = o.QueryTable(new(models.LearningStyleResult)).Filter("Invitation__Id", inv.Id).One(&res)
@@ -3859,7 +3859,7 @@ func (c *PsychotestAdminController) ExportSingleResultZIP() {
 				resultData = res
 				excelBytes, fetchErr = buildRMIBResultXLSX(o, &batch, &inv, &user)
 			}
-		case "papi":
+		case "papi", "papi_kostick", "papikostick":
 			friendlyTestName = "PAPI"
 			var res models.PAPIResult
 			fetchErr = o.QueryTable(new(models.PAPIResult)).Filter("Invitation__Id", inv.Id).One(&res)

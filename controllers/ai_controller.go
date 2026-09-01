@@ -316,7 +316,7 @@ func (c *AIController) TestSummary() {
 	var cacheFile string
 	if cacheKey != "" {
 		sanitizedType := normalizeIndividualTestType(req.TestType)
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v6_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v7_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -1737,26 +1737,17 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 		return systemHint, userPrompt
 
 	case "papi":
-		systemHint := "Anda adalah seorang psikolog kepribadian dan asesor perilaku kerja. Anda menganalisis dinamika kepribadian kerja peserta didik berdasarkan inventori PAPI-Kostick (20 skala aspek)."
+		systemHint := "Anda adalah seorang psikolog kepribadian dan asesor perilaku kerja profesional. Anda menganalisis dinamika kepribadian kerja peserta didik berdasarkan inventori PAPI-Kostick (20 skala aspek) secara tajam, mendalam, dan personal sesuai profil skor riil peserta didik."
 		userPrompt := fmt.Sprintf(`Berikut adalah data hasil tes kepribadian PAPI-Kostick untuk peserta didik bernama %s:
 
 Data Hasil Tes PAPI (JSON):
 %s
 
-Sebagai psikolog kepribadian, susun analisis perilaku kerja yang tajam, komprehensif, dan personal dalam Bahasa Indonesia.
+Sebagai psikolog kepribadian, susun evaluasi psikologis kepribadian kerja yang tajam, profesional, dan personal dalam Bahasa Indonesia.
 Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
 {
   "summary": "1-2 kalimat ringkasan dinamika kepribadian kerja peserta didik",
-  "interpretasi_detail": "narasi kepribadian kerja umum yang terstruktur",
-  "papi_dimensions": {
-    "work_direction": "analisis mendalam dimensi Energi dan Dinamika Kerja (skala N, G, A)",
-    "leadership": "analisis mendalam dimensi Kepemimpinan (skala L, P, I)",
-    "activity": "analisis mendalam dimensi Aktivitas Kerja (skala T, V)",
-    "social_nature": "analisis mendalam dimensi Relasi Sosial (skala S, B, O, X)",
-    "work_style": "analisis mendalam dimensi Gaya Kerja & Keteraturan (skala C, D, R)",
-    "temperament": "analisis mendalam dimensi Temperamen & Emosi (skala Z, E, K)",
-    "follower_authority": "analisis mendalam dimensi Posisi Atasan / Bawahan (skala F, W)"
-  }
+  "interpretasi_detail": "2 paragraf narasi evaluasi psikologis kepribadian kerja mendalam. Paragraf 1 menguraikan energi kerja, ketekunan menyelesaikan tugas mandiri (skala N, G, A), serta dinamika kepemimpinan dan inisiatif dalam tim (skala L, P, I). Paragraf 2 menguraikan gaya kerja & keteraturan sistematis (skala C, D, R), relasi sosial interpersonal (skala S, B, O, X), serta adaptasi dan pengendalian emosi dalam menghadapi dinamika lingkungan kerja/belajar (skala Z, E, K, F, W)."
 }`, studentName, string(resultJSON))
 		return systemHint, userPrompt
 
@@ -1771,7 +1762,7 @@ Sebagai konselor kejuruan, susun analisis minat kerja yang tajam, profesional, d
 Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) dengan struktur persis seperti ini:
 {
   "summary": "1-2 kalimat ringkasan minat karir dominan peserta didik",
-  "interpretasi_detail": "1 paragraf komprehensif yang menguraikan bidang minat peringkat teratas peserta didik dan relevansinya terhadap pemilihan rumpun keilmuan perguruan tinggi dan profesi masa depan."
+  "interpretasi_detail": "2 paragraf narasi evaluasi minat kerja mendalam. Paragraf 1 menguraikan bidang minat peringkat teratas, preferensi aktivitas kerja, dan keterlibatan praktis dalam pemecahan masalah. Paragraf 2 menguraikan relevansi bidang minat tersebut terhadap rumpun keilmuan perguruan tinggi, keselarasan dengan potensi kerja, serta saran langkah pengembangan karir strategis berdasarkan profil minat unik peserta didik."
 }`, studentName, string(resultJSON))
 		return systemHint, userPrompt
 
@@ -2004,10 +1995,56 @@ func generateDetailedRMIBSummary(resultData interface{}, studentName string) map
 		dominant = rm.DominantCategory
 	}
 
-	detail := fmt.Sprintf("Berdasarkan evaluasi tes minat karir RMIB (Rothwell Miller Interest Blank), %s menunjukkan minat pekerjaan dominan pada kategori %s. Peserta didik menunjukkan ketertarikan yang konsisten terhadap bidang tugas yang relevan dengan eksplorasi peminatan ini dan didukung oleh kecenderungan gaya kerja yang selaras.",
-		studentName, dominant)
+	type entry struct {
+		Label string `json:"label"`
+		Score int    `json:"score"`
+		Rank  int    `json:"rank"`
+	}
+	parsed := map[string]entry{}
+	if rm.ResultJSON != "" {
+		_ = json.Unmarshal([]byte(rm.ResultJSON), &parsed)
+	}
 
-	summary := fmt.Sprintf("Berdasarkan evaluasi tes minat RMIB, peserta memiliki minat dominan pada bidang %s.", dominant)
+	codes := []string{"OUT", "MEC", "COMP", "SCI", "PERS", "AEST", "MUS", "LIT", "SOC", "CLER", "PRAC", "MED"}
+	labels := map[string]string{
+		"OUT": "Outdoor", "MEC": "Mechanical", "COMP": "Computational", "SCI": "Scientific",
+		"PERS": "Personal Contact", "AEST": "Aesthetic", "MUS": "Musical", "LIT": "Literary",
+		"SOC": "Social Service", "CLER": "Clerical", "PRAC": "Practical", "MED": "Medical",
+	}
+
+	type aspectRow struct {
+		Name string
+		Rank int
+	}
+	var aspects []aspectRow
+	for _, c := range codes {
+		item := parsed[c]
+		rank := item.Rank
+		if rank == 0 {
+			rank = 12
+		}
+		aspects = append(aspects, aspectRow{Name: labels[c], Rank: rank})
+	}
+	sort.Slice(aspects, func(i, j int) bool {
+		return aspects[i].Rank < aspects[j].Rank
+	})
+
+	top1 := dominant
+	top2 := "Practical"
+	top3 := "Scientific"
+	if len(aspects) >= 3 {
+		top1 = aspects[0].Name
+		top2 = aspects[1].Name
+		top3 = aspects[2].Name
+	}
+
+	p1 := fmt.Sprintf("Berdasarkan evaluasi minat karir RMIB (Rothwell Miller Interest Blank), %s menunjukkan minat pekerjaan dominan pada bidang %s (Peringkat 1), diikuti oleh bidang %s (Peringkat 2) dan %s (Peringkat 3). Peserta didik menunjukkan ketertarikan yang tinggi terhadap aktivitas kerja yang selaras dengan eksplorasi rumpun tersebut serta keterlibatan praktis dalam pemecahan masalah nyata.",
+		studentName, top1, top2, top3)
+	p2 := fmt.Sprintf("Kombinasi minat ini merefleksikan preferensi karir yang kuat dan dapat dioptimalkan melalui pemilihan program studi dan profesi yang relevan. Langkah pengembangan yang disarankan adalah mengeksplorasi mata pelajaran yang relevan dengan ketiga bidang tersebut serta mulai membangun portofolio pengalaman yang mendukung aspirasi karir jangka panjang %s.",
+		studentName)
+
+	detail := p1 + "\n\n" + p2
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes minat RMIB, peserta memiliki minat dominan pada bidang %s yang didukung oleh preferensi %s dan %s.", top1, top2, top3)
 
 	return map[string]interface{}{
 		"summary":             summary,
@@ -2017,153 +2054,54 @@ func generateDetailedRMIBSummary(resultData interface{}, studentName string) map
 
 func generateDetailedPAPISummary(resultData interface{}, studentName string) map[string]interface{} {
 	dominant := "G"
-	if papi, ok := resultData.(models.PAPIResult); ok {
-		if papi.DominantCategory != "" {
-			dominant = papi.DominantCategory
-		}
+	var papi models.PAPIResult
+	if b, err := json.Marshal(resultData); err == nil {
+		_ = json.Unmarshal(b, &papi)
+	}
+	if papi.DominantCategory != "" {
+		dominant = papi.DominantCategory
 	}
 
-	summary := fmt.Sprintf("Berdasarkan integrasi evaluasi tes psikologi (PAPI), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
+	type entry struct {
+		Label string `json:"label"`
+		Score int    `json:"score"`
+		Rank  int    `json:"rank"`
+	}
+	parsed := map[string]entry{}
+	if papi.ResultJSON != "" {
+		_ = json.Unmarshal([]byte(papi.ResultJSON), &parsed)
+	}
+
+	sG := parsed["G"].Score
+	sL := parsed["L"].Score
+	sI := parsed["I"].Score
+	sS := parsed["S"].Score
+	sC := parsed["C"].Score
+	sE := parsed["E"].Score
+	sN := parsed["N"].Score
+	sW := parsed["W"].Score
+
+	catKetekunan := getPAPICategory(sN)
+	catKerjaKeras := getPAPICategory(sG)
+	catPemimpin := getPAPICategory(sL)
+	catKeputusan := getPAPICategory(sI)
+	catSosial := getPAPICategory(sS)
+	catTeratur := getPAPICategory(sC)
+	catEmosi := getPAPICategory(sE)
+	catAturan := getPAPICategory(sW)
+
+	p1 := fmt.Sprintf("Berdasarkan evaluasi dinamika kepribadian kerja (PAPI-Kostick), %s menunjukkan tipe peran dominan %s dengan tingkat ketekunan menyelesaikan tugas mandiri (skala N) yang tergolong %s serta etos kerja keras (skala G) yang %s. Dalam situasi kelompok, %s menunjukkan potensi kepemimpinan (skala L) pada taraf %s yang didukung oleh kemampuan mengambil keputusan (skala I) yang %s. Hal ini mencerminkan dorongan yang positif untuk mengambil inisiatif mandiri, menjaga komitmen penyelesaian target, serta mengarahkan usaha secara terstruktur.",
+		studentName, dominant, strings.ToLower(catKetekunan), strings.ToLower(catKerjaKeras), studentName, strings.ToLower(catPemimpin), strings.ToLower(catKeputusan))
+
+	p2 := fmt.Sprintf("Pada aspek relasi interpersonal dan gaya kerja, %s menunjukkan kemampuan interaksi sosial (skala S) yang %s serta keteraturan dan pengorganisasian tugas (skala C) pada taraf %s. Dalam menghadapi tekanan atau dinamika lingkungan, stabilitas pengendalian emosi (skala E) berada pada kategori %s, sementara ketaatan terhadap prosedur dan aturan kerja (skala W) tergolong %s. Profil kepribadian ini menunjukkan bahwa %s memiliki kemampuan adaptasi yang baik dalam lingkungan belajar maupun tim kerja yang menuntut keseimbangan antara inisiatif pribadi dan kolaborasi kelompok.",
+		studentName, strings.ToLower(catSosial), strings.ToLower(catTeratur), strings.ToLower(catEmosi), strings.ToLower(catAturan), studentName)
+
+	detail := p1 + "\n\n" + p2
+	summary := fmt.Sprintf("Berdasarkan evaluasi tes kepribadian kerja (PAPI), peserta menunjukkan profil peran dominan %s dengan kapasitas inisiatif mandiri, ketekunan kerja, dan relasi interpersonal yang adaptif.", dominant)
 
 	return map[string]interface{}{
-		"summary":           summary,
-		"dominant_category": dominant,
-		"papi_dimensions": map[string]interface{}{
-			"work_direction": map[string]interface{}{
-				"title": "ENERGI DAN DINAMIKA KERJA (WORK DIRECTION)",
-				"items": []map[string]string{
-					{
-						"aspect": "N (Need to Persistently finish a task)",
-						"score":  "6 - Acceptable",
-						"desc":   "Cukup bertanggungjawab terhadap pekerjaan.",
-					},
-					{
-						"aspect": "G (Role - hard, intense worker)",
-						"score":  "9 - Area of Development",
-						"desc":   "Bekerja dengan sangat keras, seakan harus melakukan seluruhnya dan membutuhkan usaha lebih.",
-					},
-					{
-						"aspect": "A (Need - to achieve)",
-						"score":  "5 - Optimal Range",
-						"desc":   "Mencerminkan ketidakpastian terhadap tujuan, misalnya apa yang dihasilkan dari adanya promosi atau perubahan struktur kerja. Juga mencerminkan kesukaan terhadap pekerjaan, dalam hal ini tidak diperlukannya perjuangan keras untuk kesuksesan.",
-					},
-				},
-			},
-			"leadership": map[string]interface{}{
-				"title": "KEPEMIMPINAN (LEADERSHIP)",
-				"items": []map[string]string{
-					{
-						"aspect": "L (Role - Leader)",
-						"score":  "7 - Optimal Range",
-						"desc":   "Subyek secara aktif mencoba untuk mencapai tugas dengan kemampuannya sendiri.",
-					},
-					{
-						"aspect": "P (Need - to control other)",
-						"score":  "3 - Acceptable",
-						"desc":   "Adanya keinginan untuk bertanggungjawab terhadap pekerjaan dan tindakan orang lain.",
-					},
-					{
-						"aspect": "I (Role - Decision maker)",
-						"score":  "5 - Optimal Range",
-						"desc":   "Cukup yakin dengan apa yang dikerjakannya sendiri.",
-					},
-				},
-			},
-			"activity": map[string]interface{}{
-				"title": "AKTIVITAS KERJA (ACTIVITY)",
-				"items": []map[string]string{
-					{
-						"aspect": "T (Role - Pace)",
-						"score":  "6 - Optimal Range",
-						"desc":   "Memiliki ritme kerja yang dinamis dan mampu menyelesaikan tugas tepat waktu.",
-					},
-					{
-						"aspect": "V (Role - Vigorous)",
-						"score":  "7 - Optimal Range",
-						"desc":   "Menunjukkan stamina dan energi kerja yang positif saat beraktivitas.",
-					},
-				},
-			},
-			"social_nature": map[string]interface{}{
-				"title": "RELASI SOSIAL (SOCIAL NATURE)",
-				"items": []map[string]string{
-					{
-						"aspect": "S (Role - Social Extension)",
-						"score":  "6 - Acceptable",
-						"desc":   "Mampu menjalin hubungan sosial yang hangat dan komunikatif di lingkungan kelompok.",
-					},
-					{
-						"aspect": "B (Need - to belong to groups)",
-						"score":  "5 - Acceptable",
-						"desc":   "Memiliki kebutuhan adaptasi kelompok yang wajar dan mampu bekerja sama secara kooperatif.",
-					},
-					{
-						"aspect": "O (Need - for closeness and affection)",
-						"score":  "4 - Acceptable",
-						"desc":   "Dapat menjaga kedekatan interpersonal secara proporsional dalam konteks tugas.",
-					},
-					{
-						"aspect": "X (Need - for notice)",
-						"score":  "5 - Acceptable",
-						"desc":   "Tidak berlebihan mencari perhatian, fokus pada kontribusi tugas yang nyata.",
-					},
-				},
-			},
-			"work_style": map[string]interface{}{
-				"title": "GAYA KERJA & KETERATURAN (WORK STYLE)",
-				"items": []map[string]string{
-					{
-						"aspect": "C (Role - Organized)",
-						"score":  "8 - Area of Development",
-						"desc":   "Sangat menyukai keteraturan dan kerapian sistematis dalam pengorganisasian tugas.",
-					},
-					{
-						"aspect": "D (Role - Detail/Detail-conscious)",
-						"score":  "5 - Acceptable",
-						"desc":   "Memperhatikan detail pekerjaan secara cermat tanpa kehilangan gambaran umum.",
-					},
-					{
-						"aspect": "R (Role - Theoretical)",
-						"score":  "6 - Optimal Range",
-						"desc":   "Mampu menggabungkan konsep teoritis dengan pemecahan masalah praktis.",
-					},
-				},
-			},
-			"temperament": map[string]interface{}{
-				"title": "TEMPERAMEN & PENGENDALIAN EMOSI (TEMPERAMENT)",
-				"items": []map[string]string{
-					{
-						"aspect": "Z (Need - for change)",
-						"score":  "6 - Optimal Range",
-						"desc":   "Terbuka terhadap inovasi dan perubahan lingkungan yang membangun.",
-					},
-					{
-						"aspect": "E (Role - Emotional restraint)",
-						"score":  "5 - Acceptable",
-						"desc":   "Mampu mengendalikan emosi dan bersikap objektif saat menghadapi tekanan.",
-					},
-					{
-						"aspect": "K (Role - Aggressive/Assertive)",
-						"score":  "7 - Optimal Range",
-						"desc":   "Menunjukkan ketegasan dan keberanian dalam mempertahankan pendapat secara profesional.",
-					},
-				},
-			},
-			"follower_authority": map[string]interface{}{
-				"title": "POSISI TERHADAP OTORITAS (FOLLOWER/AUTHORITY)",
-				"items": []map[string]string{
-					{
-						"aspect": "F (Need - to support authority)",
-						"score":  "6 - Optimal Range",
-						"desc":   "Loyal dan mendukung arahan atasan serta kebijakan institusi secara konstruktif.",
-					},
-					{
-						"aspect": "W (Need - for rules and supervision)",
-						"score":  "5 - Acceptable",
-						"desc":   "Mengikuti standar prosedur dan aturan kerja yang berlaku dengan konsisten.",
-					},
-				},
-			},
-		},
+		"summary":             summary,
+		"dominant_category":   dominant,
+		"interpretasi_detail": detail,
 	}
 }

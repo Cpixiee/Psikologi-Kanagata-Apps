@@ -183,7 +183,7 @@ func buildRMIBResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestI
 
 	row := headerRow + 1
 	for i, r := range allRows {
-		isTop3 := r.Code == res.Top1 || r.Code == res.Top2 || r.Code == res.Top3
+		isTop3 := r.Rank <= 3 || (i < 3 && r.Rank <= 3)
 		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row), i+1)
 		_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", row), r.Label+" ("+r.Code+")")
 		_ = f.SetCellValue(sheet, fmt.Sprintf("D%d", row), r.Score)
@@ -198,10 +198,20 @@ func buildRMIBResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.TestI
 
 	row++
 	_ = f.MergeCell(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("E%d", row))
+	top1Name := rmibCategoryLabel[res.Top1]
+	if top1Name == "" && len(allRows) > 0 {
+		top1Name = allRows[0].Label
+	}
+	top2Name := rmibCategoryLabel[res.Top2]
+	if top2Name == "" && len(allRows) > 1 {
+		top2Name = allRows[1].Label
+	}
+	top3Name := rmibCategoryLabel[res.Top3]
+	if top3Name == "" && len(allRows) > 2 {
+		top3Name = allRows[2].Label
+	}
 	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row),
-		"3 Minat Dominan: 1) "+rmibCategoryLabel[res.Top1]+
-			"  2) "+rmibCategoryLabel[res.Top2]+
-			"  3) "+rmibCategoryLabel[res.Top3])
+		fmt.Sprintf("3 Minat Dominan: 1) %s  2) %s  3) %s", top1Name, top2Name, top3Name))
 	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("E%d", row), styleHeader)
 
 	buf, err := f.WriteToBuffer()
@@ -343,7 +353,9 @@ func buildKraepelinResultXLSX(o orm.Ormer, batch *models.TestBatch, inv *models.
 	}
 	var att models.KraepelinAttempt
 	if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).Filter("Status", "finished").One(&att); err != nil || att.Id == 0 {
-		return nil, fmt.Errorf("no kraepelin attempt")
+		if err2 := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&att); err2 != nil || att.Id == 0 {
+			return nil, fmt.Errorf("no kraepelin attempt")
+		}
 	}
 
 	var counts []int

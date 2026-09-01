@@ -15,7 +15,6 @@ import (
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
-	"github.com/xuri/excelize/v2"
 )
 
 // RMIBTestController menangani alur pengerjaan tes RMIB (versi pria/wanita).
@@ -966,154 +965,16 @@ func (c *RMIBTestController) ExportResultExcel() {
 		return
 	}
 
-	var res models.RMIBResult
-	if err := o.QueryTable(new(models.RMIBResult)).Filter("Invitation__Id", inv.Id).One(&res); err != nil || res.Id == 0 {
-		c.Redirect("/profile/rmib", 302)
-		return
-	}
-
-	// Parse skor
-	type entry struct {
-		Label string `json:"label"`
-		Score int    `json:"score"`
-		Rank  int    `json:"rank"`
-	}
-	parsed := map[string]entry{}
-	_ = json.Unmarshal([]byte(res.ResultJSON), &parsed)
-
-	f := excelize.NewFile()
-	sheet := "RMIB"
-	f.SetSheetName(f.GetSheetName(0), sheet)
-	showGridLines := false
-	_ = f.SetSheetView(sheet, 0, &excelize.ViewOptions{ShowGridLines: &showGridLines})
-
-	borderAll := []excelize.Border{
-		{Type: "left", Color: "000000", Style: 1},
-		{Type: "right", Color: "000000", Style: 1},
-		{Type: "top", Color: "000000", Style: 1},
-		{Type: "bottom", Color: "000000", Style: 1},
-	}
-	styleTitle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 14},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-	})
-	styleHeader, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true},
-		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#CFE2F3"}, Pattern: 1},
-		Border:    borderAll,
-	})
-	styleBody, _ := f.NewStyle(&excelize.Style{
-		Alignment: &excelize.Alignment{Vertical: "center"},
-		Border:    borderAll,
-	})
-	styleTop3, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Color: "#1B5E20"},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#C6EFCE"}, Pattern: 1},
-		Alignment: &excelize.Alignment{Vertical: "center"},
-		Border:    borderAll,
-	})
-
-	_ = f.SetColWidth(sheet, "A", "A", 6)
-	_ = f.SetColWidth(sheet, "B", "B", 24)
-	_ = f.SetColWidth(sheet, "C", "C", 14)
-	_ = f.SetColWidth(sheet, "D", "D", 12)
-	_ = f.SetColWidth(sheet, "E", "E", 18)
-
-	_ = f.MergeCell(sheet, "A1", "E1")
-	_ = f.SetCellValue(sheet, "A1", "HASIL TES RMIB ("+strings.ToUpper(res.GenderVersion)+")")
-	_ = f.SetCellStyle(sheet, "A1", "A1", styleTitle)
-
-	nama := strings.TrimSpace(user.NamaLengkap)
-	if nama == "" {
-		nama = user.Email
-	}
-	nisnNip := strings.TrimSpace(user.NISN)
-	idLabel := "NISN"
-	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
-		nisnNip = user.NIP
-		idLabel = "NIP"
-	}
-	if nisnNip == "" {
-		idLabel = "NISN/NIP"
-	}
-
-	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", ":")
-	_ = f.SetCellValue(sheet, "C3", nama)
-	_ = f.SetCellValue(sheet, "A4", idLabel)
-	_ = f.SetCellValue(sheet, "B4", ":")
-	_ = f.SetCellValue(sheet, "C4", nisnNip)
-	_ = f.SetCellValue(sheet, "A5", "Kelas")
-	_ = f.SetCellValue(sheet, "B5", ":")
-	_ = f.SetCellValue(sheet, "C5", user.Kelas)
-	_ = f.SetCellValue(sheet, "A6", "Jurusan")
-	_ = f.SetCellValue(sheet, "B6", ":")
-	_ = f.SetCellValue(sheet, "C6", user.Jurusan)
-	_ = f.SetCellValue(sheet, "A7", "Email")
-	_ = f.SetCellValue(sheet, "B7", ":")
-	_ = f.SetCellValue(sheet, "C7", user.Email)
-	_ = f.SetCellValue(sheet, "A8", "Tanggal")
-	_ = f.SetCellValue(sheet, "B8", ":")
-	_ = f.SetCellValue(sheet, "C8", res.CompletedAt.Format("02 Jan 2006 15:04"))
-
-	headerRow := 10
-	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", headerRow), "No")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", headerRow), "Kategori")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", headerRow), "Total Skor")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("D%d", headerRow), "Peringkat")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("E%d", headerRow), "Tingkat Minat")
-	_ = f.SetCellStyle(sheet,
-		fmt.Sprintf("A%d", headerRow), fmt.Sprintf("E%d", headerRow), styleHeader)
-
-	// Build sorted rows by rank ASC.
-	type catRow struct {
-		Code  string
-		Label string
-		Score int
-		Rank  int
-	}
-	allRows := make([]catRow, 0, len(rmibCategoryOrder))
-	for _, code := range rmibCategoryOrder {
-		e, ok := parsed[code]
-		if !ok {
-			e = entry{Label: rmibCategoryLabel[code]}
+	var batch *models.TestBatch
+	if inv.BatchId != nil {
+		var b models.TestBatch
+		b.Id = *inv.BatchId
+		if o.Read(&b) == nil {
+			batch = &b
 		}
-		allRows = append(allRows, catRow{Code: code, Label: rmibCategoryLabel[code], Score: e.Score, Rank: e.Rank})
-	}
-	sort.SliceStable(allRows, func(i, j int) bool {
-		return allRows[i].Rank < allRows[j].Rank
-	})
-
-	row := headerRow + 1
-	for i, r := range allRows {
-		isTop3 := r.Code == res.Top1 || r.Code == res.Top2 || r.Code == res.Top3
-		levelLabel, _ := categoryLabelFromRank(r.Rank)
-
-		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row), i+1)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", row), r.Label+" ("+r.Code+")")
-		_ = f.SetCellValue(sheet, fmt.Sprintf("C%d", row), r.Score)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("D%d", row), r.Rank)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("E%d", row), levelLabel)
-
-		st := styleBody
-		if isTop3 {
-			st = styleTop3
-		}
-		_ = f.SetCellStyle(sheet,
-			fmt.Sprintf("A%d", row), fmt.Sprintf("E%d", row), st)
-		row++
 	}
 
-	row += 2
-	_ = f.MergeCell(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("E%d", row))
-	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", row),
-		"3 Minat Dominan: 1) "+rmibCategoryLabel[res.Top1]+
-			"  2) "+rmibCategoryLabel[res.Top2]+
-			"  3) "+rmibCategoryLabel[res.Top3])
-	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("E%d", row), styleHeader)
-
-	buf, err := f.WriteToBuffer()
+	excelBytes, err := buildRMIBResultXLSX(o, batch, &inv, &user)
 	if err != nil {
 		c.Redirect("/profile/rmib", 302)
 		return
@@ -1125,22 +986,35 @@ func (c *RMIBTestController) ExportResultExcel() {
 			return "user"
 		}
 		var b strings.Builder
+		lastUnderscore := false
 		for _, r := range s {
-			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			isAlphaNum := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+			if isAlphaNum {
 				b.WriteRune(r)
-			} else if r == ' ' || r == '_' || r == '-' {
+				lastUnderscore = false
+				continue
+			}
+			if !lastUnderscore {
 				b.WriteRune('_')
+				lastUnderscore = true
 			}
 		}
-		out := b.String()
+		out := strings.Trim(b.String(), "_")
 		if out == "" {
 			return "user"
 		}
 		return out
 	}
 
-	filename := fmt.Sprintf("rmib_%s_%s.xlsx", makeSafeName(nama), time.Now().Format("20060102"))
+	downloadName := strings.TrimSpace(user.NamaLengkap)
+	if downloadName == "" {
+		downloadName = strings.TrimSpace(user.Email)
+	}
+	if downloadName == "" {
+		downloadName = strings.TrimSpace(inv.Email)
+	}
+	filename := fmt.Sprintf("rmib_result_%s.xlsx", makeSafeName(downloadName))
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
-	c.Ctx.ResponseWriter.Write(buf.Bytes())
+	_, _ = c.Ctx.ResponseWriter.Write(excelBytes)
 }

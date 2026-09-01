@@ -14,7 +14,6 @@ import (
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
-	"github.com/xuri/excelize/v2"
 )
 
 // KraepelinTestController menangani alur pengerjaan tes Kraepelin.
@@ -680,355 +679,16 @@ func (c *KraepelinTestController) ExportResultExcel() {
 		c.Redirect("/test/kraepelin/finish", 302)
 		return
 	}
-
-	var att models.KraepelinAttempt
-	if err := o.QueryTable(new(models.KraepelinAttempt)).Filter("Invitation__Id", inv.Id).One(&att); err != nil || att.Id == 0 {
-		c.Redirect("/test/kraepelin/finish", 302)
-		return
-	}
-
-	// Parse counts (raw app: 40 kolom).
-	counts := make([]int, 40)
-	if strings.TrimSpace(att.CorrectCountsJSON) != "" {
-		_ = json.Unmarshal([]byte(att.CorrectCountsJSON), &counts)
-	}
-	if len(counts) != 40 {
-		counts = make([]int, 40)
-	}
-
-	// Faktor-faktor
-	maxY := 0
-	minY := 0
-	if len(counts) > 0 {
-		maxY = counts[0]
-		minY = counts[0]
-		for _, v := range counts {
-			if v > maxY {
-				maxY = v
-			}
-			if v < minY {
-				minY = v
-			}
+	var batch *models.TestBatch
+	if inv.BatchId != nil {
+		var b models.TestBatch
+		b.Id = *inv.BatchId
+		if o.Read(&b) == nil {
+			batch = &b
 		}
 	}
-	// Garis setimbang: (puncak tertinggi + puncak terendah)/2
-	balanceLine := float64(maxY+minY) / 2.0
-	aboveCount := 0
-	onLineCount := 0
-	for _, v := range counts {
-		if float64(v) > balanceLine {
-			aboveCount++
-		}
-		if float64(v) == balanceLine {
-			onLineCount++
-		}
-	}
-	// Panker: (2 * jumlah angka di atas garis setimbang - angka di garis setimbang) / 40
-	// "angka di garis setimbang" ditafsirkan sebagai jumlah titik yang tepat di garis setimbang.
-	panker := (2.0*float64(aboveCount) - float64(onLineCount)) / 40.0
-	// Janker: skor tertinggi - skor terendah
-	janker := maxY - minY
-	// Hanker: y(0), y(40), y(40)-y(0)
-	y0 := 0
-	yLast := 0
-	if len(counts) > 0 {
-		y0 = counts[0]
-		yLast = counts[len(counts)-1]
-	}
-	hankerDiff := yLast - y0
-	// Tianker: sum of error + sum of skippeds
-	tianker := att.TotalErrors + att.TotalSkipped
 
-	f := excelize.NewFile()
-	sheet := "Kraepelin"
-	f.SetSheetName(f.GetSheetName(0), sheet)
-	showGridLines := false
-	_ = f.SetSheetView(sheet, 0, &excelize.ViewOptions{ShowGridLines: &showGridLines})
-
-	_ = f.SetColWidth(sheet, "A", "A", 10)
-	_ = f.SetColWidth(sheet, "B", "B", 12)
-	_ = f.SetColWidth(sheet, "D", "E", 20)
-	_ = f.SetColWidth(sheet, "G", "N", 10)
-	_ = f.SetColWidth(sheet, "C", "C", 4)
-	_ = f.SetColWidth(sheet, "F", "F", 4)
-
-	titleStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 16},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	labelStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 10},
-		Alignment: &excelize.Alignment{Horizontal: "left"},
-	})
-	valueStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Size: 10},
-		Alignment: &excelize.Alignment{Horizontal: "left"},
-	})
-	xyHeaderStyle, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Bold: true, Size: 10},
-		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"#C8A2FF"}},
-		Border: []excelize.Border{
-			{Type: "left", Color: "000000", Style: 1},
-			{Type: "right", Color: "000000", Style: 1},
-			{Type: "top", Color: "000000", Style: 1},
-			{Type: "bottom", Color: "000000", Style: 1},
-		},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	xColStyle, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Size: 10},
-		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"#F8CBED"}},
-		Border: []excelize.Border{
-			{Type: "left", Color: "000000", Style: 1},
-			{Type: "right", Color: "000000", Style: 1},
-			{Type: "top", Color: "000000", Style: 1},
-			{Type: "bottom", Color: "000000", Style: 1},
-		},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	yColStyle, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Size: 10},
-		Border: []excelize.Border{
-			{Type: "left", Color: "000000", Style: 1},
-			{Type: "right", Color: "000000", Style: 1},
-			{Type: "top", Color: "000000", Style: 1},
-			{Type: "bottom", Color: "000000", Style: 1},
-		},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	boxTitleStyle, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Bold: true, Size: 10},
-		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"#F2F2F2"}},
-		Border: []excelize.Border{
-			{Type: "left", Color: "000000", Style: 1},
-			{Type: "right", Color: "000000", Style: 1},
-			{Type: "top", Color: "000000", Style: 1},
-			{Type: "bottom", Color: "000000", Style: 1},
-		},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	boxCellStyle, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Size: 10},
-		Border: []excelize.Border{
-			{Type: "left", Color: "000000", Style: 1},
-			{Type: "right", Color: "000000", Style: 1},
-			{Type: "top", Color: "000000", Style: 1},
-			{Type: "bottom", Color: "000000", Style: 1},
-		},
-		Alignment: &excelize.Alignment{Horizontal: "left"},
-	})
-
-	// Header biodata sederhana (akan disempurnakan supaya mirip template gambar)
-	_ = f.SetCellValue(sheet, "A1", "TES KRAEPELIN")
-	_ = f.MergeCell(sheet, "A1", "E1")
-	_ = f.SetCellStyle(sheet, "A1", "E1", titleStyle)
-	// NISN/NIP & Kelas dari profil User (authoritative), Jurusan tetap dari att.TestMajor
-	nisnNip := strings.TrimSpace(user.NISN)
-	idLabel := "NISN"
-	if nisnNip == "" && strings.TrimSpace(user.NIP) != "" {
-		nisnNip = user.NIP
-		idLabel = "NIP"
-	}
-	if nisnNip == "" {
-		idLabel = "NISN/NIP"
-	}
-	nama := att.TestName
-	if strings.TrimSpace(user.NamaLengkap) != "" {
-		nama = user.NamaLengkap
-	}
-	jurusan := att.TestMajor
-	if strings.TrimSpace(jurusan) == "" {
-		jurusan = user.Jurusan
-	}
-
-	_ = f.SetCellValue(sheet, "A3", "Nama")
-	_ = f.SetCellValue(sheet, "B3", nama)
-	_ = f.SetCellValue(sheet, "A4", idLabel)
-	_ = f.SetCellValue(sheet, "B4", nisnNip)
-	_ = f.SetCellValue(sheet, "A5", "Kelas")
-	_ = f.SetCellValue(sheet, "B5", user.Kelas)
-	_ = f.SetCellValue(sheet, "A6", "Jurusan")
-	_ = f.SetCellValue(sheet, "B6", jurusan)
-	_ = f.SetCellValue(sheet, "A7", "Jenis kelamin")
-	_ = f.SetCellValue(sheet, "B7", att.TestGender)
-	_ = f.SetCellValue(sheet, "A8", "Pendidikan")
-	_ = f.SetCellValue(sheet, "B8", att.TestEducation)
-	_ = f.SetCellValue(sheet, "A9", "Tanggal tes")
-	_ = f.SetCellValue(sheet, "B9", att.TestDate.Format("2006-01-02 15:04"))
-	_ = f.SetCellValue(sheet, "A10", "Tester")
-	_ = f.SetCellValue(sheet, "B10", att.Tester)
-	_ = f.SetCellStyle(sheet, "A3", "A10", labelStyle)
-	_ = f.SetCellStyle(sheet, "B3", "B10", valueStyle)
-
-	// Table input (x=1..40, y=benar per kolom) sesuai jumlah raw data tes.
-	startRow := 11
-	_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", startRow), "x")
-	_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", startRow), "y")
-	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", startRow), fmt.Sprintf("B%d", startRow), xyHeaderStyle)
-	for i := 0; i < 40; i++ {
-		r := startRow + 1 + i
-		_ = f.SetCellValue(sheet, fmt.Sprintf("A%d", r), i+1)
-		_ = f.SetCellValue(sheet, fmt.Sprintf("B%d", r), counts[i])
-	}
-	_ = f.SetCellStyle(sheet, fmt.Sprintf("A%d", startRow+1), fmt.Sprintf("A%d", startRow+40), xColStyle)
-	_ = f.SetCellStyle(sheet, fmt.Sprintf("B%d", startRow+1), fmt.Sprintf("B%d", startRow+40), yColStyle)
-
-	// Kode pendidikan boxes (template-like static reference, 4 blok).
-	writeEduBox := func(title string, start int, rows []string) {
-		_ = f.SetCellValue(sheet, fmt.Sprintf("D%d", start), title)
-		_ = f.MergeCell(sheet, fmt.Sprintf("D%d", start), fmt.Sprintf("E%d", start))
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("D%d", start), fmt.Sprintf("E%d", start), boxTitleStyle)
-		for i, v := range rows {
-			r := start + 1 + i
-			_ = f.SetCellValue(sheet, fmt.Sprintf("D%d", r), v)
-			_ = f.MergeCell(sheet, fmt.Sprintf("D%d", r), fmt.Sprintf("E%d", r))
-		}
-		_ = f.SetCellStyle(sheet, fmt.Sprintf("D%d", start+1), fmt.Sprintf("E%d", start+len(rows)), boxCellStyle)
-	}
-	writeEduBox("Kode pendidikan Panker", 11, []string{
-		"1  SMEA", "2  STM", "3  SMA IPA-IPS", "4  Sarjana muda ilmu sosial",
-		"5  Sarjana muda ilmu sosial (P)", "6  Sarjana muda ilmu eksakta",
-		"7  Sarjana ilmu sosial", "8  Sarjana ilmu eksakta",
-	})
-	writeEduBox("Kode pendidikan Janker", 21, []string{
-		"1  SMEA", "2  STM", "3  SMA IPA-IPS", "4  Sarjana muda IPA-IPS", "5  Sarjana IPA-IPS",
-	})
-	writeEduBox("Kode pendidikan Hanker", 28, []string{
-		"1  SMEA", "2  STM", "3  SMA IPA-IPS", "4  Sarjana muda IPS (L)",
-		"5  Sarjana muda IPS (P)", "6  Sarjana IPA", "7  Sarjana IPS",
-	})
-	writeEduBox("Kode pendidikan Tianker", 37, []string{
-		"1  SMEA", "2  STM", "3  SMA IPA", "4  SMA IPS", "5  SMA (L)",
-		"6  SMA (P)", "7  Sarjana muda IPA-IPS (L/P)", "8  Sarjana IPA-IPS",
-	})
-
-	// Ringkasan atas: hanya Sum of Error / Sum of Skippeds (tanpa daftar faktor dobel).
-	_ = f.SetCellValue(sheet, "H3", "Sum of Error")
-	_ = f.SetCellValue(sheet, "I3", att.TotalErrors)
-	_ = f.SetCellValue(sheet, "H4", "Sum of Skippeds")
-	_ = f.SetCellValue(sheet, "I4", att.TotalSkipped)
-	_ = f.SetCellStyle(sheet, "H3", "H4", labelStyle)
-	_ = f.SetCellStyle(sheet, "I3", "I4", yColStyle)
-
-	// Blok analisis sederhana (layout mirip template).
-	// Letakkan blok panker dkk di bawah sum, dengan jarak agar tidak terlalu rapat.
-	_ = f.SetCellValue(sheet, "H10", "Pembulatan")
-	_ = f.SetCellValue(sheet, "I10", "Analisis")
-	analysisHeaderStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 10},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	_ = f.SetCellStyle(sheet, "H10", "I10", analysisHeaderStyle)
-	_ = f.SetCellValue(sheet, "G11", "Panker")
-	_ = f.SetCellValue(sheet, "G12", "Janker")
-	_ = f.SetCellValue(sheet, "G13", "Hanker y(40)-y(0)")
-	_ = f.SetCellValue(sheet, "G14", "Tianker")
-	_ = f.SetCellValue(sheet, "H11", fmt.Sprintf("%.2f", panker))
-	_ = f.SetCellValue(sheet, "H12", fmt.Sprintf("%.2f", float64(janker)))
-	_ = f.SetCellValue(sheet, "H13", fmt.Sprintf("%.2f", float64(hankerDiff)))
-	_ = f.SetCellValue(sheet, "H14", fmt.Sprintf("%d", tianker))
-	_ = f.SetCellValue(sheet, "I11", "(speed factor)")
-	_ = f.SetCellValue(sheet, "I12", "(rhitme factor)")
-	_ = f.SetCellValue(sheet, "I13", "(ausdeur factor)")
-	_ = f.SetCellValue(sheet, "I14", "(tianker)")
-	redValueStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Size: 10, Color: "#000000"},
-		Fill:      excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"#FF0000"}},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
-	_ = f.SetCellStyle(sheet, "H11", "H14", redValueStyle)
-	_ = f.SetCellStyle(sheet, "G11", "G14", labelStyle)
-	_ = f.SetCellStyle(sheet, "I11", "I14", valueStyle)
-
-	// Pastikan tidak ada placeholder tombol analisis dari template lama.
-	_ = f.SetCellValue(sheet, "L6", "")
-	_ = f.SetCellValue(sheet, "L7", "")
-	_ = f.SetCellValue(sheet, "L8", "")
-	_ = f.SetCellValue(sheet, "L9", "")
-	_ = f.SetCellValue(sheet, "G6", "")
-	_ = f.SetCellValue(sheet, "G7", "")
-	_ = f.SetCellValue(sheet, "G8", "")
-	_ = f.SetCellValue(sheet, "G9", "")
-	_ = f.SetCellValue(sheet, "H6", "")
-	_ = f.SetCellValue(sheet, "H7", "")
-	_ = f.SetCellValue(sheet, "H8", "")
-	_ = f.SetCellValue(sheet, "H9", "")
-	_ = f.SetCellValue(sheet, "I6", "")
-	_ = f.SetCellValue(sheet, "I7", "")
-	_ = f.SetCellValue(sheet, "I8", "")
-	_ = f.SetCellValue(sheet, "I9", "")
-	cleanStyle, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Size: 10},
-		Alignment: &excelize.Alignment{Horizontal: "left"},
-	})
-	_ = f.SetCellStyle(sheet, "G6", "I9", cleanStyle)
-
-	// Add line chart langsung di sheet utama agar user langsung lihat seperti template.
-	categories := fmt.Sprintf("%s!$A$12:$A$51", sheet)
-	values := fmt.Sprintf("%s!$B$12:$B$51", sheet)
-	_ = f.SetCellValue(sheet, "D46", "GRAFIK HASIL TES KRAEPELIN")
-	_ = f.MergeCell(sheet, "D46", "N46")
-	_ = f.SetCellStyle(sheet, "D46", "N46", titleStyle)
-	xMin := 1.0
-	xMax := 50.0
-	xMajor := 1.0
-	yMin := 0.0
-	yMax := 35.0
-	yMajor := 1.0
-	chartErr := f.AddChart(sheet, "C47", &excelize.Chart{
-		Type: excelize.Line,
-		Series: []excelize.ChartSeries{
-			{
-				Name:       "Nilai y",
-				Categories: categories,
-				Values:     values,
-				Marker: excelize.ChartMarker{
-					Symbol: "none",
-					Size:   0,
-				},
-			},
-		},
-		XAxis: excelize.ChartAxis{
-			Minimum:   &xMin,
-			Maximum:   &xMax,
-			MajorUnit: xMajor,
-		},
-		YAxis: excelize.ChartAxis{
-			Minimum:   &yMin,
-			Maximum:   &yMax,
-			MajorUnit: yMajor,
-		},
-		Legend: excelize.ChartLegend{Position: "bottom"},
-	})
-	if chartErr != nil {
-		// Fallback chart lebih sederhana untuk kompatibilitas excelize versi lama.
-		_ = f.AddChart(sheet, "C47", &excelize.Chart{
-			Type: excelize.Line,
-			Series: []excelize.ChartSeries{
-				{
-					Name:       "Nilai y",
-					Categories: categories,
-					Values:     values,
-					Marker: excelize.ChartMarker{
-						Symbol: "none",
-						Size:   0,
-					},
-				},
-			},
-			XAxis: excelize.ChartAxis{
-				Minimum:   &xMin,
-				Maximum:   &xMax,
-				MajorUnit: xMajor,
-			},
-			YAxis: excelize.ChartAxis{
-				Minimum:   &yMin,
-				Maximum:   &yMax,
-				MajorUnit: yMajor,
-			},
-		})
-	}
-
-	buf, err := f.WriteToBuffer()
+	excelBytes, err := buildKraepelinResultXLSX(o, batch, &inv, &user)
 	if err != nil {
 		c.Redirect("/test/kraepelin/finish", 302)
 		return
@@ -1059,10 +719,7 @@ func (c *KraepelinTestController) ExportResultExcel() {
 		}
 		return out
 	}
-	downloadName := strings.TrimSpace(att.TestName)
-	if downloadName == "" {
-		downloadName = strings.TrimSpace(user.NamaLengkap)
-	}
+	downloadName := strings.TrimSpace(user.NamaLengkap)
 	if downloadName == "" {
 		downloadName = strings.TrimSpace(user.Email)
 	}
@@ -1072,7 +729,7 @@ func (c *KraepelinTestController) ExportResultExcel() {
 	filename := fmt.Sprintf("kraepelin_result_%s.xlsx", makeSafeName(downloadName))
 	c.Ctx.Output.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Ctx.Output.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
-	_, _ = c.Ctx.ResponseWriter.Write(buf.Bytes())
+	_, _ = c.Ctx.ResponseWriter.Write(excelBytes)
 }
 
 // DEV ONLY: POST /test/kraepelin/dev-autofill

@@ -2309,36 +2309,45 @@
         if (!kelasJurusan) kelasJurusan = '-';
         var tanggalPemeriksaan = dateStr ? new Date(dateStr).toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'}) : '-';
 
+        // Format detailed AI interpretation
+        var detailInterpretation = aiData.interpretasi_detail || aiData.summary || '';
+        var detailParas = detailInterpretation.split(/\n+/).filter(function(p) { return p.trim().length > 0; });
+        var detailHtml = detailParas.map(function(p) {
+          return '<p class="text-secondary mb-2" style="line-height:1.6; text-align:justify; font-size:13px;">' + esc(p) + '</p>';
+        }).join('');
+
         // 1. KEMAMPUAN INTELEKTUAL
-        var intellectualHtml = '<p class="text-secondary mb-0">Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.</p>';
+        var intellectualHtml = '<p class="text-secondary mb-0" style="font-size:13px;">Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.</p>';
         if (typeKey === 'ist' && d.ist_result) {
           var ist = d.ist_result;
-          var iqDesc = ist.iq_category || '';
+          var iqDesc = ist.iq_category || getIQDescription(ist.iq);
           intellectualHtml = `
-            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 350px;">
+            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 380px;">
               <tr><td style="width: 100px;" class="fw-semibold text-muted">Skor IQ</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${ist.iq || '-'}</td></tr>
               <tr><td class="fw-semibold text-muted">Kategori</td><td>:</td><td class="fw-bold">${iqDesc}</td></tr>
             </table>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi:</em> ${esc(aiData.summary)}</p>
+            <p class="text-secondary mb-0" style="line-height:1.6; font-size:13px; text-align:justify;"><em>Interpretasi:</em> ${esc(aiData.summary || '')}</p>
           `;
         } else if (typeKey === 'kraepelin' && d.kraepelin_attempt) {
           var krp = d.kraepelin_attempt;
           var tot = (krp.total_correct||0) + (krp.total_errors||0) + (krp.total_skipped||0);
           var acc = tot > 0 ? ((krp.total_correct||0)/tot)*100 : 0;
           intellectualHtml = `
-            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 350px;">
-              <tr><td style="width: 180px;" class="fw-semibold text-muted">Total Jawaban Benar</td><td style="width: 15px;">:</td><td class="fw-bold">${krp.total_correct || 0}</td></tr>
+            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 380px;">
+              <tr><td style="width: 180px;" class="fw-semibold text-muted">Total Jawaban Benar</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${krp.total_correct || 0}</td></tr>
               <tr><td class="fw-semibold text-muted">Total Jawaban Salah</td><td>:</td><td>${krp.total_errors || 0}</td></tr>
               <tr><td class="fw-semibold text-muted">Total Baris Dilewati</td><td>:</td><td>${krp.total_skipped || 0}</td></tr>
-              <tr><td class="fw-semibold text-muted">Tingkat Akurasi Kerja</td><td>:</td><td class="fw-bold text-primary">${acc.toFixed(1)}%</td></tr>
+              <tr><td class="fw-semibold text-muted">Tingkat Akurasi Kerja</td><td>:</td><td class="fw-bold">${acc.toFixed(1)}%</td></tr>
             </table>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi:</em> ${esc(aiData.summary)}</p>
+            <p class="text-secondary mb-0" style="line-height:1.6; font-size:13px; text-align:justify;"><em>Interpretasi:</em> ${esc(aiData.summary || '')}</p>
           `;
         }
 
         // 2. SPESIFIK HASIL TES
+        var specificTitle = '2. ASPEK PENGUKURAN SPESIFIK';
         var specificHtml = '';
         if (typeKey === 'ist' && d.ist_result) {
+          specificTitle = '2. ASPEK INTELEKTUAL SPESIFIK (IST)';
           var ist = d.ist_result;
           var se = ist.std_se || 0, wa = ist.std_wa || 0, an = ist.std_an || 0, ge = ist.std_ge || 0, ra = ist.std_ra || 0, za = ist.std_za || 0, fa = ist.std_fa || 0, wu = ist.std_wu || 0, me = ist.std_me || 0;
           var avgSW = function() {
@@ -2362,17 +2371,17 @@
           ];
 
           var rowsHtml = aspects.map(function(a, idx) {
-            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${a.cat}</td></tr>`;
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="text-center fw-bold text-primary" style="width: 160px;">${a.cat}</td></tr>`;
           }).join('');
 
           specificHtml = `
             <div class="table-responsive mb-3">
-              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
-                <thead class="table-light">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 650px;">
+                <thead style="background:#f1f5f9;">
                   <tr>
                     <th class="text-center" style="width: 50px;">No</th>
                     <th>Aspek Intelektual</th>
-                    <th style="width: 150px;">Kategori</th>
+                    <th class="text-center" style="width: 160px;">Kategori</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2380,34 +2389,37 @@
                 </tbody>
               </table>
             </div>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Kemampuan Khusus:</em> ${esc(aiData.summary)}</p>
+            <div class="mt-3">
+              <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Tes IST:</h6>
+              ${detailHtml}
+            </div>
           `;
         } else if (typeKey === 'holland' && d.holland_result) {
+          specificTitle = '2. MINAT KARIER DOMINAN';
           var hol = d.holland_result;
           var aspects = [
-            { name: "Realistic (R)", score: hol.score_r },
-            { name: "Investigative (I)", score: hol.score_i },
-            { name: "Artistic (A)", score: hol.score_a },
-            { name: "Social (S)", score: hol.score_s },
-            { name: "Enterprising (E)", score: hol.score_e },
-            { name: "Conventional (C)", score: hol.score_c }
+            { name: "Realistic", score: hol.score_r },
+            { name: "Investigative", score: hol.score_i },
+            { name: "Artistic", score: hol.score_a },
+            { name: "Social", score: hol.score_s },
+            { name: "Enterprising", score: hol.score_e },
+            { name: "Conventional", score: hol.score_c }
           ];
           var rowsHtml = aspects.map(function(a, idx) {
-            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getHollandCategory(a.score)}</td></tr>`;
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="text-center fw-bold text-primary" style="width: 160px;">${getHollandCategory(a.score)}</td></tr>`;
           }).join('');
 
           specificHtml = `
-            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
-              <tr><td style="width: 180px;" class="fw-semibold text-muted">Kode RIASEC Dominan (Top 3)</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${hol.code || '-'}</td></tr>
-              <tr><td class="fw-semibold text-muted">Urutan Minat</td><td>:</td><td>${[hol.top1, hol.top2, hol.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
+            <table class="table table-borderless table-sm mb-3" style="font-size:13px; max-width: 450px;">
+              <tr><td style="width: 180px;" class="fw-semibold text-muted">Kode Minat Karir</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${hol.code || '-'}</td></tr>
             </table>
             <div class="table-responsive mb-3">
-              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
-                <thead class="table-light">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 650px;">
+                <thead style="background:#f1f5f9;">
                   <tr>
                     <th class="text-center" style="width: 50px;">No</th>
-                    <th>Aspek Minat Holland</th>
-                    <th style="width: 150px;">Kategori</th>
+                    <th>Tipe Minat</th>
+                    <th class="text-center" style="width: 160px;">Kategori</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2415,9 +2427,163 @@
                 </tbody>
               </table>
             </div>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Minat Karir:</em> ${esc(aiData.summary)}</p>
+            <div class="mt-3">
+              <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Minat Karir:</h6>
+              ${detailHtml}
+            </div>
+          `;
+        } else if (typeKey === 'learning_style' && d.learning_style_result) {
+          specificTitle = '2. PROFIL GAYA BELAJAR';
+          var vak = d.learning_style_result;
+          var aspects = [
+            { name: "Visual", score: vak.score_visual },
+            { name: "Auditori", score: vak.score_auditory },
+            { name: "Kinestetik", score: vak.score_kinesthetic }
+          ];
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="text-center fw-bold text-primary" style="width: 160px;">${getVAKCategory(a.score)}</td></tr>`;
+          }).join('');
+
+          specificHtml = `
+            <table class="table table-borderless table-sm mb-3" style="font-size:13px; max-width: 450px;">
+              <tr><td style="width: 180px;" class="fw-semibold text-muted">Gaya Belajar Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${vak.dominant_type || '-'}</td></tr>
+            </table>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 650px;">
+                <thead style="background:#f1f5f9;">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Gaya Belajar</th>
+                    <th class="text-center" style="width: 160px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3">
+              <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Gaya Belajar:</h6>
+              ${detailHtml}
+            </div>
+          `;
+        } else if (typeKey === 'kraepelin' && d.kraepelin_attempt) {
+          specificTitle = '2. ASPEK PERFORMANSI KERJA';
+          var krp = d.kraepelin_attempt;
+          var tot = (krp.total_correct||0) + (krp.total_errors||0) + (krp.total_skipped||0);
+          var acc = tot > 0 ? ((krp.total_correct||0)/tot)*100 : 0;
+          
+          var aspects = [
+            { name: "Kecepatan Kerja (Panker)", score: krp.total_correct, type: 'kecepatan' },
+            { name: "Ketelitian Kerja (Tianker)", score: krp.total_errors, type: 'ketelitian' },
+            { name: "Konsentrasi Kerja (Akurasi)", score: acc, type: 'konsentrasi' },
+            { name: "Ketahanan Kerja (Hankep)", score: krp.total_correct, type: 'ketahanan' }
+          ];
+
+          var rowsHtml = aspects.map(function(a, idx) {
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="text-center fw-bold text-primary" style="width: 160px;">${getKraepelinCategory(a.score, a.type)}</td></tr>`;
+          }).join('');
+
+          specificHtml = `
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 650px;">
+                <thead style="background:#f1f5f9;">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">No</th>
+                    <th>Aspek Performansi Kerja</th>
+                    <th class="text-center" style="width: 160px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3">
+              <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Kraepelin:</h6>
+              ${detailHtml}
+            </div>
+          `;
+        } else if (typeKey === 'papi' && d.papi_result) {
+          specificTitle = '2. PROFIL KEPRIBADIAN KERJA';
+          var papi = d.papi_result;
+          var parsed = {};
+          try {
+            parsed = JSON.parse(papi.result_json);
+          } catch(e) {}
+
+          var leftAspects = [
+            { code: "G", name: "Peran Pekerja Keras" },
+            { code: "L", name: "Peran Pemimpin" },
+            { code: "I", name: "Peran Pembuat Keputusan" },
+            { code: "T", name: "Peran Tipe Sibuk" },
+            { code: "V", name: "Peran Tipe Kuat" },
+            { code: "S", name: "Peran Hubungan Sosial" },
+            { code: "R", name: "Peran Tipe Teoritis" },
+            { code: "D", name: "Peran Bekerja dengan Rincian" },
+            { code: "C", name: "Peran Mengatur" },
+            { code: "E", name: "Peran Pengendalian Emosi" }
+          ];
+
+          var rightAspects = [
+            { code: "N", name: "Kebutuhan Menyelesaikan Tugas" },
+            { code: "A", name: "Kebutuhan Berprestasi" },
+            { code: "P", name: "Kebutuhan Mengatur Orang Lain" },
+            { code: "X", name: "Kebutuhan Diperhatikan" },
+            { code: "B", name: "Kebutuhan Diterima Kelompok" },
+            { code: "O", name: "Kebutuhan Kedekatan & Kasih Sayang" },
+            { code: "Z", name: "Kebutuhan Perubahan" },
+            { code: "K", name: "Kebutuhan Membela Diri" },
+            { code: "F", name: "Kebutuhan Dukungan Atasan" },
+            { code: "W", name: "Kebutuhan Aturan & Petunjuk" }
+          ];
+
+          var tableRowsHtml = '';
+          for (var i = 0; i < 10; i++) {
+            var l = leftAspects[i];
+            var r = rightAspects[i];
+            var lItem = parsed[l.code] || {};
+            var rItem = parsed[r.code] || {};
+            var lScore = lItem.score != null ? lItem.score : 0;
+            var rScore = rItem.score != null ? rItem.score : 0;
+            tableRowsHtml += '<tr>' +
+              '<td class="text-center">' + (i + 1) + '</td>' +
+              '<td>' + l.name + ' (' + l.code + ')</td>' +
+              '<td class="text-center fw-bold text-primary">' + getPAPICategory(lScore) + '</td>' +
+              '<td class="text-center">' + (i + 11) + '</td>' +
+              '<td>' + r.name + ' (' + r.code + ')</td>' +
+              '<td class="text-center fw-bold text-primary">' + getPAPICategory(rScore) + '</td>' +
+              '</tr>';
+          }
+
+          specificHtml = `
+            <table class="table table-borderless table-sm mb-3" style="font-size:13px; max-width: 450px;">
+              <tr><td style="width: 180px;" class="fw-semibold text-muted">Tipe Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${papi.dominant_category || '-'}</td></tr>
+            </table>
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 750px;">
+                <thead style="background:#f1f5f9;">
+                  <tr>
+                    <th class="text-center" style="width: 40px;">No</th>
+                    <th>Aspek Peran</th>
+                    <th class="text-center" style="width: 120px;">Kategori</th>
+                    <th class="text-center" style="width: 40px;">No</th>
+                    <th>Aspek Kebutuhan</th>
+                    <th class="text-center" style="width: 120px;">Kategori</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRowsHtml}
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3">
+              <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Kepribadian Kerja:</h6>
+              ${detailHtml}
+            </div>
           `;
         } else if (typeKey === 'rmib' && d.rmib_result) {
+          specificTitle = '2. MINAT PEKERJAAN (RMIB)';
           var rm = d.rmib_result;
           var parsed = {};
           try {
@@ -2437,21 +2603,20 @@
           aspects.sort(function(a, b) { return a.rank - b.rank; });
 
           var rowsHtml = aspects.map(function(a, idx) {
-            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getRMIBCategory(a.rank)}</td></tr>`;
+            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="text-center fw-bold text-primary" style="width: 160px;">${getRMIBCategory(a.rank)}</td></tr>`;
           }).join('');
 
           specificHtml = `
-            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
+            <table class="table table-borderless table-sm mb-3" style="font-size:13px; max-width: 450px;">
               <tr><td style="width: 180px;" class="fw-semibold text-muted">Minat Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${rm.dominant_category || '-'}</td></tr>
-              <tr><td class="fw-semibold text-muted">Urutan Minat (Top 3)</td><td>:</td><td>${[rm.top1, rm.top2, rm.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
             </table>
             <div class="table-responsive mb-3">
-              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
-                <thead class="table-light">
+              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 650px;">
+                <thead style="background:#f1f5f9;">
                   <tr>
                     <th class="text-center" style="width: 50px;">No</th>
                     <th>Aspek Minat RMIB</th>
-                    <th style="width: 150px;">Kategori</th>
+                    <th class="text-center" style="width: 160px;">Kategori</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2459,178 +2624,18 @@
                 </tbody>
               </table>
             </div>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Minat Karir:</em> ${esc(aiData.summary)}</p>
-          `;
-        } else if (typeKey === 'learning_style' && d.learning_style_result) {
-          var vak = d.learning_style_result;
-          var aspects = [
-            { name: "Visual", score: vak.score_visual },
-            { name: "Auditori", score: vak.score_auditory },
-            { name: "Kinestetik", score: vak.score_kinesthetic }
-          ];
-          var rowsHtml = aspects.map(function(a, idx) {
-            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getVAKCategory(a.score)}</td></tr>`;
-          }).join('');
-
-          specificHtml = `
-            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
-              <tr><td style="width: 180px;" class="fw-semibold text-muted">Gaya Belajar Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${vak.dominant_type || '-'}</td></tr>
-              <tr><td class="fw-semibold text-muted">Skor V-A-K</td><td>:</td><td>Visual: ${vak.score_visual || 0}, Auditori: ${vak.score_auditory || 0}, Kinestetik: ${vak.score_kinesthetic || 0}</td></tr>
-            </table>
-            <div class="table-responsive mb-3">
-              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center" style="width: 50px;">No</th>
-                    <th>Aspek Gaya Belajar</th>
-                    <th style="width: 150px;">Kategori</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${rowsHtml}
-                </tbody>
-              </table>
+            <div class="mt-3">
+              <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Minat Karir:</h6>
+              ${detailHtml}
             </div>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Gaya Belajar:</em> ${esc(aiData.summary)}</p>
           `;
-        } else if (typeKey === 'papi' && d.papi_result) {
-          var papi = d.papi_result;
-          var parsed = {};
-          try {
-            parsed = JSON.parse(papi.result_json);
-          } catch(e) {}
-
-          var codes = ["G", "L", "I", "T", "V", "S", "R", "D", "C", "E", "N", "A", "P", "X", "B", "O", "Z", "K", "F", "W"];
-          var labels = {
-            "G": "Pekerja keras", "L": "Kepemimpinan", "I": "Mudah membuat keputusan",
-            "T": "Tipe orang yang sibuk", "V": "Tipe orang yang bersemangat",
-            "S": "Hubungan sosial / pergaulan luas", "R": "Tipe teoritis",
-            "D": "Tipe orang teratur / bekerja detail", "C": "Mengatur / mengorganisir",
-            "E": "Pengendalian emosi", "N": "Penyelesaian mandiri",
-            "A": "Kebutuhan untuk berprestasi", "P": "Mengatur orang lain",
-            "X": "Untuk mendapat perhatian", "B": "Diterima dalam kelompok",
-            "O": "Hubungan akrab / intim", "Z": "Hasrat untuk berubah",
-            "K": "Agresi", "F": "Mendukung / membantu atasan", "W": "Mengikuti aturan"
-          };
-
-          var leftColHtml = '';
-          var rightColHtml = '';
-          codes.forEach(function(c, idx) {
-            var item = parsed[c] || {};
-            var score = item.score || 0;
-            var cat = getPAPICategory(score);
-            var row = `<tr><td><b>${c}</b> - ${labels[c]}</td><td class="fw-bold text-primary" style="width: 100px;">${cat}</td></tr>`;
-            if (idx < 10) {
-              leftColHtml += row;
-            } else {
-              rightColHtml += row;
-            }
-          });
-
-          specificHtml = `
-            <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
-              <tr><td style="width: 180px;" class="fw-semibold text-muted">Kategori Perilaku Dominan</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${papi.dominant_category || '-'}</td></tr>
-              <tr><td class="fw-semibold text-muted">Aspek Menonjol</td><td>:</td><td>${papi.top_categories || '-'}</td></tr>
-            </table>
-            <div class="row mb-3" style="max-width: 800px;">
-              <div class="col-md-6 mb-2">
-                <table class="table table-bordered table-sm mb-0" style="font-size:11px;">
-                  <thead class="table-light">
-                    <tr><th>Aspek Kepribadian</th><th>Kategori</th></tr>
-                  </thead>
-                  <tbody>
-                    ${leftColHtml}
-                  </tbody>
-                </table>
-              </div>
-              <div class="col-md-6 mb-2">
-                <table class="table table-bordered table-sm mb-0" style="font-size:11px;">
-                  <thead class="table-light">
-                    <tr><th>Aspek Kepribadian</th><th>Kategori</th></tr>
-                  </thead>
-                  <tbody>
-                    ${rightColHtml}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Kepribadian Kerja:</em> ${esc(aiData.summary)}</p>
-          `;
-        } else if (typeKey === 'kraepelin' && d.kraepelin_attempt) {
-          var krp = d.kraepelin_attempt;
-          var tot = (krp.total_correct||0) + (krp.total_errors||0) + (krp.total_skipped||0);
-          var acc = tot > 0 ? ((krp.total_correct||0)/tot)*100 : 0;
-          
-          var aspects = [
-            { name: "Kecepatan Kerja", score: krp.total_correct, type: 'kecepatan' },
-            { name: "Ketelitian Kerja", score: krp.total_errors, type: 'ketelitian' },
-            { name: "Konsentrasi Kerja", score: acc, type: 'konsentrasi' },
-            { name: "Ketahanan Kerja", score: krp.total_correct, type: 'ketahanan' }
-          ];
-
-          var rowsHtml = aspects.map(function(a, idx) {
-            return `<tr><td class="text-center" style="width: 50px;">${idx+1}</td><td>${a.name}</td><td class="fw-bold text-primary" style="width: 150px;">${getKraepelinCategory(a.score, a.type)}</td></tr>`;
-          }).join('');
-
-          specificHtml = `
-            <div class="table-responsive mb-3">
-              <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 550px;">
-                <thead class="table-light">
-                  <tr>
-                    <th class="text-center" style="width: 50px;">No</th>
-                    <th>Aspek Performansi Kerja</th>
-                    <th style="width: 150px;">Kategori</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${rowsHtml}
-                </tbody>
-              </table>
-            </div>
-            <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Performansi Kerja:</em> ${esc(aiData.summary)}</p>
-          `;
-        }
-
-        var kekuatanHtml = '';
-        if (aiData.kekuatan && aiData.kekuatan.length) {
-          kekuatanHtml = aiData.kekuatan.map(k => `<li>${esc(k)}</li>`).join('');
-        } else {
-          kekuatanHtml = '<li>Menunjukkan kapasitas belajar yang adaptif.</li>';
-        }
-
-        var areaHtml = '';
-        if (aiData.area_pengembangan && aiData.area_pengembangan.length) {
-          areaHtml = aiData.area_pengembangan.map(a => `<li>${esc(a)}</li>`).join('');
-        } else {
-          areaHtml = '<li>Mengoptimalkan pengelolaan konsentrasi saat tugas rumit.</li>';
-        }
-
-        var recSiswaHtml = '';
-        if (aiData.rekomendasi_siswa && aiData.rekomendasi_siswa.length) {
-          recSiswaHtml = aiData.rekomendasi_siswa.map(r => `<li>${esc(r)}</li>`).join('');
-        } else {
-          recSiswaHtml = '<li>Melatih keterampilan secara rutin dan terencana.</li>';
-        }
-
-        var recOrtuHtml = '';
-        if (aiData.rekomendasi_ortu && aiData.rekomendasi_ortu.length) {
-          recOrtuHtml = aiData.rekomendasi_ortu.map(r => `<li>${esc(r)}</li>`).join('');
-        } else {
-          recOrtuHtml = '<li>Memberikan dukungan moral dan fasilitas belajar yang memadai.</li>';
-        }
-
-        var recBkHtml = '';
-        if (aiData.rekomendasi_bk && aiData.rekomendasi_bk.length) {
-          recBkHtml = aiData.rekomendasi_bk.map(r => `<li>${esc(r)}</li>`).join('');
-        } else {
-          recBkHtml = '<li>Memberikan bimbingan karir secara berkala.</li>';
         }
 
         return `
           <div class="narrative-report-card p-4" style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; font-family:'Inter', sans-serif; color:#0f172a; max-width:850px; margin:0 auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <div class="text-center mb-4">
-              <h4 class="fw-bold mb-1" style="letter-spacing: 0.5px; color:#1e293b;">LAPORAN HASIL EVALUASI PSIKOLOGIS</h4>
-              <h5 class="fw-semibold text-muted text-uppercase" style="font-size: 14px; letter-spacing: 1px;">ALAT TES: ${getBatchTypeName(typeKey)}</h5>
+            <div class="text-center mb-4 pb-2 border-bottom">
+              <h4 class="fw-bold mb-1" style="letter-spacing: 0.5px; color:#1e293b; font-size:16px;">LAPORAN HASIL EVALUASI PSIKOLOGIS</h4>
+              <h5 class="fw-bold text-muted text-uppercase mb-0" style="font-size: 13px; letter-spacing: 0.5px;">ALAT TES: ${getBatchTypeName(typeKey).toUpperCase()}</h5>
             </div>
 
             <div class="mb-4">
@@ -2673,12 +2678,12 @@
 
             <div class="mb-4">
               <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b; border-color:#e2e8f0 !important;">TUJUAN PEMERIKSAAN</h6>
-              <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6;">
+              <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6; text-align:justify;">
                 Pemeriksaan psikologis untuk memperoleh gambaran mengenai potensi intelektual, minat, serta karakteristik kepribadian peserta didik sebagai bahan pertimbangan dalam pengembangan diri dan perencanaan karier.
               </p>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
               <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
                 <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px; letter-spacing: 0.5px;">HASIL PEMERIKSAAN</h6>
               </div>
@@ -2688,73 +2693,9 @@
                 ${intellectualHtml}
               </div>
 
-              <div class="mb-4 ps-2">
-                <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">2. HASIL PENGUKURAN SPESIFIK</h6>
-                ${specificHtml}
-              </div>
-
               <div class="mb-3 ps-2">
-                <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">3. KARAKTERISTIK PRIBADI</h6>
-                <div class="row" style="font-size: 13px;">
-                  <div class="col-md-6 mb-2">
-                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                      <div class="fw-bold text-success mb-2" style="font-size:11px; text-transform:uppercase;">Kekuatan Utama</div>
-                      <ul class="mb-0 ps-3" style="line-height:1.6;">
-                        ${kekuatanHtml}
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="col-md-6 mb-2">
-                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                      <div class="fw-bold text-warning mb-2" style="font-size:11px; text-transform:uppercase;">Area Pengembangan</div>
-                      <ul class="mb-0 ps-3" style="line-height:1.6;">
-                        ${areaHtml}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
-                <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px; letter-spacing: 0.5px;">KESIMPULAN</h6>
-              </div>
-              <p class="text-secondary" style="font-size: 13px; line-height: 1.6;">
-                ${esc(aiData.summary || 'Peserta didik secara umum menunjukkan potensi yang baik.')} 
-                ${esc(aiData.catatan_penting || '')}
-              </p>
-            </div>
-
-            <div>
-              <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
-                <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px; letter-spacing: 0.5px;">REKOMENDASI</h6>
-              </div>
-              <div class="row" style="font-size: 13px;">
-                <div class="col-md-4 mb-2">
-                  <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                    <div class="fw-bold text-primary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Peserta Didik</div>
-                    <ul class="mb-0 ps-3" style="line-height:1.5;">
-                      ${recSiswaHtml}
-                    </ul>
-                  </div>
-                </div>
-                <div class="col-md-4 mb-2">
-                  <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                    <div class="fw-bold text-info mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Orang Tua</div>
-                    <ul class="mb-0 ps-3" style="line-height:1.5;">
-                      ${recOrtuHtml}
-                    </ul>
-                  </div>
-                </div>
-                <div class="col-md-4 mb-2">
-                  <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                    <div class="fw-bold text-secondary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Guru BK</div>
-                    <ul class="mb-0 ps-3" style="line-height:1.5;">
-                      ${recBkHtml}
-                    </ul>
-                  </div>
-                </div>
+                <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">${specificTitle}</h6>
+                ${specificHtml}
               </div>
             </div>
           </div>

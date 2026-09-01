@@ -1043,9 +1043,27 @@
             student_major: u.jurusan
           };
 
-          // Re-use common HTML report template
+          function getHollandCat(score) {
+            const s = Number(score) || 0;
+            if (s >= 8) return "Sangat Baik";
+            if (s >= 6) return "Baik";
+            if (s >= 4) return "Cukup";
+            return "Kurang";
+          }
+
+          // Format detailed AI interpretation
+          const detailInterpretation = aiData.interpretasi_detail || aiData.summary || '';
+          const detailParas = detailInterpretation.split(/\n+/).filter(p => p.trim().length > 0);
+          const detailHtml = detailParas.map(p => `<p class="text-secondary mb-2" style="line-height:1.6; text-align:justify; font-size:13px;">${esc(p)}</p>`).join('');
+
+          // Standardized HTML report template
           const reportHtml = `
-            <div class="narrative-report-card p-2" style="color:#0f172a; font-family:'Inter', sans-serif;">
+            <div class="narrative-report-card p-3" style="color:#0f172a; font-family:'Inter', sans-serif; background:#fff; border:1px solid #e2e8f0; border-radius:10px;">
+              <div class="text-center mb-4 pb-2 border-bottom">
+                <h5 class="fw-bold text-uppercase mb-1" style="letter-spacing:0.5px; color:#0f172a; font-size:16px;">LAPORAN HASIL EVALUASI PSIKOLOGIS</h5>
+                <h6 class="fw-bold text-muted text-uppercase mb-0" style="font-size:13px; letter-spacing:0.5px;">ALAT TES: HOLLAND</h6>
+              </div>
+
               <div class="mb-4">
                 <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">IDENTITAS PESERTA</h6>
                 <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
@@ -1086,91 +1104,48 @@
 
               <div class="mb-4">
                 <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2" style="font-size: 13px; color:#1e293b;">TUJUAN PEMERIKSAAN</h6>
-                <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6;">
+                <p class="mb-0 text-secondary" style="font-size:13px; line-height:1.6; text-align:justify;">
                   Pemeriksaan psikologis untuk memperoleh gambaran mengenai potensi intelektual, minat, serta karakteristik kepribadian peserta didik sebagai bahan pertimbangan dalam pengembangan diri dan perencanaan karier.
                 </p>
               </div>
 
-              <div class="mb-4">
+              <div class="mb-3">
                 <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
-                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">HASIL PEMERIKSAAN</h6>
+                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px; letter-spacing:0.5px;">HASIL PEMERIKSAAN</h6>
                 </div>
                 
                 <div class="mb-4 ps-2">
                   <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">1. KEMAMPUAN INTELEKTUAL</h6>
-                  <p class="text-secondary mb-0">Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.</p>
-                </div>
-
-                <div class="mb-4 ps-2">
-                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">2. HASIL PENGUKURAN SPESIFIK</h6>
-                  <table class="table table-borderless table-sm mb-2" style="font-size:13px; max-width: 450px;">
-                    <tr><td style="width: 180px;" class="fw-semibold text-muted">Kode RIASEC Dominan (Top 3)</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${data.code || '-'}</td></tr>
-                    <tr><td class="fw-semibold text-muted">Urutan Minat</td><td>:</td><td>${[data.top1, data.top2, data.top3].filter(Boolean).join(' → ') || '-'}</td></tr>
-                  </table>
-                  <p class="text-secondary mb-0" style="line-height:1.6;"><em>Interpretasi Minat Karir:</em> ${esc(aiData.summary)}</p>
+                  <p class="text-secondary mb-0" style="font-size:13px;">Potensi kecerdasan umum tidak diukur secara langsung dalam alat tes ini.</p>
                 </div>
 
                 <div class="mb-3 ps-2">
-                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">3. KARAKTERISTIK PRIBADI</h6>
-                  <div class="row" style="font-size: 13px;">
-                    <div class="col-md-6 mb-2">
-                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                        <div class="fw-bold text-success mb-2" style="font-size:11px; text-transform:uppercase;">Kekuatan Utama</div>
-                        <ul class="mb-0 ps-3" style="line-height:1.6;">
-                          ${(aiData.kekuatan && aiData.kekuatan.length) ? aiData.kekuatan.map(k => `<li>${esc(k)}</li>`).join('') : '<li>Menunjukkan kapasitas belajar yang adaptif.</li>'}
-                        </ul>
-                      </div>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                      <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                        <div class="fw-bold text-warning mb-2" style="font-size:11px; text-transform:uppercase;">Area Pengembangan</div>
-                        <ul class="mb-0 ps-3" style="line-height:1.6;">
-                          ${(aiData.area_pengembangan && aiData.area_pengembangan.length) ? aiData.area_pengembangan.map(a => `<li>${esc(a)}</li>`).join('') : '<li>Mengoptimalkan pengelolaan konsentrasi saat tugas rumit.</li>'}
-                        </ul>
-                      </div>
-                    </div>
+                  <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">2. MINAT KARIER DOMINAN</h6>
+                  <table class="table table-borderless table-sm mb-3" style="font-size:13px; max-width: 450px;">
+                    <tr><td style="width: 180px;" class="fw-semibold text-muted">Kode Minat Karir</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${data.code || '-'}</td></tr>
+                  </table>
+                  <div class="table-responsive mb-3">
+                    <table class="table table-bordered table-sm mb-0" style="font-size:12px; max-width: 650px;">
+                      <thead style="background:#f1f5f9;">
+                        <tr>
+                          <th class="text-center" style="width: 50px;">No</th>
+                          <th>Tipe Minat</th>
+                          <th class="text-center" style="width: 160px;">Kategori</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td class="text-center">1</td><td>Realistic</td><td class="text-center fw-bold text-primary">${getHollandCat(data.score_r)}</td></tr>
+                        <tr><td class="text-center">2</td><td>Investigative</td><td class="text-center fw-bold text-primary">${getHollandCat(data.score_i)}</td></tr>
+                        <tr><td class="text-center">3</td><td>Artistic</td><td class="text-center fw-bold text-primary">${getHollandCat(data.score_a)}</td></tr>
+                        <tr><td class="text-center">4</td><td>Social</td><td class="text-center fw-bold text-primary">${getHollandCat(data.score_s)}</td></tr>
+                        <tr><td class="text-center">5</td><td>Enterprising</td><td class="text-center fw-bold text-primary">${getHollandCat(data.score_e)}</td></tr>
+                        <tr><td class="text-center">6</td><td>Conventional</td><td class="text-center fw-bold text-primary">${getHollandCat(data.score_c)}</td></tr>
+                      </tbody>
+                    </table>
                   </div>
-                </div>
-              </div>
-
-              <div class="mb-4">
-                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
-                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">KESIMPULAN</h6>
-                </div>
-                <p class="text-secondary" style="font-size: 13px; line-height: 1.6;">
-                  ${esc(aiData.summary || 'Peserta didik secara umum menunjukkan potensi yang baik.')} 
-                  ${esc(aiData.catatan_penting || '')}
-                </p>
-              </div>
-
-              <div>
-                <div class="d-flex align-items-center justify-content-between text-white p-2 mb-3" style="background:#0f172a; border-radius:6px;">
-                  <h6 class="fw-bold text-uppercase m-0" style="font-size: 12px;">REKOMENDASI</h6>
-                </div>
-                <div class="row" style="font-size: 13px;">
-                  <div class="col-md-4 mb-2">
-                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                      <div class="fw-bold text-primary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Peserta Didik</div>
-                      <ul class="mb-0 ps-3" style="line-height:1.5;">
-                        ${(aiData.rekomendasi_siswa && aiData.rekomendasi_siswa.length) ? aiData.rekomendasi_siswa.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Melatih keterampilan secara rutin and terencana.</li>'}
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="col-md-4 mb-2">
-                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                      <div class="fw-bold text-info mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Orang Tua</div>
-                      <ul class="mb-0 ps-3" style="line-height:1.5;">
-                        ${(aiData.rekomendasi_ortu && aiData.rekomendasi_ortu.length) ? aiData.rekomendasi_ortu.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Memberikan dukungan moral dan fasilitas belajar yang memadai.</li>'}
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="col-md-4 mb-2">
-                    <div class="p-3 border rounded" style="background:#f8fafc; height:100%;">
-                      <div class="fw-bold text-secondary mb-2" style="font-size:11px; text-transform:uppercase;">Untuk Guru BK</div>
-                      <ul class="mb-0 ps-3" style="line-height:1.5;">
-                        ${(aiData.rekomendasi_bk && aiData.rekomendasi_bk.length) ? aiData.rekomendasi_bk.map(r => `<li>${esc(r)}</li>`).join('') : '<li>Memberikan bimbingan karir secara berkala.</li>'}
-                      </ul>
-                    </div>
+                  <div class="mt-3">
+                    <h6 class="fw-bold mb-2" style="font-size: 13px; color:#1e293b;">Interpretasi Minat Karir:</h6>
+                    ${detailHtml}
                   </div>
                 </div>
               </div>

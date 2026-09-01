@@ -316,7 +316,7 @@ func (c *AIController) TestSummary() {
 	var cacheFile string
 	if cacheKey != "" {
 		sanitizedType := strings.ToLower(strings.ReplaceAll(req.TestType, " ", "_"))
-		cacheFile = fmt.Sprintf("data/ai_cache/test_v4_%s_%s.json", sanitizedType, cacheKey)
+		cacheFile = fmt.Sprintf("data/ai_cache/test_v5_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
@@ -329,14 +329,36 @@ func (c *AIController) TestSummary() {
 		}
 	}
 
-	var resultJSON []byte
-	if len(req.AllResults) > 0 {
-		resultJSON, _ = json.MarshalIndent(req.AllResults, "", "  ")
+	var parsed map[string]interface{}
+
+	if len(req.AllResults) == 0 && req.Result != nil {
+		// Single Test interpretation
+		systemHint, userPrompt := buildIndividualTestPrompt(req.TestType, req.Title, req.Result)
+		text, _, err := callGemini(systemHint, userPrompt, true)
+		if err != nil || strings.TrimSpace(text) == "" {
+			parsed = generateFallbackIndividualTestSummary(req.TestType, req.Title, req.Result)
+		} else if err := json.Unmarshal([]byte(text), &parsed); err != nil {
+			parsed = generateFallbackIndividualTestSummary(req.TestType, req.Title, req.Result)
+		}
+		if parsed == nil {
+			parsed = generateFallbackIndividualTestSummary(req.TestType, req.Title, req.Result)
+		} else if _, hasDetail := parsed["interpretasi_detail"]; !hasDetail {
+			fb := generateFallbackIndividualTestSummary(req.TestType, req.Title, req.Result)
+			parsed["interpretasi_detail"] = fb["interpretasi_detail"]
+			if _, hasSummary := parsed["summary"]; !hasSummary {
+				parsed["summary"] = fb["summary"]
+			}
+		}
 	} else {
-		resultJSON, _ = json.MarshalIndent(req.Result, "", "  ")
-	}
-	systemHint := "Anda adalah seorang Psikolog Pendidikan Senior dan Certified Career Consultant profesional. Jawablah dalam Bahasa Indonesia yang hangat, sangat jelas, mendalam, dan deskriptif. Jelaskan alasan mendasar di balik setiap rekomendasi jurusan, pekerjaan, dan pengembangan diri agar peserta dan konselor mendapatkan gambaran yang sangat terang dan berguna. PENTING: DILARANG KERAS menyertakan simbol/kode skor teknis mentah seperti (V=7), (C=7), (Z=7), (E=2), (G=3, T=5), (A=6) dalam seluruh kalimat. Terjemahkan seluruh data menjadi narasi Bahasa Indonesia yang mengalir alami, elegan, dan profesional tanpa menyebutkan simbol huruf/angka skor teknis tersebut. Jangan memberi diagnosis klinis."
-	userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis deskriptif dan komprehensif untuk peserta.
+		// Multi-test combined interpretation
+		var resultJSON []byte
+		if len(req.AllResults) > 0 {
+			resultJSON, _ = json.MarshalIndent(req.AllResults, "", "  ")
+		} else {
+			resultJSON, _ = json.MarshalIndent(req.Result, "", "  ")
+		}
+		systemHint := "Anda adalah seorang Psikolog Pendidikan Senior dan Certified Career Consultant profesional. Jawablah dalam Bahasa Indonesia yang hangat, sangat jelas, mendalam, dan deskriptif. Jelaskan alasan mendasar di balik setiap rekomendasi jurusan, pekerjaan, dan pengembangan diri agar peserta dan konselor mendapatkan gambaran yang sangat terang dan berguna. PENTING: DILARANG KERAS menyertakan simbol/kode skor teknis mentah seperti (V=7), (C=7), (Z=7), (E=2), (G=3, T=5), (A=6) dalam seluruh kalimat. Terjemahkan seluruh data menjadi narasi Bahasa Indonesia yang mengalir alami, elegan, dan profesional tanpa menyebutkan simbol huruf/angka skor teknis tersebut. Jangan memberi diagnosis klinis."
+		userPrompt := fmt.Sprintf(`Berdasarkan hasil tes psikologi berikut, buat analisis deskriptif dan komprehensif untuk peserta.
 
 Subtes Aktif: %s
 Judul: %s
@@ -368,12 +390,12 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
   "catatan_penting": "1-2 kalimat pesan inspiratif & reminder psikotes"
 }`, req.TestType, req.Title, string(resultJSON))
 
-	text, _, err := callGemini(systemHint, userPrompt, true)
-	var parsed map[string]interface{}
-	if err != nil {
-		parsed = generateFallbackTestSummary(req.TestType, req.Title, req.Result, req.AllResults)
-	} else {
-		parsed = cleanParsedAIData(text)
+		text, _, err := callGemini(systemHint, userPrompt, true)
+		if err != nil {
+			parsed = generateFallbackTestSummary(req.TestType, req.Title, req.Result, req.AllResults)
+		} else {
+			parsed = cleanParsedAIData(text)
+		}
 	}
 
 	// Save to cache

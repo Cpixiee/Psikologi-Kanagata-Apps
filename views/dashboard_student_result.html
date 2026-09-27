@@ -533,6 +533,18 @@
       }
       function clamp(n,lo,hi) { return Math.max(lo,Math.min(hi,n)); }
 
+      function getISTInterpretationByIQ(iq, category) {
+        var val = Number(iq) || 0;
+        var cat = String(category || '').toLowerCase();
+        if (val >= 120 || cat.includes('superior') || cat.includes('cerdas')) {
+          return 'Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik sekali, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang kuat.';
+        }
+        if ((val > 0 && val < 90) || cat.includes('kurang') || cat.includes('di bawah') || cat.includes('dibawah') || cat.includes('low') || cat.includes('borderline') || cat.includes('deficient')) {
+          return 'Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang cukup baik namun memerlukan pendampingan, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang perlu ditingkatkan dengan pendampingan.';
+        }
+        return 'Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang sesuai.';
+      }
+
       /* ===== Toast Alert System ===== */
       function showAIToast(message, type) {
         var container = document.getElementById('ai-toast-container');
@@ -1267,7 +1279,12 @@
           var json = await res.json();
           if(json.success && json.data){
             var aiData = json.data;
-            q('#' + summaryId).innerHTML = `<p><em>Interpretasi Hasil:</em> ${esc(aiData.summary)}</p>`;
+            if (key === 'ist') {
+              var istText = getISTInterpretationByIQ(resultData.iq, resultData.iq_category || aiData.summary);
+              q('#' + summaryId).innerHTML = `<p><em>Interpretasi Hasil:</em> ${esc(istText)}</p>`;
+            } else {
+              q('#' + summaryId).innerHTML = `<p><em>Interpretasi Hasil:</em> ${esc(aiData.summary)}</p>`;
+            }
             
             var bulletsHtml = '';
             if (aiData.kekuatan && aiData.kekuatan.length) {
@@ -1511,12 +1528,10 @@
               </table>
             </div>
             <div id="compIstSummary" style="font-size:12.5px; line-height:1.6; color:#475569;">
-              <p><em>Interpretasi Hasil:</em> Memuat interpretasi...</p>
+              <p class="mb-0"><strong>Interpretasi Hasil:</strong><br>${esc(getISTInterpretationByIQ(ist.iq, ist.iq_category))}</p>
             </div>
-            <div id="compIstBullets"></div>
           `;
           box.appendChild(div);
-          fetchSubAiSummary(d, 'ist', 'compIstSummary', 'compIstBullets', 'IST');
         }
 
         // 2. HOLLAND
@@ -2335,7 +2350,7 @@
               <tr><td style="width: 100px;" class="fw-semibold text-muted">Skor IQ</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${ist.iq || '-'}</td></tr>
               <tr><td class="fw-semibold text-muted">Kategori</td><td>:</td><td class="fw-bold">${iqDesc}</td></tr>
             </table>
-            <p class="text-secondary mb-0" style="line-height:1.6; font-size:13px; text-align:justify;"><em>Interpretasi:</em> ${esc(aiData.summary || '')}</p>
+            <p class="text-secondary mb-0" style="line-height:1.6; font-size:13px; text-align:justify;"><em>Interpretasi:</em> ${esc(getISTInterpretationByIQ(ist.iq, iqDesc))}</p>
           `;
         } else if (typeKey === 'kraepelin' && d.kraepelin_attempt) {
           var krp = d.kraepelin_attempt;

@@ -1049,6 +1049,18 @@
           return '-';
         }
 
+        function getISTInterpretationByIQ(iq, category) {
+          var val = Number(iq) || 0;
+          var cat = String(category || '').toLowerCase();
+          if (val >= 120 || cat.includes('superior') || cat.includes('cerdas')) {
+            return 'Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik sekali, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang kuat.';
+          }
+          if ((val > 0 && val < 90) || cat.includes('kurang') || cat.includes('di bawah') || cat.includes('dibawah') || cat.includes('low') || cat.includes('borderline') || cat.includes('deficient')) {
+            return 'Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang cukup baik namun memerlukan pendampingan, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang perlu ditingkatkan dengan pendampingan.';
+          }
+          return 'Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang sesuai.';
+        }
+
         const iqDesc = getIQDescription(data.iq);
 
         // Mapping SW -> indeks kategori 0..5 (Kurang Sekali s.d. Baik Sekali)
@@ -1392,7 +1404,7 @@
                     <tr><td style="width: 100px;" class="fw-semibold text-muted">Skor IQ</td><td style="width: 15px;">:</td><td class="fw-bold text-primary">${data.iq || '-'}</td></tr>
                     <tr><td class="fw-semibold text-muted">Kategori</td><td>:</td><td class="fw-bold">${iqDesc}</td></tr>
                   </table>
-                  <p class="text-secondary mb-0" style="line-height:1.6; font-size:13px; text-align:justify;"><em>Interpretasi:</em> ${esc(aiData.summary || '')}</p>
+                  <p class="text-secondary mb-0" style="line-height:1.6; font-size:13px; text-align:justify;"><em>Interpretasi:</em> ${esc(getISTInterpretationByIQ(data.iq, iqDesc))}</p>
                 </div>
 
                 <div class="mb-3 ps-2">

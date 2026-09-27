@@ -37,3 +37,12 @@ conf/app.conf
 *.conf.local
 .env
 .env.local
+
+# Database dumps and backups
+backups/
+*.sql.gz
+*.sql.tar
+
+# Runtime caches and sessions
+data/sessions/
+data/ai_cache/

@@ -4260,10 +4260,7 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 			pdf.SetFont("Arial", "I", 9)
 			pdf.CellFormat(0, 4.5, "Interpretasi:", "", 1, "L", false, 0, "")
 			pdf.SetFont("Arial", "", 9)
-			summaryText, _ := summaryData["summary"].(string)
-			if summaryText == "" {
-				summaryText = fmt.Sprintf("Peserta didik memiliki potensi kognitif di kategori %s. Potensi ini menggambarkan kapasitas umum peserta didik dalam memahami masalah, melakukan penalaran terstruktur, serta memproses informasi akademis secara memadai.", ist.IQCategory)
-			}
+			summaryText := GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
 			pdf.MultiCell(0, 4.5, summaryText, "", "L", false)
 		}
 	} else if testType == "Kraepelin" {
@@ -4998,17 +4995,10 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 	}
 	pdf.Ln(2.5)
 
-	istSummary, _ := GetOrGenerateTestSummaryInternal(o, "IST", istRes, nama)
 	pdf.SetFont("Arial", "B", 9)
 	pdf.CellFormat(0, 4.5, "Interpretasi Hasil", "", 1, "L", false, 0, "")
 	pdf.SetFont("Arial", "", 8.5)
-	istConcl := getSubtestConclusionFromCombined(combinedSummary, "ist")
-	if istConcl == "" {
-		istConcl, _ = istSummary["summary"].(string)
-	}
-	if istConcl == "" {
-		istConcl = "Kemampuan intelegensi kognitif peserta berada pada tingkat yang mendukung, menunjukkan kapasitas nalar logis dan pemahaman instruksi yang baik."
-	}
+	istConcl := GetISTInterpretationByIQ(iqVal, iqCat)
 	pdf.MultiCell(0, 4, istConcl, "", "L", false)
 	pdf.Ln(5)
 

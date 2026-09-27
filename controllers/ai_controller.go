@@ -313,14 +313,21 @@ func (c *AIController) TestSummary() {
 	} else {
 		cacheKey = getCacheHash(req.Result)
 	}
+	sanitizedType := normalizeIndividualTestType(req.TestType)
 	var cacheFile string
 	if cacheKey != "" {
-		sanitizedType := normalizeIndividualTestType(req.TestType)
 		cacheFile = fmt.Sprintf("data/ai_cache/test_v9_%s_%s.json", sanitizedType, cacheKey)
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
 				if sum, ok := cachedData["summary"].(string); ok && !strings.Contains(sum, "Holland RIASEC (Nurdin Putra — Holland RIASEC)") {
+					if sanitizedType == "ist" {
+						var ist models.ISTResult
+						if b, err := json.Marshal(req.Result); err == nil {
+							_ = json.Unmarshal(b, &ist)
+						}
+						cachedData["summary"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+					}
 					c.Data["json"] = aiResponse{Success: true, Data: cachedData}
 					c.ServeJSON()
 					return
@@ -331,7 +338,17 @@ func (c *AIController) TestSummary() {
 
 	var parsed map[string]interface{}
 
-	if len(req.AllResults) == 0 && req.Result != nil {
+	if sanitizedType == "ist" {
+		parsed = generateDetailedISTSummary(req.Result, req.Title)
+		var ist models.ISTResult
+		if b, err := json.Marshal(req.Result); err == nil {
+			_ = json.Unmarshal(b, &ist)
+		}
+		parsed["summary"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+		c.Data["json"] = aiResponse{Success: true, Data: parsed}
+		c.ServeJSON()
+		return
+	} else if len(req.AllResults) == 0 && req.Result != nil {
 		// Single Test interpretation
 		systemHint, userPrompt := buildIndividualTestPrompt(req.TestType, req.Title, req.Result)
 		text, _, err := callGemini(systemHint, userPrompt, true)
@@ -469,7 +486,14 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
-				if cleanType == "papi" {
+				if cleanType == "ist" {
+					var ist models.ISTResult
+					if b, err := json.Marshal(resultData); err == nil {
+						_ = json.Unmarshal(b, &ist)
+					}
+					cachedData["summary"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+					return cachedData, nil
+				} else if cleanType == "papi" {
 					if _, hasDims := cachedData["papi_dimensions"]; hasDims {
 						return cachedData, nil
 					}
@@ -480,6 +504,16 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 				}
 			}
 		}
+	}
+
+	if cleanType == "ist" {
+		parsed := generateDetailedISTSummary(resultData, studentName)
+		var ist models.ISTResult
+		if b, err := json.Marshal(resultData); err == nil {
+			_ = json.Unmarshal(b, &ist)
+		}
+		parsed["summary"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+		return parsed, nil
 	}
 
 	systemHint, userPrompt := buildIndividualTestPrompt(testType, studentName, resultData)
@@ -502,6 +536,13 @@ func GetOrGenerateTestSummaryInternal(o orm.Ormer, testType string, resultData i
 		}
 		if _, hasSummary := parsed["summary"]; !hasSummary {
 			parsed["summary"] = fallbackData["summary"]
+		}
+		if cleanType == "ist" {
+			var ist models.ISTResult
+			if b, err := json.Marshal(resultData); err == nil {
+				_ = json.Unmarshal(b, &ist)
+			}
+			parsed["summary"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
 		}
 		if cleanType == "papi" {
 			if _, hasDims := parsed["papi_dimensions"]; !hasDims {
@@ -712,6 +753,26 @@ Hasilkan respons HANYA dalam JSON valid (tanpa markdown, tanpa code fence) denga
 	c.ServeJSON()
 }
 
+func extractISTFromResultsMap(results map[string]interface{}) (int, string) {
+	if istRaw, ok := results["ist"]; ok {
+		var ist models.ISTResult
+		if b, err := json.Marshal(istRaw); err == nil {
+			if err := json.Unmarshal(b, &ist); err == nil && ist.IQ > 0 {
+				return ist.IQ, ist.IQCategory
+			}
+		}
+	}
+	if istRaw, ok := results["ist_result"]; ok {
+		var ist models.ISTResult
+		if b, err := json.Marshal(istRaw); err == nil {
+			if err := json.Unmarshal(b, &ist); err == nil && ist.IQ > 0 {
+				return ist.IQ, ist.IQCategory
+			}
+		}
+	}
+	return 100, "Average / Rata-rata"
+}
+
 // StudentCombinedSummary menerima hasil semua tes seorang siswa dalam satu batch,
 // lalu meminta Gemini menghasilkan interpretasi per alat tes dan kesimpulan gabungan.
 func (c *AIController) StudentCombinedSummary() {
@@ -739,6 +800,10 @@ func (c *AIController) StudentCombinedSummary() {
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
+				if details, ok := cachedData["kesimpulan_detail"].(map[string]interface{}); ok {
+					iq, cat := extractISTFromResultsMap(req.Results)
+					details["ist"] = GetISTInterpretationByIQ(iq, cat)
+				}
 				c.Data["json"] = aiResponse{Success: true, Data: cachedData}
 				c.ServeJSON()
 				return
@@ -858,6 +923,20 @@ PENTING:
 				}
 			}
 		}
+		// Enforce standardized 3-tier IST interpretation
+		if istRaw, ok := req.Results["ist"]; ok {
+			var ist models.ISTResult
+			if b, err := json.Marshal(istRaw); err == nil {
+				_ = json.Unmarshal(b, &ist)
+			}
+			details["ist"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+		} else if istRaw, ok := req.Results["ist_result"]; ok {
+			var ist models.ISTResult
+			if b, err := json.Marshal(istRaw); err == nil {
+				_ = json.Unmarshal(b, &ist)
+			}
+			details["ist"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+		}
 	}
 
 	// Strict enforcement: Align career roadmap, skill tracker, and recommendations with student's actual Holland dream jobs & profile
@@ -893,6 +972,10 @@ func GetOrGenerateCombinedSummaryInternal(studentName string, batchName string, 
 		if fileBytes, err := os.ReadFile(cacheFile); err == nil {
 			var cachedData map[string]interface{}
 			if err := json.Unmarshal(fileBytes, &cachedData); err == nil {
+				if details, ok := cachedData["kesimpulan_detail"].(map[string]interface{}); ok {
+					iq, cat := extractISTFromResultsMap(results)
+					details["ist"] = GetISTInterpretationByIQ(iq, cat)
+				}
 				return cachedData, nil
 			}
 		}
@@ -1006,6 +1089,20 @@ PENTING:
 					}
 				}
 			}
+		}
+		// Enforce standardized 3-tier IST interpretation
+		if istRaw, ok := results["ist"]; ok {
+			var ist models.ISTResult
+			if b, err := json.Marshal(istRaw); err == nil {
+				_ = json.Unmarshal(b, &ist)
+			}
+			details["ist"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
+		} else if istRaw, ok := results["ist_result"]; ok {
+			var ist models.ISTResult
+			if b, err := json.Marshal(istRaw); err == nil {
+				_ = json.Unmarshal(b, &ist)
+			}
+			details["ist"] = GetISTInterpretationByIQ(ist.IQ, ist.IQCategory)
 		}
 	}
 
@@ -1535,9 +1632,35 @@ func generateFallbackStudentCombinedSummary(studentName, batchName string, resul
 		}
 	}
 
+	istIQ := 105
+	istCat := "Average / Rata - rata"
+	if istRaw, ok := results["ist"]; ok {
+		var ist models.ISTResult
+		if b, err := json.Marshal(istRaw); err == nil {
+			_ = json.Unmarshal(b, &ist)
+		}
+		if ist.IQ > 0 {
+			istIQ = ist.IQ
+		}
+		if ist.IQCategory != "" {
+			istCat = ist.IQCategory
+		}
+	} else if istRaw, ok := results["ist_result"]; ok {
+		var ist models.ISTResult
+		if b, err := json.Marshal(istRaw); err == nil {
+			_ = json.Unmarshal(b, &ist)
+		}
+		if ist.IQ > 0 {
+			istIQ = ist.IQ
+		}
+		if ist.IQCategory != "" {
+			istCat = ist.IQCategory
+		}
+	}
+
 	return map[string]interface{}{
 		"kesimpulan_detail": map[string]interface{}{
-			"ist":            "Kemampuan intelegensi kognitif peserta berada pada tingkat yang mendukung, menunjukkan kapasitas nalar logis dan pemahaman instruksi yang baik.",
+			"ist":            GetISTInterpretationByIQ(istIQ, istCat),
 			"holland":        fmt.Sprintf("Minat dominan berorientasi pada tipe %s, menunjukkan preferensi kerja yang jelas dan berorientasi hasil.", profile.TipeManusia),
 			"learning_style": "Gaya belajar peserta mendukung penyerapan informasi secara efektif melalui demonstrasi visual dan instruksi terstruktur.",
 			"kraepelin":      "Ketelitian dan kecepatan kerja menunjukkan konsistensi ritme yang stabil dengan daya tahan tugas yang baik.",
@@ -1821,6 +1944,23 @@ func generateFallbackIndividualTestSummary(testType, studentName string, resultD
 	}
 }
 
+// GetISTInterpretationByIQ returns the standardized IST interpretation based on student's IQ score and category.
+// Category options from psychologist assessment standards:
+// 1. Kurang (IQ < 90 / Low Average / Borderline / Deficient)
+// 2. Cukup / Rata-rata / di atas rata-rata (IQ 90-119 / Average / High Average)
+// 3. Superior / Very Superior (IQ >= 120)
+func GetISTInterpretationByIQ(iq int, category string) string {
+	catLower := strings.ToLower(category)
+	if iq >= 120 || strings.Contains(catLower, "superior") || strings.Contains(catLower, "cerdas") {
+		return "Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik sekali, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang kuat."
+	}
+	if (iq > 0 && iq < 90) || strings.Contains(catLower, "kurang") || strings.Contains(catLower, "di bawah") || strings.Contains(catLower, "dibawah") || strings.Contains(catLower, "low") || strings.Contains(catLower, "borderline") || strings.Contains(catLower, "deficient") {
+		return "Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang cukup baik namun memerlukan pendampingan, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang perlu ditingkatkan dengan pendampingan."
+	}
+	// Default: Cukup / Rata-rata / di atas rata-rata (90 - 119)
+	return "Berdasarkan integrasi evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik, dengan kapasitas penalaran logis, daya analisa terstruktur, serta orientasi minat yang sesuai."
+}
+
 func generateDetailedISTSummary(resultData interface{}, studentName string) map[string]interface{} {
 	iq := 105
 	iqCategory := "Rata-rata / Average"
@@ -1862,7 +2002,7 @@ func generateDetailedISTSummary(resultData interface{}, studentName string) map[
 		studentName, strings.ToLower(catVerbal), strings.ToLower(catAbstrak), strings.ToLower(catHitung), studentName, strings.ToLower(catSpasial2D), strings.ToLower(catSpasial3D), studentName)
 
 	detail := p1 + "\n\n" + p2
-	summary := fmt.Sprintf("Berdasarkan evaluasi tes psikologi (IST), peserta menunjukkan potensi perkembangan mandiri yang baik dengan kapasitas penalaran logis, daya analisis terstruktur, serta orientasi minat yang kuat.")
+	summary := GetISTInterpretationByIQ(iq, iqCategory)
 
 	return map[string]interface{}{
 		"summary":             summary,

@@ -1586,6 +1586,87 @@
             });
             q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
 
+          } else if (testKey === 'holland') {
+            var subEl = q('#categoryChartSub_' + testKey);
+            if (subEl) subEl.textContent = 'Distribusi kategori & kode minat kepribadian peserta';
+
+            var hollandStudents = done.filter(function(r) {
+              return r.holland_result && r.holland_result.code;
+            });
+            var totalHolland = hollandStudents.length > 0 ? hollandStudents.length : done.length;
+
+            var codeFreq = {};
+            hollandStudents.forEach(function(r) {
+              var c = (r.holland_result.code || '').trim().toUpperCase();
+              if (c) codeFreq[c] = (codeFreq[c] || 0) + 1;
+            });
+
+            var sortedCodes = Object.keys(codeFreq).map(function(k) {
+              return {
+                code: k,
+                count: codeFreq[k],
+                pct: totalHolland > 0 ? Math.round((codeFreq[k] / totalHolland) * 100) : 0
+              };
+            }).sort(function(a, b) { return b.count - a.count; });
+
+            var riasecLetters = {
+              'R': 'Realistic', 'I': 'Investigative', 'A': 'Artistic',
+              'S': 'Social', 'E': 'Enterprising', 'C': 'Conventional'
+            };
+            function getHollandDesc(c) {
+              if (!c) return '';
+              var p = [];
+              for (var i = 0; i < c.length; i++) {
+                if (riasecLetters[c[i]]) p.push(riasecLetters[c[i]]);
+              }
+              return p.join(' • ');
+            }
+
+            var hollandPalette = [
+              { bg: 'linear-gradient(135deg, #6366f1, #8b5cf6)', bar: 'linear-gradient(90deg, #6366f1, #a855f7)', badgeBg: '#ede9fe', badgeCol: '#6d28d9', emoji: '🟣' },
+              { bg: 'linear-gradient(135deg, #059669, #10b981)', bar: 'linear-gradient(90deg, #059669, #34d399)', badgeBg: '#dcfce7', badgeCol: '#15803d', emoji: '🟢' },
+              { bg: 'linear-gradient(135deg, #0284c7, #38bdf8)', bar: 'linear-gradient(90deg, #0284c7, #38bdf8)', badgeBg: '#e0f2fe', badgeCol: '#0369a1', emoji: '🔵' },
+              { bg: 'linear-gradient(135deg, #d97706, #f59e0b)', bar: 'linear-gradient(90deg, #d97706, #fbbf24)', badgeBg: '#fef3c7', badgeCol: '#92400e', emoji: '🟡' },
+              { bg: 'linear-gradient(135deg, #ea580c, #fb923c)', bar: 'linear-gradient(90deg, #ea580c, #fdba74)', badgeBg: '#ffedd5', badgeCol: '#c2410c', emoji: '🟠' }
+            ];
+
+            var displayItems = [];
+            var maxTop = 5;
+            if (sortedCodes.length <= maxTop) {
+              displayItems = sortedCodes;
+            } else {
+              displayItems = sortedCodes.slice(0, maxTop);
+              var restCount = 0;
+              for (var i = maxTop; i < sortedCodes.length; i++) {
+                restCount += sortedCodes[i].count;
+              }
+              if (restCount > 0) {
+                var restPct = totalHolland > 0 ? Math.round((restCount / totalHolland) * 100) : 0;
+                displayItems.push({ code: 'Kode Lainnya', count: restCount, pct: restPct, isOther: true });
+              }
+            }
+
+            var breakdownHtml = '';
+            displayItems.forEach(function(item, idx) {
+              var theme = hollandPalette[idx % hollandPalette.length];
+              if (item.isOther) {
+                theme = { bg: 'linear-gradient(135deg, #64748b, #94a3b8)', bar: 'linear-gradient(90deg, #64748b, #cbd5e1)', badgeBg: '#f1f5f9', badgeCol: '#334155', emoji: '⚪' };
+              }
+              var desc = item.isOther ? 'Kombinasi unik lainnya di kelas' : getHollandDesc(item.code);
+
+              breakdownHtml += '<div class="cat-row compact">' +
+                '<div class="cat-dot compact" style="background:' + theme.bg + ';">' + item.pct + '%</div>' +
+                '<div class="cat-info">' +
+                  '<div class="cat-info-top">' +
+                    '<span class="cat-label">' + theme.emoji + ' <b>' + esc(item.code) + '</b>' + (desc ? ' <span style="font-weight:500; font-size:12px; color:var(--muted); margin-left:4px;">(' + desc + ')</span>' : '') + '</span>' +
+                    '<span class="cat-count" style="background:' + theme.badgeBg + '; color:' + theme.badgeCol + ';">' + item.count + ' siswa</span>' +
+                  '</div>' +
+                  '<div class="cat-bar"><div class="cat-bar-fill" style="width:' + item.pct + '%; background:' + theme.bar + ';"></div></div>' +
+                '</div>' +
+              '</div>';
+            });
+            q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
+
           } else {
             var cats = [
               { label: 'Tinggi', cls: 'high', cnt: highCnt, pct: highPct, emoji: '🟢' },
@@ -1673,16 +1754,72 @@
             istHtml += '</div>';
             topPerf.innerHTML = istHtml;
 
-          } else if (testKey === 'holland' || testKey === 'learning_style' || testKey === 'rmib' || testKey === 'papi') {
+          } else if (testKey === 'holland') {
+            // Rekomendasi Arah Studi & Karier Kelas berdasarkan Dimensi Minat Dominan
+            var dimSums = { R:0, I:0, A:0, S:0, E:0, C:0 };
+            var dimCount = 0;
+            done.forEach(function(r) {
+              if (!r.holland_result) return;
+              var h = r.holland_result;
+              dimSums.R += (h.score_r || 0);
+              dimSums.I += (h.score_i || 0);
+              dimSums.A += (h.score_a || 0);
+              dimSums.S += (h.score_s || 0);
+              dimSums.E += (h.score_e || 0);
+              dimSums.C += (h.score_c || 0);
+              dimCount++;
+            });
+
+            var dimNames = {
+              'R': 'Realistic (Praktikal & Lapangan)',
+              'I': 'Investigative (Analitis, Sains & Riset)',
+              'A': 'Artistic (Kreatif, Desain & Ekspresi)',
+              'S': 'Social (Sosial, Edukasi & Pelayanan)',
+              'E': 'Enterprising (Kepemimpinan & Bisnis)',
+              'C': 'Conventional (Teratur, Data & Administrasi)'
+            };
+
+            var sortedDims = Object.keys(dimSums).map(function(k) {
+              return { dim: k, name: dimNames[k], avg: dimCount > 0 ? Math.round(dimSums[k] / dimCount) : 0 };
+            }).sort(function(a,b){ return b.avg - a.avg; });
+
+            var top1 = sortedDims[0] || { dim: 'I', name: 'Investigative' };
+            var top2 = sortedDims[1] || { dim: 'S', name: 'Social' };
+            var top3 = sortedDims[2] || { dim: 'A', name: 'Artistic' };
+
+            var careerAdvice = {
+              'I': 'Peneliti / Saintis, Analis Data, Medis & Farmasi, Ahli Biologi/Kimia, Software Engineer, Riset Ilmiah.',
+              'A': 'Desainer Grafis/UI, Arsitek, Penulis/Editor, Animator, Kreator Konten, Seni Peran/Musik.',
+              'S': 'Pendidik / Guru, Psikolog, Konselor BK, Pekerja Sosial, Public Relations, Hubungan Masyarakat.',
+              'E': 'Wirausahawan, Manajer, Marketing & Sales, Pengacara, Eksekutif Bisnis, Konsultan.',
+              'C': 'Akuntan, Auditor, Administrator Database, Analis Keuangan, Pengarsip, Perbankan.',
+              'R': 'Teknik Sipil/Mesin/Elektro, Pilot, Agroteknologi, Lapangan Teknik, Otomotif, Robotika.'
+            };
+
+            var hHtml = '<div class="perf-title"><i data-lucide="compass" style="width:14px;height:14px;color:#4f46e5;"></i> Rekomendasi Arah Studi & Karier Kelas</div>';
+            hHtml += '<div style="background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%); border:1px solid #bfdbfe; border-radius:10px; padding:12px; margin-bottom:10px;">';
+            hHtml += '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">';
+            hHtml += '    <span style="font-size:12.5px; font-weight:700; color:#1e40af;">Dimensi Minat Terbesar Kelas:</span>';
+            hHtml += '    <span style="background:#2563eb; color:#fff; font-weight:800; font-size:12px; padding:2px 10px; border-radius:12px;">Top 3: ' + top1.dim + '-' + top2.dim + '-' + top3.dim + '</span>';
+            hHtml += '  </div>';
+            hHtml += '  <div style="font-size:12px; color:#0f172a; margin-top:8px; line-height:1.5;">';
+            hHtml += '    Kecenderungan minat kelas paling dominan pada tipe <b>' + top1.name + '</b> disusul <b>' + top2.name + '</b>.';
+            hHtml += '  </div>';
+            hHtml += '  <div style="font-size:11.5px; color:#1e3a8a; margin-top:6px; background:#ffffffcc; padding:7px 10px; border-radius:6px; border:1px solid #dbeafe; line-height:1.4;">';
+            hHtml += '    🎯 <b>Jalur Studi & Karier yang Relevan:</b> ' + (careerAdvice[top1.dim] || 'Sesuai dengan eksplorasi minat siswa.');
+            hHtml += '  </div>';
+            hHtml += '</div>';
+
+            topPerf.innerHTML = hHtml;
+
+          } else if (testKey === 'learning_style' || testKey === 'rmib' || testKey === 'papi') {
             // TOP CATEGORY PERCENTAGE DISTRIBUTION
             var catFreq = {};
             var totalStudentsWithResult = 0;
 
             done.forEach(function(r) {
               var cat = 'Lainnya';
-              if (testKey === 'holland' && r.holland_result && r.holland_result.code) {
-                cat = r.holland_result.code;
-              } else if (testKey === 'learning_style' && r.learning_style_result) {
+              if (testKey === 'learning_style' && r.learning_style_result) {
                 var lsRes = r.learning_style_result;
                 var maxScore = Math.max(lsRes.score_visual||0, lsRes.score_auditory||0, lsRes.score_kinesthetic||0);
                 if (maxScore === lsRes.score_visual) cat = 'Visual';
@@ -1701,8 +1838,7 @@
               return { code: k, count: catFreq[k], pct: totalStudentsWithResult > 0 ? Math.round((catFreq[k] / totalStudentsWithResult) * 100) : 0 };
             }).sort(function(a,b){ return b.count - a.count; });
 
-            var titleText = 'Top Kategori Minat — Persentase Kelas';
-            if (testKey === 'learning_style') titleText = 'Top Gaya Belajar Dominan — Persentase Kelas';
+            var titleText = 'Top Gaya Belajar Dominan — Persentase Kelas';
             if (testKey === 'rmib') titleText = 'Top Kategori Minat RMIB — Persentase Kelas';
             if (testKey === 'papi') titleText = 'Top Tipe Kepribadian PAPI — Persentase Kelas';
 
@@ -1736,21 +1872,25 @@
           }
 
           var needAttn = q('#needAttention_' + testKey);
-          var bottomN = allRanked.length > 3 ? allRanked.slice(-Math.min(3, allRanked.length - 3)).reverse() : [];
-          if (bottomN.length > 0) {
-            needAttn.style.display = '';
-            var attnHtml = '<div class="perf-title"><i data-lucide="alert-circle" style="width:13px;height:13px;color:#ef4444;"></i> Perlu Perhatian — Skor Terendah</div><div class="perf-list">';
-            bottomN.forEach(function(item, idx) {
-              attnHtml += '<div class="perf-item">' +
-                '<div class="perf-item-rank attn"><i data-lucide="alert-triangle" style="width:12px;height:12px;"></i></div>' +
-                '<span class="perf-item-name">' + esc(item.name) + '</span>' +
-                '<span class="perf-item-score low">' + esc(getScoreLabel(item.result, testKey)) + '</span>' +
-              '</div>';
-            });
-            attnHtml += '</div>';
-            needAttn.innerHTML = attnHtml;
-          } else {
+          if (testKey === 'holland') {
             needAttn.style.display = 'none';
+          } else {
+            var bottomN = allRanked.length > 3 ? allRanked.slice(-Math.min(3, allRanked.length - 3)).reverse() : [];
+            if (bottomN.length > 0) {
+              needAttn.style.display = '';
+              var attnHtml = '<div class="perf-title"><i data-lucide="alert-circle" style="width:13px;height:13px;color:#ef4444;"></i> Perlu Perhatian — Skor Terendah</div><div class="perf-list">';
+              bottomN.forEach(function(item, idx) {
+                attnHtml += '<div class="perf-item">' +
+                  '<div class="perf-item-rank attn"><i data-lucide="alert-triangle" style="width:12px;height:12px;"></i></div>' +
+                  '<span class="perf-item-name">' + esc(item.name) + '</span>' +
+                  '<span class="perf-item-score low">' + esc(getScoreLabel(item.result, testKey)) + '</span>' +
+                '</div>';
+              });
+              attnHtml += '</div>';
+              needAttn.innerHTML = attnHtml;
+            } else {
+              needAttn.style.display = 'none';
+            }
           }
 
           // Auto insight text
@@ -1758,7 +1898,11 @@
           if (done.length >= 2) {
             insightBox.style.display = '';
             var insightText = '';
-            if (highPct >= 50) {
+            if (testKey === 'holland') {
+              var topCodeName = (sortedCodes && sortedCodes.length > 0) ? sortedCodes[0].code : '';
+              var topCodePct = (sortedCodes && sortedCodes.length > 0) ? sortedCodes[0].pct : 0;
+              insightText = '<b>💡 Insight Minat Kelas:</b> Kategori minat terbanyak di kelas ini adalah kode <b>' + topCodeName + '</b> (' + topCodePct + '% siswa). Arahkan kegiatan bimbingan karier, pemilihan jurusan perguruan tinggi, dan proyek kelas yang relevan dengan potensi eksplorasi minat tersebut.';
+            } else if (highPct >= 50) {
               insightText = '<b>💡 Insight:</b> Mayoritas siswa (<b>' + highPct + '%</b>) berada di kategori <b>Tinggi</b>. Kelas ini menunjukkan performa yang sangat baik secara keseluruhan. Pertimbangkan program pengayaan atau tantangan tambahan untuk mempertahankan motivasi.';
             } else if (lowPct >= 50) {
               insightText = '<b>💡 Insight:</b> Sebagian besar siswa (<b>' + lowPct + '%</b>) berada di kategori <b>Rendah</b>. Diperlukan perhatian khusus dan program remedial. Koordinasikan dengan guru BK untuk intervensi yang tepat.';

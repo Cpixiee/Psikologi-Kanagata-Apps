@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -4133,6 +4134,22 @@ func getKraepelinCategory(score float64, aspectType string) string {
 	return "Kurang"
 }
 
+// getBarcodeImagePath resolves the candidate path for the barcode image
+func getBarcodeImagePath() string {
+	candidates := []string{
+		"static/icons/barcode.jpeg",
+		"barcode/barcode.jpeg",
+		"/app/static/icons/barcode.jpeg",
+		"/app/barcode/barcode.jpeg",
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
 // generateProfessionalPDFReport renders the 1st page narrative report professionally using gofpdf
 func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, inv *models.TestInvitation, user *models.User, batch *models.TestBatch, testType string, summaryData map[string]interface{}, resultData interface{}) ([]byte, error) {
 	pdf := gofpdf.New("P", "mm", "A4", "")
@@ -4723,6 +4740,16 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 				pdf.MultiCell(0, 4.5, detailText, "", "L", false)
 			}
 		}
+	}
+
+	// Barcode di akhir lembar sebelah kanan
+	if bcPath := getBarcodeImagePath(); bcPath != "" {
+		if pdf.GetY() > 240 {
+			pdf.AddPage()
+		}
+		// A4 page: width 210, height 297. Margins: left 15, right 15 (max X: 195).
+		// Place barcode at bottom right: X = 160 mm, Y = 242 mm, W = 35 mm, H = 35 mm
+		pdf.Image(bcPath, 160, 242, 35, 35, false, "", 0, "")
 	}
 
 	buf := new(bytes.Buffer)
@@ -5460,7 +5487,7 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 
 		pdf.SetXY(x+5.5, y)
 		pdf.SetFont("Arial", "", 7.5)
-		pdf.MultiCell(0, 3.8, text, "", "L", false)
+		pdf.MultiCell(135, 3.8, text, "", "L", false)
 		pdf.Ln(0.6)
 	}
 
@@ -5483,6 +5510,15 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 	drawCheckboxItem("Tingkatkan kolaborasi tim dan komunikasi interpersonal dalam menyelesaikan tugas.")
 	drawCheckboxItem("Perdalam keahlian teknis dan wawasan studi pada program kejuruan/kuliah yang diminati.")
 	drawCheckboxItem("Kembangkan strategi manajemen stres agar ritme belajar tetap optimal.")
+
+	// Render Barcode on bottom right (right above footer)
+	if bcPath := getBarcodeImagePath(); bcPath != "" {
+		// A4 page: width 210, height 297. Margins: left 15, right 15 (max X: 195).
+		// Footer line is at Y = 275 mm.
+		// Barcode dimensions: 35 x 35 mm.
+		// Position: X = 160 mm, Y = 237 mm (bottom of barcode at 272 mm, 3 mm above footer).
+		pdf.Image(bcPath, 160, 237, 35, 35, false, "", 0, "")
+	}
 
 	buf := new(bytes.Buffer)
 	err = pdf.Output(buf)

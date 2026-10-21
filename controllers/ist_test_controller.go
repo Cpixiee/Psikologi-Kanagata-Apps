@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -1933,6 +1934,23 @@ func (c *ISTTestController) ExportResultPDF() {
 			pdf.CellFormat(colW[3+i], 7, val, "1", 0, "C", false, 0, "")
 		}
 		pdf.Ln(-1)
+	}
+
+	// Render Barcode di bagian kanan bawah
+	bcCandidates := []string{
+		"static/icons/barcode.jpeg",
+		"barcode/barcode.jpeg",
+		"/app/static/icons/barcode.jpeg",
+		"/app/barcode/barcode.jpeg",
+	}
+	for _, bc := range bcCandidates {
+		if _, err := os.Stat(bc); err == nil {
+			if pdf.GetY() > 240 {
+				pdf.AddPage()
+			}
+			pdf.Image(bc, 160, 242, 35, 35, false, "", 0, "")
+			break
+		}
 	}
 
 	filename := fmt.Sprintf("IST_Result_%d.pdf", inv.Id)

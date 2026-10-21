@@ -648,6 +648,38 @@
       .cat-bar-fill.medium { background: linear-gradient(90deg, #d97706, #fbbf24); }
       .cat-bar-fill.low    { background: linear-gradient(90deg, #dc2626, #f87171); }
 
+      /* IQ Range styles for IST insight */
+      .cat-row.compact {
+        padding: 9px 0;
+        gap: 12px;
+      }
+      .cat-dot.compact {
+        width: 38px;
+        height: 38px;
+        font-size: 11.5px;
+        border-radius: 10px;
+      }
+      .cat-dot.iq-superior   { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+      .cat-dot.iq-high       { background: linear-gradient(135deg, #059669, #10b981); }
+      .cat-dot.iq-avg        { background: linear-gradient(135deg, #0284c7, #38bdf8); }
+      .cat-dot.iq-lowavg     { background: linear-gradient(135deg, #d97706, #f59e0b); }
+      .cat-dot.iq-borderline { background: linear-gradient(135deg, #ea580c, #fb923c); }
+      .cat-dot.iq-low        { background: linear-gradient(135deg, #dc2626, #ef4444); }
+
+      .cat-count.iq-superior   { background: #ede9fe; color: #6d28d9; }
+      .cat-count.iq-high       { background: #dcfce7; color: #15803d; }
+      .cat-count.iq-avg        { background: #e0f2fe; color: #0369a1; }
+      .cat-count.iq-lowavg     { background: #fef3c7; color: #92400e; }
+      .cat-count.iq-borderline { background: #ffedd5; color: #c2410c; }
+      .cat-count.iq-low        { background: #fee2e2; color: #b91c1c; }
+
+      .cat-bar-fill.iq-superior   { background: linear-gradient(90deg, #6366f1, #a855f7); }
+      .cat-bar-fill.iq-high       { background: linear-gradient(90deg, #059669, #34d399); }
+      .cat-bar-fill.iq-avg        { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+      .cat-bar-fill.iq-lowavg     { background: linear-gradient(90deg, #d97706, #fbbf24); }
+      .cat-bar-fill.iq-borderline { background: linear-gradient(90deg, #ea580c, #fdba74); }
+      .cat-bar-fill.iq-low        { background: linear-gradient(90deg, #dc2626, #f87171); }
+
       /* Top/Bottom performer section */
       .perf-section {
         margin-top: 18px;
@@ -1224,7 +1256,7 @@
               </div>
               <div>
                 <p class="insight-card-title" id="categoryChartLabel_${testKey}">Insight Kategori Kelas - ${getBatchTypeName(testKey)}</p>
-                <p class="insight-card-sub">Distribusi tingkat hasil peserta: Tinggi, Sedang, Rendah</p>
+                <p class="insight-card-sub" id="categoryChartSub_${testKey}">Distribusi tingkat hasil peserta: Tinggi, Sedang, Rendah</p>
               </div>
             </div>
             <div class="insight-body">
@@ -1516,24 +1548,64 @@
 
           // Category breakdown HTML
           var breakdownHtml = '';
-          var cats = [
-            { label: 'Tinggi', cls: 'high', cnt: highCnt, pct: highPct, emoji: '🟢' },
-            { label: 'Sedang', cls: 'medium', cnt: medCnt, pct: medPct, emoji: '🟡' },
-            { label: 'Rendah', cls: 'low', cnt: lowCnt, pct: lowPct, emoji: '🔴' }
-          ];
-          cats.forEach(function(c) {
-            breakdownHtml += '<div class="cat-row">' +
-              '<div class="cat-dot ' + c.cls + '">' + c.pct + '%</div>' +
-              '<div class="cat-info">' +
-                '<div class="cat-info-top">' +
-                  '<span class="cat-label">' + c.emoji + ' ' + c.label + '</span>' +
-                  '<span class="cat-count ' + c.cls + '">' + c.cnt + ' siswa</span>' +
+          if (testKey === 'ist') {
+            var subEl = q('#categoryChartSub_' + testKey);
+            if (subEl) subEl.textContent = 'Distribusi hasil peserta berdasarkan rentang skor IQ';
+
+            var iqRanges = [
+              { label: 'IQ > 120', desc: 'Superior', cls: 'iq-superior', emoji: '🟣', min: 121, max: 999 },
+              { label: 'IQ 101 - 120', desc: 'Tinggi', cls: 'iq-high', emoji: '🟢', min: 101, max: 120 },
+              { label: 'IQ 90 - 100', desc: 'Rata-rata', cls: 'iq-avg', emoji: '🔵', min: 90, max: 100 },
+              { label: 'IQ 80 - 89', desc: 'Rata-rata Bawah', cls: 'iq-lowavg', emoji: '🟡', min: 80, max: 89 },
+              { label: 'IQ 70 - 79', desc: 'Rendah', cls: 'iq-borderline', emoji: '🟠', min: 70, max: 79 },
+              { label: 'IQ < 70', desc: 'Sangat Rendah', cls: 'iq-low', emoji: '🔴', min: 1, max: 69 }
+            ];
+
+            var studentsWithIQ = done.filter(function(r) {
+              return r.ist_result && r.ist_result.iq && r.ist_result.iq > 0;
+            });
+            var totalIQCount = studentsWithIQ.length > 0 ? studentsWithIQ.length : done.length;
+
+            iqRanges.forEach(function(rng) {
+              var count = studentsWithIQ.filter(function(r) {
+                var iq = r.ist_result.iq;
+                return iq >= rng.min && iq <= rng.max;
+              }).length;
+              var pct = totalIQCount > 0 ? Math.round((count / totalIQCount) * 100) : 0;
+
+              breakdownHtml += '<div class="cat-row compact">' +
+                '<div class="cat-dot compact ' + rng.cls + '">' + pct + '%</div>' +
+                '<div class="cat-info">' +
+                  '<div class="cat-info-top">' +
+                    '<span class="cat-label">' + rng.emoji + ' ' + rng.label + ' <span style="font-weight:500; font-size:12px; color:var(--muted); margin-left:4px;">(' + rng.desc + ')</span></span>' +
+                    '<span class="cat-count ' + rng.cls + '">' + count + ' siswa</span>' +
+                  '</div>' +
+                  '<div class="cat-bar"><div class="cat-bar-fill ' + rng.cls + '" style="width:' + pct + '%;"></div></div>' +
                 '</div>' +
-                '<div class="cat-bar"><div class="cat-bar-fill ' + c.cls + '" style="width:' + c.pct + '%;"></div></div>' +
-              '</div>' +
-            '</div>';
-          });
-          q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
+              '</div>';
+            });
+            q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
+
+          } else {
+            var cats = [
+              { label: 'Tinggi', cls: 'high', cnt: highCnt, pct: highPct, emoji: '🟢' },
+              { label: 'Sedang', cls: 'medium', cnt: medCnt, pct: medPct, emoji: '🟡' },
+              { label: 'Rendah', cls: 'low', cnt: lowCnt, pct: lowPct, emoji: '🔴' }
+            ];
+            cats.forEach(function(c) {
+              breakdownHtml += '<div class="cat-row">' +
+                '<div class="cat-dot ' + c.cls + '">' + c.pct + '%</div>' +
+                '<div class="cat-info">' +
+                  '<div class="cat-info-top">' +
+                    '<span class="cat-label">' + c.emoji + ' ' + c.label + '</span>' +
+                    '<span class="cat-count ' + c.cls + '">' + c.cnt + ' siswa</span>' +
+                  '</div>' +
+                  '<div class="cat-bar"><div class="cat-bar-fill ' + c.cls + '" style="width:' + c.pct + '%;"></div></div>' +
+                '</div>' +
+              '</div>';
+            });
+            q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
+          }
 
           // Build top performers / top category percentage distribution
           var topPerf = q('#topPerformers_' + testKey);

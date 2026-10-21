@@ -89,7 +89,29 @@ func (c *AIController) requireAuth() bool {
 	return true
 }
 
+// IsAIDisabled checks whether AI generation is manually disabled via flag file or environment variable
+func IsAIDisabled() bool {
+	if strings.EqualFold(os.Getenv("AI_DISABLED"), "true") || os.Getenv("AI_DISABLED") == "1" {
+		return true
+	}
+	candidates := []string{
+		"data/ai_cache/AI_DISABLED",
+		"data/AI_DISABLED",
+		"/app/data/ai_cache/AI_DISABLED",
+		"/app/data/AI_DISABLED",
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
 func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, int, error) {
+	if IsAIDisabled() {
+		return "", 429, fmt.Errorf("Token AI sudah habis")
+	}
 	apiKey := geminiAPIKey()
 	if apiKey == "" {
 		return "", 400, fmt.Errorf("GEMINI_API_KEY belum dikonfigurasi pada file .env.docker")
@@ -289,6 +311,15 @@ func callGemini(systemHint string, userPrompt string, expectJSON bool) (string, 
 // menghasilkan analisis terstruktur (ringkasan, kekuatan, karir, dst).
 func (c *AIController) TestSummary() {
 	if !c.requireAuth() {
+		return
+	}
+	if IsAIDisabled() {
+		c.Ctx.Output.SetStatus(429)
+		c.Data["json"] = aiResponse{
+			Success: false,
+			Message: "Token AI sudah habis",
+		}
+		c.ServeJSON()
 		return
 	}
 	var req aiSummaryRequest
@@ -569,6 +600,16 @@ func (c *AIController) Chat() {
 	if !c.requireAuth() {
 		return
 	}
+	if IsAIDisabled() {
+		c.Data["json"] = aiResponse{
+			Success: true,
+			Data: map[string]interface{}{
+				"reply": "Token AI sudah habis. Layanan asisten AI saat ini sedang tidak tersedia. Silakan hubungi administrator.",
+			},
+		}
+		c.ServeJSON()
+		return
+	}
 	var req aiChatRequest
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
 		c.Ctx.Output.SetStatus(400)
@@ -619,6 +660,15 @@ func (c *AIController) Chat() {
 // lalu meminta Gemini menghasilkan interpretasi level kelas (untuk guru/sekolah).
 func (c *AIController) BatchSummary() {
 	if !c.requireAuth() {
+		return
+	}
+	if IsAIDisabled() {
+		c.Ctx.Output.SetStatus(429)
+		c.Data["json"] = aiResponse{
+			Success: false,
+			Message: "Token AI sudah habis",
+		}
+		c.ServeJSON()
 		return
 	}
 
@@ -777,6 +827,15 @@ func extractISTFromResultsMap(results map[string]interface{}) (int, string) {
 // lalu meminta Gemini menghasilkan interpretasi per alat tes dan kesimpulan gabungan.
 func (c *AIController) StudentCombinedSummary() {
 	if !c.requireAuth() {
+		return
+	}
+	if IsAIDisabled() {
+		c.Ctx.Output.SetStatus(429)
+		c.Data["json"] = aiResponse{
+			Success: false,
+			Message: "Token AI sudah habis",
+		}
+		c.ServeJSON()
 		return
 	}
 

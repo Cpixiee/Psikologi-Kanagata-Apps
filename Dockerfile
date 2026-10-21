@@ -35,9 +35,9 @@ COPY --from=builder /src/static ./static
 COPY migrations ./migrations
 COPY seeds ./seeds
 COPY data ./data
-COPY scripts/entrypoint.sh /app/scripts/entrypoint.sh
+COPY scripts ./scripts
 
-RUN chmod +x /app/scripts/entrypoint.sh /app/app /app/migrate /app/seed /app/push_pending /app/push_pending_wa
+RUN chmod +x /app/scripts/*.sh /app/app /app/migrate /app/seed /app/push_pending /app/push_pending_wa
 
 EXPOSE 8086
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

@@ -1085,7 +1085,7 @@
           if (!res.ok) {
             var st = res.status;
             if (st === 402 || st === 429) {
-              showAIToast('Token AI tidak mencukupi atau rate limit tercapai. Menggunakan rekomendasi data lokal.', 'token');
+              showAIToast('Token AI sudah habis. Menggunakan rekomendasi data lokal.', 'token');
             } else if (st >= 500) {
               showAIToast('Server AI sedang tidak tersedia. Menggunakan rekomendasi data lokal.', 'server');
             } else {
@@ -1099,7 +1099,7 @@
             } else {
               var errMsg = (json && json.message) || '';
               if (/token|quota|rate|insufficient|limit/i.test(errMsg)) {
-                showAIToast('Token AI tidak mencukupi. Menggunakan rekomendasi data lokal.', 'token');
+                showAIToast('Token AI sudah habis. Menggunakan rekomendasi data lokal.', 'token');
               } else {
                 showAIToast('Gagal memproses respons AI. Menggunakan rekomendasi data lokal.', 'error');
               }
@@ -1268,11 +1268,14 @@
           if (!res.ok) {
             var st = res.status;
             if (st === 402 || st === 429) {
-              showAIToast('Token AI tidak mencukupi. Analisis ' + testTypeFriendly + ' tidak dapat dimuat.', 'token');
+              showAIToast('Token AI sudah habis. Analisis ' + testTypeFriendly + ' tidak dapat dimuat.', 'token');
             } else if (st >= 500) {
               showAIToast('Server AI tidak tersedia. Analisis ' + testTypeFriendly + ' tidak dapat dimuat.', 'server');
             } else {
               showAIToast('Gagal memuat analisis AI untuk ' + testTypeFriendly + '.', 'error');
+            }
+            if (q('#' + summaryId)) {
+              q('#' + summaryId).innerHTML = '<p class="text-danger small mb-0"><i class="bx bx-error-circle me-1"></i> Token AI sudah habis.</p>';
             }
             return;
           }
@@ -2823,8 +2826,9 @@
           var res = await fetch('/api/ai/test-summary', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
           var json = await res.json();
           if(!json.success || !json.data){ 
-            q('#aiContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal mendapatkan analisis AI.</p>'; 
-            q('#laporanNaratifContent').innerHTML = '<div class="alert alert-warning">Gagal mendapatkan analisis AI.</div>';
+            var msg = (json && json.message) || 'Token AI sudah habis.';
+            q('#aiContent').innerHTML = '<p style="color:var(--muted);font-size:13px;"><i class="bx bx-error-circle me-1"></i> ' + esc(msg) + '</p>'; 
+            q('#laporanNaratifContent').innerHTML = '<div class="alert alert-warning d-flex align-items-center gap-2"><i class="bx bx-error-circle fs-5"></i> <span>' + esc(msg) + '</span></div>';
             return; 
           }
           var aiData = parseAIData(json.data), html = '';

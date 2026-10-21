@@ -1813,23 +1813,23 @@
           if (!res.ok) {
             var st = res.status;
             if (st === 402 || st === 429) {
-              showAIToast('Token AI tidak mencukupi atau rate limit tercapai. Summary AI batch tidak dapat dimuat.', 'token');
+              showAIToast('Token AI sudah habis. Summary AI batch tidak dapat dimuat.', 'token');
             } else if (st >= 500) {
               showAIToast('Server AI sedang tidak tersedia. Summary AI batch tidak dapat dimuat.', 'server');
             } else {
               showAIToast('Gagal memuat summary AI batch. Kode error: ' + st, 'error');
             }
-            q('#aiBatchContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal mendapatkan analisis AI. Kode: ' + st + '</p>';
+            q('#aiBatchContent').innerHTML = '<div class="alert alert-warning d-flex align-items-center gap-2"><i class="bx bx-error-circle fs-5"></i> <span>Token AI sudah habis. Analisis AI batch dinonaktifkan.</span></div>';
             return;
           }
 
           var json = await res.json();
           if (!json.success || !json.data) {
-            var errMsg = (json && json.message) || '';
+            var errMsg = (json && json.message) || 'Token AI sudah habis.';
             if (/token|quota|rate|insufficient|limit/i.test(errMsg)) {
-              showAIToast('Token AI tidak mencukupi. Summary batch tidak dapat ditampilkan.', 'token');
+              showAIToast('Token AI sudah habis. Summary batch tidak dapat ditampilkan.', 'token');
             }
-            q('#aiBatchContent').innerHTML = '<p style="color:var(--muted);font-size:13px;">Gagal mendapatkan analisis AI.</p>';
+            q('#aiBatchContent').innerHTML = '<div class="alert alert-warning d-flex align-items-center gap-2"><i class="bx bx-error-circle fs-5"></i> <span>' + esc(errMsg) + '</span></div>';
             return;
           }
           var d = json.data;

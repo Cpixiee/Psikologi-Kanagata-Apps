@@ -117,8 +117,15 @@ func filterInvitationsBySchool(invs []models.TestInvitation, sekolah string) []m
 		// User ditemukan: include jika sekolah user kosong (belum diisi) atau cocok
 		if u.Sekolah == "" || strings.EqualFold(u.Sekolah, sekolah) {
 			out = append(out, inv)
+		} else if inv.BatchId != nil && *inv.BatchId > 0 {
+			// Cek apakah batch tempat siswa terdaftar memang milik sekolah ini
+			// (mencegah siswa hilang jika salah memilih sekolah saat onboarding)
+			var b models.TestBatch
+			b.Id = *inv.BatchId
+			if o.Read(&b) == nil && (strings.EqualFold(b.Sekolah, sekolah) || strings.EqualFold(b.Institution, sekolah)) {
+				out = append(out, inv)
+			}
 		}
-		// Jika sekolah user eksplisit berbeda → skip (cross-school protection)
 	}
 	return out
 }

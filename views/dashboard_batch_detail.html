@@ -1549,6 +1549,8 @@
           // Category breakdown HTML
           var breakdownHtml = '';
           if (testKey === 'ist') {
+            var lblEl = q('#categoryChartLabel_' + testKey);
+            if (lblEl) lblEl.textContent = 'Distribusi Skor IQ Kelas — IST';
             var subEl = q('#categoryChartSub_' + testKey);
             if (subEl) subEl.textContent = 'Distribusi hasil peserta berdasarkan rentang skor IQ';
 
@@ -1587,8 +1589,10 @@
             q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
 
           } else if (testKey === 'holland') {
+            var lblEl = q('#categoryChartLabel_' + testKey);
+            if (lblEl) lblEl.textContent = 'Top Kategori Minat Kelas — Holland RIASEC';
             var subEl = q('#categoryChartSub_' + testKey);
-            if (subEl) subEl.textContent = 'Distribusi kategori & kode minat kepribadian peserta';
+            if (subEl) subEl.textContent = 'Distribusi kode minat karier & persentase peserta didik';
 
             var hollandStudents = done.filter(function(r) {
               return r.holland_result && r.holland_result.code;
@@ -1607,7 +1611,10 @@
                 count: codeFreq[k],
                 pct: totalHolland > 0 ? Math.round((codeFreq[k] / totalHolland) * 100) : 0
               };
-            }).sort(function(a, b) { return b.count - a.count; });
+            }).sort(function(a, b) {
+              if (b.count !== a.count) return b.count - a.count;
+              return a.code.localeCompare(b.code);
+            });
 
             var riasecLetters = {
               'R': 'Realistic', 'I': 'Investigative', 'A': 'Artistic',
@@ -1627,7 +1634,8 @@
               { bg: 'linear-gradient(135deg, #059669, #10b981)', bar: 'linear-gradient(90deg, #059669, #34d399)', badgeBg: '#dcfce7', badgeCol: '#15803d', emoji: '🟢' },
               { bg: 'linear-gradient(135deg, #0284c7, #38bdf8)', bar: 'linear-gradient(90deg, #0284c7, #38bdf8)', badgeBg: '#e0f2fe', badgeCol: '#0369a1', emoji: '🔵' },
               { bg: 'linear-gradient(135deg, #d97706, #f59e0b)', bar: 'linear-gradient(90deg, #d97706, #fbbf24)', badgeBg: '#fef3c7', badgeCol: '#92400e', emoji: '🟡' },
-              { bg: 'linear-gradient(135deg, #ea580c, #fb923c)', bar: 'linear-gradient(90deg, #ea580c, #fdba74)', badgeBg: '#ffedd5', badgeCol: '#c2410c', emoji: '🟠' }
+              { bg: 'linear-gradient(135deg, #ea580c, #fb923c)', bar: 'linear-gradient(90deg, #ea580c, #fdba74)', badgeBg: '#ffedd5', badgeCol: '#c2410c', emoji: '🟠' },
+              { bg: 'linear-gradient(135deg, #db2777, #f472b6)', bar: 'linear-gradient(90deg, #db2777, #f472b6)', badgeBg: '#fce7f3', badgeCol: '#be185d', emoji: '🌸' }
             ];
 
             var displayItems = [];
@@ -1652,7 +1660,7 @@
               if (item.isOther) {
                 theme = { bg: 'linear-gradient(135deg, #64748b, #94a3b8)', bar: 'linear-gradient(90deg, #64748b, #cbd5e1)', badgeBg: '#f1f5f9', badgeCol: '#334155', emoji: '⚪' };
               }
-              var desc = item.isOther ? 'Kombinasi unik lainnya di kelas' : getHollandDesc(item.code);
+              var desc = item.isOther ? 'Kombinasi kode unik lainnya di kelas' : getHollandDesc(item.code);
 
               breakdownHtml += '<div class="cat-row compact">' +
                 '<div class="cat-dot compact" style="background:' + theme.bg + ';">' + item.pct + '%</div>' +
@@ -1667,7 +1675,91 @@
             });
             q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
 
-          } else {
+          } else if (testKey === 'learning_style') {
+            var lblEl = q('#categoryChartLabel_' + testKey);
+            if (lblEl) lblEl.textContent = 'Modalitas Belajar Dominan — Gaya Belajar VAK';
+            var subEl = q('#categoryChartSub_' + testKey);
+            if (subEl) subEl.textContent = 'Distribusi preferensi modalitas belajar peserta didik';
+
+            var lsFreq = { 'Visual': 0, 'Auditori': 0, 'Kinestetik': 0 };
+            var lsTotal = 0;
+            done.forEach(function(r) {
+              if (r.learning_style_result) {
+                var d = r.learning_style_result.dominant_type;
+                if (!d) {
+                  var mx = Math.max(r.learning_style_result.score_visual||0, r.learning_style_result.score_auditory||0, r.learning_style_result.score_kinesthetic||0);
+                  if (mx === r.learning_style_result.score_visual) d = 'Visual';
+                  else if (mx === r.learning_style_result.score_auditory) d = 'Auditori';
+                  else d = 'Kinestetik';
+                }
+                if (lsFreq[d] !== undefined) lsFreq[d]++;
+                else lsFreq[d] = 1;
+                lsTotal++;
+              }
+            });
+            var lsThemes = {
+              'Visual': { bg: 'linear-gradient(135deg, #0284c7, #38bdf8)', bar: 'linear-gradient(90deg, #0284c7, #38bdf8)', badgeBg: '#e0f2fe', badgeCol: '#0369a1', emoji: '👁️', desc: 'Belajar melalui visual, bagan & diagram' },
+              'Auditori': { bg: 'linear-gradient(135deg, #059669, #10b981)', bar: 'linear-gradient(90deg, #059669, #34d399)', badgeBg: '#dcfce7', badgeCol: '#15803d', emoji: '👂', desc: 'Belajar melalui penjelasan lisan & diskusi' },
+              'Kinestetik': { bg: 'linear-gradient(135deg, #d97706, #f59e0b)', bar: 'linear-gradient(90deg, #d97706, #fbbf24)', badgeBg: '#fef3c7', badgeCol: '#92400e', emoji: '🏃', desc: 'Belajar melalui praktik, simulasi & gerak' }
+            };
+            var breakdownHtml = '';
+            ['Visual', 'Auditori', 'Kinestetik'].forEach(function(cat) {
+              var cnt = lsFreq[cat] || 0;
+              var pct = lsTotal > 0 ? Math.round((cnt / lsTotal) * 100) : 0;
+              var th = lsThemes[cat];
+              breakdownHtml += '<div class="cat-row compact">' +
+                '<div class="cat-dot compact" style="background:' + th.bg + ';">' + pct + '%</div>' +
+                '<div class="cat-info">' +
+                  '<div class="cat-info-top">' +
+                    '<span class="cat-label">' + th.emoji + ' <b>' + cat + '</b> <span style="font-weight:500; font-size:12px; color:var(--muted); margin-left:4px;">(' + th.desc + ')</span></span>' +
+                    '<span class="cat-count" style="background:' + th.badgeBg + '; color:' + th.badgeCol + ';">' + cnt + ' siswa</span>' +
+                  '</div>' +
+                  '<div class="cat-bar"><div class="cat-bar-fill" style="width:' + pct + '%; background:' + th.bar + ';"></div></div>' +
+                '</div>' +
+              '</div>';
+            });
+            q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
+
+          } else if (testKey === 'rmib') {
+            var lblEl = q('#categoryChartLabel_' + testKey);
+            if (lblEl) lblEl.textContent = 'Top Minat Kejuruan Kelas — RMIB';
+            var subEl = q('#categoryChartSub_' + testKey);
+            if (subEl) subEl.textContent = 'Distribusi kategori minat pekerjaan peserta didik';
+
+            var rmibFreq = {};
+            var rmibTotal = 0;
+            done.forEach(function(r) {
+              if (r.rmib_result && r.rmib_result.dominant_category) {
+                var c = r.rmib_result.dominant_category;
+                rmibFreq[c] = (rmibFreq[c] || 0) + 1;
+                rmibTotal++;
+              }
+            });
+            var sortedRmib = Object.keys(rmibFreq).map(function(k) {
+              return { cat: k, count: rmibFreq[k], pct: rmibTotal > 0 ? Math.round((rmibFreq[k] / rmibTotal) * 100) : 0 };
+            }).sort(function(a, b) { return b.count - a.count; });
+
+            var palette = [
+              { bg: 'linear-gradient(135deg, #6366f1, #8b5cf6)', bar: 'linear-gradient(90deg, #6366f1, #a855f7)', badgeBg: '#ede9fe', badgeCol: '#6d28d9', emoji: '⭐' },
+              { bg: 'linear-gradient(135deg, #059669, #10b981)', bar: 'linear-gradient(90deg, #059669, #34d399)', badgeBg: '#dcfce7', badgeCol: '#15803d', emoji: '✨' },
+              { bg: 'linear-gradient(135deg, #0284c7, #38bdf8)', bar: 'linear-gradient(90deg, #0284c7, #38bdf8)', badgeBg: '#e0f2fe', badgeCol: '#0369a1', emoji: '🌟' },
+              { bg: 'linear-gradient(135deg, #d97706, #f59e0b)', bar: 'linear-gradient(90deg, #d97706, #fbbf24)', badgeBg: '#fef3c7', badgeCol: '#92400e', emoji: '💫' }
+            ];
+            var breakdownHtml = '';
+            sortedRmib.slice(0, 4).forEach(function(item, idx) {
+              var th = palette[idx % palette.length];
+              breakdownHtml += '<div class="cat-row compact">' +
+                '<div class="cat-dot compact" style="background:' + th.bg + ';">' + item.pct + '%</div>' +
+                '<div class="cat-info">' +
+                  '<div class="cat-info-top">' +
+                    '<span class="cat-label">' + th.emoji + ' <b>' + esc(item.cat) + '</b></span>' +
+                    '<span class="cat-count" style="background:' + th.badgeBg + '; color:' + th.badgeCol + ';">' + item.count + ' siswa</span>' +
+                  '</div>' +
+                  '<div class="cat-bar"><div class="cat-bar-fill" style="width:' + item.pct + '%; background:' + th.bar + ';"></div></div>' +
+                '</div>' +
+              '</div>';
+            });
+            q('#categoryBreakdown_' + testKey).innerHTML = breakdownHtml;
             var cats = [
               { label: 'Tinggi', cls: 'high', cnt: highCnt, pct: highPct, emoji: '🟢' },
               { label: 'Sedang', cls: 'medium', cnt: medCnt, pct: medPct, emoji: '🟡' },
@@ -1913,6 +2005,7 @@
             }
             insightBox.innerHTML = insightText;
           }
+          if (window.lucide) try { lucide.createIcons(); } catch(_) {}
         }
       }
 

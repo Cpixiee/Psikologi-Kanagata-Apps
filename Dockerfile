@@ -32,6 +32,7 @@ COPY --from=builder /out/push_pending_wa /app/push_pending_wa
 COPY conf/app.conf.example /app/conf/app.conf
 COPY views ./views
 COPY --from=builder /src/static ./static
+COPY barcode ./barcode
 COPY migrations ./migrations
 COPY seeds ./seeds
 COPY data ./data

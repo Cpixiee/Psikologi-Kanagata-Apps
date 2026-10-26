@@ -1936,19 +1936,29 @@ func (c *ISTTestController) ExportResultPDF() {
 		pdf.Ln(-1)
 	}
 
-	// Render Barcode di bagian kanan bawah
+	// Render Barcode / Tanda Tangan di bagian kanan bawah
 	bcCandidates := []string{
+		"barcode/template_ttd_clean.png",
+		"static/icons/template_ttd_clean.png",
+		"barcode/Template ttd laporan psikotes.png",
+		"static/icons/Template ttd laporan psikotes.png",
 		"static/icons/barcode.jpeg",
 		"barcode/barcode.jpeg",
+		"/app/barcode/template_ttd_clean.png",
+		"/app/static/icons/template_ttd_clean.png",
+		"/app/barcode/Template ttd laporan psikotes.png",
+		"/app/static/icons/Template ttd laporan psikotes.png",
 		"/app/static/icons/barcode.jpeg",
 		"/app/barcode/barcode.jpeg",
 	}
 	for _, bc := range bcCandidates {
 		if _, err := os.Stat(bc); err == nil {
-			if pdf.GetY() > 240 {
+			sigY := 232.0
+			if pdf.GetY() > 230 {
 				pdf.AddPage()
+				sigY = 30.0
 			}
-			pdf.Image(bc, 160, 242, 35, 35, false, "", 0, "")
+			pdf.Image(bc, 135, sigY, 60, 0, false, "", 0, "")
 			break
 		}
 	}

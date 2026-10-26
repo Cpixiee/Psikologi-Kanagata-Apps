@@ -4141,11 +4141,19 @@ func getKraepelinCategory(score float64, aspectType string) string {
 	return "Kurang"
 }
 
-// getBarcodeImagePath resolves the candidate path for the barcode image
+// getBarcodeImagePath resolves the candidate path for the barcode / signature template image
 func getBarcodeImagePath() string {
 	candidates := []string{
+		"barcode/template_ttd_clean.png",
+		"static/icons/template_ttd_clean.png",
+		"barcode/Template ttd laporan psikotes.png",
+		"static/icons/Template ttd laporan psikotes.png",
 		"static/icons/barcode.jpeg",
 		"barcode/barcode.jpeg",
+		"/app/barcode/template_ttd_clean.png",
+		"/app/static/icons/template_ttd_clean.png",
+		"/app/barcode/Template ttd laporan psikotes.png",
+		"/app/static/icons/Template ttd laporan psikotes.png",
 		"/app/static/icons/barcode.jpeg",
 		"/app/barcode/barcode.jpeg",
 	}
@@ -4749,14 +4757,16 @@ func (c *PsychotestAdminController) generateProfessionalPDFReport(o orm.Ormer, i
 		}
 	}
 
-	// Barcode di akhir lembar sebelah kanan
+	// Barcode / Tanda Tangan di akhir lembar sebelah kanan
 	if bcPath := getBarcodeImagePath(); bcPath != "" {
-		if pdf.GetY() > 240 {
+		sigY := 232.0
+		if pdf.GetY() > 230 {
 			pdf.AddPage()
+			sigY = 30.0
 		}
 		// A4 page: width 210, height 297. Margins: left 15, right 15 (max X: 195).
-		// Place barcode at bottom right: X = 160 mm, Y = 242 mm, W = 35 mm, H = 35 mm
-		pdf.Image(bcPath, 160, 242, 35, 35, false, "", 0, "")
+		// Template ttd: W = 60 mm, H = 39.2 mm. X = 135 mm (aligned to right margin 195).
+		pdf.Image(bcPath, 135, sigY, 60, 0, false, "", 0, "")
 	}
 
 	buf := new(bytes.Buffer)
@@ -5518,13 +5528,13 @@ func (c *PsychotestAdminController) generateComprehensivePDFReport(o orm.Ormer, 
 	drawCheckboxItem("Perdalam keahlian teknis dan wawasan studi pada program kejuruan/kuliah yang diminati.")
 	drawCheckboxItem("Kembangkan strategi manajemen stres agar ritme belajar tetap optimal.")
 
-	// Render Barcode on bottom right (right above footer)
+	// Render Barcode / Tanda Tangan on bottom right (right above footer)
 	if bcPath := getBarcodeImagePath(); bcPath != "" {
 		// A4 page: width 210, height 297. Margins: left 15, right 15 (max X: 195).
 		// Footer line is at Y = 275 mm.
-		// Barcode dimensions: 35 x 35 mm.
-		// Position: X = 160 mm, Y = 237 mm (bottom of barcode at 272 mm, 3 mm above footer).
-		pdf.Image(bcPath, 160, 237, 35, 35, false, "", 0, "")
+		// Template ttd: W = 60 mm, H = 39.2 mm. X = 135 mm (aligned to right margin 195).
+		// Position: X = 135 mm, Y = 232 mm (bottom of signature at 271.2 mm, ~3.8 mm above footer).
+		pdf.Image(bcPath, 135, 232, 60, 0, false, "", 0, "")
 	}
 
 	buf := new(bytes.Buffer)
